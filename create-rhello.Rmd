@@ -37,7 +37,25 @@ usethis::use_mit_license(copyright_holder = "F. Last")
 ```
 
 # Class predictor_hybrid
-The `predictor_hybrid` class is an S3 object for representing hybrid predictors: a combination of scalar and functional covariates. The following code defines the class.
+- Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit hypercube domains $\mathcal{T}_k := [0,1]^{d_k}$ ($d_k \in \mathbb{N})$; i.e., $X^{(k)}: \mathcal{T}_k \rightarrow \mathbb{R}$.
+
+- Assume that each $X^{(k)}$ is in $L^2(\mathcal{T}_k)$, a Hilbert space of square integrable functions with respect to Lebesgue measure $dt_k$ on $\mathcal{T}_k$. 
+
+- Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2(\mathcal{T}_K)$---a cartesian product of individual $L^2(\mathcal{T}_k)$ spaces. 
+
+- We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times \mathcal{T}_K$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
+
+- **Our strategy is to formulate a hybrid random object**, $\mathbf{W} = (X, \mathbf{Z})$, which combines $X$ and $p$-dimensional scalar covariate $\mathbf{Z}$ into an ordered pair belonging to $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.  
+
+- An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$, with $X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $\mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$.
+
+- The hybrid object forms a Hilbert space, characterized by well-defined addition, scalar multiplication, and inner product operations. 
+
+- The `predictor_hybrid` class is an S3 object designed to represent this structure. 
+
+- We implement Hilbert space operations for this class, and our algorithm is built on these foundational operations.
+
+The class definition is a simple list that contains a matrix and a collection of \code{fd} objects from the \code{fda} package, along with the necessary metadata.
 
 ```{r}
 #' Create a predictor_hybrid object (S3 version)
@@ -349,6 +367,146 @@ testthat::test_that("scalar_mul.predictor_hybrid works with two functional predi
     )
   }
 })
+```
+### inprod.predictor_hybrid
+The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
+
+Computes the inner product between two `predictor_hybrid` objects.Both scalar and functional components are included.
+
+  We define the inner product between any two hybrid objects, $\mathbf{h}_1 = (f_1, \mathbf{v}_1)$ and $\mathbf{h}_2 = (f_2, \mathbf{v}_2)$, as
+$$
+    \langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} = \langle f_1, f_2\rangle_\mathcal{F} + w \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k + \omega \sum \limits_{r=1}^p v_{1r}v_{2r}, 
+$$
+with norm $\Vert \cdot \Vert_\mathcal{H} = \langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$. $\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}). Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights.
+- Usage
+
+```r
+inprod.predictor_hybrid(xi_1, xi_2)
+```
+
+- Arguments:
+
+  - `xi_1`: A `predictor_hybrid` object.
+  - `xi_2`: Another `predictor_hybrid` object.
+
+- Value:  
+A numeric matrix of inner products (or a scalar if both inputs are single observations).
+
+- Details:  
+  - Functional components are summed using `inprod()` from the `fda` package.  
+  - Scalar components are handled via matrix multiplication.  
+  - Returns a scalar if both `xi_1` and `xi_2` are single-sample predictors.
+```{r}
+#' Inner product between two predictor_hybrid objects (with broadcasting)
+#'
+#' Computes the inner product between two `predictor_hybrid` objects,
+#' including both functional and scalar components. Supports broadcasting
+#' when one of the inputs has a single observation. If only one input is given,
+#' the inner product is computed with itself.
+#'
+#' @param xi_1 A `predictor_hybrid` object.
+#' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
+#'
+#' @return A numeric matrix of inner products (or a scalar if both inputs have one row).
+#' @export
+inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
+  if (is.null(xi_2)) xi_2 <- xi_1
+  
+  # Optional: Check for basis compatibility
+  # if (!is_same_basis(xi_1, xi_2)) stop("Functional predictors must share the same basis.")
+
+  n1 <- xi_1$n_sample
+  n2 <- xi_2$n_sample
+
+  # Compute sum of pairwise functional inner products
+  inprod_functional <- Reduce(`+`,
+    Map(function(f1, f2) fda::inprod(f1, f2),
+        xi_1$functional_list, xi_2$functional_list)
+  )
+
+  # Broadcast-aware scalar component
+  Z1 <- if (n1 == 1) matrix(xi_1$Z, nrow = 1) else xi_1$Z
+  Z2 <- if (n2 == 1) matrix(xi_2$Z, nrow = 1) else xi_2$Z
+  inprod_scalar <- Z1 %*% t(Z2)
+
+  result <- inprod_functional + inprod_scalar
+
+  if (n1 == 1 && n2 == 1) as.numeric(result) else result
+}
+
+```
+
+```{r}
+testthat::test_that("inprod.predictor_hybrid works with broadcasting and self-inner product", {
+  suppressPackageStartupMessages(library(fda))
+  
+  basis <- create.bspline.basis(c(0, 1), 5)
+  coef_val <- function(val) matrix(val, 5, 3)
+
+  # Define functional objects
+  fd_1 <- fd(coef = coef_val(1), basisobj = basis)
+  fd_2 <- fd(coef = coef_val(2), basisobj = basis)
+
+  # Define scalar matrices
+  Z1 <- matrix(c(1, 2), nrow = 1)         # 1 × 2
+  Z2 <- matrix(c(3, 4), nrow = 1)         # 1 × 2
+  Z_many <- matrix(rep(c(1, 2), 3), nrow = 3, byrow = TRUE)  # 3 × 2
+
+  # (1, 1)
+  x1 <- predictor_hybrid(Z1, list(fd_1, fd_1), list(matrix(0), matrix(0)), c(5, 5), 1, 2, 2)
+  x2 <- predictor_hybrid(Z2, list(fd_2, fd_2), list(matrix(0), matrix(0)), c(5, 5), 1, 2, 2)
+  val_scalar <- inprod.predictor_hybrid(x1, x2)
+
+  testthat::expect_type(val_scalar, "double")
+  testthat::expect_length(val_scalar, 1)
+
+  # Expected functional inner product: 2 fds × sum(1 * 2) = 2 × (5×3) = 30
+  expected_functional <- 2 * sum(1 * 2) * 15  # 5 × 3 = 15 elements
+  expected_scalar <- sum(Z1 * Z2)            # 1*3 + 2*4 = 11
+  testthat::expect_equal(val_scalar, expected_functional + expected_scalar)
+
+  # (n, 1) broadcasting
+  x3 <- predictor_hybrid(Z_many, list(fd_1, fd_1), list(matrix(0), matrix(0)), c(5, 5), 3, 2, 2)
+  mat_3_1 <- inprod.predictor_hybrid(x3, x2)
+  testthat::expect_equal(dim(mat_3_1), c(3, 1))
+  testthat::expect_equal(as.numeric(mat_3_1), rep(val_scalar, 3))
+
+  # (1, m) broadcasting
+  x4 <- predictor_hybrid(Z_many, list(fd_2, fd_2), list(matrix(0), matrix(0)), c(5, 5), 3, 2, 2)
+  mat_1_3 <- inprod.predictor_hybrid(x1, x4)
+  testthat::expect_equal(dim(mat_1_3), c(1, 3))
+  testthat::expect_equal(as.numeric(mat_1_3), rep(val_scalar, 3))
+
+  # (n, m)
+  mat_3_3 <- inprod.predictor_hybrid(x3, x4)
+  testthat::expect_equal(dim(mat_3_3), c(3, 3))
+  testthat::expect_true(all(as.numeric(mat_3_3) == val_scalar))
+
+  # shorthand inprod(x) ≡ inprod(x, x)
+  self_inner <- inprod.predictor_hybrid(x1)
+  testthat::expect_equal(
+    self_inner,
+    inprod.predictor_hybrid(x1, x1)
+  )
+})
+
+```
+
+
+# helper functions
+
+### is_same_basis
+```{r}
+#' @export
+is_same_basis <- function(input, other) {
+  all(
+    length(input$functional_list) == length(other$functional_list),
+    all(
+      mapply(function(fd1, fd2) fda::is.eqbasis(fd1$basis, fd2$basis),
+             input$functional_list, other$functional_list)
+    )
+  )
+}
 ```
 
 

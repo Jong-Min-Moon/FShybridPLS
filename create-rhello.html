@@ -348,9 +348,49 @@ usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
 </div>
 <div id="class-predictor_hybrid" class="section level1">
 <h1>Class predictor_hybrid</h1>
-<p>The <code>predictor_hybrid</code> class is an S3 object for
-representing hybrid predictors: a combination of scalar and functional
-covariates. The following code defines the class.</p>
+<ul>
+<li><p>Let <span class="math inline">\(\{X^{(k)}\}_{k=1, \ldots,
+K}\)</span> be a collection of random functions defined on unit
+hypercube domains <span class="math inline">\(\mathcal{T}_k :=
+[0,1]^{d_k}\)</span> (<span class="math inline">\(d_k \in
+\mathbb{N})\)</span>; i.e., <span class="math inline">\(X^{(k)}:
+\mathcal{T}_k \rightarrow \mathbb{R}\)</span>.</p></li>
+<li><p>Assume that each <span class="math inline">\(X^{(k)}\)</span> is
+in <span class="math inline">\(L^2(\mathcal{T}_k)\)</span>, a Hilbert
+space of square integrable functions with respect to Lebesgue measure
+<span class="math inline">\(dt_k\)</span> on <span class="math inline">\(\mathcal{T}_k\)</span>.</p></li>
+<li><p>Write <span class="math inline">\(X=(X^{(1)}, \ldots,
+X^{(K)})\)</span> as a multivariate functional object that belongs to
+<span class="math inline">\(\mathcal{F} = L^2(\mathcal{T}_1) \times
+\cdots \times L^2(\mathcal{T}_K)\)</span>—a cartesian product of
+individual <span class="math inline">\(L^2(\mathcal{T}_k)\)</span>
+spaces.</p></li>
+<li><p>We can also express the functional object <span class="math inline">\(X\)</span> evaluated on the multi-dimensional
+argument <span class="math inline">\(\mathbf{t} = (t_1, \ldots,
+t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times
+\mathcal{T}_K\)</span> as a <span class="math inline">\(K\)</span>-dimensional vector <span class="math inline">\(X(\mathbf{t})=(X^{(1)}(t_1), \ldots,
+X^{(K)}(t_K))^\top\)</span>.</p></li>
+<li><p><strong>Our strategy is to formulate a hybrid random
+object</strong>, <span class="math inline">\(\mathbf{W} = (X,
+\mathbf{Z})\)</span>, which combines <span class="math inline">\(X\)</span> and <span class="math inline">\(p\)</span>-dimensional scalar covariate <span class="math inline">\(\mathbf{Z}\)</span> into an ordered pair belonging
+to <span class="math inline">\(\mathcal{H} = \mathcal{F} \times
+\mathbb{R}^p\)</span>.</p></li>
+<li><p>An alternative notation for the hybrid object can be obtained by
+evaluating its functional part on <span class="math inline">\(\mathbf{t}\)</span> and expressing it as a <span class="math inline">\((K+p)\)</span>-dimensional vector: <span class="math inline">\(\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}),
+\mathbf{Z})^\top\)</span>, with <span class="math inline">\(X(\mathbf{t}) = (X^{(1)}(t_1), \ldots,
+X^{(K)}(t_K))^\top \in \mathbb{R}^K\)</span> and <span class="math inline">\(\mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in
+\mathbb{R}^p\)</span>.</p></li>
+<li><p>The hybrid object forms a Hilbert space, characterized by
+well-defined addition, scalar multiplication, and inner product
+operations.</p></li>
+<li><p>The <code>predictor_hybrid</code> class is an S3 object designed
+to represent this structure.</p></li>
+<li><p>We implement Hilbert space operations for this class, and our
+algorithm is built on these foundational operations.</p></li>
+</ul>
+<p>The class definition is a simple list that contains a matrix and a
+collection of objects from the package, along with the necessary
+metadata.</p>
 <pre class="r"><code>#' Create a predictor_hybrid object (S3 version)
 #'
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
@@ -474,7 +514,7 @@ structure of functional and scalar predictors.<br>
   }
   
   # Optionally check that functional bases are the same
-  # if (!is_same_basis(input, other)) stop("Different functional bases.")
+  # if (!<a href="create-rhello.html#is_same_basis">is_same_basis</a>(input, other)) stop("Different functional bases.")
 
   new_functional_list &lt;- vector("list", input$n_functional)
   for (i in seq_len(input$n_functional)) {
@@ -520,7 +560,7 @@ structure of functional and scalar predictors.<br>
     unname(expected_coef)
   )
 })</code></pre>
-<pre><code>## Test passed 🎊</code></pre>
+<pre><code>## Test passed 🌈</code></pre>
 </div>
 <div id="subtr.predictor_hybrid" class="section level3">
 <h3>subtr.predictor_hybrid</h3>
@@ -646,6 +686,7 @@ using matrix multiplication.</li>
     n_scalar = input$n_scalar
   )
 }</code></pre>
+<p>Here is a test code with two functional predictors:</p>
 <pre class="r"><code>testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
   suppressPackageStartupMessages(library(fda))
   
@@ -687,8 +728,116 @@ using matrix multiplication.</li>
     )
   }
 })</code></pre>
-<pre><code>## Test passed 😸</code></pre>
+<pre><code>## Test passed 🥳</code></pre>
 </div>
+<div id="inprod.predictor_hybrid" class="section level3">
+<h3>inprod.predictor_hybrid</h3>
+<p>The inner product of $f_1=(f_1^{(1)}, ,f_1^{(K)}) $ and <span class="math inline">\(f_2=(f_2^{(1)}, \ldots,f_2^{(K)})\)</span> in
+<span class="math inline">\(\mathcal{F}\)</span> is defined as <span class="math inline">\(\langle f_1, f_2\rangle_\mathcal{F}
+=  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K
+\int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k\)</span> with
+norm <span class="math inline">\(\Vert f_1 \Vert_\mathcal{F} = \langle
+f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k}
+f_1^{(k)}(t_k)^2 dt_k\}^{1/2}\)</span>.</p>
+<p>Computes the inner product between two <code>predictor_hybrid</code>
+objects.Both scalar and functional components are included.</p>
+<p>We define the inner product between any two hybrid objects, <span class="math inline">\(\mathbf{h}_1 = (f_1, \mathbf{v}_1)\)</span> and
+<span class="math inline">\(\mathbf{h}_2 = (f_2, \mathbf{v}_2)\)</span>,
+as <span class="math display">\[
+    \langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} = \langle
+f_1, f_2\rangle_\mathcal{F} + w \langle  \mathbf{v_1}, \mathbf{v_2}
+\rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)
+f_2^{(k)}(t_k) dt_k + \omega \sum \limits_{r=1}^p v_{1r}v_{2r},
+\]</span> with norm <span class="math inline">\(\Vert \cdot
+\Vert_\mathcal{H} = \langle \cdot,\cdot
+\rangle_\mathcal{H}^{1/2}\)</span>. <span class="math inline">\(\omega\)</span> is a positive weight that needs to
+be pre-specified or estimated. It is mainly used to take into account
+heterogeneity between functional and scalar parts in terms of
+measurement scale and/or amount of variation (see Section <span class="math inline">\(\ref{subsec: Data Preprocessing}\)</span>).
+Without loss of generality and for the clarity of illustration, all the
+following theoretical results will be derived for <span class="math inline">\(\omega=1\)</span>. The results remain valid for
+any positive weights. - Usage</p>
+<pre class="r"><code><a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(xi_1, xi_2)</code></pre>
+<ul>
+<li>
+<p>Arguments:</p>
+<ul>
+<li>
+<code>xi_1</code>: A <code>predictor_hybrid</code> object.</li>
+<li>
+<code>xi_2</code>: Another <code>predictor_hybrid</code>
+object.</li>
+</ul>
+</li>
+<li><p>Value:<br>
+A numeric matrix of inner products (or a scalar if both inputs are
+single observations).</p></li>
+<li>
+<p>Details:</p>
+<ul>
+<li>Functional components are summed using <code>inprod()</code> from
+the <code>fda</code> package.<br>
+</li>
+<li>Scalar components are handled via matrix multiplication.<br>
+</li>
+<li>Returns a scalar if both <code>xi_1</code> and <code>xi_2</code> are
+single-sample predictors.</li>
+</ul>
+</li>
+</ul>
+<pre class="r"><code>#' Inner product between two predictor_hybrid objects (with broadcasting)
+#'
+#' Computes the inner product between two `predictor_hybrid` objects,
+#' including both functional and scalar components. Supports broadcasting
+#' when one of the inputs has a single observation. If only one input is given,
+#' the inner product is computed with itself.
+#'
+#' @param xi_1 A `predictor_hybrid` object.
+#' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
+#'
+#' @return A numeric matrix of inner products (or a scalar if both inputs have one row).
+#' @export
+<span id="inprod.predictor_hybrid">inprod.predictor_hybrid</span> &lt;- function(xi_1, xi_2 = NULL) {
+  if (is.null(xi_2)) xi_2 &lt;- xi_1
+  
+  # Optional: Check for basis compatibility
+  # if (!<a href="create-rhello.html#is_same_basis">is_same_basis</a>(xi_1, xi_2)) stop("Functional predictors must share the same basis.")
+
+  n1 &lt;- xi_1$n_sample
+  n2 &lt;- xi_2$n_sample
+
+  # Compute sum of pairwise functional inner products
+  inprod_functional &lt;- Reduce(`+`,
+    Map(function(f1, f2) fda::inprod(f1, f2),
+        xi_1$functional_list, xi_2$functional_list)
+  )
+
+  # Broadcast-aware scalar component
+  Z1 &lt;- if (n1 == 1) matrix(xi_1$Z, nrow = 1) else xi_1$Z
+  Z2 &lt;- if (n2 == 1) matrix(xi_2$Z, nrow = 1) else xi_2$Z
+  inprod_scalar &lt;- Z1 %*% t(Z2)
+
+  result &lt;- inprod_functional + inprod_scalar
+
+  if (n1 == 1 &amp;&amp; n2 == 1) as.numeric(result) else result
+}</code></pre>
+</div>
+</div>
+</div>
+<div id="helper-functions" class="section level1">
+<h1>helper functions</h1>
+<div id="is_same_basis" class="section level3">
+<h3>is_same_basis</h3>
+<pre class="r"><code>#' @export
+<span id="is_same_basis">is_same_basis</span> &lt;- function(input, other) {
+  all(
+    length(input$functional_list) == length(other$functional_list),
+    all(
+      mapply(function(fd1, fd2) fda::is.eqbasis(fd1$basis, fd2$basis),
+             input$functional_list, other$functional_list)
+    )
+  )
+}</code></pre>
 </div>
 <div id="documenting-the-package-and-building" class="section level2">
 <h2>Documenting the package and building</h2>
@@ -700,6 +849,7 @@ this file.</p>
 ## ℹ Loading FSHybridPLS
 ## Writing 'NAMESPACE'
 ## Writing 'add.predictor_hybrid.Rd'
+## Writing 'inprod.predictor_hybrid.Rd'
 ## Writing 'predictor_hybrid.Rd'
 ## Writing 'scalar_mul.predictor_hybrid.Rd'
 ## Writing 'subtr.predictor_hybrid.Rd'</code></pre>

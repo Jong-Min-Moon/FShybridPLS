@@ -98,3 +98,57 @@ testthat::test_that("scalar_mul.predictor_hybrid works with two functional predi
   }
 })
 
+testthat::test_that("inprod.predictor_hybrid works with broadcasting and self-inner product", {
+  suppressPackageStartupMessages(library(fda))
+  
+  basis <- create.bspline.basis(c(0, 1), 5)
+  coef_val <- function(val) matrix(val, 5, 3)
+
+  # Define functional objects
+  fd_1 <- fd(coef = coef_val(1), basisobj = basis)
+  fd_2 <- fd(coef = coef_val(2), basisobj = basis)
+
+  # Define scalar matrices
+  Z1 <- matrix(c(1, 2), nrow = 1)         # 1 × 2
+  Z2 <- matrix(c(3, 4), nrow = 1)         # 1 × 2
+  Z_many <- matrix(rep(c(1, 2), 3), nrow = 3, byrow = TRUE)  # 3 × 2
+
+  # (1, 1)
+  x1 <- predictor_hybrid(Z1, list(fd_1, fd_1), list(matrix(0), matrix(0)), c(5, 5), 1, 2, 2)
+  x2 <- predictor_hybrid(Z2, list(fd_2, fd_2), list(matrix(0), matrix(0)), c(5, 5), 1, 2, 2)
+  val_scalar <- inprod.predictor_hybrid(x1, x2)
+
+  testthat::expect_type(val_scalar, "double")
+  testthat::expect_length(val_scalar, 1)
+
+  # Expected functional inner product: 2 fds × sum(1 * 2) = 2 × (5×3) = 30
+  expected_functional <- 2 * sum(1 * 2) * 15  # 5 × 3 = 15 elements
+  expected_scalar <- sum(Z1 * Z2)            # 1*3 + 2*4 = 11
+  testthat::expect_equal(val_scalar, expected_functional + expected_scalar)
+
+  # (n, 1) broadcasting
+  x3 <- predictor_hybrid(Z_many, list(fd_1, fd_1), list(matrix(0), matrix(0)), c(5, 5), 3, 2, 2)
+  mat_3_1 <- inprod.predictor_hybrid(x3, x2)
+  testthat::expect_equal(dim(mat_3_1), c(3, 1))
+  testthat::expect_equal(as.numeric(mat_3_1), rep(val_scalar, 3))
+
+  # (1, m) broadcasting
+  x4 <- predictor_hybrid(Z_many, list(fd_2, fd_2), list(matrix(0), matrix(0)), c(5, 5), 3, 2, 2)
+  mat_1_3 <- inprod.predictor_hybrid(x1, x4)
+  testthat::expect_equal(dim(mat_1_3), c(1, 3))
+  testthat::expect_equal(as.numeric(mat_1_3), rep(val_scalar, 3))
+
+  # (n, m)
+  mat_3_3 <- inprod.predictor_hybrid(x3, x4)
+  testthat::expect_equal(dim(mat_3_3), c(3, 3))
+  testthat::expect_true(all(as.numeric(mat_3_3) == val_scalar))
+
+  # shorthand inprod(x) ≡ inprod(x, x)
+  self_inner <- inprod.predictor_hybrid(x1)
+  testthat::expect_equal(
+    self_inner,
+    inprod.predictor_hybrid(x1, x1)
+  )
+})
+
+
