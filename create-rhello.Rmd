@@ -58,33 +58,47 @@ usethis::use_mit_license(copyright_holder = "F. Last")
 The class definition is a simple list that contains a matrix and a collection of \code{fd} objects from the \code{fda} package, along with the necessary metadata.
 
 ```{r}
-#' Create a predictor_hybrid object (S3 version)
+#' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
 #'
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
-#' along with Jacobians and metadata.
+#' and automatically computes Gram matrices (inner products of basis functions).
 #'
 #' @param Z A numeric matrix of dimension \code{n_sample × n_scalar} representing scalar predictors.
 #' @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
-#' @param jacobian_list A list of Jacobian matrices corresponding to the functional predictors.
-#' @param n_basis_list A numeric vector indicating the number of basis functions for each functional predictor.
-#' @param n_sample Number of observations (samples).
-#' @param n_functional Number of functional predictors.
-#' @param n_scalar Number of scalar predictors.
 #'
-#' @return A list of class \code{predictor_hybrid}.
+#' @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #' @export
-predictor_hybrid <- function(Z, functional_list, jacobian_list,
-                             n_basis_list, n_sample, n_functional, n_scalar) {
-  stopifnot(is.matrix(Z))
-  stopifnot(length(functional_list) == n_functional)
-  stopifnot(length(jacobian_list) == n_functional)
-  stopifnot(length(n_basis_list) == n_functional)
-  
+predictor_hybrid <- function(Z, functional_list) {
+  stopifnot(is.matrix(Z), is.numeric(Z))
+  stopifnot(is.list(functional_list))
+
+  n_sample <- nrow(Z)
+  n_scalar <- ncol(Z)
+  n_functional <- length(functional_list)
+
+  gram_list <- vector("list", n_functional)
+  n_basis_list <- numeric(n_functional)
+
+  for (i in seq_len(n_functional)) {
+    fd_i <- functional_list[[i]]
+    stopifnot(inherits(fd_i, "fd"))
+
+    n_fd_sample <- ncol(coef(fd_i))
+    if (n_fd_sample != n_sample) {
+      stop(sprintf("Functional predictor %d has %d replicates, but Z has %d rows.",
+                   i, n_fd_sample, n_sample))
+    }
+
+    basis_i <- fd_i$basis
+    gram_list[[i]] <- compute_gram_matrix(basis_i)
+    n_basis_list[i] <- basis_i$nbasis
+  }
+
   structure(
     list(
       Z = Z,
       functional_list = functional_list,
-      jacobian_list = jacobian_list,
+      gram_list = gram_list,
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
@@ -93,41 +107,44 @@ predictor_hybrid <- function(Z, functional_list, jacobian_list,
     class = "predictor_hybrid"
   )
 }
+
 ```
 
 
 
 Let's write some tests to make sure the function behaves as desired:
 ```{r}
-testthat::test_that("predictor_hybrid constructor works as expected (S3)", {
+testthat::test_that("predictor_hybrid constructor works as expected (S3, updated)", {
+  library(fda)
+
+  # Create scalar matrix
   Z <- matrix(rnorm(100 * 5), nrow = 100, ncol = 5)
-  fd1 <- list(fdobj = "fd1 placeholder")
-  fd2 <- list(fdobj = "fd2 placeholder")
-  J1 <- matrix(runif(100), nrow = 10)
-  J2 <- matrix(runif(200), nrow = 20)
-  
-  obj <- predictor_hybrid(
-    Z = Z,
-    functional_list = list(fd1, fd2),
-    jacobian_list = list(J1, J2),
-    n_basis_list = c(10, 20),
-    n_sample = 100,
-    n_functional = 2,
-    n_scalar = 5
-  )
-  
+
+  # Create two fd objects with 100 replications
+  basis1 <- create.bspline.basis(c(0, 1), nbasis = 10)
+  basis2 <- create.bspline.basis(c(0, 1), nbasis = 20)
+
+  coef1 <- matrix(rnorm(10 * 100), nrow = 10)  # 10 basis × 100 samples
+  coef2 <- matrix(rnorm(20 * 100), nrow = 20)  # 20 basis × 100 samples
+
+  fd1 <- fd(coef = coef1, basisobj = basis1)
+  fd2 <- fd(coef = coef2, basisobj = basis2)
+
+  # Construct object
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Assertions
   testthat::expect_s3_class(obj, "predictor_hybrid")
   testthat::expect_equal(nrow(obj$Z), 100)
   testthat::expect_equal(ncol(obj$Z), 5)
   testthat::expect_equal(length(obj$functional_list), 2)
-  testthat::expect_equal(length(obj$jacobian_list), 2)
   testthat::expect_equal(obj$n_basis_list, c(10, 20))
   testthat::expect_equal(obj$n_sample, 100)
   testthat::expect_equal(obj$n_functional, 2)
   testthat::expect_equal(obj$n_scalar, 5)
+  testthat::expect_equal(dim(obj$gram_list[[1]]), c(10, 10))
+  testthat::expect_equal(dim(obj$gram_list[[2]]), c(20, 20))
 })
-
-
 ```
 
 ## Basic arithmetic
@@ -156,75 +173,140 @@ Returns a new `predictor_hybrid` object representing the result of the addition.
   - Scalar predictors are added using standard matrix addition.
 
 ```{r}
-#' Add two predictor_hybrid objects
-#'
-#' Performs element-wise addition of two predictor_hybrid objects.
-#' Functional predictors are combined using `plus.fd()` and `times.fd()`.
-#'
-#' @param input A predictor_hybrid object.
-#' @param other Another predictor_hybrid object.
-#' @param alpha A numeric scalar multiplier for `other`.
-#'
-#' @return A new predictor_hybrid object representing the sum.
-#' @export
 add.predictor_hybrid <- function(input, other, alpha = 1) {
+  if (!inherits(input, "predictor_hybrid") || !inherits(other, "predictor_hybrid")) {
+    stop("Both arguments must be of class 'predictor_hybrid'.")
+  }
+
   if (input$n_functional != other$n_functional || input$n_scalar != other$n_scalar) {
-    stop("Mismatch in number of predictors.")
+    stop("Mismatch in number of functional or scalar predictors.")
   }
-  
-  # Optionally check that functional bases are the same
-  # if (!is_same_basis(input, other)) stop("Different functional bases.")
 
-  new_functional_list <- vector("list", input$n_functional)
+  # Check broadcasting compatibility
+  n1 <- input$n_sample
+  n2 <- other$n_sample
+  if (n1 != n2 && !(n1 == 1 || n2 == 1)) {
+    stop("Sample sizes are incompatible for broadcasting.")
+  }
+
+  # Safe access to is.eqbasis()
+  is_eqbasis <- getFromNamespace("is.eqbasis", "fda")
+
   for (i in seq_len(input$n_functional)) {
-    new_functional_list[[i]] <- plus.fd(
-      input$functional_list[[i]],
-      times.fd(alpha, other$functional_list[[i]])
-    )
+    if (!is_eqbasis(input$functional_list[[i]]$basis, other$functional_list[[i]]$basis)) {
+      stop("Functional predictors must have the same basis.")
+    }
   }
-  
-  new_Z <- input$Z + alpha * other$Z
-  
-  predictor_hybrid(
-    Z = new_Z,
-    functional_list = new_functional_list,
-    jacobian_list = input$jacobian_list,  # Assumes identical structure
-    n_basis_list = input$n_basis_list,
-    n_sample = input$n_sample,
-    n_functional = input$n_functional,
-    n_scalar = input$n_scalar
-  )
-}
 
+  # Broadcast if needed
+  broadcast <- function(obj, n_target) {
+    if (obj$n_sample == n_target) return(obj)
+    obj$Z <- matrix(rep(obj$Z, each = n_target), nrow = n_target, byrow = TRUE)
+    obj$functional_list <- lapply(obj$functional_list, function(fd_obj) {
+      fd(coef = matrix(rep(coef(fd_obj), n_target), nrow = nrow(coef(fd_obj))),
+         basisobj = fd_obj$basis)
+    })
+    obj$n_sample <- n_target
+    obj
+  }
+
+  # Determine output sample size
+  n_out <- max(n1, n2)
+  input <- broadcast(input, n_out)
+  other <- broadcast(other, n_out)
+
+  # Combine functional predictors
+  new_functional_list <- Map(
+    function(f1, f2) plus.fd(f1, times.fd(alpha, f2)),
+    input$functional_list,
+    other$functional_list
+  )
+
+  # Combine scalar predictors
+  new_Z <- input$Z + alpha * other$Z
+
+  # Construct new object
+  predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+}
 ```
 
-
+Here are the unit tests:
+| Case                    | Description                         | Expected Outcome |
+| ----------------------- | ----------------------------------- | ---------------- |
+| ✅ Same sample size      | Functional and scalar values summed | Pass             |
+| ✅ Broadcast one → many  | One-sample input broadcasted        | Pass             |
+| ✅ Broadcast many ← one  | One-sample other broadcasted        | Pass             |
+| ❌ Basis mismatch        | Different functional basis          | Error            |
+| ❌ Irregular sample size | Neither matches nor is singleton    | Error            |
+| ❌ Different dimensions  | Functional or scalar count mismatch | Error            |
 ```{r}
-testthat::test_that("add.predictor_hybrid works for matching predictors", {
+testthat::test_that("add.predictor_hybrid handles broadcasting and basis compatibility", {
   suppressPackageStartupMessages(library(fda))
 
-  Z1 <- matrix(1, nrow = 3, ncol = 2)
-  Z2 <- matrix(2, nrow = 3, ncol = 2)
-  
-  basis <- fda::create.bspline.basis(c(0, 1), 5)
-  fd1 <- fda::fd(coef = matrix(1, 5, 3), basisobj = basis)
-  fd2 <- fda::fd(coef = matrix(2, 5, 3), basisobj = basis)
-  
-  obj1 <- predictor_hybrid(Z1, list(fd1), list(matrix(0)), c(5), 3, 1, 2)
-  obj2 <- predictor_hybrid(Z2, list(fd2), list(matrix(0)), c(5), 3, 1, 2)
-  
-  obj3 <- add.predictor_hybrid(obj1, obj2, alpha = 1)
-  
-  testthat::expect_s3_class(obj3, "predictor_hybrid")
-  testthat::expect_equal(obj3$Z, matrix(3, nrow = 3, ncol = 2))
-  
-  expected_coef <- matrix(3, 5, 3)
-  testthat::expect_equal(
-    unname(coef(obj3$functional_list[[1]])),
-    unname(expected_coef)
-  )
-})
+  # Create shared B-spline basis
+  basis <- create.bspline.basis(c(0, 1), nbasis = 5)
 
+  # Helper to generate a valid coefficient matrix
+  coef_mat <- function(val, n_sample, basis_obj) {
+    nbasis <- basis_obj$nbasis
+    matrix(val, nrow = nbasis, ncol = n_sample)
+  }
+
+  # Helper to create a list of fd objects (2 functional predictors)
+  fd_list <- function(val, n_sample, basis_obj = basis) {
+    list(
+      fd(coef = coef_mat(val, n_sample, basis_obj), basisobj = basis_obj),
+      fd(coef = coef_mat(val, n_sample, basis_obj), basisobj = basis_obj)
+    )
+  }
+
+  # Scalar predictors
+  Z1 <- matrix(1, nrow = 1, ncol = 2)
+  Z3 <- matrix(3, nrow = 3, ncol = 2)
+
+  # Functional predictors (same basis)
+  F1 <- fd_list(1, 1)
+  F3 <- fd_list(3, 3)
+
+  # Create predictor_hybrid objects
+  x1 <- predictor_hybrid(Z1, F1)  # 1 sample
+  x3 <- predictor_hybrid(Z3, F3)  # 3 samples
+
+  # Broadcast x1 to match x3
+  result <- add.predictor_hybrid(x1, x3, alpha = 1)
+
+  # Check metadata
+  testthat::expect_s3_class(result, "predictor_hybrid")
+  testthat::expect_equal(result$n_sample, 3)
+  testthat::expect_equal(result$n_scalar, 2)
+  testthat::expect_equal(result$n_functional, 2)
+
+  # Check scalar component
+  expected_Z <- matrix(4, nrow = 3, ncol = 2)  # 1 + 3 = 4
+  testthat::expect_equal(result$Z, expected_Z)
+
+  # Check functional component
+  for (fd_out in result$functional_list) {
+    testthat::expect_equal(unname(coef(fd_out)), matrix(4, nrow = 5, ncol = 3))
+  }
+
+  # Test symmetry: broadcasting x3 + x1
+  result2 <- add.predictor_hybrid(x3, x1, alpha = 1)
+  testthat::expect_equal(result2$Z, expected_Z)
+  for (fd_out in result2$functional_list) {
+    testthat::expect_equal(unname(coef(fd_out)), matrix(4, nrow = 5, ncol = 3))
+  }
+
+  # Incompatible sample sizes (should fail)
+  x_bad <- predictor_hybrid(matrix(1, 2, 2), fd_list(1, 2))
+  testthat::expect_error(add.predictor_hybrid(x3, x_bad), "incompatible for broadcasting")
+
+  # Incompatible functional basis (should fail)
+  bad_basis <- create.bspline.basis(c(0, 1), nbasis = 6)
+  bad_fd <- fd_list(2, 3, bad_basis)
+  x_basis_mismatch <- predictor_hybrid(Z3, bad_fd)
+  testthat::expect_error(add.predictor_hybrid(x3, x_basis_mismatch), "same basis")
+})
 
 ```
 ### subtr.predictor_hybrid
@@ -295,7 +377,7 @@ Returns a new `predictor_hybrid` object with all components scaled by `scalar`.
 ```{r}
 #' Multiply a predictor_hybrid object by a scalar
 #'
-#' Performs scalar multiplication of both scalar and functional components 
+#' Performs scalar multiplication on both the scalar and functional components
 #' of a `predictor_hybrid` object. Functional predictors are scaled using 
 #' `times.fd()` from the `fda` package.
 #'
@@ -305,21 +387,25 @@ Returns a new `predictor_hybrid` object with all components scaled by `scalar`.
 #' @return A new `predictor_hybrid` object scaled by `scalar`.
 #' @export
 scalar_mul.predictor_hybrid <- function(input, scalar) {
-  new_functional_list <- lapply(
-    input$functional_list,
-    function(fd_obj) times.fd(scalar, fd_obj)
-  )
-  
+  if (!inherits(input, "predictor_hybrid")) {
+    stop("Input must be of class 'predictor_hybrid'.")
+  }
+  if (!is.numeric(scalar) || length(scalar) != 1) {
+    stop("Scalar must be a single numeric value.")
+  }
+
+  # Scale functional components
+  new_functional_list <- lapply(input$functional_list, function(fd_obj) {
+    times.fd(scalar, fd_obj)
+  })
+
+  # Scale scalar predictors
   new_Z <- scalar * input$Z
-  
+
+  # Reconstruct hybrid object
   predictor_hybrid(
     Z = new_Z,
-    functional_list = new_functional_list,
-    jacobian_list = input$jacobian_list,
-    n_basis_list = input$n_basis_list,
-    n_sample = input$n_sample,
-    n_functional = input$n_functional,
-    n_scalar = input$n_scalar
+    functional_list = new_functional_list
   )
 }
 ```
@@ -329,40 +415,31 @@ Here is a test code with two functional predictors:
 testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
   suppressPackageStartupMessages(library(fda))
   
-  # Scalar matrix
+  # Scalar part (3 observations, 2 scalar predictors)
   Z <- matrix(2, nrow = 3, ncol = 2)
-  
-  # Create a shared basis for both functional predictors
-  basis <- create.bspline.basis(c(0, 1), 5)
-  
-  # Two identical fd objects
-  fd1 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
-  fd2 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
-  
-  # Construct predictor_hybrid object
-  obj <- predictor_hybrid(
-    Z = Z,
-    functional_list = list(fd1, fd2),
-    jacobian_list = list(matrix(0), matrix(0)),
-    n_basis_list = c(5, 5),
-    n_sample = 3,
-    n_functional = 2,
-    n_scalar = 2
-  )
-  
-  # Perform scalar multiplication
-  scaled <- scalar_mul.predictor_hybrid(obj, 4)
-  
+
+  # Functional part: shared B-spline basis
+  basis <- create.bspline.basis(c(0, 1), nbasis = 5)
+  fd1 <- fd(coef = matrix(2, nrow = 5, ncol = 3), basisobj = basis)
+  fd2 <- fd(coef = matrix(2, nrow = 5, ncol = 3), basisobj = basis)
+
+  # Construct hybrid object using new simplified constructor
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Apply scalar multiplication
+  scaled <- scalar_mul.predictor_hybrid(obj, scalar = 4)
+
+  # Check class
   testthat::expect_s3_class(scaled, "predictor_hybrid")
-  
-  # Scalar part should be scaled
+
+  # Check scalar predictor was scaled
   testthat::expect_equal(scaled$Z, Z * 4)
-  
-  # Each functional part should be scaled
-  expected_coef <- matrix(8, 5, 3)  # 2 * 4
-  for (fd_scaled in scaled$functional_list) {
+
+  # Check each functional component's coefficients
+  expected_coef <- matrix(8, nrow = 5, ncol = 3)
+  for (fd_obj in scaled$functional_list) {
     testthat::expect_equal(
-      unname(coef(fd_scaled)),
+      unname(coef(fd_obj)),
       unname(expected_coef)
     )
   }
@@ -509,6 +586,56 @@ is_same_basis <- function(input, other) {
 }
 ```
 
+
+### compute_gram_matrix
+```{r}
+#' Compute the Gram matrix for a basis object
+#'
+#' @param basis A basis object of class `basisfd` from the `fda` package
+#' @return A square matrix where entry (i,j) is the inner product of basis functions i and j
+#' @export
+compute_gram_matrix <- function(basis) {
+  stopifnot(inherits(basis, "basisfd"))
+  inprod(basis, basis)  # computes ∫ b_i(t) b_j(t) dt
+}
+
+```
+
+We check the following cases:
+| Case | Test                 | Expectation                             |
+| ---- | -------------------- | --------------------------------------- |
+| 1    | Orthogonal (Fourier) | Gram matrix ≈ diagonal                  |
+| 2    | Constant             | Single value equals interval length (1) |
+| 3    | Invalid              | Raises informative error                |
+| 4    | Narrow support       | Mostly low off-diagonal entries         |
+
+```{r}
+testthat::test_that("Gram matrix edge cases", {
+  library(fda)
+
+  # Case 1: Fourier basis (orthogonal over [0, 1])
+  fb <- create.fourier.basis(rangeval = c(0, 1), nbasis = 5)
+  J_fourier <- compute_gram_matrix(fb)
+  testthat::expect_equal(J_fourier, diag(diag(J_fourier)), tolerance = 1e-10)  # Nearly diagonal
+
+  # Case 2: Constant basis (1 basis function)
+  cb <- create.constant.basis(rangeval = c(0, 1))
+  J_const <- compute_gram_matrix(cb)
+  testthat::expect_equal(dim(J_const), c(1, 1))
+  testthat::expect_equal(J_const[1, 1], 1)
+
+  # Case 3: Invalid input
+  testthat::expect_error(compute_gram_matrix("not a basisfd"))
+
+  # Case 4: Highly localized B-splines
+  # Simulate nearly disjoint support (narrow B-splines)
+  narrow_bs <- create.bspline.basis(rangeval = c(0, 1), nbasis = 10, norder = 2)
+  J_narrow <- compute_gram_matrix(narrow_bs)
+  testthat::expect_true(all(abs(J_narrow[upper.tri(J_narrow)]) < 0.5))  # off-diagonals small
+})
+
+
+```
 
 ## Documenting the package and building
 
