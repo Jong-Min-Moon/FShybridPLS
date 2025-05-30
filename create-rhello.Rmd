@@ -253,6 +253,105 @@ subtr.predictor_hybrid <- function(input, other, alpha = 1) {
 We skip the unit test for this function.
 
 
+### scalar_mul.predictor_hybrid
+Multiplies all components of a `predictor_hybrid` object by a scalar. Functional components are scaled using `times.fd()` from the `fda` package, and scalar predictors are multiplied directly using matrix operations.
+
+- Usage
+
+```r
+scalar_mul.predictor_hybrid(input, scalar)
+```
+
+- Arguments:
+
+  - `input`: A `predictor_hybrid` object.
+  - `scalar`: A numeric value used to scale both scalar and functional components.
+
+- Value:  
+Returns a new `predictor_hybrid` object with all components scaled by `scalar`.
+
+- Details:  
+  - Functional predictors are scaled using `times.fd(scalar, fd_obj)` for each element.  
+  - Scalar predictors (the matrix `Z`) are scaled elementwise using matrix multiplication.
+
+```{r}
+#' Multiply a predictor_hybrid object by a scalar
+#'
+#' Performs scalar multiplication of both scalar and functional components 
+#' of a `predictor_hybrid` object. Functional predictors are scaled using 
+#' `times.fd()` from the `fda` package.
+#'
+#' @param input A `predictor_hybrid` object.
+#' @param scalar A numeric value to multiply all components by.
+#'
+#' @return A new `predictor_hybrid` object scaled by `scalar`.
+#' @export
+scalar_mul.predictor_hybrid <- function(input, scalar) {
+  new_functional_list <- lapply(
+    input$functional_list,
+    function(fd_obj) times.fd(scalar, fd_obj)
+  )
+  
+  new_Z <- scalar * input$Z
+  
+  predictor_hybrid(
+    Z = new_Z,
+    functional_list = new_functional_list,
+    jacobian_list = input$jacobian_list,
+    n_basis_list = input$n_basis_list,
+    n_sample = input$n_sample,
+    n_functional = input$n_functional,
+    n_scalar = input$n_scalar
+  )
+}
+```
+
+Here is a test code with two functional predictors:
+```{r}
+testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
+  suppressPackageStartupMessages(library(fda))
+  
+  # Scalar matrix
+  Z <- matrix(2, nrow = 3, ncol = 2)
+  
+  # Create a shared basis for both functional predictors
+  basis <- create.bspline.basis(c(0, 1), 5)
+  
+  # Two identical fd objects
+  fd1 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  fd2 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  
+  # Construct predictor_hybrid object
+  obj <- predictor_hybrid(
+    Z = Z,
+    functional_list = list(fd1, fd2),
+    jacobian_list = list(matrix(0), matrix(0)),
+    n_basis_list = c(5, 5),
+    n_sample = 3,
+    n_functional = 2,
+    n_scalar = 2
+  )
+  
+  # Perform scalar multiplication
+  scaled <- scalar_mul.predictor_hybrid(obj, 4)
+  
+  testthat::expect_s3_class(scaled, "predictor_hybrid")
+  
+  # Scalar part should be scaled
+  testthat::expect_equal(scaled$Z, Z * 4)
+  
+  # Each functional part should be scaled
+  expected_coef <- matrix(8, 5, 3)  # 2 * 4
+  for (fd_scaled in scaled$functional_list) {
+    testthat::expect_equal(
+      unname(coef(fd_scaled)),
+      unname(expected_coef)
+    )
+  }
+})
+```
+
+
 ## Documenting the package and building
 
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.

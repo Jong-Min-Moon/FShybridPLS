@@ -56,3 +56,45 @@ testthat::test_that("add.predictor_hybrid works for matching predictors", {
 
 
 
+testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
+  suppressPackageStartupMessages(library(fda))
+  
+  # Scalar matrix
+  Z <- matrix(2, nrow = 3, ncol = 2)
+  
+  # Create a shared basis for both functional predictors
+  basis <- create.bspline.basis(c(0, 1), 5)
+  
+  # Two identical fd objects
+  fd1 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  fd2 <- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  
+  # Construct predictor_hybrid object
+  obj <- predictor_hybrid(
+    Z = Z,
+    functional_list = list(fd1, fd2),
+    jacobian_list = list(matrix(0), matrix(0)),
+    n_basis_list = c(5, 5),
+    n_sample = 3,
+    n_functional = 2,
+    n_scalar = 2
+  )
+  
+  # Perform scalar multiplication
+  scaled <- scalar_mul.predictor_hybrid(obj, 4)
+  
+  testthat::expect_s3_class(scaled, "predictor_hybrid")
+  
+  # Scalar part should be scaled
+  testthat::expect_equal(scaled$Z, Z * 4)
+  
+  # Each functional part should be scaled
+  expected_coef <- matrix(8, 5, 3)  # 2 * 4
+  for (fd_scaled in scaled$functional_list) {
+    testthat::expect_equal(
+      unname(coef(fd_scaled)),
+      unname(expected_coef)
+    )
+  }
+})
+

@@ -2,4 +2,5 @@
 
 export(add.predictor_hybrid)
 export(predictor_hybrid)
+export(scalar_mul.predictor_hybrid)
 export(subtr.predictor_hybrid)

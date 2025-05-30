@@ -520,13 +520,12 @@ structure of functional and scalar predictors.<br>
     unname(expected_coef)
   )
 })</code></pre>
-<pre><code>## Test passed 🥳</code></pre>
+<pre><code>## Test passed 🎊</code></pre>
 </div>
 <div id="subtr.predictor_hybrid" class="section level3">
 <h3>subtr.predictor_hybrid</h3>
 <p>Performs element-wise subtraction of two
-<code>predictor_hybrid</code> objects.<br>
-Internally uses
+<code>predictor_hybrid</code> objects. Internally uses
 <code><a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -1)</code> to compute
 the result by negating the second operand.</p>
 <ul>
@@ -581,6 +580,114 @@ arithmetic.</li>
 <span id="subtr.predictor_hybrid">subtr.predictor_hybrid</span> &lt;- function(input, other, alpha = 1) {
   <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -alpha)
 }</code></pre>
+<p>We skip the unit test for this function.</p>
+</div>
+<div id="scalar_mul.predictor_hybrid" class="section level3">
+<h3>scalar_mul.predictor_hybrid</h3>
+<p>Multiplies all components of a <code>predictor_hybrid</code> object
+by a scalar. Functional components are scaled using
+<code>times.fd()</code> from the <code>fda</code> package, and scalar
+predictors are multiplied directly using matrix operations.</p>
+<ul>
+<li>Usage</li>
+</ul>
+<pre class="r"><code><a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(input, scalar)</code></pre>
+<ul>
+<li>
+<p>Arguments:</p>
+<ul>
+<li>
+<code>input</code>: A <code>predictor_hybrid</code> object.</li>
+<li>
+<code>scalar</code>: A numeric value used to scale both scalar and
+functional components.</li>
+</ul>
+</li>
+<li><p>Value:<br>
+Returns a new <code>predictor_hybrid</code> object with all components
+scaled by <code>scalar</code>.</p></li>
+<li>
+<p>Details:</p>
+<ul>
+<li>Functional predictors are scaled using
+<code>times.fd(scalar, fd_obj)</code> for each element.<br>
+</li>
+<li>Scalar predictors (the matrix <code>Z</code>) are scaled elementwise
+using matrix multiplication.</li>
+</ul>
+</li>
+</ul>
+<pre class="r"><code>#' Multiply a predictor_hybrid object by a scalar
+#'
+#' Performs scalar multiplication of both scalar and functional components 
+#' of a `predictor_hybrid` object. Functional predictors are scaled using 
+#' `times.fd()` from the `fda` package.
+#'
+#' @param input A `predictor_hybrid` object.
+#' @param scalar A numeric value to multiply all components by.
+#'
+#' @return A new `predictor_hybrid` object scaled by `scalar`.
+#' @export
+<span id="scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</span> &lt;- function(input, scalar) {
+  new_functional_list &lt;- lapply(
+    input$functional_list,
+    function(fd_obj) times.fd(scalar, fd_obj)
+  )
+  
+  new_Z &lt;- scalar * input$Z
+  
+  <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
+    Z = new_Z,
+    functional_list = new_functional_list,
+    jacobian_list = input$jacobian_list,
+    n_basis_list = input$n_basis_list,
+    n_sample = input$n_sample,
+    n_functional = input$n_functional,
+    n_scalar = input$n_scalar
+  )
+}</code></pre>
+<pre class="r"><code>testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
+  suppressPackageStartupMessages(library(fda))
+  
+  # Scalar matrix
+  Z &lt;- matrix(2, nrow = 3, ncol = 2)
+  
+  # Create a shared basis for both functional predictors
+  basis &lt;- create.bspline.basis(c(0, 1), 5)
+  
+  # Two identical fd objects
+  fd1 &lt;- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  fd2 &lt;- fd(coef = matrix(2, 5, 3), basisobj = basis)
+  
+  # Construct predictor_hybrid object
+  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
+    Z = Z,
+    functional_list = list(fd1, fd2),
+    jacobian_list = list(matrix(0), matrix(0)),
+    n_basis_list = c(5, 5),
+    n_sample = 3,
+    n_functional = 2,
+    n_scalar = 2
+  )
+  
+  # Perform scalar multiplication
+  scaled &lt;- <a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(obj, 4)
+  
+  testthat::expect_s3_class(scaled, "predictor_hybrid")
+  
+  # Scalar part should be scaled
+  testthat::expect_equal(scaled$Z, Z * 4)
+  
+  # Each functional part should be scaled
+  expected_coef &lt;- matrix(8, 5, 3)  # 2 * 4
+  for (fd_scaled in scaled$functional_list) {
+    testthat::expect_equal(
+      unname(coef(fd_scaled)),
+      unname(expected_coef)
+    )
+  }
+})</code></pre>
+<pre><code>## Test passed 😸</code></pre>
 </div>
 </div>
 <div id="documenting-the-package-and-building" class="section level2">
@@ -594,6 +701,7 @@ this file.</p>
 ## Writing 'NAMESPACE'
 ## Writing 'add.predictor_hybrid.Rd'
 ## Writing 'predictor_hybrid.Rd'
+## Writing 'scalar_mul.predictor_hybrid.Rd'
 ## Writing 'subtr.predictor_hybrid.Rd'</code></pre>
 <pre class="r"><code># devtools::build()
 # devtools::install()
