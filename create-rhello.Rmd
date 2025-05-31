@@ -24,7 +24,7 @@ usethis::create_package(
     Version = "0.0.0.9000",
     Title = "A Package That Says Hello",
     Description = "This package says hello.  But its actual purpose is to show how an R package can be completely coded in a single R markdown file.",
-    Imports = "fda (>= 6.1.3)",
+    Imports = "fda (>= 6.1.3), Matrix",
     `Authors@R` = person(
       given = "First",
       family = "Last",
@@ -789,6 +789,354 @@ testthat::test_that("inprod.predictor_hybrid returns correct vector output for b
   # Case 4: Broadcasting (multi  vs. single)
   testthat::expect_equal(as.vector(inprod.predictor_hybrid( x3, x2)), as.vector(expected_scalar_4 + expected_functional_4))  
 })
+```
+
+# One iteration
+
+## small functions
+
+## penalty matrix 
+
+### get_gram_matrix_block
+Equation (6) in Section 4.1
+$$
+    J^*=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}
+$$
+where
+$J^{(k)}$ is the $M \times M$ matrix with $(m,n)$-th entry equal to $\int_{\mathcal{T}_k} b_m^{(k)}(t) b_n^{(k)}(t) dt$, and $J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}$, and 
+
+```{r}
+#' Construct block-diagonal Gram matrix for hybrid predictor
+#'
+#' Returns a block-diagonal matrix containing the Gram  matrices for
+#' each functional component and an identity matrix for the scalar part.
+#'
+#' @param obj A `predictor_hybrid` object.
+#'
+#' @return A block-diagonal matrix of size `(total_dim × total_dim)` where
+#' functional and scalar components are arranged in order.
+#' @export
+get_gram_matrix_block <- function(obj) {
+  if (!inherits(obj, "predictor_hybrid")) {
+    stop("Input must be of class 'predictor_hybrid'.")
+  }
+
+  gram_blocks <- c(obj$gram_list, list(diag(obj$n_scalar)))
+  Matrix::bdiag(gram_blocks)
+}
+
+```
+
+### get_penalty_hybrid
+Constructs a matrix defined in \label{def:J_dotdot_ast}
+$$
+    \ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}) \in \mathbb{R}^{(MK+p) \times (MK+p)},
+$$
+where
+ $\ddot{J}^{(k)}$ is  a $M \times M$ matrix defined in \label{def:dodot_J_k} as the gram matrix formed by the second derivativ of the basis functions
+$$
+\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
+$$
+```{r}
+#' Construct the roughness penalty matrix for a predictor_hybrid object
+#'
+#' Returns a block diagonal matrix representing roughness penalties for each functional predictor
+#' and zeros for the scalar predictors (scalar predictors are not penalized). Each functional component uses its own basis penalty matrix, computed via second derivative penalty via `getbasispenalty()` from the `fda` package
+#'
+#' @param W A `predictor_hybrid` object.
+#'
+#' @return A block diagonal penalty matrix of dimension `(sum(n_basis_list) + n_scalar)^2`.
+#' @export
+get_penalty_hybrid <- function(W){
+  J_dotdot_star <- fda::getbasispenalty(W$functional_list[[1]]$basis)
+  for (ii in 2:(W$n_functional)){
+    J_dotdot_star <- Matrix::bdiag(
+      J_dotdot_star,
+      fda::getbasispenalty(W$functional_list[[ii]]$basis)
+    )
+    }
+  J_dotdot_star <- Matrix::bdiag(
+    J_dotdot_star,
+    matrix(0, nrow = W$n_scalar, ncol = W$n_scalar)
+    )
+  return(J_dotdot_star)
+  }
+```
+
+
+```{r}
+testthat::test_that("get_penalty_hybrid computes correct dimensions and structure", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Setup
+  basis <- fda::create.bspline.basis(c(0, 1), nbasis = 5)
+  n_sample <- 3
+  n_scalar <- 2
+
+  fd1 <- fda::fd(coef = matrix(1, 5, n_sample), basisobj = basis)
+  fd2 <- fda::fd(coef = matrix(2, 5, n_sample), basisobj = basis)
+  Z <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Run
+  penalty <- get_penalty_hybrid(obj)
+
+  # Expected dimensions
+  total_dim <- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(penalty), c(total_dim, total_dim))
+
+  # Check block diagonal structure: bottom-right should be zero matrix
+  scalar_block <- as.matrix(penalty[
+    (total_dim - n_scalar + 1):total_dim,
+    (total_dim - n_scalar + 1):total_dim
+  ])
+  testthat::expect_equal(scalar_block, matrix(0, n_scalar, n_scalar))
+
+  # Check that the upper blocks are positive semidefinite
+  eigenvalues <- eigen(as.matrix(penalty[1:(total_dim - n_scalar), 1:(total_dim - n_scalar)]))$values
+  testthat::expect_true(all(eigenvalues >= -1e-8))  # Numerical tolerance
+})
+
+```
+
+###
+```{r}
+get_smoothing_param_hybrid <- function(W, lambda){
+  #lambda: list of length K (=n_functional)
+  lambda_mat <- lambda[1] * diag(W@functional_list[[1]]$basis$nbasis)
+  for (ii in 2:(W@n_functional)){
+    n_basis_now <- dim(W@jacobian_list[[ii]])[2]
+    lambda_mat <- bdiag(
+      lambda_mat,
+      lambda[ii] * diag(W@functional_list[[ii]]$basis$nbasis)
+    )
+      }
+  lambda_mat <- bdiag(
+    lambda_mat,
+    matrix(0, nrow = W@n_scalar, ncol = W@n_scalar)
+  )
+}
+
+```
+
+
+### get_pre_corrcov
+construct the matrix V_star:
+$$
+    V^\ast = n^{-2}\begin{bmatrix}
+         J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
+        \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
+    \end{bmatrix} = n^{-2} J^* \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^*
+    \in \mathbb{R}^{(MK+p) \times (MK+p)},
+$$
+where $J$ is defined in `get_gram_matrix_block`
+equation (7), 
+```{r}
+#' Compute V matrix (pre-corrected covariance estimator)
+#'
+#' Constructs the V matrix involving inner products of functional predictors
+#' (weighted by their Gram matrices) and scalar predictors against response y.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param y A numeric response vector of length equal to number of samples.
+#'
+#' @return A matrix representing the corrected cross-covariance structure.
+#' @export
+get_pre_corrcov <- function(W, y){
+  n <- W$n_sample
+  K <- W$n_functional
+
+  # building blocks
+  ## C_J : C multiplied by J. Scalable to arbitrary K
+  predictor_first <- W$functional_list[[1]]
+  C_J <- t(predictor_first$coefs) %*% W$gram_list[[1]]
+  for (i in 2:K){
+    predictor_now <- W$functional_list[[i]]
+    C_J <- cbind(
+      C_J,
+      t(predictor_now$coefs) %*% W$gram_list[[i]]
+    )
+    }
+
+  
+  ## covariance
+  J_Ct_y <- t(C_J) %*% y
+  Zt_y <- t(W$Z) %*% y
+
+  # V matrix
+  upper_left <- J_Ct_y %*% t(J_Ct_y)
+  upper_right <- J_Ct_y %*% t(Zt_y)
+  lower_left <- t(upper_right)
+  lower_right <- Zt_y %*% t(Zt_y)
+
+  V_star <- cbind(
+    rbind(upper_left, lower_left),
+    rbind(upper_right, lower_right)
+    )/(n^2)
+
+  return(V_star)
+  }
+```
+
+test code:
+
+| Case | Description               | Functional Coefficients         | Scalar Covariates      | Response         | Expected Behavior                              |
+|------|---------------------------|----------------------------------|------------------------|------------------|------------------------------------------------|
+| 1    | Constant structure        | All ones or twos                | All ones               | Increasing vector| Output matrix is symmetric and non-negative    |
+| 2    | Random structure          | Random normal entries           | Random normal values   | Random vector    | Output is symmetric and numerically PSD        |
+
+
+```{r}
+testthat::test_that("get_pre_corrcov handles constant and random coefficients", {
+  suppressPackageStartupMessages(library(fda))
+
+  make_fd <- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis <- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample <- 5
+  n_scalar <- 2
+  n_functional <- 2
+
+  # Constant coefficients
+  fd_const1 <- make_fd(matrix(1, 4, n_sample), basis)
+  fd_const2 <- make_fd(matrix(2, 4, n_sample), basis)
+  Z_const <- matrix(1, n_sample, n_scalar)
+  y_const <- matrix(1:n_sample, ncol = 1)
+  obj_const <- predictor_hybrid(Z = Z_const, functional_list = list(fd_const1, fd_const2))
+
+  V_const <- get_pre_corrcov(obj_const, y_const)
+  testthat::expect_equal(dim(V_const), rep(sum(obj_const$n_basis_list) + obj_const$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_const))
+  testthat::expect_true(all(V_const >= 0))
+
+  # Random coefficients
+  set.seed(123)
+  fd_rand1 <- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  fd_rand2 <- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  Z_rand <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  y_rand <- matrix(rnorm(n_sample), ncol = 1)
+  obj_rand <- predictor_hybrid(Z = Z_rand, functional_list = list(fd_rand1, fd_rand2))
+
+  V_rand <- get_pre_corrcov(obj_rand, y_rand)
+  testthat::expect_equal(dim(V_rand), rep(sum(obj_rand$n_basis_list) + obj_rand$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_rand))
+  testthat::expect_true(all(eigen(V_rand, only.values = TRUE)$values >= -1e-8))
+})
+
+```
+
+
+
+## get_pls_comp
+
+```{r}
+get_pls_comp <- function(W, y, L, verbose){
+  # W: hybrid predictor
+  # y: response vector
+  # L: regularization hyperparameter
+
+  V_star <- get_pre_corrcov(W, y)
+  #Last paragraph of section 3.2. To solve (6) in practice...
+  #A <- t(solve(L, t(V_star))) # A = V* t(inv(L))
+  #E <- solve(L, A) # E = inv(L) A
+
+  invL <- Matrix::chol2inv(L)
+  A <- V_star %*% t(invL) # A = V* t(inv(L))
+  E <- invL %*% A # E = inv(L) A
+
+
+  eigen_result <- eigen(E)
+  #cat("eigenvalues: ", eigen_result$values)
+  e <- eigen_result$vectors[, 1]
+  if(is.complex(e)){
+    return("stop")
+  }
+  #e <- e / Matrix::norm(e, "2") #normalize; omitted by request of Dr. Jang
+  #xi_star <- solve(t(L), e) # t(L) xi* = e, basis coefficient of estimated PLS component
+  xi_star <- t(invL) %*% e
+  xi_hat <- hybrid_from_coef(format = W, xi_star = xi_star) #estimated PLS component
+  return(
+    list(
+      xi_hat = xi_hat,
+      E = E,
+      V_star = V_star,
+      eigen_val = eigen_result$values[1]
+      )
+  )
+  }
+```
+
+```{r}
+nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
+  # 1. initialize the storage
+  rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+  E <- V_star <- eigen_val <-list()
+  fitted_value_W <- fitted_value_y <-list()
+  resid_y <- W_now <- list() #data for iteration
+  first_eigen_val <- mse_W <- mse_y <-rep(NA, n_iter)
+
+
+  # 2. constraint matrix is the same at every iteration
+  J_star          <- get_gram_matrix_block(W)
+  J_dotdot_star   <- get_penalty_hybrid(W)
+  lambda_mat      <- get_smoothing_param_hybrid(W, lambda)
+  constr_mat      <- J_star + (lambda_mat %*% J_dotdot_star) # denominator in the equation (6)
+  constr_mat_chol <- t(chol(constr_mat))
+
+  W_now[[1]] <- W
+  y_now <- y
+  final_succesful_iteration <- 0
+  for (l in 1:n_iter) {
+    #cat(paste("#############################################", "\n"))
+    if(verbose==T)cat(paste(l, "th component", "\n"))
+
+    # STEP 1. calculate pls score
+    pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
+    if(!is.list(pls_result_now)){break}
+
+    xi[[l]] <- pls_result_now$xi # pls component. Section 3.2
+    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]]) # pls scores : n_sample * 1 matrix
+
+    # STEP 2. residulize
+    # residualize predictor: hybrid (W) on scalar (rho) linear regression with n_sample observations
+    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]]) #single obs of hybrid predictor
+
+    fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
+    W_now[[l+1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
+    # residualize resoponse
+    nu[[l]] <- LSE_ptws(y_now, rho[[l]]) #scalar on scalar linear regression with n_sample observations
+    fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
+    y_now <- y_now - fitted_value_y[[l]]
+    resid_y[[l]] <- y_now
+
+    #check mean norm
+    #mse_W[l] <- mean_sum_sqrd(W_now[[l]])
+    #mse_y[l] <- norm(y_now,"2")
+
+    #cat("W:", mse_W[l], "\n")
+    #cat("y:",  mse_y[l], "\n\n")
+
+    # STEP 3.
+    sigma[[l]] <- xi[[l]]
+    if (l == 1) {
+      eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+    }else{ # if l > 1
+      for (u in 1:(l - 1)){
+        sigma[[l]] <- subtr( sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]) )
+      } #end of u-loop
+      eta[[l]] <- add(eta[[l-1]], sigma[[l]], nu[[l]])
+    }#if statement
+
+    # just for records.
+    E[[l]] <- pls_result_now$E # for monitoring symetricity
+    V_star[[l]] <- pls_result_now$V_star
+    eigen_val[[l]] <- pls_result_now$eigen_val
+    first_eigen_val[l] <- eigen_val[[l]][1]
+    final_succesful_iteration <- l
+  }# for loop: l
+}
 ```
 
 
