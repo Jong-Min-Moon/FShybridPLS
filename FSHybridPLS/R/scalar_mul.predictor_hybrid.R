@@ -2,7 +2,7 @@
 
 #' Multiply a predictor_hybrid object by a scalar
 #'
-#' Performs scalar multiplication of both scalar and functional components 
+#' Performs scalar multiplication on both the scalar and functional components
 #' of a `predictor_hybrid` object. Functional predictors are scaled using 
 #' `times.fd()` from the `fda` package.
 #'
@@ -12,20 +12,24 @@
 #' @return A new `predictor_hybrid` object scaled by `scalar`.
 #' @export
 scalar_mul.predictor_hybrid <- function(input, scalar) {
-  new_functional_list <- lapply(
-    input$functional_list,
-    function(fd_obj) times.fd(scalar, fd_obj)
-  )
-  
+  if (!inherits(input, "predictor_hybrid")) {
+    stop("Input must be of class 'predictor_hybrid'.")
+  }
+  if (!is.numeric(scalar) || length(scalar) != 1) {
+    stop("Scalar must be a single numeric value.")
+  }
+
+  # Scale functional components
+  new_functional_list <- lapply(input$functional_list, function(fd_obj) {
+    times.fd(scalar, fd_obj)
+  })
+
+  # Scale scalar predictors
   new_Z <- scalar * input$Z
-  
+
+  # Reconstruct hybrid object
   predictor_hybrid(
     Z = new_Z,
-    functional_list = new_functional_list,
-    jacobian_list = input$jacobian_list,
-    n_basis_list = input$n_basis_list,
-    n_sample = input$n_sample,
-    n_functional = input$n_functional,
-    n_scalar = input$n_scalar
+    functional_list = new_functional_list
   )
 }

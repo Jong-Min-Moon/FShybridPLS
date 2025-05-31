@@ -346,6 +346,203 @@ of the R package.</p>
 )
 usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
 </div>
+<div id="helper-functions" class="section level1">
+<h1>helper functions</h1>
+<div id="is_same_basis" class="section level3">
+<h3>is_same_basis</h3>
+<pre class="r"><code>#' @export
+<span id="is_same_basis">is_same_basis</span> &lt;- function(input, other) {
+  all(
+    length(input$functional_list) == length(other$functional_list),
+    all(
+      mapply(function(fd1, fd2) fda::is.eqbasis(fd1$basis, fd2$basis),
+             input$functional_list, other$functional_list)
+    )
+  )
+}</code></pre>
+</div>
+<div id="compute_gram_matrix" class="section level3">
+<h3>compute_gram_matrix</h3>
+<pre class="r"><code>#' Compute the Gram matrix for a basis object
+#'
+#' @param basis A basis object of class `basisfd` from the `fda` package
+#' @return A square matrix where entry (i,j) is the inner product of basis functions i and j
+#' @export
+<span id="compute_gram_matrix">compute_gram_matrix</span> &lt;- function(basis) {
+  stopifnot(inherits(basis, "basisfd"))
+  inprod(basis, basis)  # computes ∫ b_i(t) b_j(t) dt
+}</code></pre>
+<p>We check the following cases:</p>
+<table>
+<colgroup>
+<col width="8%">
+<col width="31%">
+<col width="60%">
+</colgroup>
+<thead><tr class="header">
+<th>Case</th>
+<th>Test</th>
+<th>Expectation</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Orthogonal (Fourier)</td>
+<td>Gram matrix ≈ diagonal</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Constant</td>
+<td>Single value equals interval length (1)</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Invalid</td>
+<td>Raises informative error</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Narrow support</td>
+<td>Mostly low off-diagonal entries</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>testthat::test_that("Gram matrix edge cases", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Case 1: Fourier basis (orthogonal over [0, 1])
+  fb &lt;- create.fourier.basis(rangeval = c(0, 1), nbasis = 5)
+  J_fourier &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(fb)
+  testthat::expect_equal(J_fourier, diag(diag(J_fourier)), tolerance = 1e-10)  # Nearly diagonal
+
+  # Case 2: Constant basis (1 basis function)
+  cb &lt;- create.constant.basis(rangeval = c(0, 1))
+  J_const &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(cb)
+  testthat::expect_equal(dim(J_const), c(1, 1))
+  testthat::expect_equal(J_const[1, 1], 1)
+
+  # Case 3: Invalid input
+  testthat::expect_error(<a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>("not a basisfd"))
+
+  # Case 4: Highly localized B-splines
+  # Simulate nearly disjoint support (narrow B-splines)
+  narrow_bs &lt;- create.bspline.basis(rangeval = c(0, 1), nbasis = 10, norder = 2)
+  J_narrow &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(narrow_bs)
+  testthat::expect_true(all(abs(J_narrow[upper.tri(J_narrow)]) &lt; 0.5))  # off-diagonals small
+})</code></pre>
+<pre><code>## Test passed 🌈</code></pre>
+</div>
+<div id="helpers-for-functional-data-objects" class="section level2">
+<h2>helpers for functional data objects</h2>
+<div id="rep_fd" class="section level3">
+<h3>rep_fd</h3>
+<pre class="r"><code>#' Replicate a list of single-sample fd objects multiple times
+#'
+#' This function broadcasts a list of single-sample functional predictors
+#' by replicating their coefficient columns.
+#'
+#' @param fd_list A list of `fd` objects, each representing a single sample.
+#' @param n The number of replications desired.
+#'
+#' @return A list of `fd` objects, each with `n` replications.
+#' @export
+<span id="rep_fd">rep_fd</span> &lt;- function(fd_list, n) {
+  if (!is.list(fd_list) || any(!vapply(fd_list, inherits, logical(1), "fd"))) {
+    stop("Input must be a list of 'fd' objects.")
+  }
+
+  lapply(fd_list, function(fd_obj) {
+    coef_mat &lt;- fd_obj$coefs
+    if (is.null(dim(coef_mat)) || ncol(coef_mat) != 1) {
+      stop("Each fd object in the list must have one column of coefficients.")
+    }
+
+    new_coefs &lt;- matrix(rep(coef_mat, n), nrow = nrow(coef_mat), ncol = n)
+    fd(coef = new_coefs, basisobj = fd_obj$basis)
+  })
+}</code></pre>
+<table>
+<colgroup>
+<col width="3%">
+<col width="24%">
+<col width="16%">
+<col width="24%">
+<col width="30%">
+</colgroup>
+<thead><tr class="header">
+<th>Case</th>
+<th>Description</th>
+<th>Input Type</th>
+<th>Expected Output</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Correct replication</td>
+<td>List of single-sample fd</td>
+<td>List of <code>fd</code> objects with <code>n</code> columns</td>
+<td>All columns identical to original coefficients</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Each fd has one sample</td>
+<td>List of fd</td>
+<td>No error</td>
+<td>Verifies structure and content</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>One fd has multiple samples</td>
+<td>fd with &gt;1 columns</td>
+<td>Error</td>
+<td>Should raise informative error</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Non-fd object in list</td>
+<td>List of non-<code>fd</code> items</td>
+<td>Error</td>
+<td>Validates class-checking robustness</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>testthat::test_that("rep_fd correctly replicates a list of fd objects", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Create a simple basis
+  basis &lt;- create.bspline.basis(c(0, 1), 5)
+
+  # Create single-sample fd object
+  coef_vec &lt;- 1:5
+  fd1 &lt;- fd(coef = matrix(coef_vec, ncol = 1), basisobj = basis)
+
+  # Replicate the list
+  rep_list &lt;- <a href="create-rhello.html#rep_fd">rep_fd</a>(list(fd1, fd1), 3)
+
+  # Check: list length unchanged
+  testthat::expect_equal(length(rep_list), 2)
+
+  # Check each replicated fd object
+  for (fd_obj in rep_list) {
+    testthat::expect_s3_class(fd_obj, "fd")
+    testthat::expect_equal(dim(fd_obj$coefs), c(5, 3))  # 5 basis × 3 samples
+    for (i in 1:3) {
+      testthat::expect_equal(fd_obj$coefs[, i], coef_vec)
+    }
+  }
+
+  # Error if not single-sample
+  fd_multi &lt;- fd(coef = matrix(1:10, nrow = 5, ncol = 2), basisobj = basis)
+  testthat::expect_error(<a href="create-rhello.html#rep_fd">rep_fd</a>(list(fd_multi)), "Each fd object in the list must have one column")
+  
+  # Error on non-fd input
+  testthat::expect_error(<a href="create-rhello.html#rep_fd">rep_fd</a>(list(1, "not_fd")), "Input must be a list of 'fd' objects")
+})</code></pre>
+<pre><code>## Test passed 😀</code></pre>
+</div>
+</div>
+</div>
 <div id="class-predictor_hybrid" class="section level1">
 <h1>Class predictor_hybrid</h1>
 <ul>
@@ -383,41 +580,55 @@ X^{(K)}(t_K))^\top \in \mathbb{R}^K\)</span> and <span class="math inline">\(\ma
 <li><p>The hybrid object forms a Hilbert space, characterized by
 well-defined addition, scalar multiplication, and inner product
 operations.</p></li>
-<li><p>The <code>predictor_hybrid</code> class is an S3 object designed
-to represent this structure.</p></li>
-<li><p>We implement Hilbert space operations for this class, and our
-algorithm is built on these foundational operations.</p></li>
+<li><p>We define an S3 object <code>predictor_hybrid</code> that
+represent this structure, and implement Hilbert space operations for
+this class, and our algorithm is built on these foundational
+operations.</p></li>
 </ul>
 <p>The class definition is a simple list that contains a matrix and a
 collection of objects from the package, along with the necessary
 metadata.</p>
-<pre class="r"><code>#' Create a predictor_hybrid object (S3 version)
+<pre class="r"><code>#' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
 #'
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
-#' along with Jacobians and metadata.
+#' and automatically computes Gram matrices (inner products of basis functions).
 #'
 #' @param Z A numeric matrix of dimension \code{n_sample × n_scalar} representing scalar predictors.
 #' @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
-#' @param jacobian_list A list of Jacobian matrices corresponding to the functional predictors.
-#' @param n_basis_list A numeric vector indicating the number of basis functions for each functional predictor.
-#' @param n_sample Number of observations (samples).
-#' @param n_functional Number of functional predictors.
-#' @param n_scalar Number of scalar predictors.
 #'
-#' @return A list of class \code{predictor_hybrid}.
+#' @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #' @export
-<span id="predictor_hybrid">predictor_hybrid</span> &lt;- function(Z, functional_list, jacobian_list,
-                             n_basis_list, n_sample, n_functional, n_scalar) {
-  stopifnot(is.matrix(Z))
-  stopifnot(length(functional_list) == n_functional)
-  stopifnot(length(jacobian_list) == n_functional)
-  stopifnot(length(n_basis_list) == n_functional)
-  
+<span id="predictor_hybrid">predictor_hybrid</span> &lt;- function(Z, functional_list) {
+  stopifnot(is.matrix(Z), is.numeric(Z))
+  stopifnot(is.list(functional_list))
+
+  n_sample &lt;- nrow(Z)
+  n_scalar &lt;- ncol(Z)
+  n_functional &lt;- length(functional_list)
+
+  gram_list &lt;- vector("list", n_functional)
+  n_basis_list &lt;- numeric(n_functional)
+
+  for (i in seq_len(n_functional)) {
+    <span id="fd_i">fd_i</span> &lt;- functional_list[[i]]
+    stopifnot(inherits(fd_i, "fd"))
+
+    n_fd_sample &lt;- ncol(coef(fd_i))
+    if (n_fd_sample != n_sample) {
+      stop(sprintf("Functional predictor %d has %d replicates, but Z has %d rows.",
+                   i, n_fd_sample, n_sample))
+    }
+
+    basis_i &lt;- fd_i$basis
+    gram_list[[i]] &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(basis_i)
+    n_basis_list[i] &lt;- basis_i$nbasis
+  }
+
   structure(
     list(
       Z = Z,
       functional_list = functional_list,
-      jacobian_list = jacobian_list,
+      gram_list = gram_list,
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
@@ -428,34 +639,38 @@ metadata.</p>
 }</code></pre>
 <p>Let’s write some tests to make sure the function behaves as
 desired:</p>
-<pre class="r"><code>testthat::test_that("predictor_hybrid constructor works as expected (S3)", {
+<pre class="r"><code>testthat::test_that("predictor_hybrid constructor works as expected (S3, updated)", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Create scalar matrix
   Z &lt;- matrix(rnorm(100 * 5), nrow = 100, ncol = 5)
-  fd1 &lt;- list(fdobj = "fd1 placeholder")
-  fd2 &lt;- list(fdobj = "fd2 placeholder")
-  J1 &lt;- matrix(runif(100), nrow = 10)
-  J2 &lt;- matrix(runif(200), nrow = 20)
-  
-  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
-    Z = Z,
-    functional_list = list(fd1, fd2),
-    jacobian_list = list(J1, J2),
-    n_basis_list = c(10, 20),
-    n_sample = 100,
-    n_functional = 2,
-    n_scalar = 5
-  )
-  
+
+  # Create two fd objects with 100 replications
+  basis1 &lt;- create.bspline.basis(c(0, 1), nbasis = 10)
+  basis2 &lt;- create.bspline.basis(c(0, 1), nbasis = 20)
+
+  coef1 &lt;- matrix(rnorm(10 * 100), nrow = 10)  # 10 basis × 100 samples
+  coef2 &lt;- matrix(rnorm(20 * 100), nrow = 20)  # 20 basis × 100 samples
+
+  fd1 &lt;- fd(coef = coef1, basisobj = basis1)
+  fd2 &lt;- fd(coef = coef2, basisobj = basis2)
+
+  # Construct object
+  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+
+  # Assertions
   testthat::expect_s3_class(obj, "predictor_hybrid")
   testthat::expect_equal(nrow(obj$Z), 100)
   testthat::expect_equal(ncol(obj$Z), 5)
   testthat::expect_equal(length(obj$functional_list), 2)
-  testthat::expect_equal(length(obj$jacobian_list), 2)
   testthat::expect_equal(obj$n_basis_list, c(10, 20))
   testthat::expect_equal(obj$n_sample, 100)
   testthat::expect_equal(obj$n_functional, 2)
   testthat::expect_equal(obj$n_scalar, 5)
+  testthat::expect_equal(dim(obj$gram_list[[1]]), c(10, 10))
+  testthat::expect_equal(dim(obj$gram_list[[2]]), c(20, 20))
 })</code></pre>
-<pre><code>## Test passed 😀</code></pre>
+<pre><code>## Test passed 🎊</code></pre>
 <div id="basic-arithmetic" class="section level2">
 <h2>Basic arithmetic</h2>
 <div id="add.predictor_hybrid" class="section level3">
@@ -497,70 +712,137 @@ structure of functional and scalar predictors.<br>
 </ul>
 </li>
 </ul>
-<pre class="r"><code>#' Add two predictor_hybrid objects
-#'
-#' Performs element-wise addition of two predictor_hybrid objects.
-#' Functional predictors are combined using `plus.fd()` and `times.fd()`.
-#'
-#' @param input A predictor_hybrid object.
-#' @param other Another predictor_hybrid object.
-#' @param alpha A numeric scalar multiplier for `other`.
-#'
-#' @return A new predictor_hybrid object representing the sum.
-#' @export
-<span id="add.predictor_hybrid">add.predictor_hybrid</span> &lt;- function(input, other, alpha = 1) {
-  if (input$n_functional != other$n_functional || input$n_scalar != other$n_scalar) {
-    stop("Mismatch in number of predictors.")
+<pre class="r"><code><span id="add.predictor_hybrid">add.predictor_hybrid</span> &lt;- function(input, other, alpha = 1) {
+  if (!inherits(input, "predictor_hybrid") || !inherits(other, "predictor_hybrid")) {
+    stop("Both arguments must be of class 'predictor_hybrid'.")
   }
-  
-  # Optionally check that functional bases are the same
-  # if (!<a href="create-rhello.html#is_same_basis">is_same_basis</a>(input, other)) stop("Different functional bases.")
 
-  new_functional_list &lt;- vector("list", input$n_functional)
-  for (i in seq_len(input$n_functional)) {
-    new_functional_list[[i]] &lt;- plus.fd(
-      input$functional_list[[i]],
-      times.fd(alpha, other$functional_list[[i]])
-    )
+  if (input$n_functional != other$n_functional || input$n_scalar != other$n_scalar) {
+    stop("Mismatch in number of functional or scalar predictors.")
   }
-  
-  new_Z &lt;- input$Z + alpha * other$Z
-  
-  <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
-    Z = new_Z,
-    functional_list = new_functional_list,
-    jacobian_list = input$jacobian_list,  # Assumes identical structure
-    n_basis_list = input$n_basis_list,
-    n_sample = input$n_sample,
-    n_functional = input$n_functional,
-    n_scalar = input$n_scalar
+
+  # Check broadcasting compatibility
+  n1 &lt;- input$n_sample
+  n2 &lt;- other$n_sample
+  if (n1 != n2 &amp;&amp; !(n1 == 1 || n2 == 1)) {
+    stop("Sample sizes are incompatible for broadcasting.")
+  }
+
+  # Safe access to is.eqbasis()
+  is_eqbasis &lt;- getFromNamespace("is.eqbasis", "fda")
+
+  for (i in seq_len(input$n_functional)) {
+    if (!is_eqbasis(input$functional_list[[i]]$basis, other$functional_list[[i]]$basis)) {
+      stop("Functional predictors must have the same basis.")
+    }
+  }
+
+  # Broadcast if needed
+  <span id="broadcast">broadcast</span> &lt;- function(obj, n_target) {
+    if (obj$n_sample == n_target) return(obj)
+    obj$Z &lt;- matrix(rep(obj$Z, each = n_target), nrow = n_target, byrow = TRUE)
+    obj$functional_list &lt;- lapply(obj$functional_list, function(fd_obj) {
+      fd(coef = matrix(rep(coef(fd_obj), n_target), nrow = nrow(coef(fd_obj))),
+         basisobj = fd_obj$basis)
+    })
+    obj$n_sample &lt;- n_target
+    obj
+  }
+
+  # Determine output sample size
+  n_out &lt;- max(n1, n2)
+  input &lt;- <a href="create-rhello.html#broadcast">broadcast</a>(input, n_out)
+  other &lt;- <a href="create-rhello.html#broadcast">broadcast</a>(other, n_out)
+
+  # Combine functional predictors
+  new_functional_list &lt;- Map(
+    function(f1, f2) plus.fd(f1, times.fd(alpha, f2)),
+    input$functional_list,
+    other$functional_list
   )
+
+  # Combine scalar predictors
+  new_Z &lt;- input$Z + alpha * other$Z
+
+  # Construct new object
+  <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = new_Z, functional_list = new_functional_list)
 }</code></pre>
-<pre class="r"><code>testthat::test_that("add.predictor_hybrid works for matching predictors", {
+<p>Here are the unit tests: | Case | Description | Expected Outcome | |
+———————– | ———————————– | —————- | | ✅ Same sample size | Functional
+and scalar values summed | Pass | | ✅ Broadcast one → many | One-sample
+input broadcasted | Pass | | ✅ Broadcast many ← one | One-sample other
+broadcasted | Pass | | ❌ Basis mismatch | Different functional basis |
+Error | | ❌ Irregular sample size | Neither matches nor is singleton |
+Error | | ❌ Different dimensions | Functional or scalar count mismatch
+| Error |</p>
+<pre class="r"><code>testthat::test_that("add.predictor_hybrid handles broadcasting and basis compatibility", {
   suppressPackageStartupMessages(library(fda))
 
-  Z1 &lt;- matrix(1, nrow = 3, ncol = 2)
-  Z2 &lt;- matrix(2, nrow = 3, ncol = 2)
-  
-  basis &lt;- fda::create.bspline.basis(c(0, 1), 5)
-  fd1 &lt;- fda::fd(coef = matrix(1, 5, 3), basisobj = basis)
-  fd2 &lt;- fda::fd(coef = matrix(2, 5, 3), basisobj = basis)
-  
-  obj1 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z1, list(fd1), list(matrix(0)), c(5), 3, 1, 2)
-  obj2 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z2, list(fd2), list(matrix(0)), c(5), 3, 1, 2)
-  
-  obj3 &lt;- <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(obj1, obj2, alpha = 1)
-  
-  testthat::expect_s3_class(obj3, "predictor_hybrid")
-  testthat::expect_equal(obj3$Z, matrix(3, nrow = 3, ncol = 2))
-  
-  expected_coef &lt;- matrix(3, 5, 3)
-  testthat::expect_equal(
-    unname(coef(obj3$functional_list[[1]])),
-    unname(expected_coef)
-  )
+  # Create shared B-spline basis
+  basis &lt;- create.bspline.basis(c(0, 1), nbasis = 5)
+
+  # Helper to generate a valid coefficient matrix
+  <span id="coef_mat">coef_mat</span> &lt;- function(val, n_sample, basis_obj) {
+    nbasis &lt;- basis_obj$nbasis
+    matrix(val, nrow = nbasis, ncol = n_sample)
+  }
+
+  # Helper to create a list of fd objects (2 functional predictors)
+  <span id="fd_list">fd_list</span> &lt;- function(val, n_sample, basis_obj = basis) {
+    list(
+      fd(coef = <a href="create-rhello.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj),
+      fd(coef = <a href="create-rhello.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj)
+    )
+  }
+
+  # Scalar predictors
+  Z1 &lt;- matrix(1, nrow = 1, ncol = 2)
+  Z3 &lt;- matrix(3, nrow = 3, ncol = 2)
+
+  # Functional predictors (same basis)
+  F1 &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(1, 1)
+  F3 &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(3, 3)
+
+  # Create predictor_hybrid objects
+  x1 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z1, F1)  # 1 sample
+  x3 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, F3)  # 3 samples
+
+  # Broadcast x1 to match x3
+  result &lt;- <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x1, x3, alpha = 1)
+
+  # Check metadata
+  testthat::expect_s3_class(result, "predictor_hybrid")
+  testthat::expect_equal(result$n_sample, 3)
+  testthat::expect_equal(result$n_scalar, 2)
+  testthat::expect_equal(result$n_functional, 2)
+
+  # Check scalar component
+  expected_Z &lt;- matrix(4, nrow = 3, ncol = 2)  # 1 + 3 = 4
+  testthat::expect_equal(result$Z, expected_Z)
+
+  # Check functional component
+  for (fd_out in result$functional_list) {
+    testthat::expect_equal(unname(coef(fd_out)), matrix(4, nrow = 5, ncol = 3))
+  }
+
+  # Test symmetry: broadcasting x3 + x1
+  result2 &lt;- <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x1, alpha = 1)
+  testthat::expect_equal(result2$Z, expected_Z)
+  for (fd_out in result2$functional_list) {
+    testthat::expect_equal(unname(coef(fd_out)), matrix(4, nrow = 5, ncol = 3))
+  }
+
+  # Incompatible sample sizes (should fail)
+  x_bad &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(matrix(1, 2, 2), <a href="create-rhello.html#fd_list">fd_list</a>(1, 2))
+  testthat::expect_error(<a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_bad), "incompatible for broadcasting")
+
+  # Incompatible functional basis (should fail)
+  bad_basis &lt;- create.bspline.basis(c(0, 1), nbasis = 6)
+  bad_fd &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(2, 3, bad_basis)
+  x_basis_mismatch &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, bad_fd)
+  testthat::expect_error(<a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_basis_mismatch), "same basis")
 })</code></pre>
-<pre><code>## Test passed 🌈</code></pre>
+<pre><code>## Test passed 🥳</code></pre>
 </div>
 <div id="subtr.predictor_hybrid" class="section level3">
 <h3>subtr.predictor_hybrid</h3>
@@ -659,7 +941,7 @@ using matrix multiplication.</li>
 </ul>
 <pre class="r"><code>#' Multiply a predictor_hybrid object by a scalar
 #'
-#' Performs scalar multiplication of both scalar and functional components 
+#' Performs scalar multiplication on both the scalar and functional components
 #' of a `predictor_hybrid` object. Functional predictors are scaled using 
 #' `times.fd()` from the `fda` package.
 #'
@@ -669,94 +951,89 @@ using matrix multiplication.</li>
 #' @return A new `predictor_hybrid` object scaled by `scalar`.
 #' @export
 <span id="scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</span> &lt;- function(input, scalar) {
-  new_functional_list &lt;- lapply(
-    input$functional_list,
-    function(fd_obj) times.fd(scalar, fd_obj)
-  )
-  
+  if (!inherits(input, "predictor_hybrid")) {
+    stop("Input must be of class 'predictor_hybrid'.")
+  }
+  if (!is.numeric(scalar) || length(scalar) != 1) {
+    stop("Scalar must be a single numeric value.")
+  }
+
+  # Scale functional components
+  new_functional_list &lt;- lapply(input$functional_list, function(fd_obj) {
+    times.fd(scalar, fd_obj)
+  })
+
+  # Scale scalar predictors
   new_Z &lt;- scalar * input$Z
-  
+
+  # Reconstruct hybrid object
   <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
     Z = new_Z,
-    functional_list = new_functional_list,
-    jacobian_list = input$jacobian_list,
-    n_basis_list = input$n_basis_list,
-    n_sample = input$n_sample,
-    n_functional = input$n_functional,
-    n_scalar = input$n_scalar
+    functional_list = new_functional_list
   )
 }</code></pre>
 <p>Here is a test code with two functional predictors:</p>
 <pre class="r"><code>testthat::test_that("scalar_mul.predictor_hybrid works with two functional predictors", {
   suppressPackageStartupMessages(library(fda))
   
-  # Scalar matrix
+  # Scalar part (3 observations, 2 scalar predictors)
   Z &lt;- matrix(2, nrow = 3, ncol = 2)
-  
-  # Create a shared basis for both functional predictors
-  basis &lt;- create.bspline.basis(c(0, 1), 5)
-  
-  # Two identical fd objects
-  fd1 &lt;- fd(coef = matrix(2, 5, 3), basisobj = basis)
-  fd2 &lt;- fd(coef = matrix(2, 5, 3), basisobj = basis)
-  
-  # Construct predictor_hybrid object
-  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
-    Z = Z,
-    functional_list = list(fd1, fd2),
-    jacobian_list = list(matrix(0), matrix(0)),
-    n_basis_list = c(5, 5),
-    n_sample = 3,
-    n_functional = 2,
-    n_scalar = 2
-  )
-  
-  # Perform scalar multiplication
-  scaled &lt;- <a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(obj, 4)
-  
+
+  # Functional part: shared B-spline basis
+  basis &lt;- create.bspline.basis(c(0, 1), nbasis = 5)
+  fd1 &lt;- fd(coef = matrix(2, nrow = 5, ncol = 3), basisobj = basis)
+  fd2 &lt;- fd(coef = matrix(2, nrow = 5, ncol = 3), basisobj = basis)
+
+  # Construct hybrid object using new simplified constructor
+  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+
+  # Apply scalar multiplication
+  scaled &lt;- <a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(obj, scalar = 4)
+
+  # Check class
   testthat::expect_s3_class(scaled, "predictor_hybrid")
-  
-  # Scalar part should be scaled
+
+  # Check scalar predictor was scaled
   testthat::expect_equal(scaled$Z, Z * 4)
-  
-  # Each functional part should be scaled
-  expected_coef &lt;- matrix(8, 5, 3)  # 2 * 4
-  for (fd_scaled in scaled$functional_list) {
+
+  # Check each functional component's coefficients
+  expected_coef &lt;- matrix(8, nrow = 5, ncol = 3)
+  for (fd_obj in scaled$functional_list) {
     testthat::expect_equal(
-      unname(coef(fd_scaled)),
+      unname(coef(fd_obj)),
       unname(expected_coef)
     )
   }
 })</code></pre>
-<pre><code>## Test passed 🥳</code></pre>
+<pre><code>## Test passed 🎊</code></pre>
 </div>
 <div id="inprod.predictor_hybrid" class="section level3">
 <h3>inprod.predictor_hybrid</h3>
-<p>The inner product of $f_1=(f_1^{(1)}, ,f_1^{(K)}) $ and <span class="math inline">\(f_2=(f_2^{(1)}, \ldots,f_2^{(K)})\)</span> in
-<span class="math inline">\(\mathcal{F}\)</span> is defined as <span class="math inline">\(\langle f_1, f_2\rangle_\mathcal{F}
+<ul>
+<li><p>The inner product of <span class="math inline">\(f_1=(f_1^{(1)},
+\ldots,f_1^{(K)})\)</span> and <span class="math inline">\(f_2=(f_2^{(1)}, \ldots,f_2^{(K)})\)</span> in
+<span class="math inline">\(\mathcal{F}\)</span> is defined as <span class="math display">\[\langle f_1, f_2\rangle_\mathcal{F}
 =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K
-\int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k\)</span> with
-norm <span class="math inline">\(\Vert f_1 \Vert_\mathcal{F} = \langle
+\int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k,\]</span> with
+norm <span class="math display">\[\Vert f_1 \Vert_\mathcal{F} = \langle
 f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k}
-f_1^{(k)}(t_k)^2 dt_k\}^{1/2}\)</span>.</p>
-<p>Computes the inner product between two <code>predictor_hybrid</code>
-objects.Both scalar and functional components are included.</p>
-<p>We define the inner product between any two hybrid objects, <span class="math inline">\(\mathbf{h}_1 = (f_1, \mathbf{v}_1)\)</span> and
+f_1^{(k)}(t_k)^2 dt_k\}^{1/2}.\]</span></p></li>
+<li><p>We define the inner product between any two hybrid objects, <span class="math inline">\(\mathbf{h}_1 = (f_1, \mathbf{v}_1)\)</span> and
 <span class="math inline">\(\mathbf{h}_2 = (f_2, \mathbf{v}_2)\)</span>,
 as <span class="math display">\[
-    \langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} = \langle
-f_1, f_2\rangle_\mathcal{F} + w \langle  \mathbf{v_1}, \mathbf{v_2}
-\rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)
-f_2^{(k)}(t_k) dt_k + \omega \sum \limits_{r=1}^p v_{1r}v_{2r},
+  \langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} = \langle f_1,
+f_2\rangle_\mathcal{F} +  \langle  \mathbf{v_1}, \mathbf{v_2} \rangle =
+\sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k)
+dt_k + \sum \limits_{r=1}^p v_{1r}v_{2r},
 \]</span> with norm <span class="math inline">\(\Vert \cdot
 \Vert_\mathcal{H} = \langle \cdot,\cdot
-\rangle_\mathcal{H}^{1/2}\)</span>. <span class="math inline">\(\omega\)</span> is a positive weight that needs to
-be pre-specified or estimated. It is mainly used to take into account
-heterogeneity between functional and scalar parts in terms of
-measurement scale and/or amount of variation (see Section <span class="math inline">\(\ref{subsec: Data Preprocessing}\)</span>).
-Without loss of generality and for the clarity of illustration, all the
-following theoretical results will be derived for <span class="math inline">\(\omega=1\)</span>. The results remain valid for
-any positive weights. - Usage</p>
+\rangle_\mathcal{H}^{1/2}\)</span>.</p></li>
+<li><p>The method <code>inprod.predictor_hybrid</code> computes the
+inner product between two <code>predictor_hybrid</code> objects. It
+supports broadcasting when one of the inputs has a single
+observation.</p></li>
+<li><p>Usage</p></li>
+</ul>
 <pre class="r"><code><a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(xi_1, xi_2)</code></pre>
 <ul>
 <li>
@@ -765,23 +1042,22 @@ any positive weights. - Usage</p>
 <li>
 <code>xi_1</code>: A <code>predictor_hybrid</code> object.</li>
 <li>
-<code>xi_2</code>: Another <code>predictor_hybrid</code>
-object.</li>
+<code>xi_2</code>: Another <code>predictor_hybrid</code> object. If
+omitted, defaults to xi_1 (computes self-inner product).</li>
 </ul>
 </li>
-<li><p>Value:<br>
-A numeric matrix of inner products (or a scalar if both inputs are
-single observations).</p></li>
+<li><p>Value: A numeric vector of inner products (or a scalar if both
+inputs are single observations).</p></li>
 <li>
 <p>Details:</p>
 <ul>
-<li>Functional components are summed using <code>inprod()</code> from
-the <code>fda</code> package.<br>
-</li>
-<li>Scalar components are handled via matrix multiplication.<br>
-</li>
-<li>Returns a scalar if both <code>xi_1</code> and <code>xi_2</code> are
-single-sample predictors.</li>
+<li>Functional components are summed using inprod() from the fda
+package.</li>
+<li>Scalar components are handled via matrix multiplication.</li>
+<li>Broadcasting is supported: if either xi_1 or xi_2 has only one
+sample, its values are broadcast across all rows of the other.</li>
+<li>Ensures compatibility in the number of functional and scalar
+predictors before computing the result.</li>
 </ul>
 </li>
 </ul>
@@ -789,55 +1065,171 @@ single-sample predictors.</li>
 #'
 #' Computes the inner product between two `predictor_hybrid` objects,
 #' including both functional and scalar components. Supports broadcasting
-#' when one of the inputs has a single observation. If only one input is given,
-#' the inner product is computed with itself.
+#' when one of the inputs has a single observation.
 #'
 #' @param xi_1 A `predictor_hybrid` object.
 #' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
 #'
-#' @return A numeric matrix of inner products (or a scalar if both inputs have one row).
+#' @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
 #' @export
 <span id="inprod.predictor_hybrid">inprod.predictor_hybrid</span> &lt;- function(xi_1, xi_2 = NULL) {
-  if (is.null(xi_2)) xi_2 &lt;- xi_1
+  # Handle self-inner product
+  if (is.null(xi_2)) xi_2 &lt;- xi_1 
   
-  # Optional: Check for basis compatibility
-  # if (!<a href="create-rhello.html#is_same_basis">is_same_basis</a>(xi_1, xi_2)) stop("Functional predictors must share the same basis.")
+  # Type checks
+  if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
+    stop("Both inputs must be of class 'predictor_hybrid'.")
+  }
+
+  # Structural checks
+  if (xi_1$n_functional != xi_2$n_functional) {
+    stop("Mismatch in number of functional predictors.")
+  }
+  if (xi_1$n_scalar != xi_2$n_scalar) {
+    stop("Mismatch in number of scalar predictors.")
+  }
+
+  # Swap so that broadcasting always applies to xi_2
+  if (xi_1$n_sample == 1 &amp;&amp; xi_2$n_sample &gt; 1) {
+    tmp &lt;- xi_1
+    xi_1 &lt;- xi_2
+    xi_2 &lt;- tmp
+  }
 
   n1 &lt;- xi_1$n_sample
   n2 &lt;- xi_2$n_sample
 
-  # Compute sum of pairwise functional inner products
-  inprod_functional &lt;- Reduce(`+`,
-    Map(function(f1, f2) fda::inprod(f1, f2),
-        xi_1$functional_list, xi_2$functional_list)
-  )
+  if (!(n1 == n2 || n2 == 1)) {
+    stop("Sample sizes are incompatible for broadcasting.")
+  }
 
-  # Broadcast-aware scalar component
-  Z1 &lt;- if (n1 == 1) matrix(xi_1$Z, nrow = 1) else xi_1$Z
-  Z2 &lt;- if (n2 == 1) matrix(xi_2$Z, nrow = 1) else xi_2$Z
-  inprod_scalar &lt;- Z1 %*% t(Z2)
+  # Prepare components
+  f1 &lt;- xi_1$functional_list
+  f2 &lt;- xi_2$functional_list
+  Z1 &lt;- xi_1$Z
+  Z2 &lt;- xi_2$Z
 
+  # Replicate fd and Z if needed
+  if (n2 == 1) {
+    f2 &lt;- <a href="create-rhello.html#rep_fd">rep_fd</a>(f2, n1)
+    Z2 &lt;- matrix(rep(Z2, each = n1), nrow = n1, byrow = TRUE)
+  }
+
+  # Compute functional inner products
+  inprod_functional &lt;- vapply(seq_len(n1), function(i) {
+    sum(vapply(seq_along(f1), function(j) {
+      fda::inprod(f1[[j]][i], f2[[j]][i])
+    }, numeric(1)))
+  }, numeric(1))
+
+  # Compute scalar inner products
+  inprod_scalar &lt;- rowSums(Z1 * Z2)
+
+  # Combine results
   result &lt;- inprod_functional + inprod_scalar
-
   if (n1 == 1 &amp;&amp; n2 == 1) as.numeric(result) else result
 }</code></pre>
+<p>We run unit tests for:</p>
+<table>
+<colgroup>
+<col width="4%">
+<col width="25%">
+<col width="17%">
+<col width="17%">
+<col width="35%">
+</colgroup>
+<thead><tr class="header">
+<th>Case</th>
+<th>Description</th>
+<th>Input Dimensions</th>
+<th>Expected Output length</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Broadcasting (multi vs. single)</td>
+<td>x1: (3×2), x2: (1×2)</td>
+<td>3</td>
+<td>Tests row-wise broadcasting of x2</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Broadcasting (single vs. multi)</td>
+<td>x2: (1×2), x1: (3×2)</td>
+<td>1</td>
+<td>Tests column-wise broadcasting of x2</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Self inner product (1 sample)</td>
+<td>x2: (1×2)</td>
+<td>1</td>
+<td>Equivalent to norm²</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>One-sample vs. one-sample</td>
+<td>x2: (1×2), x3: (1×2)</td>
+<td>1</td>
+<td>Tests standard dot product + functional terms</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Two-samples vs. two-sample</td>
+<td>x2: (2×2), x3: (2×2)</td>
+<td>2</td>
+<td>Tests standard dot product + functional terms</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>testthat::test_that("inprod.predictor_hybrid returns correct vector output for broadcasting and other cases", {
+  suppressPackageStartupMessages(library(fda))
+
+  basis &lt;- create.bspline.basis(c(0, 1), 5)
+  <span id="make_fd">make_fd</span> &lt;- function(val, n_sample) {
+    fd(coef = matrix(val, 5, n_sample), basisobj = basis)
+  }
+
+  # Case 1: Broadcasting (multi vs. single)
+  Z1 &lt;- matrix(c(1, 2), nrow = 3, ncol = 2, byrow = TRUE)
+  Z2 &lt;- matrix(c(3, 4), nrow = 1)
+  fd1 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(1, 3)
+  fd2 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(2, 1)
+  x1 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z1, list(fd1, fd1))
+  x2 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z2, list(fd2, fd2))
+  out1 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x1, x2)
+  testthat::expect_type(out1, "double")
+  testthat::expect_length(out1, 3)
+
+  # Case 2: Broadcasting (single vs. multi)
+  out2 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x1)
+  testthat::expect_type(out2, "double")
+  testthat::expect_length(out2, 3)
+
+  # Case 3: Self inner product (1 sample)
+  out3 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2)
+  testthat::expect_type(out3, "double")
+  testthat::expect_length(out3, 1)
+
+  # Case 4: One-sample vs. one-sample
+  Z3 &lt;- matrix(c(5, 6), nrow = 1)
+  fd3 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(3, 1)
+  x3 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, list(fd3, fd3))
+  out4 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x3)
+  testthat::expect_type(out4, "double")
+  testthat::expect_length(out4, 1)
+
+  # Case 5: Two-sample vs. two-sample
+  Z4 &lt;- matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE)
+  fd4 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(1, 2)
+  x4 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z4, list(fd4, fd4))
+  out5 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x4, x4)
+  testthat::expect_type(out5, "double")
+  testthat::expect_length(out5, 2)
+})</code></pre>
+<pre><code>## Test passed 🌈</code></pre>
 </div>
-</div>
-</div>
-<div id="helper-functions" class="section level1">
-<h1>helper functions</h1>
-<div id="is_same_basis" class="section level3">
-<h3>is_same_basis</h3>
-<pre class="r"><code>#' @export
-<span id="is_same_basis">is_same_basis</span> &lt;- function(input, other) {
-  all(
-    length(input$functional_list) == length(other$functional_list),
-    all(
-      mapply(function(fd1, fd2) fda::is.eqbasis(fd1$basis, fd2$basis),
-             input$functional_list, other$functional_list)
-    )
-  )
-}</code></pre>
 </div>
 <div id="documenting-the-package-and-building" class="section level2">
 <h2>Documenting the package and building</h2>
@@ -848,9 +1240,9 @@ this file.</p>
 <pre><code>## ℹ Updating FSHybridPLS documentation
 ## ℹ Loading FSHybridPLS
 ## Writing 'NAMESPACE'
-## Writing 'add.predictor_hybrid.Rd'
+## Writing 'compute_gram_matrix.Rd'
 ## Writing 'inprod.predictor_hybrid.Rd'
-## Writing 'predictor_hybrid.Rd'
+## Writing 'rep_fd.Rd'
 ## Writing 'scalar_mul.predictor_hybrid.Rd'
 ## Writing 'subtr.predictor_hybrid.Rd'</code></pre>
 <pre class="r"><code># devtools::build()
