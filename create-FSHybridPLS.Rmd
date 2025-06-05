@@ -1459,71 +1459,93 @@ ggplot(results, aes(x = nbasis, y = lambda, fill = reason)) +
 
 
 ```{r eval=FALSE, include=FALSE}
+#' Iterative Penalized NIPALS Algorithm for Hybrid PLS
+#'
+#' Performs iterative extraction of PLS components using a penalized NIPALS algorithm
+#' for hybrid predictor objects that include both scalar and functional data.
+#'
+#' At each iteration:
+#' \enumerate{
+#'   \item Computes the first penalized PLS component using \code{get_pls_comp}.
+#'   \item Computes PLS scores via hybrid inner products.
+#'   \item Residualizes both predictors and response with respect to the extracted scores.
+#'   \item Orthogonalizes and accumulates loading vectors to construct final linear predictors.
+#' }
+#' The same constraint matrix (computed once) is used across all iterations.
+#'
+#' @param W A \code{predictor_hybrid} object containing scalar and functional predictors.
+#' @param y A numeric response vector of length equal to \code{W$n_sample}.
+#' @param n_iter An integer specifying the number of PLS components (iterations) to compute.
+#' @param lambda A numeric vector of smoothing parameters (length = number of functional predictors).
+#' @param verbose Logical; if \code{TRUE}, prints progress for each component.
+#'
+#' @return This function operates by side effects. Internally, it constructs and updates:
+#' \itemize{
+#'   \item \code{xi}, \code{rho}, \code{delta}, \code{nu}: component vectors and regression effects,
+#'   \item \code{sigma}, \code{eta}: orthogonalized components and accumulated prediction functions,
+#'   \item \code{W_now}, \code{resid_y}: residualized predictor and response at each iteration,
+#'   \item \code{E}, \code{V_star}, \code{eigen_val}: matrices for monitoring stability and eigenvalue progress.
+#' }
+#' The final number of successful iterations is tracked via \code{final_succesful_iteration}.
+#'
+#' @export
 nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
-  # 1. initialize the storage
+  # 1. Initialize storage
   rho <- xi <- delta <- nu  <- sigma <- eta <- list()
-  E <- V_star <- eigen_val <-list()
-  fitted_value_W <- fitted_value_y <-list()
-  resid_y <- W_now <- list() #data for iteration
-  first_eigen_val <- mse_W <- mse_y <-rep(NA, n_iter)
+  E <- V_star <- eigen_val <- list()
+  fitted_value_W <- fitted_value_y <- list()
+  resid_y <- W_now <- list()
+  first_eigen_val <- mse_W <- mse_y <- rep(NA, n_iter)
 
-
-  # 2. constraint matrix is the same at every iteration
-  constr_mat      <- get_constraint_matrix_hybrid(W, lambda) 
+  # 2. Compute and store the constraint matrix once
+  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
   constr_mat_chol <- t(chol(constr_mat))
 
+  # 3. Initialize residuals
   W_now[[1]] <- W
   y_now <- y
   final_succesful_iteration <- 0
+
   for (l in 1:n_iter) {
-    #cat(paste("#############################################", "\n"))
-    if(verbose==T)cat(paste(l, "th component", "\n"))
+    if (verbose) cat(paste(l, "th component", "\n"))
 
-    # STEP 1. calculate pls score
+    # Step 1: Compute penalized PLS direction and score
     pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
-    if(!is.list(pls_result_now)){break}
+    if (!is.list(pls_result_now)) break
 
-    xi[[l]] <- pls_result_now$xi # pls component. Section 3.2
-    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]]) # pls scores : n_sample * 1 matrix
+    xi[[l]] <- pls_result_now$xi
+    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]])
 
-    # STEP 2. residulize
-    # residualize predictor: hybrid (W) on scalar (rho) linear regression with n_sample observations
-    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]]) #single obs of hybrid predictor
-
+    # Step 2: Residualize predictor and response
+    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]])
     fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
-    W_now[[l+1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
-    # residualize resoponse
-    nu[[l]] <- LSE_ptws(y_now, rho[[l]]) #scalar on scalar linear regression with n_sample observations
+    W_now[[l + 1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
+
+    nu[[l]] <- LSE_ptws(y_now, rho[[l]])
     fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
     y_now <- y_now - fitted_value_y[[l]]
     resid_y[[l]] <- y_now
 
-    #check mean norm
-    #mse_W[l] <- mean_sum_sqrd(W_now[[l]])
-    #mse_y[l] <- norm(y_now,"2")
-
-    #cat("W:", mse_W[l], "\n")
-    #cat("y:",  mse_y[l], "\n\n")
-
-    # STEP 3.
+    # Step 3: Orthogonalize and update prediction
     sigma[[l]] <- xi[[l]]
     if (l == 1) {
       eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
-    }else{ # if l > 1
-      for (u in 1:(l - 1)){
-        sigma[[l]] <- subtr( sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]) )
-      } #end of u-loop
-      eta[[l]] <- add(eta[[l-1]], sigma[[l]], nu[[l]])
-    }#if statement
+    } else {
+      for (u in 1:(l - 1)) {
+        sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
+      }
+      eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
+    }
 
-    # just for records.
-    E[[l]] <- pls_result_now$E # for monitoring symetricity
+    # Record diagnostics
+    E[[l]] <- pls_result_now$E
     V_star[[l]] <- pls_result_now$V_star
     eigen_val[[l]] <- pls_result_now$eigen_val
     first_eigen_val[l] <- eigen_val[[l]][1]
     final_succesful_iteration <- l
-  }# for loop: l
+  }
 }
+
 ```
 ## Documenting the package and building
 
