@@ -1277,11 +1277,254 @@ testthat::test_that("get_pre_corrcov handles constant and random coefficients", 
 ```
 
 
+## PLS component computation
+
+### get_pls_comp
+Computes the first PLS component from a hybrid predictor and response vector using regularization.
+
+- Inputs
+  - **`W`**: A `predictor_hybrid` object with functional and scalar predictors.
+  - **`y`**: A numeric response vector of length equal to `W$n_sample`.
+  - **`L`**: A Cholesky decomposition of a positive definite regularization matrix.
+- Output: 
+  - `xi_hat`: The first PLS component as a `predictor_hybrid` object
+  - `E`: The matrix `inv(L) %*% V_star %*% t(inv(L))`
+  - `V_star`: Cross-covariance matrix between predictors and response
+  - `eigen_val`: Leading eigenvalue of `E`
+```{r}
+#' Compute the First PLS Component from a Hybrid Predictor
+#'
+#' Computes the coefficients of the first Partial Least Squares (PLS) component based on 
+#' a hybrid predictor object and a response vector, using a regularized generalized eigenvalue problem.
+#'
+#' @param W A \code{predictor_hybrid} object containing both functional and scalar predictors.
+#' @param y A numeric response vector of length equal to the number of samples in \code{W}.
+#' @param L cholesky decompisition of a regularization matrix (typically positive definite) used in the generalized eigenproblem.
+#'
+#' @return A list with the following elements:
+#' \describe{
+#'   \item{\code{xi_hat}}{The estimated first PLS component as a \code{predictor_hybrid} object.}
+#'   \item{\code{E}}{The generalized eigenvalue problem matrix \code{E = inv(L) V* t(inv(L))}.}
+#'   \item{\code{V_star}}{The cross-covariance matrix between predictors and response.}
+#'   \item{\code{eigen_val}}{The leading eigenvalue of \code{E}.}
+#' }
+#'
+#' @export
+get_pls_comp <- function(W, y, L){
+
+  V_star <- get_pre_corrcov(W, y)
+
+  invL <- Matrix::chol2inv(L)
+  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
+  E <- invL %*% A               # E = inv(L) × A
+
+  eigen_result <- eigen(E)
+  e <- eigen_result$vectors[, 1]
+  if (is.complex(e)){
+    print("stop")
+    return("stop")
+  } 
 
 
+  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
+  xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)
+
+  return(list(
+    xi_hat = xi_hat,
+    E = E,
+    V_star = V_star,
+    eigen_val = eigen_result$values[1]
+  ))
+}
+```
 
 
+```{r}
+suppressPackageStartupMessages({
+  library(fda)
+  library(Matrix)
+  library(ggplot2)
+})
 
+# --- Helper: Generate realistic smooth functional data ---
+generate_fd_data <- function(n_sample, nbasis, freq = 1) {
+  basis <- create.bspline.basis(c(0, 1), nbasis = nbasis, norder = 4)
+  time_points <- seq(0, 1, length.out = nbasis)
+  coefs <- outer(1:nbasis, 1:n_sample, function(i, j) {
+    sin(freq * pi * time_points[i]) + rnorm(1, sd = 0.1)
+  })
+  fd(coef = coefs, basisobj = basis)
+}
+
+# --- Settings ---
+set.seed(20250604)
+n_sample <- 200
+n_scalar <- 10
+n_functional <- 2
+nbasis_vals <- c(4,8,12,16,20)
+lambda_vals <- c(0, 1e-8, 1e-6, 1e-4, 1e-2, 1, 10)
+
+results <- data.frame()
+
+# --- Experiment Loop ---
+for (nbasis in nbasis_vals) {
+  for (lambda in lambda_vals) {
+    cat("Trying nbasis =", nbasis, ", lambda =", lambda, "\n")
+
+    # Generate functional predictors
+    fd1 <- generate_fd_data(n_sample, nbasis, freq = 1)
+    fd2 <- generate_fd_data(n_sample, nbasis, freq = 2)
+    Z <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+    y <- rnorm(n_sample)
+
+    W <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+    lambda_vec <- rep(lambda, n_functional)
+
+    # Try to compute constraint matrix L
+    L <- get_constraint_matrix_hybrid(W, lambda_vec)
+    constr_mat_chol <- t(chol(L))  # <-- do not change this
+
+    # Time the PLS computation
+    elapsed <- system.time({
+      out <- tryCatch({
+        pls <- get_pls_comp(W, y, constr_mat_chol)
+
+        if (!is.list(pls) || (is.character(pls) && pls == "stop")) {
+          data.frame(
+            nbasis = nbasis,
+            lambda = lambda,
+            eigen_val = NA,
+            is_real = FALSE,
+            reason = "stop (complex eigenvector)",
+            time_sec = NA_real_
+          )
+        } else {
+          data.frame(
+            nbasis = nbasis,
+            lambda = lambda,
+            eigen_val = Re(pls$eigen_val),
+            is_real = TRUE,
+            reason = "success",
+            time_sec = NA_real_  # placeholder, will update below
+          )
+        }
+      }, error = function(e) {
+        data.frame(
+          nbasis = nbasis,
+          lambda = lambda,
+          eigen_val = NA,
+          is_real = FALSE,
+          reason = "error in get_pls_comp",
+          time_sec = NA_real_
+        )
+      })
+    })
+
+    out$time_sec <- elapsed["elapsed"]
+    results <- rbind(results, out)
+  }
+}
+
+# --- Print successful configurations ---
+cat("\n✅ Successful runs with real eigenvalues:\n")
+print(subset(results, is_real == TRUE))
+
+# --- Fastest and slowest ---
+cat("\n⏱️ Top 5 fastest settings:\n")
+print(head(results[order(results$time_sec), ], 5))
+
+cat("\n🐢 Top 5 slowest settings:\n")
+print(tail(results[order(results$time_sec), ], 5))
+
+# --- Visualize success/failure ---
+ggplot(results, aes(x = nbasis, y = lambda, fill = reason)) +
+  geom_tile(color = "white") +
+  scale_y_log10() +
+  scale_fill_manual(values = c(
+    "success" = "green",
+    "stop (complex eigenvector)" = "orange",
+    "error in get_constraint_matrix_hybrid" = "red",
+    "error in get_pls_comp" = "darkred"
+  )) +
+  labs(
+    title = "get_pls_comp Outcomes: λ vs. # Basis Functions",
+    x = "# of Basis Functions",
+    y = "Smoothing Parameter λ (log scale)",
+    fill = "Result Type"
+  )
+
+```
+
+#
+
+
+```{r eval=FALSE, include=FALSE}
+nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
+  # 1. initialize the storage
+  rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+  E <- V_star <- eigen_val <-list()
+  fitted_value_W <- fitted_value_y <-list()
+  resid_y <- W_now <- list() #data for iteration
+  first_eigen_val <- mse_W <- mse_y <-rep(NA, n_iter)
+
+
+  # 2. constraint matrix is the same at every iteration
+  constr_mat      <- get_constraint_matrix_hybrid(W, lambda) 
+  constr_mat_chol <- t(chol(constr_mat))
+
+  W_now[[1]] <- W
+  y_now <- y
+  final_succesful_iteration <- 0
+  for (l in 1:n_iter) {
+    #cat(paste("#############################################", "\n"))
+    if(verbose==T)cat(paste(l, "th component", "\n"))
+
+    # STEP 1. calculate pls score
+    pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
+    if(!is.list(pls_result_now)){break}
+
+    xi[[l]] <- pls_result_now$xi # pls component. Section 3.2
+    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]]) # pls scores : n_sample * 1 matrix
+
+    # STEP 2. residulize
+    # residualize predictor: hybrid (W) on scalar (rho) linear regression with n_sample observations
+    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]]) #single obs of hybrid predictor
+
+    fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
+    W_now[[l+1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
+    # residualize resoponse
+    nu[[l]] <- LSE_ptws(y_now, rho[[l]]) #scalar on scalar linear regression with n_sample observations
+    fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
+    y_now <- y_now - fitted_value_y[[l]]
+    resid_y[[l]] <- y_now
+
+    #check mean norm
+    #mse_W[l] <- mean_sum_sqrd(W_now[[l]])
+    #mse_y[l] <- norm(y_now,"2")
+
+    #cat("W:", mse_W[l], "\n")
+    #cat("y:",  mse_y[l], "\n\n")
+
+    # STEP 3.
+    sigma[[l]] <- xi[[l]]
+    if (l == 1) {
+      eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+    }else{ # if l > 1
+      for (u in 1:(l - 1)){
+        sigma[[l]] <- subtr( sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]) )
+      } #end of u-loop
+      eta[[l]] <- add(eta[[l-1]], sigma[[l]], nu[[l]])
+    }#if statement
+
+    # just for records.
+    E[[l]] <- pls_result_now$E # for monitoring symetricity
+    V_star[[l]] <- pls_result_now$V_star
+    eigen_val[[l]] <- pls_result_now$eigen_val
+    first_eigen_val[l] <- eigen_val[[l]][1]
+    final_succesful_iteration <- l
+  }# for loop: l
+}
+```
 ## Documenting the package and building
 
 We finish by running commands that will document, build, and install the package.  It may also be a good idea to check the package from within this file.

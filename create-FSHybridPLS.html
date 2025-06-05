@@ -430,7 +430,7 @@ usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
   J_narrow &lt;- <a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>(narrow_bs)
   testthat::expect_true(all(abs(J_narrow[upper.tri(J_narrow)]) &lt; 0.5))  # off-diagonals small
 })</code></pre>
-<pre><code>## Test passed 🥇</code></pre>
+<pre><code>## Test passed 🌈</code></pre>
 </div>
 <div id="helpers-for-functional-data-objects" class="section level2">
 <h2>helpers for functional data objects</h2>
@@ -670,7 +670,7 @@ desired:</p>
   testthat::expect_equal(dim(obj$gram_list[[1]]), c(10, 10))
   testthat::expect_equal(dim(obj$gram_list[[2]]), c(20, 20))
 })</code></pre>
-<pre><code>## Test passed 🌈</code></pre>
+<pre><code>## Test passed 🥇</code></pre>
 <div id="predictor_hybrid_from_coef" class="section level3">
 <h3>predictor_hybrid_from_coef</h3>
 <p>An alternative constructor for a predictor_hybrid object based on a
@@ -786,7 +786,7 @@ coefficients</li>
   testthat::expect_equal(drop(coef(obj_single$functional_list[[1]])), 1:4)
   testthat::expect_equal(drop(coef(obj_single$functional_list[[2]])), 5:8)
 })</code></pre>
-<pre><code>## Test passed 🎊</code></pre>
+<pre><code>## Test passed 😸</code></pre>
 </div>
 <div id="basic-arithmetic" class="section level2">
 <h2>Basic arithmetic</h2>
@@ -970,7 +970,7 @@ Error | | ❌ Different dimensions | Functional or scalar count mismatch
   x_basis_mismatch &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z3, bad_fd)
   testthat::expect_error(<a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_basis_mismatch), "same basis")
 })</code></pre>
-<pre><code>## Test passed 🥇</code></pre>
+<pre><code>## Test passed 🥳</code></pre>
 </div>
 <div id="subtr.predictor_hybrid" class="section level3">
 <h3>subtr.predictor_hybrid</h3>
@@ -1133,7 +1133,7 @@ using matrix multiplication.</li>
     )
   }
 })</code></pre>
-<pre><code>## Test passed 😀</code></pre>
+<pre><code>## Test passed 🎊</code></pre>
 </div>
 <div id="inprod.predictor_hybrid" class="section level3">
 <h3>inprod.predictor_hybrid</h3>
@@ -1386,7 +1386,7 @@ predictors before computing the result.</li>
   # Case 4: Broadcasting (multi  vs. single)
   testthat::expect_equal(as.vector(<a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>( x3, x2)), as.vector(expected_scalar_4 + expected_functional_4))  
 })</code></pre>
-<pre><code>## Test passed 🎉</code></pre>
+<pre><code>## Test passed 🥇</code></pre>
 </div>
 </div>
 </div>
@@ -1497,7 +1497,7 @@ matrix has size <span class="math inline">\((\texttt{total_dim} \times
   # Final block: identity matrix for scalar part
   testthat::expect_equal( sum( G[(nb1 + nb2 + 1):total_dim, (nb1 + nb2 + 1):total_dim]  - diag(ns)), 0)
 })</code></pre>
-<pre><code>## Test passed 😀</code></pre>
+<pre><code>## Test passed 😸</code></pre>
 </div>
 <div id="get_smoothing_param_hybrid" class="section level3">
 <h3>get_smoothing_param_hybrid</h3>
@@ -1648,7 +1648,7 @@ gram matrix formed by the second derivativ of the basis functions <span class="m
   eigenvalues &lt;- eigen(as.matrix(penalty[1:(total_dim - n_scalar), 1:(total_dim - n_scalar)]))$values
   testthat::expect_true(all(eigenvalues &gt;= -1e-8))  # Numerical tolerance
 })</code></pre>
-<pre><code>## Test passed 🎉</code></pre>
+<pre><code>## Test passed 🥇</code></pre>
 </div>
 <div id="get_constraint_matrix" class="section level3">
 <h3>get_constraint_matrix</h3>
@@ -1819,6 +1819,89 @@ constraint_matrix &lt;- <a href="create-FSHybridPLS.html#get_constraint_matrix_h
 <pre><code>## Test passed 🎉</code></pre>
 </div>
 </div>
+<div id="pls-component-computation" class="section level2">
+<h2>PLS component computation</h2>
+<div id="get_pls_comp" class="section level3">
+<h3>get_pls_comp</h3>
+<p>Computes the first PLS component from a hybrid predictor and response
+vector using regularization.</p>
+<ul>
+<li>Inputs
+<ul>
+<li>
+<strong><code>W</code></strong>: A <code>predictor_hybrid</code>
+object with functional and scalar predictors.</li>
+<li>
+<strong><code>y</code></strong>: A numeric response vector of length
+equal to <code>W$n_sample</code>.</li>
+<li>
+<strong><code>L</code></strong>: A positive definite regularization
+matrix (e.g., from ridge-type penalty).</li>
+</ul>
+</li>
+<li>Output:
+<ul>
+<li>
+<code>xi_hat</code>: The first PLS component as a
+<code>predictor_hybrid</code> object</li>
+<li>
+<code>E</code>: The matrix
+<code>inv(L) %*% V_star %*% t(inv(L))</code>
+</li>
+<li>
+<code>V_star</code>: Cross-covariance matrix between predictors and
+response</li>
+<li>
+<code>eigen_val</code>: Leading eigenvalue of <code>E</code>
+</li>
+</ul>
+</li>
+</ul>
+<pre class="r"><code>#' Compute the First PLS Component from a Hybrid Predictor
+#'
+#' Computes the coefficients of the first Partial Least Squares (PLS) component based on 
+#' a hybrid predictor object and a response vector, using a regularized generalized eigenvalue problem.
+#'
+#' @param W A \code{predictor_hybrid} object containing both functional and scalar predictors.
+#' @param y A numeric response vector of length equal to the number of samples in \code{W}.
+#' @param L A regularization matrix (typically positive definite) used in the generalized eigenproblem.
+#'
+#' @return A list with the following elements:
+#' \describe{
+#'   \item{\code{xi_hat}}{The estimated first PLS component as a \code{predictor_hybrid} object.}
+#'   \item{\code{E}}{The generalized eigenvalue problem matrix \code{E = inv(L) V* t(inv(L))}.}
+#'   \item{\code{V_star}}{The cross-covariance matrix between predictors and response.}
+#'   \item{\code{eigen_val}}{The leading eigenvalue of \code{E}.}
+#' }
+#'
+#' @export
+<span id="get_pls_comp">get_pls_comp</span> &lt;- function(W, y, L){
+  # W: hybrid predictor
+  # y: response vector
+  # L: regularization hyperparameter
+
+  V_star &lt;- <a href="create-FSHybridPLS.html#get_pre_corrcov">get_pre_corrcov</a>(W, y)
+
+  invL &lt;- Matrix::chol2inv(L)
+  A &lt;- V_star %*% t(invL)       # A = V* × t(inv(L))
+  E &lt;- invL %*% A               # E = inv(L) × A
+
+  eigen_result &lt;- eigen(E)
+  e &lt;- eigen_result$vectors[, 1]
+  if (is.complex(e)) return("stop")
+
+  xi_star &lt;- t(invL) %*% e      # xi_star solves t(L) xi = e
+  xi_hat &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid_from_coef">predictor_hybrid_from_coef</a>(format = W, coef = xi_star)
+
+  return(list(
+    xi_hat = xi_hat,
+    E = E,
+    V_star = V_star,
+    eigen_val = eigen_result$values[1]
+  ))
+}</code></pre>
+</div>
+</div>
 <div id="documenting-the-package-and-building" class="section level2">
 <h2>Documenting the package and building</h2>
 <p>We finish by running commands that will document, build, and install
@@ -1832,6 +1915,7 @@ this file.</p>
 ## Writing 'get_constraint_matrix_hybrid.Rd'
 ## Writing 'get_gram_matrix_block.Rd'
 ## Writing 'get_penalty_hybrid.Rd'
+## Writing 'get_pls_comp.Rd'
 ## Writing 'get_pre_corrcov.Rd'
 ## Writing 'get_smoothing_param_hybrid.Rd'
 ## Writing 'inprod.predictor_hybrid.Rd'
