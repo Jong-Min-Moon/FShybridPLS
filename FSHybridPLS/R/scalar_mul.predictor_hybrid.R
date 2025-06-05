@@ -1,4 +1,4 @@
-# Generated from create-rhello.Rmd: do not edit by hand
+# Generated from create-FSHybridPLS.Rmd: do not edit by hand
 
 #' Multiply a predictor_hybrid object by a scalar
 #'

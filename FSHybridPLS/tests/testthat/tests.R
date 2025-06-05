@@ -1,4 +1,4 @@
-# Generated from create-rhello.Rmd: do not edit by hand  
+# Generated from create-FSHybridPLS.Rmd: do not edit by hand  
 testthat::test_that("Gram matrix edge cases", {
   suppressPackageStartupMessages(library(fda))
 
@@ -91,6 +91,41 @@ testthat::test_that("predictor_hybrid constructor works as expected (S3, updated
   testthat::expect_equal(dim(obj$gram_list[[1]]), c(10, 10))
   testthat::expect_equal(dim(obj$gram_list[[2]]), c(20, 20))
 })
+
+testthat::test_that("hybrid_from_coef reconstructs single-sample predictor_hybrid correctly", {
+  suppressPackageStartupMessages(library(fda))
+
+  make_fd <- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis <- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample <- 5
+  n_scalar <- 2
+  n_functional <- 2
+
+  # Create dummy functional list with zeros
+  fd1 <- make_fd(matrix(0, 4, n_sample), basis)
+  fd2 <- make_fd(matrix(0, 4, n_sample), basis)
+  Z <- matrix(0, n_sample, n_scalar)
+  obj_template <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Create coefficient vector for reconstruction: 4 + 4 + 2 = 10
+  xi_star <- c(1:10)
+
+  # Apply reconstruction
+  obj_single <- predictor_hybrid_from_coef(obj_template, xi_star)
+
+  # Checks
+  testthat::expect_s3_class(obj_single, "predictor_hybrid")
+  testthat::expect_equal(obj_single$n_sample, 1)
+  testthat::expect_equal(obj_single$Z, matrix(c(9, 10), nrow = 1))
+
+  # Check functional coefficients (use coef() not $coefs)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[1]])), 1:4)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[2]])), 5:8)
+})
+
 
 testthat::test_that("add.predictor_hybrid handles broadcasting and basis compatibility", {
   suppressPackageStartupMessages(library(fda))
@@ -201,42 +236,207 @@ testthat::test_that("inprod.predictor_hybrid returns correct vector output for b
   make_fd <- function(val, n_sample) {
     fd(coef = matrix(val, 5, n_sample), basisobj = basis)
   }
-
-  # Case 1: Broadcasting (multi vs. single)
-  Z1 <- matrix(c(1, 2), nrow = 3, ncol = 2, byrow = TRUE)
-  Z2 <- matrix(c(3, 4), nrow = 1)
+# data generation
+## three observations
   fd1 <- make_fd(1, 3)
-  fd2 <- make_fd(2, 1)
+  Z1 <- matrix(c(1, 2), nrow = 3, ncol = 2, byrow = TRUE)
   x1 <- predictor_hybrid(Z1, list(fd1, fd1))
+## one observation
+  fd2 <- make_fd(2, 1)
+  Z2 <- matrix(c(3, 4), nrow = 1)
   x2 <- predictor_hybrid(Z2, list(fd2, fd2))
-  out1 <- inprod.predictor_hybrid(x1, x2)
-  testthat::expect_type(out1, "double")
-  testthat::expect_length(out1, 3)
-
-  # Case 2: Broadcasting (single vs. multi)
-  out2 <- inprod.predictor_hybrid(x2, x1)
-  testthat::expect_type(out2, "double")
-  testthat::expect_length(out2, 3)
-
-  # Case 3: Self inner product (1 sample)
-  out3 <- inprod.predictor_hybrid(x2)
-  testthat::expect_type(out3, "double")
-  testthat::expect_length(out3, 1)
-
-  # Case 4: One-sample vs. one-sample
-  Z3 <- matrix(c(5, 6), nrow = 1)
-  fd3 <- make_fd(3, 1)
-  x3 <- predictor_hybrid(Z3, list(fd3, fd3))
-  out4 <- inprod.predictor_hybrid(x2, x3)
-  testthat::expect_type(out4, "double")
-  testthat::expect_length(out4, 1)
-
-  # Case 5: Two-sample vs. two-sample
-  Z4 <- matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE)
-  fd4 <- make_fd(1, 2)
+## three observations
+  Z3 <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, byrow = TRUE)
+  fd3 <- fd(coef = t(matrix(c(1:15), nrow = 3, byrow = TRUE)), basisobj = basis)
+  x3 <- predictor_hybrid(Z3, list(fd3, fd3))  
+## one observations
+  Z4 <- matrix(c(5, 6), nrow = 1)
+  fd4 <- make_fd(3, 1)
   x4 <- predictor_hybrid(Z4, list(fd4, fd4))
-  out5 <- inprod.predictor_hybrid(x4, x4)
-  testthat::expect_type(out5, "double")
-  testthat::expect_length(out5, 2)
+  
+# Case 1: Self inner product (1 sample)
+  out1 <- inprod.predictor_hybrid(x2)
+  expected_scalar_1 <- sum(Z2^2)
+  expected_functional_1 <- sum(sapply(x2$functional_list, function(fd) fda::inprod(fd, fd)))
+  testthat::expect_equal(out1, expected_scalar_1 + expected_functional_1)
+
+# Case 2: Three-sample vs. Three-sample
+  out2 <- inprod.predictor_hybrid(x1, x3)
+  expected_scalar_2 <- rowSums(Z1 * Z3)
+  expected_functional_2 <- vapply(1:3, function(i) {
+    sum(sapply(1:2, function(j) {
+      fda::inprod(x1$functional_list[[j]][i], x3$functional_list[[j]][i])
+    }))
+  }, numeric(1))
+  testthat::expect_equal(out2, expected_scalar_2 + expected_functional_2)
+  
+  # Case 3: One-sample vs. one-sample
+
+  out3 <- inprod.predictor_hybrid(x2, x4)
+  expected_scalar_3 <- sum(Z2 * Z4)
+  expected_functional_3 <-2*fda::inprod(fd2, fd4)
+  testthat::expect_equal(out3, as.numeric(expected_scalar_3 + expected_functional_3))
+
+
+  # Case 4: Broadcasting (single vs. multi)
+  out4 <- inprod.predictor_hybrid(x2, x3)
+  expected_scalar_4 <- c(0,0,0)
+  for (i in 1:3){
+    expected_scalar_4[i] <-  sum(Z2 * Z3[i,])
+    }
+
+  expected_functional_4 <-  c(0,0,0)
+  for (i in 1:3){
+    expected_functional_4[i] <- 2*fda::inprod(
+      fd2,
+      fd(
+        coef = matrix(
+        c(
+        (5*i+1-5):(5*i)
+        ), 5, 1), #end of matrix
+         basisobj = basis) #end of fd
+      )# end of inprod
+  }
+
+  testthat::expect_equal(as.vector(out4), as.vector(expected_scalar_4 + expected_functional_4))
+
+  # Case 4: Broadcasting (multi  vs. single)
+  testthat::expect_equal(as.vector(inprod.predictor_hybrid( x3, x2)), as.vector(expected_scalar_4 + expected_functional_4))  
 })
+
+testthat::test_that("get_gram_matrix_block constructs correct block-diagonal matrix", {
+  suppressPackageStartupMessages(library(fda))
+  suppressPackageStartupMessages(library(Matrix))
+
+  # Construct hybrid predictor with two functional and three scalar predictors
+  basis1 <- create.bspline.basis(c(0, 1), nbasis = 4)
+  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)  # was 3; now valid
+
+  fd1 <- fd(coef = matrix(1, 4, 2), basisobj = basis1)
+  fd2 <- fd(coef = matrix(2, 4, 2), basisobj = basis2)
+  Z <- matrix(rnorm(2 * 3), nrow = 2, ncol = 3)
+
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Extract the block-diagonal Gram matrix
+  G <- get_gram_matrix_block(obj)
+
+  # Expected block sizes
+  nb1 <- 4
+  nb2 <- 4
+  ns <- 3
+  total_dim <- nb1 + nb2 + ns
+
+  # Check matrix properties
+  testthat::expect_equal(dim(G), c(total_dim, total_dim))
+
+  # Check sub-block structure
+  # Top-left: Gram matrix 1
+  testthat::expect_equal(sum(G[1:nb1, 1:nb1]-obj$gram_list[[1]]), 0)
+
+  # Next block: Gram matrix 2
+  testthat::expect_equal(sum( G[(nb1 + 1):(nb1 + nb2), (nb1 + 1):(nb1 + nb2)]-obj$gram_list[[2]]),0 )
+
+  # Final block: identity matrix for scalar part
+  testthat::expect_equal( sum( G[(nb1 + nb2 + 1):total_dim, (nb1 + nb2 + 1):total_dim]  - diag(ns)), 0)
+})
+
+
+testthat::test_that("get_smoothing_param_hybrid returns correct block-diagonal structure", {
+  suppressPackageStartupMessages(library(fda))
+  basis1 <- create.bspline.basis(c(0, 1), nbasis = 5)
+  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)
+
+  fd1 <- fd(coef = matrix(1, 5, 3), basisobj = basis1)
+  fd2 <- fd(coef = matrix(2, 4, 3), basisobj = basis2)
+
+  Z <- matrix(1, nrow = 3, ncol = 2)
+
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+  lambda <- c(0.5, 2)
+
+  lambda_mat <- get_smoothing_param_hybrid(obj, lambda)
+
+  # Check overall dimension
+  expected_dim <- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(lambda_mat), c(expected_dim, expected_dim))
+
+  # Check diagonal entries
+  testthat::expect_equal(Matrix::diag(lambda_mat)[1:5], rep(0.5, 5))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[6:9], rep(2, 4))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[10:11], rep(0, 2))  # scalar part
+})
+
+
+testthat::test_that("get_penalty_hybrid computes correct dimensions and structure", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Setup
+  basis <- fda::create.bspline.basis(c(0, 1), nbasis = 5)
+  n_sample <- 3
+  n_scalar <- 2
+
+  fd1 <- fda::fd(coef = matrix(1, 5, n_sample), basisobj = basis)
+  fd2 <- fda::fd(coef = matrix(2, 5, n_sample), basisobj = basis)
+  Z <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Run
+  penalty <- get_penalty_hybrid(obj)
+
+  # Expected dimensions
+  total_dim <- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(penalty), c(total_dim, total_dim))
+
+  # Check block diagonal structure: bottom-right should be zero matrix
+  scalar_block <- as.matrix(penalty[
+    (total_dim - n_scalar + 1):total_dim,
+    (total_dim - n_scalar + 1):total_dim
+  ])
+  testthat::expect_equal(scalar_block, matrix(0, n_scalar, n_scalar))
+
+  # Check that the upper blocks are positive semidefinite
+  eigenvalues <- eigen(as.matrix(penalty[1:(total_dim - n_scalar), 1:(total_dim - n_scalar)]))$values
+  testthat::expect_true(all(eigenvalues >= -1e-8))  # Numerical tolerance
+})
+
+
+testthat::test_that("get_pre_corrcov handles constant and random coefficients", {
+  suppressPackageStartupMessages(library(fda))
+
+  make_fd <- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis <- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample <- 5
+  n_scalar <- 2
+  n_functional <- 2
+
+  # Constant coefficients
+  fd_const1 <- make_fd(matrix(1, 4, n_sample), basis)
+  fd_const2 <- make_fd(matrix(2, 4, n_sample), basis)
+  Z_const <- matrix(1, n_sample, n_scalar)
+  y_const <- matrix(1:n_sample, ncol = 1)
+  obj_const <- predictor_hybrid(Z = Z_const, functional_list = list(fd_const1, fd_const2))
+
+  V_const <- get_pre_corrcov(obj_const, y_const)
+  testthat::expect_equal(dim(V_const), rep(sum(obj_const$n_basis_list) + obj_const$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_const))
+  testthat::expect_true(all(V_const >= 0))
+
+  # Random coefficients
+  set.seed(123)
+  fd_rand1 <- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  fd_rand2 <- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  Z_rand <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  y_rand <- matrix(rnorm(n_sample), ncol = 1)
+  obj_rand <- predictor_hybrid(Z = Z_rand, functional_list = list(fd_rand1, fd_rand2))
+
+  V_rand <- get_pre_corrcov(obj_rand, y_rand)
+  testthat::expect_equal(dim(V_rand), rep(sum(obj_rand$n_basis_list) + obj_rand$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_rand))
+  testthat::expect_true(all(eigen(V_rand, only.values = TRUE)$values >= -1e-8))
+})
+
 

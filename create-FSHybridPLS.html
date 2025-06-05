@@ -335,7 +335,7 @@ of the R package.</p>
     Version = "0.0.0.9000",
     Title = "A Package That Says Hello",
     Description = "This package says hello.  But its actual purpose is to show how an R package can be completely coded in a single R markdown file.",
-    Imports = "fda (&gt;= 6.1.3)",
+    Imports = "fda (&gt;= 6.1.3), Matrix",
     `Authors@R` = person(
       given = "First",
       family = "Last",
@@ -412,25 +412,25 @@ usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
 
   # Case 1: Fourier basis (orthogonal over [0, 1])
   fb &lt;- create.fourier.basis(rangeval = c(0, 1), nbasis = 5)
-  J_fourier &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(fb)
+  J_fourier &lt;- <a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>(fb)
   testthat::expect_equal(J_fourier, diag(diag(J_fourier)), tolerance = 1e-10)  # Nearly diagonal
 
   # Case 2: Constant basis (1 basis function)
   cb &lt;- create.constant.basis(rangeval = c(0, 1))
-  J_const &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(cb)
+  J_const &lt;- <a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>(cb)
   testthat::expect_equal(dim(J_const), c(1, 1))
   testthat::expect_equal(J_const[1, 1], 1)
 
   # Case 3: Invalid input
-  testthat::expect_error(<a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>("not a basisfd"))
+  testthat::expect_error(<a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>("not a basisfd"))
 
   # Case 4: Highly localized B-splines
   # Simulate nearly disjoint support (narrow B-splines)
   narrow_bs &lt;- create.bspline.basis(rangeval = c(0, 1), nbasis = 10, norder = 2)
-  J_narrow &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(narrow_bs)
+  J_narrow &lt;- <a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>(narrow_bs)
   testthat::expect_true(all(abs(J_narrow[upper.tri(J_narrow)]) &lt; 0.5))  # off-diagonals small
 })</code></pre>
-<pre><code>## Test passed 🌈</code></pre>
+<pre><code>## Test passed 🥇</code></pre>
 </div>
 <div id="helpers-for-functional-data-objects" class="section level2">
 <h2>helpers for functional data objects</h2>
@@ -518,7 +518,7 @@ usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
   fd1 &lt;- fd(coef = matrix(coef_vec, ncol = 1), basisobj = basis)
 
   # Replicate the list
-  rep_list &lt;- <a href="create-rhello.html#rep_fd">rep_fd</a>(list(fd1, fd1), 3)
+  rep_list &lt;- <a href="create-FSHybridPLS.html#rep_fd">rep_fd</a>(list(fd1, fd1), 3)
 
   # Check: list length unchanged
   testthat::expect_equal(length(rep_list), 2)
@@ -534,10 +534,10 @@ usethis::use_mit_license(copyright_holder = "F. Last")</code></pre>
 
   # Error if not single-sample
   fd_multi &lt;- fd(coef = matrix(1:10, nrow = 5, ncol = 2), basisobj = basis)
-  testthat::expect_error(<a href="create-rhello.html#rep_fd">rep_fd</a>(list(fd_multi)), "Each fd object in the list must have one column")
+  testthat::expect_error(<a href="create-FSHybridPLS.html#rep_fd">rep_fd</a>(list(fd_multi)), "Each fd object in the list must have one column")
   
   # Error on non-fd input
-  testthat::expect_error(<a href="create-rhello.html#rep_fd">rep_fd</a>(list(1, "not_fd")), "Input must be a list of 'fd' objects")
+  testthat::expect_error(<a href="create-FSHybridPLS.html#rep_fd">rep_fd</a>(list(1, "not_fd")), "Input must be a list of 'fd' objects")
 })</code></pre>
 <pre><code>## Test passed 😀</code></pre>
 </div>
@@ -620,7 +620,7 @@ metadata.</p>
     }
 
     basis_i &lt;- fd_i$basis
-    gram_list[[i]] &lt;- <a href="create-rhello.html#compute_gram_matrix">compute_gram_matrix</a>(basis_i)
+    gram_list[[i]] &lt;- <a href="create-FSHybridPLS.html#compute_gram_matrix">compute_gram_matrix</a>(basis_i)
     n_basis_list[i] &lt;- basis_i$nbasis
   }
 
@@ -656,7 +656,7 @@ desired:</p>
   fd2 &lt;- fd(coef = coef2, basisobj = basis2)
 
   # Construct object
-  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+  obj &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
 
   # Assertions
   testthat::expect_s3_class(obj, "predictor_hybrid")
@@ -670,7 +670,124 @@ desired:</p>
   testthat::expect_equal(dim(obj$gram_list[[1]]), c(10, 10))
   testthat::expect_equal(dim(obj$gram_list[[2]]), c(20, 20))
 })</code></pre>
+<pre><code>## Test passed 🌈</code></pre>
+<div id="predictor_hybrid_from_coef" class="section level3">
+<h3>predictor_hybrid_from_coef</h3>
+<p>An alternative constructor for a predictor_hybrid object based on a
+flat numeric coefficient vector. It reconstructs both the functional and
+scalar components for a single-sample hybrid predictor object. The
+function reads the basis information from the template
+<code>format</code> object.</p>
+<ul>
+<li>Inputs
+<ul>
+<li>
+<strong><code>format</code></strong>: A
+<code>predictor_hybrid</code> object containing:
+<ul>
+<li>
+<code>functional_list</code>: List of <code>fd</code> objects with
+basis info</li>
+<li>
+<code>gram_list</code>: List of Gram matrices</li>
+<li>
+<code>n_scalar</code>: Number of scalar predictors</li>
+</ul>
+</li>
+<li>
+<strong><code>coef</code></strong>: Numeric vector of length
+<code>K * M + d</code>, where:
+<ul>
+<li>
+<code>K</code> = number of functional predictors<br>
+</li>
+<li>
+<code>M</code> = number of basis functions (assumed same across
+predictors)<br>
+</li>
+<li>
+<code>d</code> = number of scalar predictors</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Output
+<ul>
+<li>A <code>predictor_hybrid</code> object with:
+<ul>
+<li>Functional predictors rebuilt from the first <code>K * M</code>
+coefficients</li>
+<li>Scalar predictor <code>Z</code> from the remaining <code>d</code>
+coefficients</li>
+<li>
+<code>n_sample</code> set to 1</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre class="r"><code>#' Construct a Single-Sample Predictor Hybrid Object from Coefficients
+#'
+#' Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
+#' coefficient vector. This alternative constructor maps the coefficients back into their functional
+#' and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
+#'
+#' @param format A \code{predictor_hybrid} object that provides the structure and basis information.
+#' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
+#'
+#' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
+#'
+#'
+#' @export
+<span id="predictor_hybrid_from_coef">predictor_hybrid_from_coef</span> &lt;- function(format, coef){
+  M &lt;- dim(format$gram_list[[1]])[2] # number of basis functions
+  K &lt;- length(format$functional_list) # number of functional predictors
+  for (ii in 1:K){
+    format$functional_list[[ii]] &lt;- fd(
+      coef = as.matrix(coef[((ii-1)*M + 1):(ii*M)]),
+      basisobj = format$functional_list[[ii]]$basis
+    )
+  }
+  format$Z &lt;- t(as.matrix(coef[(K * M + 1):length(coef)]))
+  format$n_sample &lt;- 1
+  return(format)
+}</code></pre>
+<p><strong>unit test</strong></p>
+<pre class="r"><code>testthat::test_that("hybrid_from_coef reconstructs single-sample predictor_hybrid correctly", {
+  suppressPackageStartupMessages(library(fda))
+
+  <span id="make_fd">make_fd</span> &lt;- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis &lt;- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample &lt;- 5
+  n_scalar &lt;- 2
+  n_functional &lt;- 2
+
+  # Create dummy functional list with zeros
+  fd1 &lt;- make_fd(matrix(0, 4, n_sample), basis)
+  fd2 &lt;- make_fd(matrix(0, 4, n_sample), basis)
+  Z &lt;- matrix(0, n_sample, n_scalar)
+  obj_template &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+
+  # Create coefficient vector for reconstruction: 4 + 4 + 2 = 10
+  xi_star &lt;- c(1:10)
+
+  # Apply reconstruction
+  obj_single &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid_from_coef">predictor_hybrid_from_coef</a>(obj_template, xi_star)
+
+  # Checks
+  testthat::expect_s3_class(obj_single, "predictor_hybrid")
+  testthat::expect_equal(obj_single$n_sample, 1)
+  testthat::expect_equal(obj_single$Z, matrix(c(9, 10), nrow = 1))
+
+  # Check functional coefficients (use coef() not $coefs)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[1]])), 1:4)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[2]])), 5:8)
+})</code></pre>
 <pre><code>## Test passed 🎊</code></pre>
+</div>
 <div id="basic-arithmetic" class="section level2">
 <h2>Basic arithmetic</h2>
 <div id="add.predictor_hybrid" class="section level3">
@@ -681,7 +798,7 @@ and <code>times.fd()</code> from the <code>fda</code> package.</p>
 <ul>
 <li>Usage</li>
 </ul>
-<pre class="r"><code><a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = 1)</code></pre>
+<pre class="r"><code><a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = 1)</code></pre>
 <ul>
 <li>
 <p>Arguments:</p>
@@ -712,60 +829,71 @@ structure of functional and scalar predictors.<br>
 </ul>
 </li>
 </ul>
-<pre class="r"><code><span id="add.predictor_hybrid">add.predictor_hybrid</span> &lt;- function(input, other, alpha = 1) {
-  if (!inherits(input, "predictor_hybrid") || !inherits(other, "predictor_hybrid")) {
-    stop("Both arguments must be of class 'predictor_hybrid'.")
-  }
-
-  if (input$n_functional != other$n_functional || input$n_scalar != other$n_scalar) {
-    stop("Mismatch in number of functional or scalar predictors.")
-  }
-
-  # Check broadcasting compatibility
-  n1 &lt;- input$n_sample
-  n2 &lt;- other$n_sample
-  if (n1 != n2 &amp;&amp; !(n1 == 1 || n2 == 1)) {
-    stop("Sample sizes are incompatible for broadcasting.")
-  }
-
+<pre class="r"><code><span id="add.predictor_hybrid">add.predictor_hybrid</span> &lt;- function(xi_1, xi_2, alpha = 1) {
   # Safe access to is.eqbasis()
   is_eqbasis &lt;- getFromNamespace("is.eqbasis", "fda")
 
-  for (i in seq_len(input$n_functional)) {
-    if (!is_eqbasis(input$functional_list[[i]]$basis, other$functional_list[[i]]$basis)) {
+  for (i in seq_len(xi_1$n_functional)) {
+    if (!is_eqbasis(xi_1$functional_list[[i]]$basis, xi_2$functional_list[[i]]$basis)) {
       stop("Functional predictors must have the same basis.")
     }
   }
-
-  # Broadcast if needed
-  <span id="broadcast">broadcast</span> &lt;- function(obj, n_target) {
-    if (obj$n_sample == n_target) return(obj)
-    obj$Z &lt;- matrix(rep(obj$Z, each = n_target), nrow = n_target, byrow = TRUE)
-    obj$functional_list &lt;- lapply(obj$functional_list, function(fd_obj) {
-      fd(coef = matrix(rep(coef(fd_obj), n_target), nrow = nrow(coef(fd_obj))),
-         basisobj = fd_obj$basis)
-    })
-    obj$n_sample &lt;- n_target
-    obj
+  
+   # Type checks
+  if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
+    stop("Both inputs must be of class 'predictor_hybrid'.")
   }
 
-  # Determine output sample size
-  n_out &lt;- max(n1, n2)
-  input &lt;- <a href="create-rhello.html#broadcast">broadcast</a>(input, n_out)
-  other &lt;- <a href="create-rhello.html#broadcast">broadcast</a>(other, n_out)
+  # Structural checks
+  if (xi_1$n_functional != xi_2$n_functional) {
+    stop("Mismatch in number of functional predictors.")
+  }
+  if (xi_1$n_scalar != xi_2$n_scalar) {
+    stop("Mismatch in number of scalar predictors.")
+  }
+
+  # Swap so that broadcasting always applies to xi_2
+  if (xi_1$n_sample == 1 &amp;&amp; xi_2$n_sample &gt; 1) {
+    tmp &lt;- xi_1
+    xi_1 &lt;- xi_2
+    xi_2 &lt;- tmp
+  }
+
+  n1 &lt;- xi_1$n_sample
+  n2 &lt;- xi_2$n_sample
+
+  if (!(n1 == n2 || n2 == 1)) {
+    stop("Sample sizes are incompatible for broadcasting.")
+  }
+
+  # Prepare components
+  f1 &lt;- xi_1$functional_list
+  f2 &lt;- xi_2$functional_list
+  Z1 &lt;- xi_1$Z
+  Z2 &lt;- xi_2$Z
+
+  # Replicate fd and Z if needed
+  if (n2 == 1) {
+    f2 &lt;- <a href="create-FSHybridPLS.html#rep_fd">rep_fd</a>(f2, n1)
+    Z2 &lt;- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
+  }
 
   # Combine functional predictors
   new_functional_list &lt;- Map(
     function(f1, f2) plus.fd(f1, times.fd(alpha, f2)),
-    input$functional_list,
-    other$functional_list
+    f1,
+    f2
   )
+ 
 
+  # Compute scalar inner products
+  inprod_scalar &lt;- rowSums(Z1 * Z2) 
   # Combine scalar predictors
-  new_Z &lt;- input$Z + alpha * other$Z
+  new_Z &lt;- Z1 + alpha * Z2
+
 
   # Construct new object
-  <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = new_Z, functional_list = new_functional_list)
+  <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = new_Z, functional_list = new_functional_list)
 }</code></pre>
 <p>Here are the unit tests: | Case | Description | Expected Outcome | |
 ———————– | ———————————– | —————- | | ✅ Same sample size | Functional
@@ -790,8 +918,8 @@ Error | | ❌ Different dimensions | Functional or scalar count mismatch
   # Helper to create a list of fd objects (2 functional predictors)
   <span id="fd_list">fd_list</span> &lt;- function(val, n_sample, basis_obj = basis) {
     list(
-      fd(coef = <a href="create-rhello.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj),
-      fd(coef = <a href="create-rhello.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj)
+      fd(coef = <a href="create-FSHybridPLS.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj),
+      fd(coef = <a href="create-FSHybridPLS.html#coef_mat">coef_mat</a>(val, n_sample, basis_obj), basisobj = basis_obj)
     )
   }
 
@@ -800,15 +928,15 @@ Error | | ❌ Different dimensions | Functional or scalar count mismatch
   Z3 &lt;- matrix(3, nrow = 3, ncol = 2)
 
   # Functional predictors (same basis)
-  F1 &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(1, 1)
-  F3 &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(3, 3)
+  F1 &lt;- <a href="create-FSHybridPLS.html#fd_list">fd_list</a>(1, 1)
+  F3 &lt;- <a href="create-FSHybridPLS.html#fd_list">fd_list</a>(3, 3)
 
   # Create predictor_hybrid objects
-  x1 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z1, F1)  # 1 sample
-  x3 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, F3)  # 3 samples
+  x1 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z1, F1)  # 1 sample
+  x3 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z3, F3)  # 3 samples
 
   # Broadcast x1 to match x3
-  result &lt;- <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x1, x3, alpha = 1)
+  result &lt;- <a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(x1, x3, alpha = 1)
 
   # Check metadata
   testthat::expect_s3_class(result, "predictor_hybrid")
@@ -826,34 +954,34 @@ Error | | ❌ Different dimensions | Functional or scalar count mismatch
   }
 
   # Test symmetry: broadcasting x3 + x1
-  result2 &lt;- <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x1, alpha = 1)
+  result2 &lt;- <a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x1, alpha = 1)
   testthat::expect_equal(result2$Z, expected_Z)
   for (fd_out in result2$functional_list) {
     testthat::expect_equal(unname(coef(fd_out)), matrix(4, nrow = 5, ncol = 3))
   }
 
   # Incompatible sample sizes (should fail)
-  x_bad &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(matrix(1, 2, 2), <a href="create-rhello.html#fd_list">fd_list</a>(1, 2))
-  testthat::expect_error(<a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_bad), "incompatible for broadcasting")
+  x_bad &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(matrix(1, 2, 2), <a href="create-FSHybridPLS.html#fd_list">fd_list</a>(1, 2))
+  testthat::expect_error(<a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_bad), "incompatible for broadcasting")
 
   # Incompatible functional basis (should fail)
   bad_basis &lt;- create.bspline.basis(c(0, 1), nbasis = 6)
-  bad_fd &lt;- <a href="create-rhello.html#fd_list">fd_list</a>(2, 3, bad_basis)
-  x_basis_mismatch &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, bad_fd)
-  testthat::expect_error(<a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_basis_mismatch), "same basis")
+  bad_fd &lt;- <a href="create-FSHybridPLS.html#fd_list">fd_list</a>(2, 3, bad_basis)
+  x_basis_mismatch &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z3, bad_fd)
+  testthat::expect_error(<a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(x3, x_basis_mismatch), "same basis")
 })</code></pre>
-<pre><code>## Test passed 🥳</code></pre>
+<pre><code>## Test passed 🥇</code></pre>
 </div>
 <div id="subtr.predictor_hybrid" class="section level3">
 <h3>subtr.predictor_hybrid</h3>
 <p>Performs element-wise subtraction of two
 <code>predictor_hybrid</code> objects. Internally uses
-<code><a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -1)</code> to compute
+<code><a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -1)</code> to compute
 the result by negating the second operand.</p>
 <ul>
 <li>Usage</li>
 </ul>
-<pre class="r"><code><a href="create-rhello.html#subtr.predictor_hybrid">subtr.predictor_hybrid</a>(input, other, alpha = 1)</code></pre>
+<pre class="r"><code><a href="create-FSHybridPLS.html#subtr.predictor_hybrid">subtr.predictor_hybrid</a>(input, other, alpha = 1)</code></pre>
 <ul>
 <li>
 <p>Arguments:</p>
@@ -878,7 +1006,7 @@ result of the subtraction.</p></li>
 structure of functional and scalar predictors.<br>
 </li>
 <li>It performs subtraction by internally calling
-<code><a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>()</code> with <code>-alpha</code>.<br>
+<code><a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>()</code> with <code>-alpha</code>.<br>
 </li>
 <li>Functional parts are scaled using <code>times.fd()</code> and
 subtracted via <code>plus.fd()</code> with a negated factor.<br>
@@ -891,7 +1019,7 @@ arithmetic.</li>
 <pre class="r"><code>#' Subtract two predictor_hybrid objects
 #'
 #' Performs element-wise subtraction of two `predictor_hybrid` objects.
-#' Internally uses `<a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -1)`.
+#' Internally uses `<a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -1)`.
 #'
 #' @param input A `predictor_hybrid` object.
 #' @param other Another `predictor_hybrid` object to subtract.
@@ -900,7 +1028,7 @@ arithmetic.</li>
 #' @return A new `predictor_hybrid` object representing the result of subtraction.
 #' @export
 <span id="subtr.predictor_hybrid">subtr.predictor_hybrid</span> &lt;- function(input, other, alpha = 1) {
-  <a href="create-rhello.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -alpha)
+  <a href="create-FSHybridPLS.html#add.predictor_hybrid">add.predictor_hybrid</a>(input, other, alpha = -alpha)
 }</code></pre>
 <p>We skip the unit test for this function.</p>
 </div>
@@ -913,7 +1041,7 @@ predictors are multiplied directly using matrix operations.</p>
 <ul>
 <li>Usage</li>
 </ul>
-<pre class="r"><code><a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(input, scalar)</code></pre>
+<pre class="r"><code><a href="create-FSHybridPLS.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(input, scalar)</code></pre>
 <ul>
 <li>
 <p>Arguments:</p>
@@ -967,7 +1095,7 @@ using matrix multiplication.</li>
   new_Z &lt;- scalar * input$Z
 
   # Reconstruct hybrid object
-  <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(
+  <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(
     Z = new_Z,
     functional_list = new_functional_list
   )
@@ -985,10 +1113,10 @@ using matrix multiplication.</li>
   fd2 &lt;- fd(coef = matrix(2, nrow = 5, ncol = 3), basisobj = basis)
 
   # Construct hybrid object using new simplified constructor
-  obj &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+  obj &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
 
   # Apply scalar multiplication
-  scaled &lt;- <a href="create-rhello.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(obj, scalar = 4)
+  scaled &lt;- <a href="create-FSHybridPLS.html#scalar_mul.predictor_hybrid">scalar_mul.predictor_hybrid</a>(obj, scalar = 4)
 
   # Check class
   testthat::expect_s3_class(scaled, "predictor_hybrid")
@@ -1005,7 +1133,7 @@ using matrix multiplication.</li>
     )
   }
 })</code></pre>
-<pre><code>## Test passed 🎊</code></pre>
+<pre><code>## Test passed 😀</code></pre>
 </div>
 <div id="inprod.predictor_hybrid" class="section level3">
 <h3>inprod.predictor_hybrid</h3>
@@ -1034,7 +1162,7 @@ supports broadcasting when one of the inputs has a single
 observation.</p></li>
 <li><p>Usage</p></li>
 </ul>
-<pre class="r"><code><a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(xi_1, xi_2)</code></pre>
+<pre class="r"><code><a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(xi_1, xi_2)</code></pre>
 <ul>
 <li>
 <p>Arguments:</p>
@@ -1111,8 +1239,8 @@ predictors before computing the result.</li>
 
   # Replicate fd and Z if needed
   if (n2 == 1) {
-    f2 &lt;- <a href="create-rhello.html#rep_fd">rep_fd</a>(f2, n1)
-    Z2 &lt;- matrix(rep(Z2, each = n1), nrow = n1, byrow = TRUE)
+    f2 &lt;- <a href="create-FSHybridPLS.html#rep_fd">rep_fd</a>(f2, n1)
+    Z2 &lt;- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
   }
 
   # Compute functional inner products
@@ -1121,10 +1249,11 @@ predictors before computing the result.</li>
       fda::inprod(f1[[j]][i], f2[[j]][i])
     }, numeric(1)))
   }, numeric(1))
+ 
 
   # Compute scalar inner products
-  inprod_scalar &lt;- rowSums(Z1 * Z2)
-
+  inprod_scalar &lt;- rowSums(Z1 * Z2) 
+ 
   # Combine results
   result &lt;- inprod_functional + inprod_scalar
   if (n1 == 1 &amp;&amp; n2 == 1) as.numeric(result) else result
@@ -1133,53 +1262,53 @@ predictors before computing the result.</li>
 <table>
 <colgroup>
 <col width="4%">
-<col width="25%">
-<col width="17%">
-<col width="17%">
-<col width="35%">
+<col width="27%">
+<col width="18%">
+<col width="12%">
+<col width="37%">
 </colgroup>
 <thead><tr class="header">
 <th>Case</th>
 <th>Description</th>
 <th>Input Dimensions</th>
-<th>Expected Output length</th>
+<th>Output Length</th>
 <th>Notes</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td>1</td>
-<td>Broadcasting (multi vs. single)</td>
-<td>x1: (3×2), x2: (1×2)</td>
-<td>3</td>
-<td>Tests row-wise broadcasting of x2</td>
-</tr>
-<tr class="even">
-<td>2</td>
-<td>Broadcasting (single vs. multi)</td>
-<td>x2: (1×2), x1: (3×2)</td>
-<td>1</td>
-<td>Tests column-wise broadcasting of x2</td>
-</tr>
-<tr class="odd">
-<td>3</td>
 <td>Self inner product (1 sample)</td>
 <td>x2: (1×2)</td>
 <td>1</td>
-<td>Equivalent to norm²</td>
+<td>Equivalent to squared norm</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Three-sample vs. Three-sample</td>
+<td>x1: (3×2), x3: (3×2)</td>
+<td>3</td>
+<td>Dot + functional products, sample-wise</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>One-sample vs. One-sample</td>
+<td>x2: (1×2), x4: (1×2)</td>
+<td>1</td>
+<td>Standard dot + functional product</td>
 </tr>
 <tr class="even">
 <td>4</td>
-<td>One-sample vs. one-sample</td>
-<td>x2: (1×2), x3: (1×2)</td>
-<td>1</td>
-<td>Tests standard dot product + functional terms</td>
+<td>Broadcasting (single vs. multi)</td>
+<td>x2: (1×2), x3: (3×2)</td>
+<td>3</td>
+<td>Broadcast x2 across x3</td>
 </tr>
 <tr class="odd">
 <td>5</td>
-<td>Two-samples vs. two-sample</td>
-<td>x2: (2×2), x3: (2×2)</td>
-<td>2</td>
-<td>Tests standard dot product + functional terms</td>
+<td>Broadcasting (multi vs. single)</td>
+<td>x3: (3×2), x2: (1×2)</td>
+<td>3</td>
+<td>Broadcast x2 across x3</td>
 </tr>
 </tbody>
 </table>
@@ -1190,45 +1319,504 @@ predictors before computing the result.</li>
   <span id="make_fd">make_fd</span> &lt;- function(val, n_sample) {
     fd(coef = matrix(val, 5, n_sample), basisobj = basis)
   }
-
-  # Case 1: Broadcasting (multi vs. single)
+# data generation
+## three observations
+  fd1 &lt;- make_fd(1, 3)
   Z1 &lt;- matrix(c(1, 2), nrow = 3, ncol = 2, byrow = TRUE)
+  x1 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z1, list(fd1, fd1))
+## one observation
+  fd2 &lt;- make_fd(2, 1)
   Z2 &lt;- matrix(c(3, 4), nrow = 1)
-  fd1 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(1, 3)
-  fd2 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(2, 1)
-  x1 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z1, list(fd1, fd1))
-  x2 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z2, list(fd2, fd2))
-  out1 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x1, x2)
-  testthat::expect_type(out1, "double")
-  testthat::expect_length(out1, 3)
+  x2 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z2, list(fd2, fd2))
+## three observations
+  Z3 &lt;- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, byrow = TRUE)
+  fd3 &lt;- fd(coef = t(matrix(c(1:15), nrow = 3, byrow = TRUE)), basisobj = basis)
+  x3 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z3, list(fd3, fd3))  
+## one observations
+  Z4 &lt;- matrix(c(5, 6), nrow = 1)
+  fd4 &lt;- make_fd(3, 1)
+  x4 &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z4, list(fd4, fd4))
+  
+# Case 1: Self inner product (1 sample)
+  out1 &lt;- <a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2)
+  expected_scalar_1 &lt;- sum(Z2^2)
+  expected_functional_1 &lt;- sum(sapply(x2$functional_list, function(fd) fda::inprod(fd, fd)))
+  testthat::expect_equal(out1, expected_scalar_1 + expected_functional_1)
 
-  # Case 2: Broadcasting (single vs. multi)
-  out2 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x1)
-  testthat::expect_type(out2, "double")
-  testthat::expect_length(out2, 3)
+# Case 2: Three-sample vs. Three-sample
+  out2 &lt;- <a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x1, x3)
+  expected_scalar_2 &lt;- rowSums(Z1 * Z3)
+  expected_functional_2 &lt;- vapply(1:3, function(i) {
+    sum(sapply(1:2, function(j) {
+      fda::inprod(x1$functional_list[[j]][i], x3$functional_list[[j]][i])
+    }))
+  }, numeric(1))
+  testthat::expect_equal(out2, expected_scalar_2 + expected_functional_2)
+  
+  # Case 3: One-sample vs. one-sample
 
-  # Case 3: Self inner product (1 sample)
-  out3 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2)
-  testthat::expect_type(out3, "double")
-  testthat::expect_length(out3, 1)
+  out3 &lt;- <a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x4)
+  expected_scalar_3 &lt;- sum(Z2 * Z4)
+  expected_functional_3 &lt;-2*fda::inprod(fd2, fd4)
+  testthat::expect_equal(out3, as.numeric(expected_scalar_3 + expected_functional_3))
 
-  # Case 4: One-sample vs. one-sample
-  Z3 &lt;- matrix(c(5, 6), nrow = 1)
-  fd3 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(3, 1)
-  x3 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z3, list(fd3, fd3))
-  out4 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x3)
-  testthat::expect_type(out4, "double")
-  testthat::expect_length(out4, 1)
 
-  # Case 5: Two-sample vs. two-sample
-  Z4 &lt;- matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE)
-  fd4 &lt;- <a href="create-rhello.html#make_fd">make_fd</a>(1, 2)
-  x4 &lt;- <a href="create-rhello.html#predictor_hybrid">predictor_hybrid</a>(Z4, list(fd4, fd4))
-  out5 &lt;- <a href="create-rhello.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x4, x4)
-  testthat::expect_type(out5, "double")
-  testthat::expect_length(out5, 2)
+  # Case 4: Broadcasting (single vs. multi)
+  out4 &lt;- <a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>(x2, x3)
+  expected_scalar_4 &lt;- c(0,0,0)
+  for (i in 1:3){
+    expected_scalar_4[i] &lt;-  sum(Z2 * Z3[i,])
+    }
+
+  expected_functional_4 &lt;-  c(0,0,0)
+  for (i in 1:3){
+    expected_functional_4[i] &lt;- 2*fda::inprod(
+      fd2,
+      fd(
+        coef = matrix(
+        c(
+        (5*i+1-5):(5*i)
+        ), 5, 1), #end of matrix
+         basisobj = basis) #end of fd
+      )# end of inprod
+  }
+
+  testthat::expect_equal(as.vector(out4), as.vector(expected_scalar_4 + expected_functional_4))
+
+  # Case 4: Broadcasting (multi  vs. single)
+  testthat::expect_equal(as.vector(<a href="create-FSHybridPLS.html#inprod.predictor_hybrid">inprod.predictor_hybrid</a>( x3, x2)), as.vector(expected_scalar_4 + expected_functional_4))  
+})</code></pre>
+<pre><code>## Test passed 🎉</code></pre>
+</div>
+</div>
+</div>
+<div id="one-iteration" class="section level1">
+<h1>One iteration</h1>
+<div id="small-functions" class="section level2">
+<h2>small functions</h2>
+</div>
+<div id="penalty-matrix-construction" class="section level2">
+<h2>penalty matrix construction</h2>
+<p>In this section, we provide an R function
+<code>get_constraint_matrix</code> that constructs the penalty matrix
+<span class="math display">\[J^*+\Lambda \ddot{J}^\ast,\]</span> as
+defined in Proposition 2 and used in the PLS component computation step
+of our proposed algorithm. We present functions for computing <span class="math inline">\(J^\ast\)</span>, <span class="math inline">\(\Lambda\)</span> and <span class="math inline">\(\ddot{J}^\ast\)</span> in sequence, and use these
+functions to define <code>get_constraint_matrix</code>.</p>
+<div id="get_gram_matrix_block" class="section level3">
+<h3>get_gram_matrix_block</h3>
+<p>Constructs a block-diagonal Gram matrix for a hybrid predictor
+object, defined as <span class="math display">\[
+    J^*=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}
+\]</span> where <span class="math inline">\(J =
+\mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times
+MK}\)</span>, and <span class="math display">\[
+J^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) , b_n^{(k)}(t) , dt
+\right]_{m,n=1}^M,
+\]</span> as defined in <span class="math inline">\(\eqref{def:gram_basis}\)</span> and <span class="math inline">\(\eqref{def:J_and_J_star}\)</span>.</p>
+<ul>
+<li>Arguments
+<ul>
+<li>obj: A <code>predictor_hybrid</code> object containing both
+functional and scalar components.</li>
+</ul>
+</li>
+<li>Value
+<ul>
+<li>A Matrix::bdiag sparse matrix representing the block-diagonal
+structure of the combined Gram matrix.</li>
+</ul>
+</li>
+<li>Details: This function builds a block-diagonal matrix by:
+<ul>
+<li>Stacking the Gram matrices of each functional component (from
+obj$gram_list),</li>
+<li>Appending an identity matrix of size equal to the number of scalar
+predictors (to represent unpenalized scalar covariates). The resulting
+matrix has size <span class="math inline">\((\texttt{total_dim} \times
+\texttt{total_dim})\)</span>, where total_dim = _k M_k + p, with <span class="math inline">\(M_k\)</span> the number of basis functions for the
+<span class="math inline">\(k\)</span>-th functional predictor and <span class="math inline">\(p\)</span> the number of scalar covariates.</li>
+</ul>
+</li>
+<li>Usage</li>
+</ul>
+<pre class="r"><code>block_gram &lt;- <a href="create-FSHybridPLS.html#get_gram_matrix_block">get_gram_matrix_block</a>(my_predictor)</code></pre>
+<p><strong>Code</strong></p>
+<pre class="r"><code>#' Construct block-diagonal Gram matrix for hybrid predictor
+#'
+#' Returns a block-diagonal matrix containing the Gram  matrices for
+#' each functional component and an identity matrix for the scalar part.
+#'
+#' @param obj A `predictor_hybrid` object.
+#'
+#' @return A block-diagonal matrix of size `(total_dim × total_dim)` where
+#' functional and scalar components are arranged in order.
+#' @export
+<span id="get_gram_matrix_block">get_gram_matrix_block</span> &lt;- function(obj) {
+  if (!inherits(obj, "predictor_hybrid")) {
+    stop("Input must be of class 'predictor_hybrid'.")
+  }
+
+  gram_blocks &lt;- c(obj$gram_list, list(diag(obj$n_scalar)))
+  Matrix::bdiag(gram_blocks)
+}</code></pre>
+<p><strong>Unit test</strong></p>
+<pre class="r"><code>testthat::test_that("get_gram_matrix_block constructs correct block-diagonal matrix", {
+  suppressPackageStartupMessages(library(fda))
+  suppressPackageStartupMessages(library(Matrix))
+
+  # Construct hybrid predictor with two functional and three scalar predictors
+  basis1 &lt;- create.bspline.basis(c(0, 1), nbasis = 4)
+  basis2 &lt;- create.bspline.basis(c(0, 1), nbasis = 4)  # was 3; now valid
+
+  fd1 &lt;- fd(coef = matrix(1, 4, 2), basisobj = basis1)
+  fd2 &lt;- fd(coef = matrix(2, 4, 2), basisobj = basis2)
+  Z &lt;- matrix(rnorm(2 * 3), nrow = 2, ncol = 3)
+
+  obj &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+
+  # Extract the block-diagonal Gram matrix
+  G &lt;- <a href="create-FSHybridPLS.html#get_gram_matrix_block">get_gram_matrix_block</a>(obj)
+
+  # Expected block sizes
+  nb1 &lt;- 4
+  nb2 &lt;- 4
+  ns &lt;- 3
+  total_dim &lt;- nb1 + nb2 + ns
+
+  # Check matrix properties
+  testthat::expect_equal(dim(G), c(total_dim, total_dim))
+
+  # Check sub-block structure
+  # Top-left: Gram matrix 1
+  testthat::expect_equal(sum(G[1:nb1, 1:nb1]-obj$gram_list[[1]]), 0)
+
+  # Next block: Gram matrix 2
+  testthat::expect_equal(sum( G[(nb1 + 1):(nb1 + nb2), (nb1 + 1):(nb1 + nb2)]-obj$gram_list[[2]]),0 )
+
+  # Final block: identity matrix for scalar part
+  testthat::expect_equal( sum( G[(nb1 + nb2 + 1):total_dim, (nb1 + nb2 + 1):total_dim]  - diag(ns)), 0)
+})</code></pre>
+<pre><code>## Test passed 😀</code></pre>
+</div>
+<div id="get_smoothing_param_hybrid" class="section level3">
+<h3>get_smoothing_param_hybrid</h3>
+<p>Constructs a block-diagonal smoothing parameter matrix for use in
+penalized estimation involving hybrid predictors, denoted <span class="math inline">\(\Lambda \in \mathbb{R}^{(MK+p) \times
+(MK+p)}\)</span>, defined in <span class="math inline">\(\eqref{def:Lambda}\)</span> as <span class="math display">\[
+   \Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p
+\times p}) ,
+\]</span></p>
+<ul>
+<li>Arguments
+<ul>
+<li>W: A predictor_hybrid object.</li>
+<li>lambda: A numeric vector of length equal to the number of functional
+predictors. Each entry corresponds to a smoothing penalty weight.</li>
+</ul>
+</li>
+<li>Value: A sparse block-diagonal matrix combining scaled identity
+matrices for the functional parts and a zero matrix for the scalar
+part.</li>
+<li>Details: This function generates a matrix used in regularized
+regression for functional predictors. Each functional component is
+penalized using a scaled identity matrix of its basis dimension. Scalar
+predictors are unpenalized.</li>
+<li>Usage:</li>
+</ul>
+<pre class="r"><code>lambda_mat &lt;- <a href="create-FSHybridPLS.html#get_smoothing_param_hybrid">get_smoothing_param_hybrid</a>(my_predictor, c(0.1, 0.2))</code></pre>
+<p><strong>code</strong></p>
+<pre class="r"><code>#' Construct block-diagonal smoothing parameter matrix
+#'
+#' Generates a block-diagonal matrix with smoothing parameters applied to each 
+#' functional component. Each block is a scaled identity matrix, where the scaling 
+#' factor corresponds to the regularization parameter for that functional component. 
+#' The scalar components are not penalized and thus contribute a zero matrix block.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param lambda A numeric vector of length equal to the number of functional components (`W$n_functional`), containing the smoothing parameters for each functional predictor.
+#'
+#' @return A block-diagonal matrix of size `(total_dim × total_dim)`, where the top-left blocks are scaled identity matrices for functional predictors and the bottom-right block is a zero matrix for scalar covariates.
+#' @export
+<span id="get_smoothing_param_hybrid">get_smoothing_param_hybrid</span> &lt;- function(W, lambda) {
+  if (!inherits(W, "predictor_hybrid")) {
+    stop("Input W must be of class 'predictor_hybrid'.")
+  }
+
+  if (length(lambda) != W$n_functional) {
+    stop("Length of lambda must match the number of functional predictors.")
+  }
+
+  lambda_blocks &lt;- lapply(seq_len(W$n_functional), function(ii) {
+    nb &lt;- W$functional_list[[ii]]$basis$nbasis
+    lambda[ii] * diag(nb)
+  })
+
+  lambda_blocks[[W$n_functional + 1]] &lt;- matrix(0, nrow = W$n_scalar, ncol = W$n_scalar)
+
+  Matrix::bdiag(lambda_blocks)
+}</code></pre>
+<p><strong>unit test</strong></p>
+<pre class="r"><code>testthat::test_that("get_smoothing_param_hybrid returns correct block-diagonal structure", {
+  suppressPackageStartupMessages(library(fda))
+  basis1 &lt;- create.bspline.basis(c(0, 1), nbasis = 5)
+  basis2 &lt;- create.bspline.basis(c(0, 1), nbasis = 4)
+
+  fd1 &lt;- fd(coef = matrix(1, 5, 3), basisobj = basis1)
+  fd2 &lt;- fd(coef = matrix(2, 4, 3), basisobj = basis2)
+
+  Z &lt;- matrix(1, nrow = 3, ncol = 2)
+
+  obj &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+  lambda &lt;- c(0.5, 2)
+
+  lambda_mat &lt;- <a href="create-FSHybridPLS.html#get_smoothing_param_hybrid">get_smoothing_param_hybrid</a>(obj, lambda)
+
+  # Check overall dimension
+  expected_dim &lt;- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(lambda_mat), c(expected_dim, expected_dim))
+
+  # Check diagonal entries
+  testthat::expect_equal(Matrix::diag(lambda_mat)[1:5], rep(0.5, 5))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[6:9], rep(2, 4))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[10:11], rep(0, 2))  # scalar part
 })</code></pre>
 <pre><code>## Test passed 🌈</code></pre>
+</div>
+<div id="get_penalty_hybrid" class="section level3">
+<h3>get_penalty_hybrid</h3>
+<p>Constructs a matrix defined in <span class="math display">\[
+    \ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots,
+\ddot{J}^{(K)}, 0_{p \times p}) \in \mathbb{R}^{(MK+p) \times (MK+p)},
+\]</span> where <span class="math inline">\(\ddot{J}^{(k)}\)</span> is a
+<span class="math inline">\(M \times M\)</span> matrix defined in as the
+gram matrix formed by the second derivativ of the basis functions <span class="math display">\[
+\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t)
+\ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
+\]</span></p>
+<pre class="r"><code>#' Construct the roughness penalty matrix for a predictor_hybrid object
+#'
+#' Returns a block diagonal matrix representing roughness penalties for each functional predictor
+#' and zeros for the scalar predictors (scalar predictors are not penalized). Each functional component uses its own basis penalty matrix, computed via second derivative penalty via `getbasispenalty()` from the `fda` package
+#'
+#' @param W A `predictor_hybrid` object.
+#'
+#' @return A block diagonal penalty matrix of dimension `(sum(n_basis_list) + n_scalar)^2`.
+#' @export
+<span id="get_penalty_hybrid">get_penalty_hybrid</span> &lt;- function(W){
+  J_dotdot_star &lt;- fda::getbasispenalty(W$functional_list[[1]]$basis)
+  for (ii in 2:(W$n_functional)){
+    J_dotdot_star &lt;- Matrix::bdiag(
+      J_dotdot_star,
+      fda::getbasispenalty(W$functional_list[[ii]]$basis)
+    )
+    }
+  J_dotdot_star &lt;- Matrix::bdiag(
+    J_dotdot_star,
+    matrix(0, nrow = W$n_scalar, ncol = W$n_scalar)
+    )
+  return(J_dotdot_star)
+  }</code></pre>
+<pre class="r"><code>testthat::test_that("get_penalty_hybrid computes correct dimensions and structure", {
+  suppressPackageStartupMessages(library(fda))
+
+  # Setup
+  basis &lt;- fda::create.bspline.basis(c(0, 1), nbasis = 5)
+  n_sample &lt;- 3
+  n_scalar &lt;- 2
+
+  fd1 &lt;- fda::fd(coef = matrix(1, 5, n_sample), basisobj = basis)
+  fd2 &lt;- fda::fd(coef = matrix(2, 5, n_sample), basisobj = basis)
+  Z &lt;- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  obj &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+
+  # Run
+  penalty &lt;- <a href="create-FSHybridPLS.html#get_penalty_hybrid">get_penalty_hybrid</a>(obj)
+
+  # Expected dimensions
+  total_dim &lt;- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(penalty), c(total_dim, total_dim))
+
+  # Check block diagonal structure: bottom-right should be zero matrix
+  scalar_block &lt;- as.matrix(penalty[
+    (total_dim - n_scalar + 1):total_dim,
+    (total_dim - n_scalar + 1):total_dim
+  ])
+  testthat::expect_equal(scalar_block, matrix(0, n_scalar, n_scalar))
+
+  # Check that the upper blocks are positive semidefinite
+  eigenvalues &lt;- eigen(as.matrix(penalty[1:(total_dim - n_scalar), 1:(total_dim - n_scalar)]))$values
+  testthat::expect_true(all(eigenvalues &gt;= -1e-8))  # Numerical tolerance
+})</code></pre>
+<pre><code>## Test passed 🎉</code></pre>
+</div>
+<div id="get_constraint_matrix" class="section level3">
+<h3>get_constraint_matrix</h3>
+<pre class="r"><code>W &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z, functional_list = list(fd1, fd2))
+lambda &lt;- c(0.1, 0.2)
+constraint_matrix &lt;- <a href="create-FSHybridPLS.html#get_constraint_matrix_hybrid">get_constraint_matrix_hybrid</a>(W, lambda)</code></pre>
+<p><strong>code</strong></p>
+<pre class="r"><code>#' Construct penalized constraint matrix for hybrid predictors
+#'
+#' Computes the denominator matrix used in penalized estimation for hybrid predictors,
+#' combining the Gram matrix, smoothing parameter matrix, and penalty matrix.
+#'
+#' Specifically, this function returns the matrix:
+#' \deqn{J^\ast + \Lambda \ddot{J}^\ast}
+#' where \eqn{J^\ast} is the block-diagonal Gram matrix,
+#' \eqn{\Lambda} is the block-diagonal smoothing parameter matrix,
+#' and \eqn{\ddot{J}^\ast} is the block-diagonal penalty matrix of second derivative inner products.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param lambda A numeric vector of smoothing parameters, one for each functional predictor.
+#'
+#' @return A matrix representing the penalized constraint matrix used in estimation.
+#' @export
+<span id="get_constraint_matrix_hybrid">get_constraint_matrix_hybrid</span> &lt;- function(W, lambda) {
+  J_star &lt;- <a href="create-FSHybridPLS.html#get_gram_matrix_block">get_gram_matrix_block</a>(W)
+  J_dotdot_star &lt;- <a href="create-FSHybridPLS.html#get_penalty_hybrid">get_penalty_hybrid</a>(W)
+  lambda_mat &lt;- <a href="create-FSHybridPLS.html#get_smoothing_param_hybrid">get_smoothing_param_hybrid</a>(W, lambda)
+
+  J_star + lambda_mat %*% J_dotdot_star
+}</code></pre>
+</div>
+</div>
+<div id="asd" class="section level2">
+<h2>asd</h2>
+<div id="get_pre_corrcov" class="section level3">
+<h3>get_pre_corrcov</h3>
+<p>construct the matrix V_star: <span class="math display">\[
+    V^\ast = n^{-2}\begin{bmatrix}
+         J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J
+&amp; J \widetilde{C}^\top \widetilde{\mathbf{y}}
+\widetilde{\mathbf{y}}^\top \widetilde{Z} \\
+        \widetilde{Z}^\top \widetilde{\mathbf{y}}
+\widetilde{\mathbf{y}}^\top \widetilde{C} J &amp;   \widetilde{Z}^\top
+\widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
+    \end{bmatrix} = n^{-2} J^* \widetilde{C}^{*\top}
+\widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^*
+    \in \mathbb{R}^{(MK+p) \times (MK+p)},
+\]</span> where <span class="math inline">\(J\)</span> is defined in
+<code>get_gram_matrix_block</code> equation (7),</p>
+<pre class="r"><code>#' Compute V matrix (pre-corrected covariance estimator)
+#'
+#' Constructs the V matrix involving inner products of functional predictors
+#' (weighted by their Gram matrices) and scalar predictors against response y.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param y A numeric response vector of length equal to number of samples.
+#'
+#' @return A matrix representing the corrected cross-covariance structure.
+#' @export
+<span id="get_pre_corrcov">get_pre_corrcov</span> &lt;- function(W, y){
+  n &lt;- W$n_sample
+  K &lt;- W$n_functional
+
+  # building blocks
+  ## C_J : C multiplied by J. Scalable to arbitrary K
+  predictor_first &lt;- W$functional_list[[1]]
+  C_J &lt;- t(predictor_first$coefs) %*% W$gram_list[[1]]
+  for (i in 2:K){
+    predictor_now &lt;- W$functional_list[[i]]
+    C_J &lt;- cbind(
+      C_J,
+      t(predictor_now$coefs) %*% W$gram_list[[i]]
+    )
+    }
+
+  
+  ## covariance
+  J_Ct_y &lt;- t(C_J) %*% y
+  Zt_y &lt;- t(W$Z) %*% y
+
+  # V matrix
+  upper_left &lt;- J_Ct_y %*% t(J_Ct_y)
+  upper_right &lt;- J_Ct_y %*% t(Zt_y)
+  lower_left &lt;- t(upper_right)
+  lower_right &lt;- Zt_y %*% t(Zt_y)
+
+  V_star &lt;- cbind(
+    rbind(upper_left, lower_left),
+    rbind(upper_right, lower_right)
+    )/(n^2)
+
+  return(V_star)
+  }</code></pre>
+<p>test code:</p>
+<table>
+<colgroup>
+<col width="3%">
+<col width="17%">
+<col width="21%">
+<col width="15%">
+<col width="11%">
+<col width="30%">
+</colgroup>
+<thead><tr class="header">
+<th>Case</th>
+<th>Description</th>
+<th>Functional Coefficients</th>
+<th>Scalar Covariates</th>
+<th>Response</th>
+<th>Expected Behavior</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Constant structure</td>
+<td>All ones or twos</td>
+<td>All ones</td>
+<td>Increasing vector</td>
+<td>Output matrix is symmetric and non-negative</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Random structure</td>
+<td>Random normal entries</td>
+<td>Random normal values</td>
+<td>Random vector</td>
+<td>Output is symmetric and numerically PSD</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>testthat::test_that("get_pre_corrcov handles constant and random coefficients", {
+  suppressPackageStartupMessages(library(fda))
+
+  <span id="make_fd">make_fd</span> &lt;- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis &lt;- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample &lt;- 5
+  n_scalar &lt;- 2
+  n_functional &lt;- 2
+
+  # Constant coefficients
+  fd_const1 &lt;- make_fd(matrix(1, 4, n_sample), basis)
+  fd_const2 &lt;- make_fd(matrix(2, 4, n_sample), basis)
+  Z_const &lt;- matrix(1, n_sample, n_scalar)
+  y_const &lt;- matrix(1:n_sample, ncol = 1)
+  obj_const &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z_const, functional_list = list(fd_const1, fd_const2))
+
+  V_const &lt;- <a href="create-FSHybridPLS.html#get_pre_corrcov">get_pre_corrcov</a>(obj_const, y_const)
+  testthat::expect_equal(dim(V_const), rep(sum(obj_const$n_basis_list) + obj_const$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_const))
+  testthat::expect_true(all(V_const &gt;= 0))
+
+  # Random coefficients
+  set.seed(123)
+  fd_rand1 &lt;- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  fd_rand2 &lt;- make_fd(matrix(rnorm(4 * n_sample), 4, n_sample), basis)
+  Z_rand &lt;- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
+  y_rand &lt;- matrix(rnorm(n_sample), ncol = 1)
+  obj_rand &lt;- <a href="create-FSHybridPLS.html#predictor_hybrid">predictor_hybrid</a>(Z = Z_rand, functional_list = list(fd_rand1, fd_rand2))
+
+  V_rand &lt;- <a href="create-FSHybridPLS.html#get_pre_corrcov">get_pre_corrcov</a>(obj_rand, y_rand)
+  testthat::expect_equal(dim(V_rand), rep(sum(obj_rand$n_basis_list) + obj_rand$n_scalar, 2))
+  testthat::expect_true(isSymmetric(V_rand))
+  testthat::expect_true(all(eigen(V_rand, only.values = TRUE)$values &gt;= -1e-8))
+})</code></pre>
+<pre><code>## Test passed 🎉</code></pre>
 </div>
 </div>
 <div id="documenting-the-package-and-building" class="section level2">
@@ -1241,7 +1829,13 @@ this file.</p>
 ## ℹ Loading FSHybridPLS
 ## Writing 'NAMESPACE'
 ## Writing 'compute_gram_matrix.Rd'
+## Writing 'get_constraint_matrix_hybrid.Rd'
+## Writing 'get_gram_matrix_block.Rd'
+## Writing 'get_penalty_hybrid.Rd'
+## Writing 'get_pre_corrcov.Rd'
+## Writing 'get_smoothing_param_hybrid.Rd'
 ## Writing 'inprod.predictor_hybrid.Rd'
+## Writing 'predictor_hybrid_from_coef.Rd'
 ## Writing 'rep_fd.Rd'
 ## Writing 'scalar_mul.predictor_hybrid.Rd'
 ## Writing 'subtr.predictor_hybrid.Rd'</code></pre>

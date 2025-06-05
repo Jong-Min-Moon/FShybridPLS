@@ -1,4 +1,4 @@
-# Generated from create-rhello.Rmd: do not edit by hand
+# Generated from create-FSHybridPLS.Rmd: do not edit by hand
 
 #' Inner product between two predictor_hybrid objects (with broadcasting)
 #'
@@ -51,7 +51,7 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
   # Replicate fd and Z if needed
   if (n2 == 1) {
     f2 <- rep_fd(f2, n1)
-    Z2 <- matrix(rep(Z2, each = n1), nrow = n1, byrow = TRUE)
+    Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
   }
 
   # Compute functional inner products
@@ -60,10 +60,11 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
       fda::inprod(f1[[j]][i], f2[[j]][i])
     }, numeric(1)))
   }, numeric(1))
+ 
 
   # Compute scalar inner products
-  inprod_scalar <- rowSums(Z1 * Z2)
-
+  inprod_scalar <- rowSums(Z1 * Z2) 
+ 
   # Combine results
   result <- inprod_functional + inprod_scalar
   if (n1 == 1 && n2 == 1) as.numeric(result) else result

@@ -1,4 +1,4 @@
-# Generated from create-rhello.Rmd: do not edit by hand
+# Generated from create-FSHybridPLS.Rmd: do not edit by hand
 
 #' Replicate a list of single-sample fd objects multiple times
 #'

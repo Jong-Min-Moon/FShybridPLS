@@ -291,6 +291,93 @@ testthat::test_that("predictor_hybrid constructor works as expected (S3, updated
 })
 ```
 
+
+### predictor_hybrid_from_coef
+An alternative constructor for a predictor_hybrid object based on a flat numeric coefficient vector. It reconstructs both the functional and scalar components for a single-sample hybrid predictor object. The function reads the basis information from the template `format` object.
+
+- Inputs
+  - **`format`**: A `predictor_hybrid` object containing:
+    - `functional_list`: List of `fd` objects with basis info
+    - `gram_list`: List of Gram matrices
+    - `n_scalar`: Number of scalar predictors
+  - **`coef`**: Numeric vector of length `K * M + d`, where:
+    - `K` = number of functional predictors  
+    - `M` = number of basis functions (assumed same across predictors)  
+    - `d` = number of scalar predictors
+
+- Output
+  - A `predictor_hybrid` object with:
+    - Functional predictors rebuilt from the first `K * M` coefficients
+    - Scalar predictor `Z` from the remaining `d` coefficients
+    - `n_sample` set to 1
+
+```{r}
+#' Construct a Single-Sample Predictor Hybrid Object from Coefficients
+#'
+#' Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
+#' coefficient vector. This alternative constructor maps the coefficients back into their functional
+#' and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
+#'
+#' @param format A \code{predictor_hybrid} object that provides the structure and basis information.
+#' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
+#'
+#' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
+#'
+#'
+#' @export
+predictor_hybrid_from_coef <- function(format, coef){
+  M <- dim(format$gram_list[[1]])[2] # number of basis functions
+  K <- length(format$functional_list) # number of functional predictors
+  for (ii in 1:K){
+    format$functional_list[[ii]] <- fd(
+      coef = as.matrix(coef[((ii-1)*M + 1):(ii*M)]),
+      basisobj = format$functional_list[[ii]]$basis
+    )
+  }
+  format$Z <- t(as.matrix(coef[(K * M + 1):length(coef)]))
+  format$n_sample <- 1
+  return(format)
+}
+```
+
+**unit test**
+```{r}
+testthat::test_that("hybrid_from_coef reconstructs single-sample predictor_hybrid correctly", {
+  suppressPackageStartupMessages(library(fda))
+
+  make_fd <- function(coefs, basis) {
+    fd(coef = coefs, basisobj = basis)
+  }
+
+  basis <- create.bspline.basis(c(0, 1), nbasis = 4)
+  n_sample <- 5
+  n_scalar <- 2
+  n_functional <- 2
+
+  # Create dummy functional list with zeros
+  fd1 <- make_fd(matrix(0, 4, n_sample), basis)
+  fd2 <- make_fd(matrix(0, 4, n_sample), basis)
+  Z <- matrix(0, n_sample, n_scalar)
+  obj_template <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Create coefficient vector for reconstruction: 4 + 4 + 2 = 10
+  xi_star <- c(1:10)
+
+  # Apply reconstruction
+  obj_single <- predictor_hybrid_from_coef(obj_template, xi_star)
+
+  # Checks
+  testthat::expect_s3_class(obj_single, "predictor_hybrid")
+  testthat::expect_equal(obj_single$n_sample, 1)
+  testthat::expect_equal(obj_single$Z, matrix(c(9, 10), nrow = 1))
+
+  # Check functional coefficients (use coef() not $coefs)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[1]])), 1:4)
+  testthat::expect_equal(drop(coef(obj_single$functional_list[[2]])), 5:8)
+})
+
+```
+
 ## Basic arithmetic
 
 ### add.predictor_hybrid
@@ -795,16 +882,43 @@ testthat::test_that("inprod.predictor_hybrid returns correct vector output for b
 
 ## small functions
 
-## penalty matrix 
+
+
+## penalty matrix construction
+In this section, we provide an R function `get_constraint_matrix` that constructs the penalty matrix
+$$J^*+\Lambda \ddot{J}^\ast,$$
+as defined in Proposition 2 and used in the PLS component computation step of our proposed algorithm. We present functions  for computing $J^\ast$, $\Lambda$ and $\ddot{J}^\ast$ in sequence, and use these functions to define `get_constraint_matrix`.
 
 ### get_gram_matrix_block
-Equation (6) in Section 4.1
+Constructs a block-diagonal Gram matrix for a hybrid predictor object, defined as 
 $$
     J^*=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}
 $$
 where
-$J^{(k)}$ is the $M \times M$ matrix with $(m,n)$-th entry equal to $\int_{\mathcal{T}_k} b_m^{(k)}(t) b_n^{(k)}(t) dt$, and $J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}$, and 
+ $J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}$, and 
+$$
+J^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) , b_n^{(k)}(t) , dt \right]_{m,n=1}^M,
+$$
+as defined in \eqref{def:gram_basis} and \eqref{def:J_and_J_star}.
 
+- Arguments
+  - obj: A `predictor_hybrid` object containing both functional and scalar components.
+
+- Value
+  - A Matrix::bdiag sparse matrix representing the block-diagonal structure of the combined Gram matrix.
+
+- Details: This function builds a block-diagonal matrix by:
+  - Stacking the Gram matrices of each functional component (from obj$gram_list),
+  - Appending an identity matrix of size equal to the number of scalar predictors (to represent unpenalized scalar covariates).
+  The resulting matrix has size $(\texttt{total_dim} \times \texttt{total_dim})$, where total_dim = \sum_k M_k + p, with $M_k$ the number of basis functions for the $k$-th functional predictor and $p$ the number of scalar covariates.
+  
+- Usage
+```r
+block_gram <- get_gram_matrix_block(my_predictor)
+```
+
+
+**Code**
 ```{r}
 #' Construct block-diagonal Gram matrix for hybrid predictor
 #'
@@ -826,6 +940,125 @@ get_gram_matrix_block <- function(obj) {
 }
 
 ```
+
+**Unit test**
+```{r}
+testthat::test_that("get_gram_matrix_block constructs correct block-diagonal matrix", {
+  suppressPackageStartupMessages(library(fda))
+  suppressPackageStartupMessages(library(Matrix))
+
+  # Construct hybrid predictor with two functional and three scalar predictors
+  basis1 <- create.bspline.basis(c(0, 1), nbasis = 4)
+  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)  # was 3; now valid
+
+  fd1 <- fd(coef = matrix(1, 4, 2), basisobj = basis1)
+  fd2 <- fd(coef = matrix(2, 4, 2), basisobj = basis2)
+  Z <- matrix(rnorm(2 * 3), nrow = 2, ncol = 3)
+
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+
+  # Extract the block-diagonal Gram matrix
+  G <- get_gram_matrix_block(obj)
+
+  # Expected block sizes
+  nb1 <- 4
+  nb2 <- 4
+  ns <- 3
+  total_dim <- nb1 + nb2 + ns
+
+  # Check matrix properties
+  testthat::expect_equal(dim(G), c(total_dim, total_dim))
+
+  # Check sub-block structure
+  # Top-left: Gram matrix 1
+  testthat::expect_equal(sum(G[1:nb1, 1:nb1]-obj$gram_list[[1]]), 0)
+
+  # Next block: Gram matrix 2
+  testthat::expect_equal(sum( G[(nb1 + 1):(nb1 + nb2), (nb1 + 1):(nb1 + nb2)]-obj$gram_list[[2]]),0 )
+
+  # Final block: identity matrix for scalar part
+  testthat::expect_equal( sum( G[(nb1 + nb2 + 1):total_dim, (nb1 + nb2 + 1):total_dim]  - diag(ns)), 0)
+})
+
+```
+### get_smoothing_param_hybrid
+Constructs a block-diagonal smoothing parameter matrix for use in penalized estimation involving hybrid predictors, denoted $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$,  defined in \eqref{def:Lambda} as
+$$
+   \Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
+$$
+
+- Arguments
+  - W: A predictor_hybrid object.
+  - lambda: A numeric vector of length equal to the number of functional predictors. Each entry corresponds to a smoothing penalty weight.
+- Value: A sparse block-diagonal matrix combining scaled identity matrices for the functional parts and a zero matrix for the scalar part.
+- Details: This function generates a matrix used in regularized regression for functional predictors. Each functional component is penalized using a scaled identity matrix of its basis dimension. Scalar predictors are unpenalized.
+- Usage:
+```r
+lambda_mat <- get_smoothing_param_hybrid(my_predictor, c(0.1, 0.2))
+```
+**code** 
+```{r}
+#' Construct block-diagonal smoothing parameter matrix
+#'
+#' Generates a block-diagonal matrix with smoothing parameters applied to each 
+#' functional component. Each block is a scaled identity matrix, where the scaling 
+#' factor corresponds to the regularization parameter for that functional component. 
+#' The scalar components are not penalized and thus contribute a zero matrix block.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param lambda A numeric vector of length equal to the number of functional components (`W$n_functional`), containing the smoothing parameters for each functional predictor.
+#'
+#' @return A block-diagonal matrix of size `(total_dim × total_dim)`, where the top-left blocks are scaled identity matrices for functional predictors and the bottom-right block is a zero matrix for scalar covariates.
+#' @export
+get_smoothing_param_hybrid <- function(W, lambda) {
+  if (!inherits(W, "predictor_hybrid")) {
+    stop("Input W must be of class 'predictor_hybrid'.")
+  }
+
+  if (length(lambda) != W$n_functional) {
+    stop("Length of lambda must match the number of functional predictors.")
+  }
+
+  lambda_blocks <- lapply(seq_len(W$n_functional), function(ii) {
+    nb <- W$functional_list[[ii]]$basis$nbasis
+    lambda[ii] * diag(nb)
+  })
+
+  lambda_blocks[[W$n_functional + 1]] <- matrix(0, nrow = W$n_scalar, ncol = W$n_scalar)
+
+  Matrix::bdiag(lambda_blocks)
+}
+```
+
+**unit test**
+```{r}
+testthat::test_that("get_smoothing_param_hybrid returns correct block-diagonal structure", {
+  suppressPackageStartupMessages(library(fda))
+  basis1 <- create.bspline.basis(c(0, 1), nbasis = 5)
+  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)
+
+  fd1 <- fd(coef = matrix(1, 5, 3), basisobj = basis1)
+  fd2 <- fd(coef = matrix(2, 4, 3), basisobj = basis2)
+
+  Z <- matrix(1, nrow = 3, ncol = 2)
+
+  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+  lambda <- c(0.5, 2)
+
+  lambda_mat <- get_smoothing_param_hybrid(obj, lambda)
+
+  # Check overall dimension
+  expected_dim <- sum(obj$n_basis_list) + obj$n_scalar
+  testthat::expect_equal(dim(lambda_mat), c(expected_dim, expected_dim))
+
+  # Check diagonal entries
+  testthat::expect_equal(Matrix::diag(lambda_mat)[1:5], rep(0.5, 5))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[6:9], rep(2, 4))
+  testthat::expect_equal(Matrix::diag(lambda_mat)[10:11], rep(0, 2))  # scalar part
+})
+
+```
+
 
 ### get_penalty_hybrid
 Constructs a matrix defined in \label{def:J_dotdot_ast}
@@ -899,27 +1132,43 @@ testthat::test_that("get_penalty_hybrid computes correct dimensions and structur
 
 ```
 
-###
+### get_constraint_matrix
+
+```r
+W <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
+lambda <- c(0.1, 0.2)
+constraint_matrix <- get_constraint_matrix_hybrid(W, lambda)
+```
+
+**code**
 ```{r}
-get_smoothing_param_hybrid <- function(W, lambda){
-  #lambda: list of length K (=n_functional)
-  lambda_mat <- lambda[1] * diag(W@functional_list[[1]]$basis$nbasis)
-  for (ii in 2:(W@n_functional)){
-    n_basis_now <- dim(W@jacobian_list[[ii]])[2]
-    lambda_mat <- bdiag(
-      lambda_mat,
-      lambda[ii] * diag(W@functional_list[[ii]]$basis$nbasis)
-    )
-      }
-  lambda_mat <- bdiag(
-    lambda_mat,
-    matrix(0, nrow = W@n_scalar, ncol = W@n_scalar)
-  )
+#' Construct penalized constraint matrix for hybrid predictors
+#'
+#' Computes the denominator matrix used in penalized estimation for hybrid predictors,
+#' combining the Gram matrix, smoothing parameter matrix, and penalty matrix.
+#'
+#' Specifically, this function returns the matrix:
+#' \deqn{J^\ast + \Lambda \ddot{J}^\ast}
+#' where \eqn{J^\ast} is the block-diagonal Gram matrix,
+#' \eqn{\Lambda} is the block-diagonal smoothing parameter matrix,
+#' and \eqn{\ddot{J}^\ast} is the block-diagonal penalty matrix of second derivative inner products.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param lambda A numeric vector of smoothing parameters, one for each functional predictor.
+#'
+#' @return A matrix representing the penalized constraint matrix used in estimation.
+#' @export
+get_constraint_matrix_hybrid <- function(W, lambda) {
+  J_star <- get_gram_matrix_block(W)
+  J_dotdot_star <- get_penalty_hybrid(W)
+  lambda_mat <- get_smoothing_param_hybrid(W, lambda)
+
+  J_star + lambda_mat %*% J_dotdot_star
 }
 
 ```
 
-
+## asd
 ### get_pre_corrcov
 construct the matrix V_star:
 $$
@@ -1029,115 +1278,8 @@ testthat::test_that("get_pre_corrcov handles constant and random coefficients", 
 
 
 
-## get_pls_comp
-
-```{r}
-get_pls_comp <- function(W, y, L, verbose){
-  # W: hybrid predictor
-  # y: response vector
-  # L: regularization hyperparameter
-
-  V_star <- get_pre_corrcov(W, y)
-  #Last paragraph of section 3.2. To solve (6) in practice...
-  #A <- t(solve(L, t(V_star))) # A = V* t(inv(L))
-  #E <- solve(L, A) # E = inv(L) A
-
-  invL <- Matrix::chol2inv(L)
-  A <- V_star %*% t(invL) # A = V* t(inv(L))
-  E <- invL %*% A # E = inv(L) A
 
 
-  eigen_result <- eigen(E)
-  #cat("eigenvalues: ", eigen_result$values)
-  e <- eigen_result$vectors[, 1]
-  if(is.complex(e)){
-    return("stop")
-  }
-  #e <- e / Matrix::norm(e, "2") #normalize; omitted by request of Dr. Jang
-  #xi_star <- solve(t(L), e) # t(L) xi* = e, basis coefficient of estimated PLS component
-  xi_star <- t(invL) %*% e
-  xi_hat <- hybrid_from_coef(format = W, xi_star = xi_star) #estimated PLS component
-  return(
-    list(
-      xi_hat = xi_hat,
-      E = E,
-      V_star = V_star,
-      eigen_val = eigen_result$values[1]
-      )
-  )
-  }
-```
-
-```{r}
-nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
-  # 1. initialize the storage
-  rho <- xi <- delta <- nu  <- sigma <- eta <- list()
-  E <- V_star <- eigen_val <-list()
-  fitted_value_W <- fitted_value_y <-list()
-  resid_y <- W_now <- list() #data for iteration
-  first_eigen_val <- mse_W <- mse_y <-rep(NA, n_iter)
-
-
-  # 2. constraint matrix is the same at every iteration
-  J_star          <- get_gram_matrix_block(W)
-  J_dotdot_star   <- get_penalty_hybrid(W)
-  lambda_mat      <- get_smoothing_param_hybrid(W, lambda)
-  constr_mat      <- J_star + (lambda_mat %*% J_dotdot_star) # denominator in the equation (6)
-  constr_mat_chol <- t(chol(constr_mat))
-
-  W_now[[1]] <- W
-  y_now <- y
-  final_succesful_iteration <- 0
-  for (l in 1:n_iter) {
-    #cat(paste("#############################################", "\n"))
-    if(verbose==T)cat(paste(l, "th component", "\n"))
-
-    # STEP 1. calculate pls score
-    pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
-    if(!is.list(pls_result_now)){break}
-
-    xi[[l]] <- pls_result_now$xi # pls component. Section 3.2
-    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]]) # pls scores : n_sample * 1 matrix
-
-    # STEP 2. residulize
-    # residualize predictor: hybrid (W) on scalar (rho) linear regression with n_sample observations
-    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]]) #single obs of hybrid predictor
-
-    fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
-    W_now[[l+1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
-    # residualize resoponse
-    nu[[l]] <- LSE_ptws(y_now, rho[[l]]) #scalar on scalar linear regression with n_sample observations
-    fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
-    y_now <- y_now - fitted_value_y[[l]]
-    resid_y[[l]] <- y_now
-
-    #check mean norm
-    #mse_W[l] <- mean_sum_sqrd(W_now[[l]])
-    #mse_y[l] <- norm(y_now,"2")
-
-    #cat("W:", mse_W[l], "\n")
-    #cat("y:",  mse_y[l], "\n\n")
-
-    # STEP 3.
-    sigma[[l]] <- xi[[l]]
-    if (l == 1) {
-      eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
-    }else{ # if l > 1
-      for (u in 1:(l - 1)){
-        sigma[[l]] <- subtr( sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]) )
-      } #end of u-loop
-      eta[[l]] <- add(eta[[l-1]], sigma[[l]], nu[[l]])
-    }#if statement
-
-    # just for records.
-    E[[l]] <- pls_result_now$E # for monitoring symetricity
-    V_star[[l]] <- pls_result_now$V_star
-    eigen_val[[l]] <- pls_result_now$eigen_val
-    first_eigen_val[l] <- eigen_val[[l]][1]
-    final_succesful_iteration <- l
-  }# for loop: l
-}
-```
 
 
 ## Documenting the package and building
