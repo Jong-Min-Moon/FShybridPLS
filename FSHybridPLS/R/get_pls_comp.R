@@ -7,7 +7,7 @@
 #'
 #' @param W A \code{predictor_hybrid} object containing both functional and scalar predictors.
 #' @param y A numeric response vector of length equal to the number of samples in \code{W}.
-#' @param L A regularization matrix (typically positive definite) used in the generalized eigenproblem.
+#' @param L cholesky decompisition of a regularization matrix (typically positive definite) used in the generalized eigenproblem.
 #'
 #' @return A list with the following elements:
 #' \describe{
@@ -19,9 +19,6 @@
 #'
 #' @export
 get_pls_comp <- function(W, y, L){
-  # W: hybrid predictor
-  # y: response vector
-  # L: regularization hyperparameter
 
   V_star <- get_pre_corrcov(W, y)
 
@@ -31,7 +28,11 @@ get_pls_comp <- function(W, y, L){
 
   eigen_result <- eigen(E)
   e <- eigen_result$vectors[, 1]
-  if (is.complex(e)) return("stop")
+  if (is.complex(e)){
+    print("stop")
+    return("stop")
+  } 
+
 
   xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
   xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)

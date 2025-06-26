@@ -878,6 +878,25 @@ testthat::test_that("inprod.predictor_hybrid returns correct vector output for b
 })
 ```
 
+
+### subset_predictor_hybrid
+
+```{r}
+#' Extract a single observation from a predictor_hybrid object
+#'
+#' @param W A predictor_hybrid object with multiple samples.
+#' @param i Integer index of the sample to extract.
+#' @return A single-sample predictor_hybrid object.
+subset_predictor_hybrid <- function(W, i) {
+  new_Z <- matrix(W$Z[i, ], nrow = 1)
+  new_functional_list <- lapply(W$functional_list, function(fdobj) {
+    fd(coef = matrix(coef(fdobj)[, i], ncol = 1), basisobj = fdobj$basis)
+  })
+  predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+}
+
+```
+
 # One iteration
 
 ## small functions
@@ -1168,7 +1187,29 @@ get_constraint_matrix_hybrid <- function(W, lambda) {
 
 ```
 
-## asd
+## PLS component computation
+
+###
+```{r}
+get_CJ <- function(W){
+  n <- W$n_sample
+  K <- W$n_functional
+  ## C_J : C multiplied by J. Scalable to arbitrary K
+  predictor_first <- W$functional_list[[1]]
+  C_J <- t(predictor_first$coefs) %*% W$gram_list[[1]]
+  for (i in 2:K){
+    predictor_now <- W$functional_list[[i]]
+    C_J <- cbind(
+      C_J,
+      t(predictor_now$coefs) %*% W$gram_list[[i]]
+    )
+    }
+    return(C_J)
+}
+```
+
+
+
 ### get_pre_corrcov
 construct the matrix V_star:
 $$
@@ -1197,15 +1238,7 @@ get_pre_corrcov <- function(W, y){
 
   # building blocks
   ## C_J : C multiplied by J. Scalable to arbitrary K
-  predictor_first <- W$functional_list[[1]]
-  C_J <- t(predictor_first$coefs) %*% W$gram_list[[1]]
-  for (i in 2:K){
-    predictor_now <- W$functional_list[[i]]
-    C_J <- cbind(
-      C_J,
-      t(predictor_now$coefs) %*% W$gram_list[[i]]
-    )
-    }
+  C_J <- get_CJ(W)
 
   
   ## covariance
@@ -1277,7 +1310,52 @@ testthat::test_that("get_pre_corrcov handles constant and random coefficients", 
 ```
 
 
-## PLS component computation
+```{r}
+get_xi_direct <- function(W, y) {
+  K <- W$n_functional
+  C_J <- get_CJ(W)
+  A <- cbind(C_J, W$Z)                      # shape: n × d
+  b <- t(y) %*% A / W$n_sample   # equivalent to V_star
+
+  J_star <- get_gram_matrix_block(W)
+  alpha <- solve(J_star, t(b))                # unconstrained maximizer
+  xi_hat <- alpha / sqrt(t(alpha) %*% J_star %*% alpha)  # normalize
+
+  return(xi_hat)
+}
+```
+
+
+```{r}
+  C_J <- get_CJ(W)
+  A <- cbind(C_J, W$Z)                      # shape: n × d
+  b <- t(y) %*% A / W$n_sample   # equivalent to V_star
+
+  J_star <- get_gram_matrix_block(W)
+  alpha <- solve(J_star, t(b))                # unconstrained maximizer
+  xi_hat <- alpha / sqrt(sum((alpha) * (J_star %*% alpha) )) # normalize
+t(y) %*% A %*% xi_hat
+```
+
+
+```{r}
+ V_star <- get_pre_corrcov(W, y)
+L <- chol(J_star)
+  invL <- Matrix::chol2inv(L)
+  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
+  E <- invL %*% A               # E = inv(L) × A
+
+  eigen_result <- eigen(E)
+  e <- eigen_result$vectors[, 1]
+  if (is.complex(e)){
+    print("stop")
+    return("stop")
+  } 
+
+
+  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
+```
+
 
 ### get_pls_comp
 Computes the first PLS component from a hybrid predictor and response vector using regularization.
@@ -1455,9 +1533,250 @@ ggplot(results, aes(x = nbasis, y = lambda, fill = reason)) +
 
 ```
 
-#
 
 
+
+### get_pls_comp_simple
+```{r}
+#' Compute First PLS Component (Direct Hilbert Averaging)
+#'
+#' Computes the first PLS component as a normalized weighted average of predictor objects,
+#' where weights are given by the centered response values.
+#'
+#' @param W A `predictor_hybrid` object containing `n_sample` observations.
+#' @param y A numeric response vector of length `n_sample`.
+#'
+#' @return A normalized `predictor_hybrid` object representing the first PLS component.
+#' @export
+get_pls_comp_simple <- function(W, y) {
+  n <- W$n_sample
+  if (length(y) != n) stop("Length of y must match number of samples in W.")
+
+  # Center the response (optional, but often improves interpretability)
+  y_centered <- y - mean(y)
+
+  # Initialize zero element
+  xi_sum <- scalar_mul.predictor_hybrid(subset_predictor_hybrid(W, 1), y_centered[1])
+    
+
+  # Accumulate weighted sum: sum_i y_i * W_i
+  for (i in 2:n) {
+    Wi <- subset_predictor_hybrid(W, i)
+    xi_sum <- add.predictor_hybrid(xi_sum, Wi, alpha = y_centered[i])
+  }
+
+  # Normalize
+  xi_sum <- scalar_mul.predictor_hybrid(xi_sum, 1/n)
+  norm_val <- sqrt(inprod.predictor_hybrid(xi_sum))
+  xi_hat <- scalar_mul.predictor_hybrid(xi_sum, 1 / norm_val)
+
+  return(xi_hat)
+}
+
+```
+
+
+```{r}
+library(fda)
+
+set.seed(011111)
+n_sample <- 100
+n_scalar <- 3
+
+# --- Step 1: Zero functional predictors ---
+zero_basis <- create.bspline.basis(c(0, 1), nbasis = 4)
+zero_fd <- fd(coef = matrix(0, nrow = 4, ncol = n_sample), basisobj = zero_basis)
+functional_list <- list(zero_fd, zero_fd)  # two zero-valued functional predictors
+
+# --- Step 2: Simulate scalar predictors and response ---
+Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
+Z <- scale(Z, center = TRUE, scale = FALSE)
+W <- predictor_hybrid(Z = Z, functional_list = functional_list)
+
+beta_true <- rnorm(n_scalar)
+y <- Z %*% beta_true + rnorm(n_sample, sd = 0.1)
+y <- scale(y, center = TRUE, scale = FALSE)
+
+# --- Step 3: Compute constraint matrix ---
+lambda <- rep(0, W$n_functional)
+L <- chol(get_constraint_matrix_hybrid(W, lambda))
+
+# --- Step 4: PLS with get_pls_comp ---
+pls <- get_pls_comp(W, y, L)
+xi_hat <- pls$xi_hat
+
+# --- Step 5: PLS via raw Euclidean eigenproblem ---
+V_star_vec <- as.vector(t(Z) %*% y)     # equivalent to colSums(Z * y)
+
+J <- crossprod(Z)                       # J = Z^T Z
+L_Z <- chol(J)
+invL <- solve(L_Z)
+E <- invL %*% tcrossprod(V_star_vec) %*% t(invL)
+
+eig <- eigen(E)
+e <- eig$vectors[, 1]
+xi_manual <- backsolve(L_Z, e, transpose = TRUE)  # xi = L^T \ e
+
+# --- Step 6: get_pls_comp_simple ---
+xi_simple <- get_pls_comp_simple(W, y)
+xi_simple_vec <- tail(xi_simple$Z, 1)
+xi_direct <- get_xi_direct(W, y)
+# --- Step 7: Compare all three scalar parts ---
+
+# From get_pls_comp
+xi_hat_vec <- tail(xi_hat$Z, 1)
+
+# Cosine similarities
+cos_eig_manual <- sum(xi_manual * xi_hat_vec) / (sqrt(sum(xi_manual^2)) * sqrt(sum(xi_hat_vec^2)))
+cos_simple_manual <- sum(xi_manual * xi_simple_vec) / (sqrt(sum(xi_manual^2)) * sqrt(sum(xi_simple_vec^2)))
+cos_eig_simple <- sum(xi_simple_vec * xi_hat_vec) / (sqrt(sum(xi_simple_vec^2)) * sqrt(sum(xi_hat_vec^2)))
+
+# --- Step 8: Report ---
+cat("Cosine similarity (get_pls_comp vs manual eig):", cos_eig_manual, "\n")
+cat("Cosine similarity (get_pls_comp_simple vs manual eig):", cos_simple_manual, "\n")
+cat("Cosine similarity (get_pls_comp vs get_pls_comp_simple):", cos_eig_simple, "\n")
+
+
+```
+
+
+```{r}
+library(fda)
+
+# --- Step 1: Simulate Data ---
+set.seed(777)
+
+n_sample <- 100
+n_scalar <- 2
+n_basis <- 5
+n_functional <- 2
+
+# Scalar predictors Z (centered)
+Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
+Z <- scale(Z, center = TRUE, scale = FALSE)
+
+# Create functional predictors (centered)
+basis <- create.bspline.basis(c(0, 1), nbasis = n_basis)
+functional_list <- list()
+for (j in 1:n_functional) {
+  coefs <- matrix(rnorm(n_basis * n_sample), nrow = n_basis)
+  fdobj <- fd(coef = coefs, basisobj = basis)
+  mean_fd <- mean.fd(fdobj)
+  mean_coef <- coef(mean_fd)
+  centered_coefs <- coefs - matrix(mean_coef, nrow = n_basis, ncol = n_sample)
+  functional_list[[j]] <- fd(coef = centered_coefs, basisobj = basis)
+}
+
+# --- Step 2: Construct hybrid object ---
+W <- predictor_hybrid(Z = Z, functional_list = functional_list)
+
+# --- Step 3: Simulate and center response ---
+total_coef_len <- sum(W$n_basis_list) + W$n_scalar
+true_coef <- rnorm(total_coef_len)
+
+# Flatten design matrix
+Xmat <- matrix(NA, n_sample, total_coef_len)
+for (i in 1:n_sample) {
+  W_i <- subset_predictor_hybrid(W, i)
+  func_coefs <- do.call(c, lapply(W_i$functional_list, function(fdobj) as.vector(coef(fdobj))))
+  Xmat[i, ] <- c(func_coefs, W_i$Z)
+}
+
+y <- Xmat %*% true_coef + rnorm(n_sample, sd = 0.1)
+y <- as.vector(scale(y, center = TRUE, scale = FALSE))
+
+# --- Step 4: Compute constraint matrix ---
+lambda <- rep(0, W$n_functional)
+constr_mat <- get_constraint_matrix_hybrid(W, lambda)
+L <- chol(constr_mat)
+
+# --- Step 5: Run eigen-based PLS ---
+W_template <- W  # prevent mutation
+pls_eig_result <- get_pls_comp(W, y, L)
+xi_hat_eig <- pls_eig_result$xi_hat
+
+# --- Step 6 (Revised): Manually compute direct PLS component and wrap with predictor_hybrid_from_coef ---
+
+# Scalar part
+
+# Functional part: stack the weighted coefficients
+func_weighted_vec <- unlist(lapply(functional_list, function(fd_j) {
+  coef(fd_j) %*% y  # nbasis × 1
+}))
+
+# Full coefficient vector
+Z_weighted <- colSums(Z * y)
+
+xi_raw_vec <- c(func_weighted_vec, Z_weighted)
+
+# Wrap into predictor_hybrid object using format template
+xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_raw_vec)
+
+# Normalize
+norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
+xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)
+
+xi_new <- get_xi_direct(W, y)
+
+# --- Step 7: Compare and evaluate ---
+ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)
+norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))
+norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
+cos_theta <- ip / (norm1 * norm2)
+
+cat("Cosine similarity between eigen-based and direct PLS components:", cos_theta, "\n")
+cat("Projection score (eig):", sum(inprod.predictor_hybrid(xi_hat_eig, W) * y), "\n")
+cat("Projection score (direct):", sum(inprod.predictor_hybrid(xi_hat_direct, W) * y), "\n")
+
+# --- Step 8: Plot functional coefficients ---
+par(mfrow = c(n_functional, 1), mar = c(4, 4, 2, 2))
+for (j in 1:n_functional) {
+  plot(xi_hat_eig$functional_list[[j]], col = "blue", ylim = c(-1, 1),
+       main = paste("Functional Component", j), ylab = "Coefficient", xlab = "t")
+  lines(xi_hat_direct$functional_list[[j]], col = "red", lty = 2)
+  legend("topright", legend = c("Eigen-based", "Direct"), col = c("blue", "red"), lty = 1:2)
+}
+
+```
+
+## Residualization
+
+### LSE_hybrid
+```{r}
+LSE_hybrid <- function(W, rho, tau) {
+  C_star_J_star <- matrix(NA, nrow = W$n_sample, ncol = sum(W$n_basis_list) + W$n_scalar)
+  for (ii in (1 : W$n_functional)){
+    cumsum_n_basis_now <- sum(W$n_basis_list[1:ii])
+    n_basis_now <- W$n_basis_list[ii]
+    C_star_J_star[, (cumsum_n_basis_now - n_basis_now + 1) :cumsum_n_basis_now] <-
+      t(W$functional_list[[ii]]$coefs) %*% W$jacobian_list[[ii]]
+  }
+  C_star_J_star[ ,(sum(W$n_basis_list) + 1) : ncol(C_star_J_star)] <- W$Z
+  rho_t_C_star_J_star <- t(rho) %*% C_star_J_star
+
+  # matrices in the statement of Proposition 4
+  J_star <-as.matrix(get_jacobian_hybrid(W))
+  d_hat_star <- t( #basis coefficient of hybrid regression coefficient
+    solve(
+      t((norm(rho, type="2"))^2 * J_star),
+      t(rho_t_C_star_J_star)
+      )
+    )
+  delta_hat <- hybrid_from_coef(W, d_hat_star) #hybrid regression coefficient
+  return(delta_hat)
+  }
+```
+
+
+### nipals_pen_hybrid
+
+
+- depends on:
+  - 'get_constraint_matrix_hybrid'
+  - 'get_pls_comp'
+  - 'hybrid_inner_prod'
+  - 'LSE_hybrid'
+  
 ```{r eval=FALSE, include=FALSE}
 #' Iterative Penalized NIPALS Algorithm for Hybrid PLS
 #'

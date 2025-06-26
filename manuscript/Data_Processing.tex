@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage[comma,authoryear]{natbib} 
+\usepackage{authblk}
+\usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{mauve}{rgb}{0.88, 0.69, 1.0}
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{dkgreen},   % comment style
+  stringstyle=\color{mauve},      % string literal style
+  escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...}            % if you want to add more keywords to the set
+} 
+
+\makeatletter
+\patchcmd{\@maketitle}{\LARGE \@title}{\fontsize{18}{19.2}\selectfont\@title}{}{}
+\renewcommand\Authfont{\fontsize{12}{14.4}\selectfont}
+\makeatother
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage[margin=0.3in]{geometry}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[flushleft]{threeparttable}
+\usepackage[labelfont=bf]{caption}
+\usepackage{caption,booktabs,array}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{setspace}
+\usepackage{amssymb}
+\usepackage{rotating}
+ \usepackage{url}
+\setstretch{1.8} % For 25 lines per page
+
+
+
+
+\usepackage{chngcntr}
+\counterwithin{figure}{section}
+\numberwithin{equation}{section}
+\usepackage{apptools}
+
+\usepackage{sectsty}
+\sectionfont{\fontsize{16}{16}\selectfont}
+\subsectionfont{\fontsize{14}{14}\selectfont}
+
+\renewcommand{\labelitemi}{$\bullet$}
+\renewcommand{\labelitemiii}{$\diamond$}
+\renewcommand{\labelitemii}{$\cdot$}
+\usepackage{enumitem}
+
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=1pt] (char) {#1};}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
+
+\date{\vspace{-5ex}}
+\title{Data Processing}
+\author{October 28, 2022}
+\begin{document}
+\maketitle
+
+\begin{enumerate}
+    \item Pre-process (only for our data) the  renogram curves by dividing: a) each baseline renogram curve by its maximum; and b) each post-furosemide (diuretic) renogram curve by the maximum of the baseline renogram curve:
+    \begin{equation*}
+        X_i^{(1)P} = \frac{X_i^{(1)}}{\max_t \{X_i^{(1)}(t)\}} \quad \textnormal{and} \quad X_i^{(2)P} = \frac{X_i^{(2)}}{\max_t \{X_i^{(1)}(t)\}}, \quad i=1, \ldots, n
+    \end{equation*}
+    
+    \bigskip
+    
+    \item \textcolor{red}{Normalize} the renogram renogram curves:
+    \begin{equation*}
+        X_i^{(1)*}  = \frac{X_i^{(1)P} - \overbar{X}^{(1)P}}{\sqrt{\int \textnormal{Var}\{X_i^{(1)P}(t)\}dt}} \quad \textnormal{and} \quad X_i^{(2)*}  = \frac{X_i^{(2)P} - \overbar{X}^{(2)P}}{\sqrt{\int \textnormal{Var}\{X_i^{(2)P}(t)\}dt}}
+    \end{equation*}
+    
+    
+    
+    \item \textcolor{red}{Normalize} the scalar predictors $\mathbf{Z}_i=(Z_{i1}, \ldots Z_{ip})^\top$
+    \begin{equation*}
+        Z_{ir}^S = \frac{Z_{ir} - \overbar{Z}_p}{s(Z_r)}, \quad i=1, \ldots, n, \; r=1, \ldots, p.
+    \end{equation*}
+    
+    \bigskip
+    
+    \item Scale the scalar predictors so that the variability \textit{between} the functional and scalar predictors are comparable (\textcolor{red}{between-normalization}):
+    \begin{equation*}
+    \mathbf{Z}_i^{*} = \omega^{1/2} \mathbf{Z}_i^{S}
+    \end{equation*}
+    where $\omega$ is a scaling factor:
+    \begin{equation*}
+     \omega = \frac{\sum_{i=1}^n \Vert X_i^*  \Vert_\mathcal{F}^2}{\sum_{i=1}^n \Vert \mathbf{Z}_i^S \Vert^2} = \frac{\sum_{i=1}^n [ \int \{X^{(1)*}_i(t_1)\}^2 dt_1 + \int \{X^{(2)*}_i(t_2)\}^2 dt_2]}{\sum_{i=1}^n \mathbf{Z}^{S\top}_i \mathbf{Z}^{S}_i}.
+     \label{eq:weight}
+\end{equation*}
+
+
+\item Run the partial least squares with $\mathbf{W}_i=(X_i^*, \mathbf{Z}_i^*)$. Make sure that you input testing data are normalized based on scaling factors computed from the training data.
+
+\end{enumerate}
+
+
+\end{document}
