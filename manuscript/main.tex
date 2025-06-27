@@ -256,11 +256,14 @@ Each iteration of our approach consists of two subroutines: regularized estimati
  Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 
 \subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}
-
+\paragraph{Basis functions.}
 For $k = 1, \ldots, K$, let us denote the system of $M$ basis functions used to approximate the $k$-th functional predictor as 
-$
-    \mathbf{b}^{(k)}(t_k)=(b^{(k)}_{1}(t_k), \ldots, b^{(k)}_{M}(t_k))^\top.
-$
+\begin{equation*}
+ \mathbf{b}^{(k)}(t_k)=(b^{(k)}_{1}(t_k), \ldots, b^{(k)}_{M}(t_k))^\top,~\text{where}~t_k \in \mathcal{T}_k.   
+\end{equation*}
+In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. It also serves as a regularization tool to borrow strength and prevent overfitting.
+
+\paragraph{Basis approximation of the hybrid predictor.}
 Then we can approximate the functional predictor observations as
 \begin{equation*}
 X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in \mathcal{T}_k, \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
@@ -282,7 +285,7 @@ Furthermore, let $\widetilde{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n] \in \math
 \end{equation}
 where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), I_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{C}^*=[\widetilde{C}, \widetilde{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
 
-
+\paragraph{Basis approximation of the PLS component.}
 We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. We denote the outcome data as
 \begin{equation}
 \widetilde{\mathbf{y}}=(Y_1, \ldots, Y_n)^\top \in \mathbb{R}^n.
@@ -297,6 +300,7 @@ Using this definition, we construct the following block-diagonal matrices:
 J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}~\text{and}~J^\ast=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
 \end{equation}
 
+\paragraph{Regularization based on second-order derivatives.}
 Our proposed strategy for computing PLS component, detailed in Section \ref{sec: Regularization of PLS Components}, incorporates regularization based on second-order derivatives. To this end, let $\ddot{J}^{(k)}$ denote the $M \times M$ Gram matrix formed by the second derivatives of the basis functions,  defined as
 \begin{equation}\label{def:dodot_J_k}
 \ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
@@ -310,9 +314,17 @@ $ \ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$ as
 The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{C}^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{C}^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 
 \subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
-Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an alternative intermediate strategy for implementing the first step of the PLS algorithm. Specifically, the following proposition states a tractable generalized eigenvalue problem (i.e. maximization of a generalized Rayleigh quotient) that can be solved to directly obtain a hybrid PLS component $\widehat{\boldsymbol{\xi}}=(\widehat{\psi}, \widehat{\boldsymbol{\theta}})$, which has the same structure as the hybrid predictor $\mathbf{W}=(X,\mathbf{Z})$ of model \eqref{eq: Hybrid functional model}. 
+Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an  intermediate strategy for implementing the first step of the PLS algorithm. Specifically, the following proposition states a tractable generalized eigenvalue problem (i.e. maximization of a generalized Rayleigh quotient) that can be solved to directly obtain a hybrid PLS component $\widehat{\boldsymbol{\xi}}=(\widehat{\psi}, \widehat{\boldsymbol{\theta}})$, which has the same structure as the hybrid predictor $\mathbf{W}=(X,\mathbf{Z})$ of model \eqref{eq: Hybrid functional model}. 
+
+At the $l$-th iteration, we denote, for simplicity, the residualized response and the hybrid predictors in basis approximation form as follows:
+\begin{equation*}
+    Y_i \equiv Y_i^{[l]} \quad \text{and}  \quad \mathbf{W}_i \equiv \mathbf{W}_i^{[l]},
+    \widetilde{W}[\mathbf{t}]
+\end{equation*}
+respectively.
+ consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 \begin{proposition} \label{Proposition: generalized rayleigh quotient}
-At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
+
 \jongmin{in the (1,1)th block, should $ \mathbf{y}$ be replaced by $\widetilde{\mathbf{y}} $? }
 \begin{equation}\label{def:V_star}
     V^\ast = n^{-2}\begin{bmatrix}
