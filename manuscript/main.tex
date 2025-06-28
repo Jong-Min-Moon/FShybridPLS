@@ -286,10 +286,7 @@
 	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), I_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{C}^*=[\widetilde{C}, \widetilde{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
 	
 	\paragraph{Basis approximation of the PLS component.}
-	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. We denote the outcome data as
-	\begin{equation}
-		\widetilde{\mathbf{y}}=(Y_1, \ldots, Y_n)^\top \in \mathbb{R}^n.
-	\end{equation}
+	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
 	%
 	For each $k = 1, \ldots, K$, let $J^{(k)} \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions associated with the $k$-th functional predictor, defined by
 	\begin{equation}\label{def:gram_basis}
@@ -311,20 +308,21 @@
 		\ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}).
 	\end{equation}
 	%
-	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{C}^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{C}^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
+	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
 	\subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
-	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS component, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
-	
-	
-	
-	At the $l$-th iteration, we denote, for simplicity, the residualized response and the hybrid predictors in basis approximation form as follows:
-	\begin{equation*}
-		Y_i \equiv Y_i^{[l]} \quad \text{and}  \quad \mathbf{W}_i \equiv \mathbf{W}_i^{[l]},
-		\widetilde{W}[\mathbf{t}]
-	\end{equation*}
-	respectively.
-	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
+	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
+
+We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized responses by $\mathbf{Y} \in \mathbb{R}^n$, 
+and
+let $\widetilde{\mathbf{C}}^\ast$ denote
+the coefficients of the basis approximation of the residualized hybrid predictors by . 
+ Our strategy finds the direction $\boldsymbol{\xi} \in \mathcal{H}$ that minimizes the empirical covariance between the 
+\begin{align*}
+	\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, \mathbf{Y} ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i
+\end{align*}
+
+%	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
 		
 		\jongmin{in the (1,1)th block, should $ \mathbf{y}$ be replaced by $\widetilde{\mathbf{y}} $? }
