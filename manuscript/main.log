@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  27 JUN 2025 17:25
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  27 JUN 2025 18:12
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -735,7 +735,7 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
 [8]
 
 [9]
-Overfull \hbox (7.0366pt too wide) in paragraph at lines 289--290
+Overfull \hbox (7.0366pt too wide) in paragraph at lines 291--294
 \OT1/cmr/m/n/12 part of the PLS com-po-nent in terms of the same ba-sis func-ti
 ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12 
 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m
@@ -743,7 +743,7 @@ ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12
  []
 
 
-Overfull \hbox (1.60547pt too wide) in paragraph at lines 304--305
+Overfull \hbox (1.60547pt too wide) in paragraph at lines 303--304
 \OT1/cmr/m/n/12 put-ing PLS com-po-nent, de-tailed in Sec-tion []4.1.3[], in-co
 r-po-rates reg-u-lar-iza-tion based on second-
  []
@@ -756,18 +756,19 @@ r-po-rates reg-u-lar-iza-tion based on second-
 
 [12]
 
+Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line 
+401.
+
+
+
 [13]
 
-Package natbib Warning: Citation `Rice1991' on page 14 undefined on input line 
-405.
-
-
 Package natbib Warning: Citation `Silverman1996' on page 14 undefined on input 
-line 421.
+line 417.
 
 
 Package natbib Warning: Citation `Rice1991' on page 14 undefined on input line 
-421.
+417.
 
 
 
@@ -786,21 +787,21 @@ Package natbib Warning: Citation `Rice1991' on page 14 undefined on input line
 [20]
 
 Package natbib Warning: Citation `Tucker1938' on page 21 undefined on input lin
-e 572.
+e 568.
 
 
 
 [21]
 
 Package natbib Warning: Citation `Hsing2015' on page 22 undefined on input line
- 605.
+ 601.
 
 
 
 [22]
 
 [23]
-Overfull \hbox (12.39862pt too wide) detected at line 662
+Overfull \hbox (12.39862pt too wide) detected at line 658
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -812,30 +813,30 @@ OML/cmm/m/it/12 :
 
 
 [24]
-<image/cor_strong.pdf, id=316, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=315, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 678.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 674.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/cor_weak.pdf, id=317, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=316, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 685.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 681.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/graph_strong.pdf, id=318, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=317, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 694.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 690.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
-<image/graph_weak.pdf, id=319, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=318, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 701.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 697.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
 
 
 Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' on page 25 un
-defined on input line 725.
+defined on input line 721.
 
 
 
@@ -845,10 +846,10 @@ defined on input line 725.
 [26{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
 
 Package natbib Warning: Citation `kolar_graph_2014' on page 27 undefined on inp
-ut line 742.
+ut line 738.
 
 
-Overfull \hbox (33.94724pt too wide) detected at line 755
+Overfull \hbox (33.94724pt too wide) detected at line 751
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -861,10 +862,10 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 
 
 [27]
-<image/graph.png, id=361, 447.3513pt x 447.3513pt>
+<image/graph.png, id=360, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 786.
+Package pdftex.def Info: image/graph.png  used on input line 782.
 (pdftex.def)             Requested size: 187.89914pt x 187.89992pt.
 
 
@@ -873,20 +874,20 @@ Package pdftex.def Info: image/graph.png  used on input line 786.
 [29 <./image/graph.png>]
 
 Package natbib Warning: Citation `goldsmith_penalized_2011' on page 30 undefine
-d on input line 812.
+d on input line 808.
 
 
 Package natbib Warning: Citation `happ_multivariate_2018' on page 30 undefined 
-on input line 812.
+on input line 808.
 
 
-LaTeX Warning: Reference `table ' on page 30 undefined on input line 817.
+LaTeX Warning: Reference `table ' on page 30 undefined on input line 813.
 
-<Screenshot 2025-02-25 125839.png, id=373, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=372, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 8
-20.
+16.
 (pdftex.def)             Requested size: 422.77664pt x 177.74849pt.
 
 
@@ -895,7 +896,7 @@ Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 8
 [31]
 
 [32]
-Overfull \hbox (6.17805pt too wide) detected at line 899
+Overfull \hbox (6.17805pt too wide) detected at line 895
 []
  []
 
@@ -904,7 +905,7 @@ Overfull \hbox (6.17805pt too wide) detected at line 899
 [33]
 
 [34]
-Overfull \hbox (29.18288pt too wide) detected at line 987
+Overfull \hbox (29.18288pt too wide) detected at line 983
 []
  []
 
@@ -915,10 +916,10 @@ Overfull \hbox (29.18288pt too wide) detected at line 987
 [36]
 
 Package natbib Warning: Citation `Hsing2015' on page 37 undefined on input line
- 1016.
+ 1012.
 
 
-Overfull \hbox (13.91545pt too wide) detected at line 1038
+Overfull \hbox (13.91545pt too wide) detected at line 1034
 []
  []
 
@@ -949,8 +950,8 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: F4C6B181DA028CC97A02DE1E8E53DC0D;4801.
  ) 
 Here is how much of TeX's memory you used:
- 16006 strings out of 469626
- 253685 string characters out of 5475183
+ 16005 strings out of 469626
+ 253674 string characters out of 5475183
  660835 words of memory out of 5000000
  42442 multiletter control sequences out of 15000+600000
  640594 words of font info for 91 fonts, out of 8000000 for 9000
@@ -977,10 +978,10 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (41 pages, 940296 bytes).
+Output written on main.pdf (41 pages, 940076 bytes).
 PDF statistics:
- 559 PDF objects out of 1000 (max. 8388607)
- 451 compressed objects within 5 object streams
- 114 named destinations out of 1000 (max. 500000)
+ 558 PDF objects out of 1000 (max. 8388607)
+ 450 compressed objects within 5 object streams
+ 113 named destinations out of 1000 (max. 500000)
  215 words of extra memory for PDF output out of 10000 (max. 10000000)
 

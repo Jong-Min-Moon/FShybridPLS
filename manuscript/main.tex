@@ -281,9 +281,11 @@
 	
 	Furthermore, let $\widetilde{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n] \in \mathbb{R}^{n \times p}$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}[\mathbf{t}]=[\widetilde{X}(\mathbf{t}), \widetilde{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\widetilde{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
 	\begin{equation}\label{eq: basis approximation of W}
-		\widetilde{W}[\mathbf{t}] =  \widetilde{C}^* B^*[\mathbf{t}], \quad t \in \mathcal{T}.
+		\widetilde{W}[\mathbf{t}] 
+		=  
+		\widetilde{ \mathbf{C} }^\ast B^*[\mathbf{t}], \quad t \in \mathcal{T}.
 	\end{equation}
-	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), I_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{C}^*=[\widetilde{C}, \widetilde{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
+	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), I_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \widetilde{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
 	
 	\paragraph{Basis approximation of the PLS component.}
 	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
@@ -313,26 +315,23 @@
 	\subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
 	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
 
-We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized responses by $\mathbf{Y} \in \mathbb{R}^n$, 
-and
-let $\widetilde{\mathbf{C}}^\ast$ denote
-the coefficients of the basis approximation of the residualized hybrid predictors by . 
- Our strategy finds the direction $\boldsymbol{\xi} \in \mathcal{H}$ that minimizes the empirical covariance between the 
-\begin{align*}
-	\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, \mathbf{Y} ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i
-\end{align*}
+We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized response by $Y$, with its finite-sample observations denoted by $\mathbf{y} = (y_1, \ldots, y_n) \in \mathbb{R}^n$. Let $\widetilde{W} \in \mathcal{H}$ denote the residualized, basis-approximated hybrid predictor, and let $\widetilde{\mathbf{C}}^\ast \in \mathbb{R}^{n \times (MK+p)}$ denote the basis coefficients of its finite-sample observations. Our strategy finds the direction $\boldsymbol{\xi} \in \mathcal{H}$ that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
+
+For practical computation, we first construct the following matrix:
+	\begin{equation}\label{def:V_star}
+	V^\ast = n^{-2}\begin{bmatrix}
+		J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
+		\widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
+	\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
+	\in \mathbb{R}^{(MK+p) \times (MK+p)}.
+\end{equation}
+
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
 		
 		\jongmin{in the (1,1)th block, should $ \mathbf{y}$ be replaced by $\widetilde{\mathbf{y}} $? }
-		\begin{equation}\label{def:V_star}
-			V^\ast = n^{-2}\begin{bmatrix}
-				J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
-				\widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
-			\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
-			\in \mathbb{R}^{(MK+p) \times (MK+p)}.
-		\end{equation}
+	
 		and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained by solving
 		\begin{equation}\label{def:eigenproblem_smoothed}
 			\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*}, \quad \textit{or equivalently}, \quad \argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
