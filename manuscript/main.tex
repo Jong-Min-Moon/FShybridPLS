@@ -256,47 +256,37 @@
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}
+In practice, the functional predictors $X^{(1)}, \ldots, X^{(K)}$ are not observed as complete curves, but only through their values at a finite set of time points, which may differ across the $K$ predictors. Thus, each observation is represented by a finite-dimensional vector $X_i^{(k)}(\mathbf{t}_k) \in \mathbb{R}^{|\mathbf{t}_k|}$, where $\mathbf{t}_k \subset \mathcal{T}_k$. The first step in functional data analysis typically involves reconstructing the underlying functional form from these discrete measurements, commonly by assuming that sample paths lie in a finite-dimensional space spanned by basis functions.
 	\paragraph{Basis functions.}
-	For $k = 1, \ldots, K$, let us denote the system of $M$ basis functions used to approximate the $k$-th functional predictor as 
+For $k = 1, \ldots, K$, let $\Phi^{(k)}:= \{\phi^{(k)}_1, \ldots, \phi^{(k)}_M\}$, with $M \geq 1$, be an $M$-dimensional basis in $L^2(\mathcal{T}_k)$. In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting.
+
+	\paragraph{Basis approximation of the hybrid predictor.}	
+	For $k = 1, \ldots, K$  and $i = 1, \ldots, n$, 	
+	 we approximate each functional predictor within the span of the basis functions $\Phi^{(k)}$ :
+\begin{equation*} 
+	X_i^{(k)} \approx  \sum_{m=1}^M   c_{im}^{(k)} \phi_m^{(k)} ,
+\end{equation*}
+where the coefficients $c_{im}^{(k)}$'s satisfy
 	\begin{equation*}
-		\mathbf{b}^{(k)}(t_k)=(b^{(k)}_{1}(t_k), \ldots, b^{(k)}_{M}(t_k))^\top,~\text{where}~t_k \in \mathcal{T}_k.   
-	\end{equation*}
-	In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. It also serves as a regularization tool to borrow strength and prevent overfitting.
+	X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} \phi^{(k)}_{m}(t_k)~\text{for all}~t_k \in \mathbf{t}_k \subset \mathcal{T}_k,
+\end{equation*}
+
+
 	
-	\paragraph{Basis approximation of the hybrid predictor.}
-	Then we can approximate the functional predictor observations as
-	\begin{equation*}
-		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in \mathcal{T}_k, \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
-	\end{equation*}
-	where $\mathbf{c}_i^{(k)} = (c_{i1}^{(k)}, \ldots, c_{iM}^{(k)})^\top$ is a $M$-dimensional vector of basis coefficients corresponding to the $k$th functional predictor. This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{C}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, and $\widetilde{C}^{(k)} = (\mathbf{c}_1^{(k)} \cdots \mathbf{c}_n^{(k)})^\top \in \mathbb{R}^{n \times M}$. This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
-	\begin{equation}
-		\widetilde{X}(\mathbf{t}) = \widetilde{C}B(\mathbf{t}), \quad t \in \mathcal{T},
-		\label{eq: basis approximation of X}
-	\end{equation}
-	where $\widetilde{X}(\mathbf{t}) = [\widetilde{\mathbf{X}}^{(1)}(t_1), \cdots, \widetilde{\mathbf{X}}^{(K)}(t_K)] \in \mathbb{R}^{n \times K}$, $\widetilde{C} = [\widetilde{C}^{(1)}, \cdots, \widetilde{C}^{(K)}] \in \mathbb{R}^{n \times MK}$, and 
-	$B(\mathbf{t}) = \mathrm{blkdiag}[\mathbf{b}^{(1)}(t_1), \cdots, \mathbf{b}^{(K)}(t_K)] \in \mathbb{R}^{MK \times K}$.
 	The number of basis functions $M$ for each functional predictor can be set to a sufficiently large value (e.g., 15 or 20) to incorporate a rich variety of patterns that functional predictors may exhibit. Note that there is no need to carefully choose different $M$ values for different functional predictors, as an appropriate penalization scheme will be introduced in the later section to regularize each functional predictor to achieve a desired smoothness (see Section \ref{sec: Regularization of PLS Components}).
 	
 	
 	
-	Furthermore, let $\widetilde{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n] \in \mathbb{R}^{n \times p}$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}[\mathbf{t}]=[\widetilde{X}(\mathbf{t}), \widetilde{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\widetilde{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
-	\begin{equation}\label{eq: basis approximation of W}
-		\widetilde{W}[\mathbf{t}] 
-		=  
-		\widetilde{ \mathbf{C} }^\ast B^*[\mathbf{t}], \quad t \in \mathcal{T}.
-	\end{equation}
-	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), I_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \widetilde{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
-	
 	\paragraph{Basis approximation of the PLS component.}
 	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
 	%
-	For each $k = 1, \ldots, K$, let $J^{(k)} \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions associated with the $k$-th functional predictor, defined by
+	For each $k = 1, \ldots, K$, let $\mathbf{J}^{(k)} \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions associated with the $k$-th functional predictor, defined by
 	\begin{equation}\label{def:gram_basis}
-		J^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) \, b_n^{(k)}(t) , dt \right]_{m,n=1}^M.
+		\mathbf{J}^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) \, b_n^{(k)}(t) , dt \right]_{m,n=1}^M.
 	\end{equation}
 	Using this definition, we construct the following block-diagonal matrices:
 	\begin{equation}\label{def:J_and_J_star}
-		J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}~\text{and}~J^\ast=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
+		\mathbf{J} = \mathrm{blkdiag}(\mathbf{J}^{(1)}, \cdots, \mathbf{J}^{(K)}) \in \mathbb{R}^{MK \times MK}~\text{and}~\mathbf{J}^\ast=\mathrm{blkdiag}(\mathbf{J}, \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
 	\end{equation}
 	
 	\paragraph{Regularization based on second-order derivatives.}
@@ -315,72 +305,98 @@
 	\subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
 	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
 
-We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized response by $Y$, with its finite-sample observations denoted by $\mathbf{y} = (y_1, \ldots, y_n) \in \mathbb{R}^n$. Let $\widetilde{W} \in \mathcal{H}$ denote the residualized, basis-approximated hybrid predictor, and let $\widetilde{\mathbf{C}}^\ast \in \mathbb{R}^{n \times (MK+p)}$ denote the basis coefficients of its finite-sample observations. Our strategy finds the direction $\boldsymbol{\xi} \in \mathcal{H}$ that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
+We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized response by $Y$, with finite-sample observations given by $\mathbf{y} = (y_1, \ldots, y_n) \in \mathbb{R}^n$. Let $\widetilde{W} \in \mathcal{H}$ denote the residualized, basis-approximated hybrid predictor, and let $\widetilde{\mathbf{C}} \in \mathbb{R}^{n \times (MK)}$ denote the basis coefficients of its functional part in the finite-sample observations. Our strategy seeks the direction $\boldsymbol{\xi} \in \mathcal{H}$, lying in the span of the basis $B^*[\mathbf{t}]$, that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
 
-For practical computation, we first construct the following matrix:
+For practical computation, 
+let us first denote
+\begin{equation*}
+\mathbf{b} := \mathbf{y}^\top
+[ \widetilde{\mathbf{C}} \, \mathbf{J} \, \mathbf{Z} ].
+\end{equation*}
+Then we obtain $\mathbf{d}$ by solving a linear system
+\begin{equation*}
+	\mathbf{J}^\ast \mathbf{d} =
+	\mathbf{b}^\top.
+\end{equation*}  
+Then we obtain the coefficient for the PLS direction by normalize it with respect to the basis $B^*[\mathbf{t}]$:
+\begin{equation}\label{compute:pls_direction_coeff}
+	\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+	= \frac{1}{\sqrt{\mathbf{d}^\top \mathbf{J}^\ast \mathbf{d}}} \mathbf{d}.
+\end{equation}
+The $l$-th  PLS score for the 
+$i$th observation is then computed as the inner product  with respect to the basis $B^*[\mathbf{t}]$:
+\begin{equation*}
+	\widehat{\rho}_{i}
+	= 
+	[ \widetilde{\mathbf{C}}  \, \mathbf{Z} ] \, \mathbf{J}^\ast \begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+\end{equation*}
+$ \equiv \widehat{\rho}_{il}$ can be obtained as $\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}$.
+we first construct the following matrix:
 	\begin{equation}\label{def:V_star}
-	V^\ast = n^{-2}\begin{bmatrix}
-		J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
-		\widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
-	\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
+	\mathbf{V}^\ast 
+	:= 
+	n^{-2}\begin{bmatrix}
+\mathbf{J}
+\widetilde{ \mathbf{C} }^\top \mathbf{y}\mathbf{y}^\top \widetilde{ \mathbf{C} } \mathbf{J} 
+& 
+\mathbf{J} \widetilde{ \mathbf{C} }^\top 
+\mathbf{y}
+\mathbf{y}^\top 
+\mathbf{Z} 
+\\
+\mathbf{Z}^\top 
+\mathbf{y}
+\mathbf{y}^\top \widetilde{ \mathbf{C} }
+\mathbf{J} 
+&   
+\mathbf{Z}^\top 
+\mathbf{y}
+\mathbf{y}^\top 
+\mathbf{Z}
+	\end{bmatrix} = n^{-2} \mathbf{J}^\ast \widetilde{ \mathbf{C} }^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{ \mathbf{C} }^{*} \mathbf{J}^\ast
 	\in \mathbb{R}^{(MK+p) \times (MK+p)}.
 \end{equation}
 
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
-		
-		\jongmin{in the (1,1)th block, should $ \mathbf{y}$ be replaced by $\widetilde{\mathbf{y}} $? }
-	
-		and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained by solving
-		\begin{equation}\label{def:eigenproblem_smoothed}
-			\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*}, \quad \textit{or equivalently}, \quad \argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
-		\end{equation}
-		with respect to $\widehat{\boldsymbol{\xi}}^*=(\widehat{\mathbf{a}}^{\top}, \widehat{\boldsymbol{\theta}}^{\top})^\top$, and then setting $\widehat{\boldsymbol{\xi}}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  B^*[\mathbf{t}]^\top \widehat{\boldsymbol{\xi}}^*$. The $l$-th PLS score $\widehat{\rho}_{i} \equiv \widehat{\rho}_{il}$ can be obtained as $\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}$.
-	\end{proposition}
-	The proof of Proposition \ref{Proposition: generalized rayleigh quotient} is given in the Appendix \ref{section:proof:eigenproblem_derivation}.
-	Here, $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$ is expressed as $\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*$ based on the aforementioned basis approximations. Thus, finding $\boldsymbol{\xi}^*$ that maximizes $\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*$ amounts to finding $\widehat{\boldsymbol{\xi}}$ that maximizes the sample squared covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$, which is the first step of the PLS algorithm. The constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$ scales the obtained PLS component to have a unit norm, that is, $\langle \widehat{\boldsymbol{\xi}}, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}=1$. 
-	
-	\jongmin{
-		Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
-		\begin{align*}
-			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i \\
-			&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \widetilde{Z} \boldsymbol{\theta}).
-			\\&=
-			\frac{1}{n}\tilde{\mathbf{y}}^\top
-			\begin{bmatrix} \widetilde{C}J \; \widetilde{Z} \end{bmatrix} \;      \underbrace{
-				\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-			}_{:= \boldsymbol{\beta}}.
-		\end{align*}
-		Let us 
-		denote $\mathbf{b} =  \widetilde{\mathbf{y}}^\top \begin{bmatrix} \widetilde{C}J \; \widetilde{Z} \end{bmatrix}$. This is the weighted row sum of $\begin{bmatrix} \widetilde{C}J \; \widetilde{Z} \end{bmatrix}$, weighted by $\widetilde{\mathbf{y}}$.
-		Then using the symmetricity of $J^\ast$, we solve a linear system $J^\ast \mathbf{d} =
-		\mathbf{b}^\top$ to obtain $\mathbf{d}$. Then we have
-		\begin{align*}
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) 
-			%%%%%%%%%%%%%%%%%%%%%
-			&= 
-			%%%%%%%%%%%%%%%%%%%%%%%%
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\frac{1}{n} \mathbf{d}^\top J^\ast  \boldsymbol{\beta}
-			\\& \overset{(i)}{\leq} 
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}
-			\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}}
-			\\& \overset{(ii)}{=}
-			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}    ,
-		\end{align*}
-		where step $(i)$ uses the Cauchy-Schwarz inequality with the inner product $\langle x, y \rangle_{J^\ast} = x^\top J^\ast y$,
-		and step $(ii)$ uses the norm constraint.
-		By the Cauchy-Schwarz inequality, the maximum displayed in the last term is obtained by a unit vector (with respect to $\langle \cdot, \cdot \rangle_{J^\ast}$) parallel to $\mathbf{d}$. Therefore we have
-		\begin{equation*}
-			\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-			= \frac{1}{\sqrt{\mathbf{d}^\top  J^\ast \mathbf{d} }}\mathbf{d},
-		\end{equation*}
-		which only involves solving one linear equation.
+		Let $\operatorname{span}(B^\ast[\mathbf{t}])$ 
+		be a linear subspace of $\mathcal{H}$ spanned by the basis functions.
+		  For any unit-length direction  $\boldsymbol{\xi} \in \operatorname{span}(B^\ast[\mathbf{t}])$,
+expressed as $
+\boldsymbol{\xi} 
+= 
+\boldsymbol{\alpha}
+B^\ast [\mathbf{t}] $ with $\boldsymbol{\alpha} \in \mathbb{R}^{MK + p}$,
+		Let us define
+		the empirical and basis-approximated sample covariance as
+\begin{equation*}
+	\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )
+	:=
+	\frac{1}{n} \sum \limits_{i=1}^n \langle \widetilde{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} y_i
+	=
+		\frac{1}{n} \sum \limits_{i=1}^n 
+	(	\tilde{\mathbf{C}}^\ast_i \mathbf{J}^\ast \boldsymbol{\alpha} ) y_i.
+\end{equation*}
+Then the coefficients computed in \eqref{compute:pls_direction_coeff}  $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$
+over all unit vectors in $\operatorname{span}(B^\ast[\mathbf{t}])$.
+In a more formal way:
+	\begin{equation}
+	\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+	B^*[\mathbf{t}] \in \arg \max_{
+ \|\boldsymbol{\xi}  \| = 1, 
+	 \boldsymbol{\xi} \in \mathrm{span}(B^*[\mathbf{t}])
 	}
+		\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ).
+\end{equation}
+
+	\end{proposition}
 	
+
+	The proof of Proposition \ref{Proposition: generalized rayleigh quotient} is given in the Appendix \ref{section:proof:eigenproblem_derivation}.
+
+	
+
 	
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
 	Although Proposition \ref{Proposition: generalized rayleigh quotient} provides an efficient and principled way to compute the PLS components $\boldsymbol{\xi}$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{Proposition: generalized rayleigh quotient} that yields regularized (smoothed) PLS components.
@@ -418,9 +434,9 @@ For practical computation, we first construct the following matrix:
 	\begin{proposition} \label{Proposition: Regularized generalized rayleigh quotient}
 		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
 		\begin{equation*}
-			V^\ast = n^{-2}\begin{bmatrix}
-				J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
-				\widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
+			\mathbf{V}^\ast = n^{-2}\begin{bmatrix}
+				J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \\
+				\mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z}
 			\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
 			\in \mathbb{R}^{(MK+p) \times (MK+p)}.
 		\end{equation*}
@@ -428,8 +444,8 @@ For practical computation, we first construct the following matrix:
 		We first compute the basis coefficients by solving the optimization problem
 		\begin{align}
 			\begin{split}
-				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*} , \quad \textit{or equivalently}, \\ 
-				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1.
+				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*} , \quad \textit{or equivalently}, \\ 
+				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1.
 				\label{eq: Regularized generalized rayleigh quotient equation}
 			\end{split}
 		\end{align}
@@ -459,7 +475,7 @@ For practical computation, we first construct the following matrix:
 	\begin{equation*}
 		\max \limits_{\mathbf{e} \in \mathbb{R}^{MK + p}} \, \frac{\mathbf{e}^\top E \mathbf{e}}{\mathbf{e}^\top \mathbf{e}} \; \Longleftrightarrow \;   \max \limits_{\substack{\mathbf{e} \in \mathbb{R}^{MK+p}}} \;  \mathbf{e}^\top E \mathbf{e} \quad \textnormal{subject to} \quad \Vert \mathbf{e} \Vert^2 = 1
 	\end{equation*}
-	through the transformations $\mathbf{e} = L^\top \boldsymbol{\xi}^*$ and $E = L^{-1} V^\ast L^{\top-1}$. Once $\mathbf{e}$ is obtained as the first eigenvector of $E$, we set $\boldsymbol{\xi}^* = L^{\top-1} \mathbf{e}$ and $\widehat{\boldsymbol{\xi}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \boldsymbol{\xi}^*$.
+	through the transformations $\mathbf{e} = L^\top \boldsymbol{\xi}^*$ and $E = L^{-1} \mathbf{V}^\ast L^{\top-1}$. Once $\mathbf{e}$ is obtained as the first eigenvector of $E$, we set $\boldsymbol{\xi}^* = L^{\top-1} \mathbf{e}$ and $\widehat{\boldsymbol{\xi}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \boldsymbol{\xi}^*$.
 	
 	
 	
@@ -532,9 +548,9 @@ For practical computation, we first construct the following matrix:
 			\State
 			$\widetilde{C}^{*[1]} \leftarrow \widetilde{C}^*$
 			\For{ l = 1, 2, \ldots  $T$}
-			\State $V^\ast \leftarrow n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast$
+			\State $\mathbf{V}^\ast \leftarrow n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast$
 			\Comment{ \eqref{def:V_star}}
-			\State 	$\widehat{\boldsymbol{\xi}}_l^\ast \leftarrow \argmax_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1
+			\State 	$\widehat{\boldsymbol{\xi}}_l^\ast \leftarrow \argmax_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1
 			$
 			\Comment{ \eqref{eq: Regularized generalized rayleigh quotient equation}} 
 			\State $\widehat{\boldsymbol{\rho}}_l
@@ -799,7 +815,7 @@ For practical computation, we first construct the following matrix:
 	
 	For each observation drawn from this multivariate Gaussian distribution, we process 
 	
-	The regression coefficients for the first functional predictor, $\beta_{F_1}$, are drawn from a multivariate normal distribution $N(0, 5 I_p)$, with a fixed random seed. The coefficients for the second functional predictor, $\beta_{F_2}$, are drawn independently from the same distribution and are also smoothed using a B-spline basis with 10 basis functions.
+	The regression coefficients for the first functional predictor, $\beta_{F_1}$, are drawn from a multivariate normal distribution $N(0, 5 \mathbf{I}_p)$, with a fixed random seed. The coefficients for the second functional predictor, $\beta_{F_2}$, are drawn independently from the same distribution and are also smoothed using a B-spline basis with 10 basis functions.
 	For the vector covariates, the regression coefficients are sampled from $N(0, I_d)$. After calculating the inner product of the covariates and their corresponding coefficients, independent Gaussian noise from $N(0, 0.1^2)$ is added to the generated responses to simulate measurement noise.
 	
 	The baseline methods are:
@@ -859,6 +875,34 @@ For practical computation, we first construct the following matrix:
 	
 	
 	
+	\section{old notations}
+	
+	
+	Then we can approximate the functional predictor observations as
+	\begin{equation*}
+		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in \mathcal{T}_k, \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
+	\end{equation*}
+	where $\mathbf{c}_i^{(k)} = (c_{i1}^{(k)}, \ldots, c_{iM}^{(k)})^\top$ is a $M$-dimensional vector of basis coefficients corresponding to the $k$th functional predictor. This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{C}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, and $\widetilde{C}^{(k)} = (\mathbf{c}_1^{(k)} \cdots \mathbf{c}_n^{(k)})^\top \in \mathbb{R}^{n \times M}$. This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
+	\begin{equation}
+		\widetilde{X}(\mathbf{t}) = \widetilde{C}B(\mathbf{t}), \quad t \in \mathcal{T},
+		\label{eq: basis approximation of X}
+	\end{equation}
+	where $\widetilde{X}(\mathbf{t}) = [\widetilde{\mathbf{X}}^{(1)}(t_1), \cdots, \widetilde{\mathbf{X}}^{(K)}(t_K)] \in \mathbb{R}^{n \times K}$, $\widetilde{C} = [\widetilde{C}^{(1)}, \cdots, \widetilde{C}^{(K)}] \in \mathbb{R}^{n \times MK}$, and 
+	$B(\mathbf{t}) = \mathrm{blkdiag}[\mathbf{b}^{(1)}(t_1), \cdots, \mathbf{b}^{(K)}(t_K)] \in \mathbb{R}^{MK \times K}$.
+	
+	
+	
+	
+	Furthermore, let $
+	\mathbf{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n]^\top \in \mathbb{R}^{n \times p}
+	$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}[\mathbf{t}]=[\widetilde{X}(\mathbf{t}), \mathbf{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\mathbf{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
+	\begin{equation}\label{eq: basis approximation of W}
+		\widetilde{W}[\mathbf{t}] 
+		=  
+		\widetilde{ \mathbf{C} }^\ast B^*[\mathbf{t}], \quad t \in \mathcal{T}.
+	\end{equation}
+	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \mathbf{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
+	
 	\section{Proofs of Propositions}
 	$\boldsymbol{\cdot}$ \underline{Abbreviations}
 	\begin{itemize}
@@ -866,6 +910,14 @@ For practical computation, we first construct the following matrix:
 	\end{itemize}
 	
 	\subsection{Proof of Propositions \ref{Proposition: generalized rayleigh quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
+		Here, $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$ is expressed as $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ based on the aforementioned basis approximations. Thus, finding $\boldsymbol{\xi}^*$ that maximizes $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ amounts to finding $\widehat{\boldsymbol{\xi}}$ that maximizes the sample squared covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$, which is the first step of the PLS algorithm. The constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$ scales the obtained PLS component to have a unit norm, that is, $\langle \widehat{\boldsymbol{\xi}}, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}=1$. 
+	
+	and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained by solving
+	\begin{equation}\label{def:eigenproblem_smoothed}
+		\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*}, \quad \textit{or equivalently}, \quad \argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
+	\end{equation}
+	with respect to $\widehat{\boldsymbol{\xi}}^*=(\widehat{\mathbf{a}}^{\top}, \widehat{\boldsymbol{\theta}}^{\top})^\top$
+	
 	We show that the solutions to the generalized eigenvalue problems \eqref{def:eigenproblem_smoothed} and \eqref{eq: Regularized generalized rayleigh quotient equation} maximize the covariance with the response.
 	Based on the basis function expansions  $X_i^{(k)}(t) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t)$ and $\psi^{(k)}(t) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t)$, $k=1, \ldots, K$, we can express the sample covariance between the PLS score and the outcome, which needs to be maximized to estimate the corresponding PLS component, as:
 	\begin{align*}
@@ -873,25 +925,25 @@ For practical computation, we first construct the following matrix:
 		&=  \frac{1}{n} \sum \limits_{i=1}^n  \langle X_i, \psi \rangle_\mathcal{F} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n  \langle \mathbf{Z}_i, \boldsymbol{\theta} \rangle Y_i \\
 		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
 		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{C}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \widetilde{Z} \boldsymbol{\theta} \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \widetilde{Z} \boldsymbol{\theta} \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \widetilde{Z} \boldsymbol{\theta}).
+		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{C}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
 	\end{align*}
 	This implies that
 	\begin{align*}
-		\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= n^{-2} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \widetilde{Z} \boldsymbol{\theta}) (\widetilde{C}J\mathbf{a} + \widetilde{Z} \boldsymbol{\theta})^\top \widetilde{\mathbf{y}} \\
-		&= n^{-2} \{\mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} +  \mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \boldsymbol{\theta} +  \boldsymbol{\theta} \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} + \boldsymbol{\theta}^\top \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \boldsymbol{\theta}\} \\
+		\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= n^{-2} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}) (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta})^\top \widetilde{\mathbf{y}} \\
+		&= n^{-2} \{\mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} +  \mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} +  \boldsymbol{\theta} \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} + \boldsymbol{\theta}^\top \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta}\} \\
 		&= \begin{bmatrix}
 			\mathbf{a}^\top & \boldsymbol{\theta}^\top
 		\end{bmatrix}
 		\begin{bmatrix}
-			n^{-2} J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J & n^{-2} J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}  \\
-			n^{-2} \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J & n^{-2} \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
+			n^{-2} J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J & n^{-2} J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z}  \\
+			n^{-2} \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J & n^{-2} \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z}
 		\end{bmatrix} 
 		\begin{bmatrix}
 			\mathbf{a} \\ \boldsymbol{\theta}
 		\end{bmatrix} \\
-		&\equiv \boldsymbol{\xi}^{*T} V^\ast \boldsymbol{\xi}^*.
+		&\equiv \boldsymbol{\xi}^{*T} \mathbf{V}^\ast \boldsymbol{\xi}^*.
 	\end{align*}
 	Also, the unit norm constraint of the PLS components in $\mathcal{H}$ can be translated into:
 	\begin{align*}
@@ -907,18 +959,59 @@ For practical computation, we first construct the following matrix:
 	
 	Thus, the first step of the PLS algorithm translates into solving
 	\begin{equation*}
-		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
+		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
 	\end{equation*}
 	or equivalently solving
 	\begin{equation*}
-		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*},
+		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*},
 	\end{equation*}
-	where $J^\ast = \mathrm{blkdiag}[J, I_p] \in \mathbb{R}^{MK+p}$. In other words, the PLS component is chosen to maximize the squared sample covariance  $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) = \boldsymbol{\xi}^{*\top} V^\ast \boldsymbol{\xi}^*$ subject to the constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$. 
-	
+	where $J^\ast = \mathrm{blkdiag}[J, \mathbf{I}_p] \in \mathbb{R}^{MK+p}$. In other words, the PLS component is chosen to maximize the squared sample covariance  $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) = \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ subject to the constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$. 
+
+	\jongmin{
+	Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
+	\begin{align*}
+		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
+		\\&=
+		\frac{1}{n}\tilde{\mathbf{y}}^\top
+		\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix} \;      \underbrace{
+			\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+		}_{:= \boldsymbol{\beta}}.
+	\end{align*}
+	Let us 
+	denote $\mathbf{b} =  \widetilde{\mathbf{y}}^\top \begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$. This is the weighted row sum of $\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$, weighted by $\widetilde{\mathbf{y}}$.
+	Then using the symmetricity of $J^\ast$, we solve a linear system $J^\ast \mathbf{d} =
+	\mathbf{b}^\top$ to obtain $\mathbf{d}$. Then we have
+	\begin{align*}
+		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) 
+		%%%%%%%%%%%%%%%%%%%%%
+		&= 
+		%%%%%%%%%%%%%%%%%%%%%%%%
+		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+		\frac{1}{n} \mathbf{d}^\top J^\ast  \boldsymbol{\beta}
+		\\& \overset{(i)}{\leq} 
+		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+		\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}
+		\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}}
+		\\& \overset{(ii)}{=}
+		\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}    ,
+	\end{align*}
+	where step $(i)$ uses the Cauchy-Schwarz inequality with the inner product $\langle x, y \rangle_{J^\ast} = x^\top J^\ast y$,
+	and step $(ii)$ uses the norm constraint.
+	By the Cauchy-Schwarz inequality, the maximum displayed in the last term is obtained by a unit vector (with respect to $\langle \cdot, \cdot \rangle_{J^\ast}$) parallel to $\mathbf{d}$. Therefore we have
+	\begin{equation*}
+		\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+		= \frac{1}{\sqrt{\mathbf{d}^\top  J^\ast \mathbf{d} }}\mathbf{d},
+	\end{equation*}
+	which only involves solving one linear equation.
+}
+
+
 	
 	% Similar in spirit to the regularized principal component analysis (see equation [9.1] of \citealp{Ramsay2005}), one way to penalize the squared sample covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$ is to divide it by $\{ 1+ \kappa \textnormal{PEN}(\psi) \}$, where $\textnormal{PEN}(\psi)$ is a roughness penalty term. This leads to the penalized squared sample covariance
 	% \begin{equation*}
-		%         \frac{\boldsymbol{\xi}^{*T} V^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*T} J^\ast \boldsymbol{\xi}^* + \kappa \textnormal{PEN}(\psi)},
+		%         \frac{\boldsymbol{\xi}^{*T} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*T} J^\ast \boldsymbol{\xi}^* + \kappa \textnormal{PEN}(\psi)},
 		% \end{equation*}
 	% whose maximizer corresponds to a smoothed PLS component that maximizes $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness conditions. 
 	
