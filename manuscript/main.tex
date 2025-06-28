@@ -619,12 +619,11 @@ In a more formal way:
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
-	\begin{proposition}
+	\begin{proposition}\label{proposition: eigenanalysis}
 		\begin{equation*}
 			\max \limits_{\substack{\boldsymbol{\xi} \in \mathcal{H} \\ \Vert \boldsymbol{\xi} \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)
 		\end{equation*}
-		is achieved when $\boldsymbol{\xi}$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.
-		\label{proposition: eigenanalysis}
+		is achieved when $\boldsymbol{\xi}$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
 	\end{proposition}
 	In other words, $l$-th PLS component $\boldsymbol{\xi}_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
@@ -633,14 +632,14 @@ In a more formal way:
 	In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 	
 	The following proposition states that the PLS components estimated from Proposition  \ref{Proposition: Regularized generalized rayleigh quotient} are orthonormal with respect to the modified inner product $\langle \langle \cdot \rangle \rangle$ that incorporates the roughness of the functions.
-	\begin{proposition}
+	\begin{proposition}\label{proposition: modified orthnormality of PLS components}
 		The estimated PLS components, $\widehat{\boldsymbol{\xi}}_1, \widehat{\boldsymbol{\xi}}_2, \ldots, \widehat{\boldsymbol{\xi}}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
 		\begin{equation*}
 			\langle \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle \rangle 
 			= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}
 			= \mathbb{1}(l=j). 
 		\end{equation*}
-		\label{proposition: modified orthnormality of PLS components}
+		
 	\end{proposition}
 	
 	Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
@@ -1076,11 +1075,8 @@ In a more formal way:
 	
 	
 	
-	
-	\vspace{1cm}
-	\noindent $\boldsymbol{\cdot}$  \underline{\textbf{Proposition 4}}
-	
-	Before we prove Proposition 4, we state and prove the following lemma:
+	\section{Proof of Proposition \ref{proposition: eigenanalysis}}\label{section:proof:proposition: eigenanalysis}
+	Before we prove Proposition \ref{proposition: eigenanalysis}, we state and prove the following lemma:
 	\begin{lemma}
 		$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^*$.
 	\end{lemma}
@@ -1096,7 +1092,7 @@ In a more formal way:
 	\end{equation*}
 	Thus, $\langle \mathcal{C}_{YW} \mathbf{h}, d \rangle =  \langle \mathbf{h}, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}$, and this implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^*$.
 	
-	\noindent Now we prove Proposition 4. The singular value decomposition of $\mathcal{C}_{YW}$ is given by
+	\noindent Now we prove Proposition \ref{proposition: eigenanalysis}. The singular value decomposition of $\mathcal{C}_{YW}$ is given by
 	\begin{equation*}
 		\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
 	\end{equation*}
@@ -1115,7 +1111,7 @@ In a more formal way:
 	\vspace{1cm}
 	\noindent $\boldsymbol{\cdot}$  \underline{\textbf{Proposition 5}}
 	
-	Firstly, it is obvious by the unit-norm constraint enforced in Proposition 4 that:
+	Firstly, it is obvious by the unit-norm constraint enforced in Proposition \ref{proposition: eigenanalysis} that:
 	\begin{align*}
 		\langle \langle \hat{\boldsymbol{\xi}}_l,  \hat{\boldsymbol{\xi}}_l \rangle \rangle &= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}  \\
 		&= \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_{\mathcal{T}_k} \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
