@@ -8,7 +8,16 @@
 \usepackage{verbatim}
 
 \newtheorem{proposition}{Proposition}
+\newtheorem{alg}{Algorithm} 
 \newtheorem{theorem}{Theorem}
+\newtheorem{assumption}{Assumption}
+\newtheorem{note}[theorem]{Note}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{define}[theorem]{Definition}
+% \newtheorem{denote}[theorem]{denote}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{lemma}{Lemma}
 \usepackage{graphicx}
 \graphicspath{ {images/} }
@@ -113,18 +122,25 @@
 		\mathbf{W} = (X, \mathbf{Z}) 
 		\in \mathcal{H},~\text{where}~\mathcal{H}:=\mathcal{F} \times \mathbb{R}^p
 	\end{equation}
-	An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$.  We define the inner product between any two hybrid objects, $\mathbf{h}_1 = (f_1, \mathbf{v}_1)$ and $\mathbf{h}_2 = (f_2, \mathbf{v}_2)$, as
+	An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
+	
+	\begin{definition}[Hilbert space of hybrid objects]\label{def:hilbert_space}
+		 We define the inner product between any two hybrid objects,
+		  $\mathbf{h}_1 = (f_1, \mathbf{v}_1)$ and $\mathbf{h}_2 = (f_2, \mathbf{v}_2)$, as
 	\begin{equation}
-		\langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} 
-		= 
-		\langle f_1, f_2\rangle_\mathcal{F} 
-		+
-		\omega \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k
-		+
-		\omega \sum \limits_{r=1}^p v_{1r}v_{2r}, 
-		\label{eq: hybrid inner product}
-	\end{equation}
-	with norm $\Vert \cdot \Vert_\mathcal{H} = \langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$. $\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}). Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. Then the functional regression model \eqref{eq: functional model} with multiple functional and scalar predictors can be re-expressed in terms of the scalar-on-hybrid regression model as follows
+	\langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} 
+	:= 
+	\langle f_1, f_2\rangle_\mathcal{F} 
+	+
+	\omega \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k
+	+
+	\omega \sum \limits_{r=1}^p v_{1r}v_{2r}, 
+	\label{eq: hybrid inner product}
+\end{equation}
+	with norm $\Vert \cdot \Vert_\mathcal{H} = \langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
+		\end{definition}
+In \eqref{eq: hybrid inner product}, 
+ $\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}). Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. Then the functional regression model \eqref{eq: functional model} with multiple functional and scalar predictors can be re-expressed in terms of the scalar-on-hybrid regression model as follows
 	\begin{equation}
 		Y = \langle \boldsymbol{\eta}, \mathbf{W} \rangle_{\mathcal{H}} + \epsilon,
 		\label{eq: Hybrid functional model}
@@ -257,55 +273,62 @@
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}
 In practice, the functional predictors $X^{(1)}, \ldots, X^{(K)}$ are not observed as complete curves, but only through their values at a finite set of time points, which may differ across the $K$ predictors. Thus, each observation is represented by a finite-dimensional vector $X_i^{(k)}(\mathbf{t}_k) \in \mathbb{R}^{|\mathbf{t}_k|}$, where $\mathbf{t}_k \subset \mathcal{T}_k$. The first step in functional data analysis typically involves reconstructing the underlying functional form from these discrete measurements, commonly by assuming that sample paths lie in a finite-dimensional space spanned by basis functions.
-	\paragraph{Basis functions.}
-For $k = 1, \ldots, K$, let $\Phi^{(k)}:= \{\phi^{(k)}_1, \ldots, \phi^{(k)}_M\}$, with $M \geq 1$, be an $M$-dimensional basis in $L^2(\mathcal{T}_k)$. In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting.
 
-	\paragraph{Basis approximation of the hybrid predictor.}	
-	For $k = 1, \ldots, K$  and $i = 1, \ldots, n$, 	
-	 we approximate each functional predictor within the span of the basis functions $\Phi^{(k)}$ :
-\begin{equation*} 
-	X_i^{(k)} \approx  \sum_{m=1}^M   c_{im}^{(k)} \phi_m^{(k)} ,
+For $k = 1, \ldots, K$, let $\Phi^{(k)}   := \{\phi^{(k)}_1, \ldots, \phi^{(k)}_M\}$, with $M \geq 1$, be an $M$-dimensional basis in $L^2(\mathcal{T}_k)$. In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	The number of basis functions $M$ for each functional predictor can be set to a sufficiently large value (e.g., 15 or 20) to incorporate a rich variety of patterns that functional predictors may exhibit. Note that there is no need to carefully choose different $M$ values for different functional predictors, as an appropriate penalization scheme will be introduced in the later section to regularize each functional predictor to achieve a desired smoothness (see Section \ref{sec: Regularization of PLS Components}).
+	
+For $k = 1, \ldots, K$, we project the $k$th functional predictor onto 
+$\operatorname{span}(\Phi^{(k)})$:
+\begin{equation*}
+	X_i^{(k)} \approx \sum_{m=1}^M c_{im}^{(k)} \phi_m^{(k)}, \quad i = 1, \ldots, n,
 \end{equation*}
-where the coefficients $c_{im}^{(k)}$'s satisfy
+where the coefficients $c_{im}^{(k)}$ satisfy
+\begin{equation*}
+	X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} \phi_m^{(k)}(t_k), \quad \text{for all } t_k \in \mathbf{t}_k \subset \mathcal{T}_k.
+\end{equation*}
+Thus, the $n$ observations of the $k$th functional predictor can be represented by an $n \times M$ matrix of coefficients, 	where rows index samples and columns index basis functions:
+\begin{equation*}
+		\widetilde{\mathbf{C}}^{(k)} := ( c_{im}^{(k)} ).
+\end{equation*}
+
+Importantly, the core computation of our algorithm involves the inner product between $n$ hybrid predictor observations and a single hybrid object (the PLS direction), defined via the inner product in Definition \ref{def:hilbert_space}.
+ With the basis expansion, this reduces to simple matrix operations. 
+For each $k = 1, \ldots, K$, let $\boldsymbol{\Phi}^{(k)} := (\phi^{(k)}_{m \ell })$
+denote the	$M \times M$ symmetric matrix with entries  the inner products between basis functions 
+\begin{equation}\label{def:gram_basis}
+\phi^{(k)}_{m \ell } 
+:= 
+\langle \phi^{(k)}_m,  \phi^{(k)}_\ell \rangle
+=  
+\int_{\mathcal{T}_k} \phi^{(k)}_m(t_k) \, \phi^{(k)}_\ell(t_k) \, dt_k.
+\end{equation}
+
+\begin{definition}[Hybrid inner product between $n$ observations and a single object]
+Let $\boldsymbol{\xi} = (\psi, \mathbf{s}) \in \mathcal{H}$ be a hybrid object with $\psi \in \mathcal{F}$ and $\mathbf{s} \in \mathbb{R}^p$, and let $\mathbf{a}^{(1)}, \ldots, \mathbf{a}^{(K)}$ denote the basis coefficients of $\psi$ with respect to basis $\Phi^{(1)}, \ldots, \Phi^{(K)}$. Then the inner product between $\boldsymbol{\xi}$ and the $n$ basis-approximated hybrid observations $\widetilde{\mathbf{W}}_1, \ldots, \widetilde{\mathbf{W}}_n$, concatenated as a column vector, is denoted $\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}} \in \mathbb{R}^n$ and computed as
 	\begin{equation*}
-	X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} \phi^{(k)}_{m}(t_k)~\text{for all}~t_k \in \mathbf{t}_k \subset \mathcal{T}_k,
-\end{equation*}
+		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}
+		:=
+		\begin{bmatrix}
+			\langle \widetilde{\mathbf{W}}_1, \boldsymbol{\xi} \rangle_{\mathcal{H}} \\
+			\vdots \\
+			\langle \widetilde{\mathbf{W}}_n, \boldsymbol{\xi} \rangle_{\mathcal{H}}
+		\end{bmatrix}
+		=
+		\mathbf{Z} \mathbf{s}
+		+
+		\sum_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \boldsymbol{\Phi}^{(k)} \mathbf{a}^{(k)}. 
+	\end{equation*}
+\end{definition}
 
 
-	
-	The number of basis functions $M$ for each functional predictor can be set to a sufficiently large value (e.g., 15 or 20) to incorporate a rich variety of patterns that functional predictors may exhibit. Note that there is no need to carefully choose different $M$ values for different functional predictors, as an appropriate penalization scheme will be introduced in the later section to regularize each functional predictor to achieve a desired smoothness (see Section \ref{sec: Regularization of PLS Components}).
-	
-	
-	
-	\paragraph{Basis approximation of the PLS component.}
-	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
-	%
-	For each $k = 1, \ldots, K$, let $\mathbf{J}^{(k)} \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions associated with the $k$-th functional predictor, defined by
-	\begin{equation}\label{def:gram_basis}
-		\mathbf{J}^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) \, b_n^{(k)}(t) , dt \right]_{m,n=1}^M.
-	\end{equation}
-	Using this definition, we construct the following block-diagonal matrices:
-	\begin{equation}\label{def:J_and_J_star}
-		\mathbf{J} = \mathrm{blkdiag}(\mathbf{J}^{(1)}, \cdots, \mathbf{J}^{(K)}) \in \mathbb{R}^{MK \times MK}~\text{and}~\mathbf{J}^\ast=\mathrm{blkdiag}(\mathbf{J}, \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
-	\end{equation}
-	
-	\paragraph{Regularization based on second-order derivatives.}
-	Our proposed strategy for computing PLS component, detailed in Section \ref{sec: Regularization of PLS Components}, incorporates regularization based on second-order derivatives. To this end, let $\ddot{J}^{(k)}$ denote the $M \times M$ Gram matrix formed by the second derivatives of the basis functions,  defined as
-	\begin{equation}\label{def:dodot_J_k}
-		\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
-	\end{equation}
-	and define a block-diagonal matrix 
-	$ \ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$ as
-	\begin{equation}\label{def:J_dotdot_ast}
-		\ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}).
-	\end{equation}
-	%
-	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
+ 
+
 	
 	\subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
 	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
 
-We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized response by $Y$, with finite-sample observations given by $\mathbf{y} = (y_1, \ldots, y_n) \in \mathbb{R}^n$. Let $\widetilde{W} \in \mathcal{H}$ denote the residualized, basis-approximated hybrid predictor, and let $\widetilde{\mathbf{C}} \in \mathbb{R}^{n \times (MK)}$ denote the basis coefficients of its functional part in the finite-sample observations. Our strategy seeks the direction $\boldsymbol{\xi} \in \mathcal{H}$, lying in the span of the basis $B^*[\mathbf{t}]$, that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
+We now describe the strategy for computing the PLS direction at the $l$-th iteration. For simplicity, we omit the iteration index and denote the residualized response by $Y$, with finite-sample observations given by $\mathbf{y} = (y_1, \ldots, y_n) \in \mathbb{R}^n$. Let $\widetilde{W} \in \mathcal{H}$ denote the residualized, basis-approximated hybrid predictor, and let $\widetilde{\mathbf{C}}^{(1)}, \ldots, \widetilde{\mathbf{C}}^{(k)} \in \mathbb{R}^{n \times M}$ denote the basis coefficient matrices of its functional part in the finite-sample observations. Our strategy seeks the direction $\boldsymbol{\xi} \in \mathcal{H}$, whose functional parts lying in 
+$\operatorname{span}(\Phi^{(1)}), \ldots, \operatorname{span}(\Phi^{(K)})$
+, that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
 
 For practical computation, 
 let us first denote
@@ -614,6 +637,7 @@ In a more formal way:
 		\end{equation*}
 		then $\mathcal{U}$ is a compact operator.
 	\end{proposition}
+	The proof of Proposition \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
 	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{Hsing2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\boldsymbol{\xi}_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \boldsymbol{\xi}_{(u)} = \kappa_{(u)}  \boldsymbol{\xi}_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
@@ -625,6 +649,7 @@ In a more formal way:
 		\end{equation*}
 		is achieved when $\boldsymbol{\xi}$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
 	\end{proposition}
+	The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendix \ref{section:proof:proposition: eigenanalysis}.
 	In other words, $l$-th PLS component $\boldsymbol{\xi}_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
 	
@@ -639,18 +664,16 @@ In a more formal way:
 			= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}
 			= \mathbb{1}(l=j). 
 		\end{equation*}
-		
 	\end{proposition}
-	
+	The proof of Proposition \ref{proposition: modified orthnormality of PLS components} is provided in Appendix \ref{section:proof:proposition: modified orthnormality of PLS components}.
 	Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
-	\begin{proposition}
+	\begin{proposition}	\label{proposition: orthnormality of PLS scores}
 		The vectors of estimated PLS scores, $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$, obtained from the proposed PLS algorithm are mutually orthogonal in the sense that
 		\begin{equation*}
 			\widehat{\boldsymbol{\rho}}_l^\top \widehat{\boldsymbol{\rho}}_j= 0 \quad \textnormal{for} \quad \; l,j \in \{1, \ldots, L\}, \; l \ne j. 
 		\end{equation*}
-		\label{proposition: orthnormality of PLS scores}
 	\end{proposition}
-	
+The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provided in Appendix \ref{section:proof:proposition: orthnormality of PLS scores}.
 	
 	\section{Simulations}
 	To evaluate the superiority of our method under complex dependency structures
@@ -870,23 +893,28 @@ In a more formal way:
 	
 	\section{Overview of Appendix}
 	
+	\section{Notations}
+	\begin{itemize}
+		\item aaa
+	\end{itemize}
 	\section{Technical lemmas}
 	
 	
 	
-	\section{old notations}
+	\subsection{old notations}
 	
 	
 	Then we can approximate the functional predictor observations as
 	\begin{equation*}
 		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in \mathcal{T}_k, \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
 	\end{equation*}
-	where $\mathbf{c}_i^{(k)} = (c_{i1}^{(k)}, \ldots, c_{iM}^{(k)})^\top$ is a $M$-dimensional vector of basis coefficients corresponding to the $k$th functional predictor. This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{C}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, and $\widetilde{C}^{(k)} = (\mathbf{c}_1^{(k)} \cdots \mathbf{c}_n^{(k)})^\top \in \mathbb{R}^{n \times M}$. This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
+ This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{\mathbf{C}}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, 
+ This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
 	\begin{equation}
 		\widetilde{X}(\mathbf{t}) = \widetilde{C}B(\mathbf{t}), \quad t \in \mathcal{T},
 		\label{eq: basis approximation of X}
 	\end{equation}
-	where $\widetilde{X}(\mathbf{t}) = [\widetilde{\mathbf{X}}^{(1)}(t_1), \cdots, \widetilde{\mathbf{X}}^{(K)}(t_K)] \in \mathbb{R}^{n \times K}$, $\widetilde{C} = [\widetilde{C}^{(1)}, \cdots, \widetilde{C}^{(K)}] \in \mathbb{R}^{n \times MK}$, and 
+	where $\widetilde{X}(\mathbf{t}) = [\widetilde{\mathbf{X}}^{(1)}(t_1), \cdots, \widetilde{\mathbf{X}}^{(K)}(t_K)] \in \mathbb{R}^{n \times K}$, $\widetilde{C} = [\widetilde{C}^{(1)}, \cdots, \widetilde{\mathbf{C}}^{(k)}] \in \mathbb{R}^{n \times MK}$, and 
 	$B(\mathbf{t}) = \mathrm{blkdiag}[\mathbf{b}^{(1)}(t_1), \cdots, \mathbf{b}^{(K)}(t_K)] \in \mathbb{R}^{MK \times K}$.
 	
 	
@@ -901,6 +929,31 @@ In a more formal way:
 		\widetilde{ \mathbf{C} }^\ast B^*[\mathbf{t}], \quad t \in \mathcal{T}.
 	\end{equation}
 	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \mathbf{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
+	
+	
+	
+	
+	\paragraph{Basis approximation of the PLS component.}
+	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
+	%
+	
+	Using this definition, we construct the following block-diagonal matrices:
+	\begin{equation}\label{def:J_and_J_star}
+		\mathbf{J} = \mathrm{blkdiag}(\mathbf{J}^{(1)}, \cdots, \boldsymbol{\Phi}^{(k)}) \in \mathbb{R}^{MK \times MK}~\text{and}~\mathbf{J}^\ast=\mathrm{blkdiag}(\mathbf{J}, \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
+	\end{equation}
+	
+	\paragraph{Regularization based on second-order derivatives.}
+	Our proposed strategy for computing PLS component, detailed in Section \ref{sec: Regularization of PLS Components}, incorporates regularization based on second-order derivatives. To this end, let $\ddot{J}^{(k)}$ denote the $M \times M$ Gram matrix formed by the second derivatives of the basis functions,  defined as
+	\begin{equation}\label{def:dodot_J_k}
+		\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
+	\end{equation}
+	and define a block-diagonal matrix 
+	$ \ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$ as
+	\begin{equation}\label{def:J_dotdot_ast}
+		\ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}).
+	\end{equation}
+	%
+	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
 	\section{Proofs of Propositions}
 	$\boldsymbol{\cdot}$ \underline{Abbreviations}
@@ -924,7 +977,7 @@ In a more formal way:
 		&=  \frac{1}{n} \sum \limits_{i=1}^n  \langle X_i, \psi \rangle_\mathcal{F} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n  \langle \mathbf{Z}_i, \boldsymbol{\theta} \rangle Y_i \\
 		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
 		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{C}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
 	\end{align*}
@@ -1108,8 +1161,8 @@ In a more formal way:
 	
 	
 	
-	\vspace{1cm}
-	\noindent $\boldsymbol{\cdot}$  \underline{\textbf{Proposition 5}}
+\section{Proof of Proposition \ref{proposition: modified orthnormality of PLS components}}
+\label{section:proof:proposition: modified orthnormality of PLS components}
 	
 	Firstly, it is obvious by the unit-norm constraint enforced in Proposition \ref{proposition: eigenanalysis} that:
 	\begin{align*}
@@ -1164,10 +1217,9 @@ In a more formal way:
 	where the last equality follows from the above result that $\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} = \mathbf{0}$.
 	
 	
+	\section{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
 	
-	
-	\vspace{1cm}
-	\noindent $\boldsymbol{\cdot}$  \underline{\textbf{Proposition 6}}
+
 	
 	First note that $\widehat{\boldsymbol{\rho}}_l = \int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_l[\mathbf{t}] d\mathbf{t}= \widetilde{C}^{*[l]} J^\ast \widehat{\boldsymbol{\xi}}^*_{l}$ for $l=1, \ldots, L$. Then, as above, we first express the $l$-th residualized hybrid predictor in terms of its previous $(l-1)$-th version:
 	\begin{equation*}
