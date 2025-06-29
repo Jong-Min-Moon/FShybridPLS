@@ -362,7 +362,7 @@ which can be computed as
 	\bigr)^{1/2}.
 \end{equation*}
 Therefore, the estimated PLS direction is the tuple $\hat{\boldsymbol{\xi}} \in \mathcal{H}$, defined as
-\begin{equation}
+\begin{equation}\label{def:computed_PLS_direction}
 	\hat{\boldsymbol{\xi}} :=
 	\frac{1}{
 	\bigl(
@@ -396,36 +396,21 @@ denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
-		Let $\operatorname{span}(B^\ast[\mathbf{t}])$ 
-		be a linear subspace of $\mathcal{H}$ spanned by the basis functions.
-		  For any unit-length direction  $\boldsymbol{\xi} \in \operatorname{span}(B^\ast[\mathbf{t}])$,
-expressed as $
-\boldsymbol{\xi} 
-= 
-\boldsymbol{\alpha}
-B^\ast [\mathbf{t}] $ with $\boldsymbol{\alpha} \in \mathbb{R}^{MK + p}$,
-		Let us define
-		the empirical and basis-approximated sample covariance as
+		  For any unit-length direction in $\mathcal{H}$
+		  whose functional parts lie in $\operatorname{span}(\Phi^{(1)}), \ldots, \operatorname{span}(\Phi^{(K)})$,
+		let us define
+		the empirical and basis-approximated sample covariance between the resulting component and response as
 \begin{equation*}
 	\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )
 	:=
-	\frac{1}{n} \sum \limits_{i=1}^n \langle \widetilde{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} y_i
-	=
-		\frac{1}{n} \sum \limits_{i=1}^n 
-	(	\tilde{\mathbf{C}}^\ast_i \mathbf{J}^\ast \boldsymbol{\alpha} ) y_i.
+	\frac{1}{n} 
+	\mathbf{y}^\top 
+ \langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_\mathcal{H},
 \end{equation*}
-Then the coefficients computed in \eqref{compute:pls_direction_coeff}  $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$
-over all unit vectors in $\operatorname{span}(B^\ast[\mathbf{t}])$.
-In a more formal way:
-	\begin{equation}
-	\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-	B^*[\mathbf{t}] \in \arg \max_{
- \|\boldsymbol{\xi}  \| = 1, 
-	 \boldsymbol{\xi} \in \mathrm{span}(B^*[\mathbf{t}])
-	}
-		\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ).
-\end{equation}
-
+where right-hand side notation comes from Definition \ref{def:n_one_inner_product}.
+Then the PLS direction 
+$	\hat{\boldsymbol{\xi}}$ 
+ computed in \eqref{def:computed_PLS_direction} maximizes $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$.
 	\end{proposition}
 	
 
