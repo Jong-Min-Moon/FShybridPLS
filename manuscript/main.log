@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  28 JUN 2025 18:43
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  28 JUN 2025 18:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -744,13 +744,6 @@ Overfull \hbox (5.90738pt too wide) in paragraph at lines 306--307
 
 
 [10]
-Overfull \hbox (71.17477pt too wide) in paragraph at lines 399--403
-[]\OT1/cmr/m/it/12 For any unit-length di-rec-tion in $\OMS/cmsy/m/n/12 H$ \OT1
-/cmr/m/it/12 whose func-tional parts lie in $[]\OT1/cmr/m/n/12 (^^H[])\OML/cmm/
-m/it/12 ; [] ; []\OT1/cmr/m/n/12 (^^H[])$\OT1/cmr/m/it/12 ,
- []
-
-
 
 [11]
 
@@ -994,7 +987,7 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (43 pages, 948601 bytes).
+Output written on main.pdf (43 pages, 948626 bytes).
 PDF statistics:
  616 PDF objects out of 1000 (max. 8388607)
  505 compressed objects within 6 object streams
