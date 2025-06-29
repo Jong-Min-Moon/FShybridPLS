@@ -302,7 +302,7 @@ denote the	$M \times M$ symmetric matrix with entries  the inner products betwee
 \int_{\mathcal{T}_k} \phi^{(k)}_m(t_k) \, \phi^{(k)}_\ell(t_k) \, dt_k.
 \end{equation}
 
-\begin{definition}[Hybrid inner product between $n$ observations and a single object]
+\begin{definition}[Hybrid inner product between $n$ observations and a single object]\label{def:n_one_inner_product}
 Let $\boldsymbol{\xi} = (\psi, \mathbf{s}) \in \mathcal{H}$ be a hybrid object with $\psi \in \mathcal{F}$ and $\mathbf{s} \in \mathbb{R}^p$, and let $\mathbf{a}^{(1)}, \ldots, \mathbf{a}^{(K)}$ denote the basis coefficients of $\psi$ with respect to basis $\Phi^{(1)}, \ldots, \Phi^{(K)}$. Then the inner product between $\boldsymbol{\xi}$ and the $n$ basis-approximated hybrid observations $\widetilde{\mathbf{W}}_1, \ldots, \widetilde{\mathbf{W}}_n$, concatenated as a column vector, is denoted $\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}} \in \mathbb{R}^n$ and computed as
 	\begin{equation*}
 		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}
@@ -330,55 +330,68 @@ We now describe the strategy for computing the PLS direction at the $l$-th itera
 $\operatorname{span}(\Phi^{(1)}), \ldots, \operatorname{span}(\Phi^{(K)})$
 , that maximizes the empirical covariance between the resulting PLS component $\langle \widetilde{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response.
 
-For practical computation, 
-let us first denote
+For the computation of the estimated PLS direction  $\hat{\boldsymbol{\xi}}$, 
+we obtain the basis coefficients of its functional part, denoted by $\mathbf{d}^{(1)}, \ldots, \mathbf{d}^{(K)} \in \mathbb{R}^{M}$,
+and the scalar part  
+$\mathbf{d} \in \mathbb{R}^p$,
+by solving linear systems
 \begin{equation*}
-\mathbf{b} := \mathbf{y}^\top
-[ \widetilde{\mathbf{C}} \, \mathbf{J} \, \mathbf{Z} ].
+ \boldsymbol{\Phi}^{(1)}
+\mathbf{d}^{(1)} 
+=
+(\widetilde{\mathbf{C}}^{(1)} \boldsymbol{\Phi}^{(1)})^\top
+\mathbf{y},
+\ldots
+,
+\boldsymbol{\Phi}^{(K)}
+\mathbf{d}^{(K)} 
+=
+(\widetilde{\mathbf{C}}^{(K)} \boldsymbol{\Phi}^{(K)})^\top
+\mathbf{y},
+~\text{and}~
+\mathbf{d} := \mathbf{Z}^\top \mathbf{y} .
 \end{equation*}
-Then we obtain $\mathbf{d}$ by solving a linear system
+We then normalize these coefficients and scalar parts by the hybrid Hilbert norm (Definition
+\ref{def:hilbert_space}),
+which can be computed as
 \begin{equation*}
-	\mathbf{J}^\ast \mathbf{d} =
-	\mathbf{b}^\top.
-\end{equation*}  
-Then we obtain the coefficient for the PLS direction by normalize it with respect to the basis $B^*[\mathbf{t}]$:
-\begin{equation}\label{compute:pls_direction_coeff}
-	\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-	= \frac{1}{\sqrt{\mathbf{d}^\top \mathbf{J}^\ast \mathbf{d}}} \mathbf{d}.
-\end{equation}
-The $l$-th  PLS score for the 
-$i$th observation is then computed as the inner product  with respect to the basis $B^*[\mathbf{t}]$:
-\begin{equation*}
-	\widehat{\rho}_{i}
-	= 
-	[ \widetilde{\mathbf{C}}  \, \mathbf{Z} ] \, \mathbf{J}^\ast \begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+\|	\hat{\boldsymbol{\xi}} \|_{\mathcal{H}} = 
+\bigl(
+	\mathbf{d}^\top \mathbf{d} + 
+	\sum_{k=1}^K (\mathbf{d}^{(k)})^\top  \boldsymbol{\Phi}^{(K)}  \mathbf{d}^{(k)} 
+	\bigr)^{1/2}.
 \end{equation*}
-$ \equiv \widehat{\rho}_{il}$ can be obtained as $\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}$.
-we first construct the following matrix:
-	\begin{equation}\label{def:V_star}
-	\mathbf{V}^\ast 
-	:= 
-	n^{-2}\begin{bmatrix}
-\mathbf{J}
-\widetilde{ \mathbf{C} }^\top \mathbf{y}\mathbf{y}^\top \widetilde{ \mathbf{C} } \mathbf{J} 
-& 
-\mathbf{J} \widetilde{ \mathbf{C} }^\top 
-\mathbf{y}
-\mathbf{y}^\top 
-\mathbf{Z} 
-\\
-\mathbf{Z}^\top 
-\mathbf{y}
-\mathbf{y}^\top \widetilde{ \mathbf{C} }
-\mathbf{J} 
-&   
-\mathbf{Z}^\top 
-\mathbf{y}
-\mathbf{y}^\top 
-\mathbf{Z}
-	\end{bmatrix} = n^{-2} \mathbf{J}^\ast \widetilde{ \mathbf{C} }^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{ \mathbf{C} }^{*} \mathbf{J}^\ast
-	\in \mathbb{R}^{(MK+p) \times (MK+p)}.
+Therefore, the estimated PLS direction is the tuple $\hat{\boldsymbol{\xi}} \in \mathcal{H}$, defined as
+\begin{equation}
+	\hat{\boldsymbol{\xi}} :=
+	\frac{1}{
+	\bigl(
+	\mathbf{d}^\top \mathbf{d} + 
+	\sum_{k=1}^K (\mathbf{d}^{(k)})^\top  \boldsymbol{\Phi}^{(K)}  \mathbf{d}^{(k)} 
+	\bigr)^{1/2}
+	}
+	\biggl(
+	\sum_{m=1}^M d^{(1)}_m \phi^{(1)}_m,
+	\ldots,
+	\sum_{m=1}^M d^{(K)}_m \phi^{(K)}_m,
+	\mathbf{d}
+	\biggr).
 \end{equation}
+Finally, the estimated $l$th PLS scores for the $n$ observations,
+denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
+ is computed simultaneously as the hybrid inner product (Definition \ref{def:n_one_inner_product}):
+	\begin{equation*}
+	\langle \widetilde{\mathbf{W}}, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}}
+	=
+	\frac{1}{\|	\hat{\boldsymbol{\xi}} \|_{\mathcal{H}}}
+	\biggl(
+	\mathbf{Z} \mathbf{d}
+	+
+	\sum_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \boldsymbol{\Phi}^{(k)} \mathbf{d}^{(k)}
+	\biggr)
+	. 
+\end{equation*}
+
 
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
@@ -962,6 +975,35 @@ The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provi
 	\end{itemize}
 	
 	\subsection{Proof of Propositions \ref{Proposition: generalized rayleigh quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
+	
+	
+	we first construct the following matrix:
+	\begin{equation}\label{def:V_star}
+		\mathbf{V}^\ast 
+		:= 
+		n^{-2}\begin{bmatrix}
+			\mathbf{J}
+			\widetilde{ \mathbf{C} }^\top \mathbf{y}\mathbf{y}^\top \widetilde{ \mathbf{C} } \mathbf{J} 
+			& 
+			\mathbf{J} \widetilde{ \mathbf{C} }^\top 
+			\mathbf{y}
+			\mathbf{y}^\top 
+			\mathbf{Z} 
+			\\
+			\mathbf{Z}^\top 
+			\mathbf{y}
+			\mathbf{y}^\top \widetilde{ \mathbf{C} }
+			\mathbf{J} 
+			&   
+			\mathbf{Z}^\top 
+			\mathbf{y}
+			\mathbf{y}^\top 
+			\mathbf{Z}
+		\end{bmatrix} = n^{-2} \mathbf{J}^\ast \widetilde{ \mathbf{C} }^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{ \mathbf{C} }^{*} \mathbf{J}^\ast
+		\in \mathbb{R}^{(MK+p) \times (MK+p)}.
+	\end{equation}
+	
+	
 		Here, $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$ is expressed as $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ based on the aforementioned basis approximations. Thus, finding $\boldsymbol{\xi}^*$ that maximizes $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ amounts to finding $\widehat{\boldsymbol{\xi}}$ that maximizes the sample squared covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$, which is the first step of the PLS algorithm. The constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$ scales the obtained PLS component to have a unit norm, that is, $\langle \widehat{\boldsymbol{\xi}}, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}=1$. 
 	
 	and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained by solving
