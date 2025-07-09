@@ -1299,7 +1299,8 @@ get_pls_comp <- function(W, y, L){
 
   V_star <- get_pre_corrcov(W, y)
 
-  invL <- Matrix::chol2inv(L)
+  #invL <- Matrix::chol2inv(L)
+  invL <- solve(L)
   A <- V_star %*% t(invL)       # A = V* × t(inv(L))
   E <- invL %*% A               # E = inv(L) × A
 

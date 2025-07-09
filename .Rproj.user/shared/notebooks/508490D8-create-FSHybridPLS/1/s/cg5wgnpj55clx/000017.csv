@@ -82,10 +82,10 @@
 "0","cos_theta <- ip / (norm1 * norm2)"
 "0",""
 "0","cat(""Cosine similarity between eigen-based and direct PLS components:"", cos_theta, ""\n"")"
-"1","Cosine similarity between eigen-based and direct PLS components: 0.2389617 
+"1","Cosine similarity between eigen-based and direct PLS components: 0.9727659 
 "
 "0","cat(""Projection score (eig):"", sum(inprod.predictor_hybrid(xi_hat_eig, W) * y), ""\n"")"
-"1","Projection score (eig): 391.645 
+"1","Projection score (eig): 243.925 
 "
 "0","cat(""Projection score (direct):"", sum(inprod.predictor_hybrid(xi_hat_direct, W) * y), ""\n"")"
 "1","Projection score (direct): 241.1519 
