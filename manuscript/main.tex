@@ -302,25 +302,6 @@ denote the	$M \times M$ symmetric matrix with entries  the inner products betwee
 \int_{\mathcal{T}_k} \phi^{(k)}_m(t_k) \, \phi^{(k)}_\ell(t_k) \, dt_k.
 \end{equation}
 
-\begin{definition}[Hybrid inner product between $n$ observations and a single object]\label{def:n_one_inner_product}
-Let $\boldsymbol{\xi} = (\psi, \mathbf{s}) \in \mathcal{H}$ be a hybrid object with $\psi \in \mathcal{F}$ and $\mathbf{s} \in \mathbb{R}^p$, and let $\mathbf{a}^{(1)}, \ldots, \mathbf{a}^{(K)}$ denote the basis coefficients of $\psi$ with respect to basis $\Phi^{(1)}, \ldots, \Phi^{(K)}$. Then the inner product between $\boldsymbol{\xi}$ and the $n$ basis-approximated hybrid observations $\widetilde{\mathbf{W}}_1, \ldots, \widetilde{\mathbf{W}}_n$, concatenated as a column vector, is denoted $\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}} \in \mathbb{R}^n$ and computed as
-	\begin{equation*}
-		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}
-		:=
-		\begin{bmatrix}
-			\langle \widetilde{\mathbf{W}}_1, \boldsymbol{\xi} \rangle_{\mathcal{H}} \\
-			\vdots \\
-			\langle \widetilde{\mathbf{W}}_n, \boldsymbol{\xi} \rangle_{\mathcal{H}}
-		\end{bmatrix}
-		=
-		\mathbf{Z} \mathbf{s}
-		+
-		\sum_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \boldsymbol{\Phi}^{(k)} \mathbf{a}^{(k)}. 
-	\end{equation*}
-\end{definition}
-
-
- 
 
 	
 	\subsubsection{Smoothed estimation of PLS components}\label{sec: pls component computation intermediate}
@@ -351,17 +332,10 @@ by solving linear systems
 ~\text{and}~
 \mathbf{d} := \mathbf{Z}^\top \mathbf{y} .
 \end{equation*}
-We then normalize these coefficients and scalar parts by the hybrid Hilbert norm (Definition
-\ref{def:hilbert_space}),
-which can be computed as
-\begin{equation*}
-\|	\hat{\boldsymbol{\xi}} \|_{\mathcal{H}} = 
-\bigl(
-	\mathbf{d}^\top \mathbf{d} + 
-	\sum_{k=1}^K (\mathbf{d}^{(k)})^\top  \boldsymbol{\Phi}^{(K)}  \mathbf{d}^{(k)} 
-	\bigr)^{1/2}.
-\end{equation*}
-Therefore, the estimated PLS direction is the tuple $\hat{\boldsymbol{\xi}} \in \mathcal{H}$, defined as
+The estimated PLS direction is the tuple $\hat{\boldsymbol{\xi}} \in \mathcal{H}$, defined with these coefficients and normalized with respect to the 
+hybrid Hilbert norm (Definition
+\ref{def:hilbert_space})
+as follows:
 \begin{equation}\label{def:computed_PLS_direction}
 	\hat{\boldsymbol{\xi}} :=
 	\frac{1}{
@@ -377,21 +351,34 @@ Therefore, the estimated PLS direction is the tuple $\hat{\boldsymbol{\xi}} \in 
 	\mathbf{d}
 	\biggr).
 \end{equation}
+The details of this hybrid norm computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
 Finally, the estimated $l$th PLS scores for the $n$ observations,
 denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
- is computed simultaneously as the hybrid inner product (Definition \ref{def:n_one_inner_product}):
-	\begin{equation*}
-	\langle \widetilde{\mathbf{W}}, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}}
-	=
-	\frac{1}{\|	\hat{\boldsymbol{\xi}} \|_{\mathcal{H}}}
+ is computed via hybrid inner product. In a matrix multiplication form, it is computed as:
+	\begin{align*}
+		\hat{\boldsymbol{\rho}}
+		&:=
+\biggl(
+	\langle \widetilde{\mathbf{W}}_1, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}},
+	\ldots,
+		\langle \widetilde{\mathbf{W}}_n, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}}
+\biggr)^\top
+\\&	=
+	\frac{1}{
+	\bigl(
+	\mathbf{d}^\top \mathbf{d} + 
+	\sum_{k=1}^K (\mathbf{d}^{(k)})^\top  \boldsymbol{\Phi}^{(K)}  \mathbf{d}^{(k)} 
+	\bigr)^{1/2}
+}
 	\biggl(
 	\mathbf{Z} \mathbf{d}
 	+
 	\sum_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \boldsymbol{\Phi}^{(k)} \mathbf{d}^{(k)}
 	\biggr)
 	. 
-\end{equation*}
-
+\end{align*}
+The details of this computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
+Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
@@ -402,10 +389,10 @@ denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
 		\widehat{\textnormal{Cov}} \left( \langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y \right)
 		:=
 		\frac{1}{n} 
-		\mathbf{y}^\top 
-		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}},
+		\sum_{i=1}^n
+		y_i
+		\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_{\mathcal{H}}.
 	\end{equation*}
-where right-hand side notation comes from Definition \ref{def:n_one_inner_product}.
 Then the PLS direction 
 $	\hat{\boldsymbol{\xi}}$ 
  computed in \eqref{def:computed_PLS_direction} maximizes $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$.
@@ -958,7 +945,35 @@ The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provi
 	\end{itemize}
 	
 	\subsection{Proof of Propositions \ref{Proposition: generalized rayleigh quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
-	
+	%
+	%
+	\begin{align*}
+	\widehat{\textnormal{Cov}} (
+	\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y 
+	) 
+	&= 
+	\frac{1}{n} \sum \limits_{i=1}^n 
+	 y_i
+	\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_\mathcal{H} \\
+	&= 
+	 \frac{1}{n} 
+	 \sum \limits_{i=1}^n
+	 y_i
+	   \langle \widetilde{X_i}, \psi \rangle_\mathcal{F}  
+	   +  
+	   \frac{1}{n} 
+	   \sum \limits_{i=1}^n  
+	   y_i
+	   \langle \mathbf{Z}_i, 
+	   \boldsymbol{\theta} 
+	   \rangle 
+	    \\
+	&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+	&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+	&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+	&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+	&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
+\end{align*}	
 	
 	we first construct the following matrix:
 	\begin{equation}\label{def:V_star}
