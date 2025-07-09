@@ -49,7 +49,25 @@
 "0",""
 "0","# --- Step 5: Run eigen-based PLS ---"
 "0","W_template <- W  # prevent mutation"
+"0","xi_hat_eig <- get_pls_direction_coeff(W, y, L)"
+"0","xi_hat_lin <- get_xi_hat_linear(W, y, L)"
+"2","G1;H1;Errorh in get_xi_hat_linear(W, y, L) : unused argument (L)
+Error during wrapup: not that many frames on the stack
+Error: no more error handlers available (recursive errors?); invoking 'abort' restart
+g"
+"0","cat(""xi_hat_eig"", xi_hat_eig,  ""\n"")"
+"1","xi_hat_eig -0.1914137 -0.4402086 -0.209821 -0.9701783 0.1666788 -0.1448115 -0.3521091 0.360124 -1.168745 0.09641111 0.6661995 -0.5735652 
+"
+"0","cat(""xi_hat_lin"", xi_hat_lin,  ""\n"")"
+"2","G1;H1;Errorh: object 'xi_hat_lin' not found
+Error during wrapup: not that many frames on the stack
+Error: no more error handlers available (recursive errors?); invoking 'abort' restart
+g"
 "0","pls_eig_result <- get_pls_comp(W, y, L)"
+"2","G1;H1;Errorh in get_pls_comp(W, y, L) : object 'V_star' not found
+Error during wrapup: not that many frames on the stack
+Error: no more error handlers available (recursive errors?); invoking 'abort' restart
+g"
 "0","xi_hat_eig <- pls_eig_result$xi_hat"
 "0",""
 "0","# --- Step 6 (Revised): Manually compute direct PLS component and wrap with predictor_hybrid_from_coef ---"

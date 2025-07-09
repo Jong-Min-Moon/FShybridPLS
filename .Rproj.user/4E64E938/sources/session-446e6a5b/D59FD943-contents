@@ -1264,7 +1264,32 @@ get_pre_corrcov <- function(W, y){
 ```
 
 
-### main function: get_pls_comp
+### core computation: get_pls_direction_coeff
+```{r}
+#' @export
+get_pls_direction_coeff <- function(W, y, L){
+
+  V_star <- get_pre_corrcov(W, y)
+
+  #invL <- Matrix::chol2inv(L)
+  invL <- solve(L)
+  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
+  E <- invL %*% A               # E = inv(L) × A
+
+  eigen_result <- eigen(E)
+  e <- eigen_result$vectors[, 1]
+  if (is.complex(e)){
+    print("stop")
+    return("stop")
+  } 
+
+
+  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
+  return(xi_star)
+}
+```
+
+### main function (wrapper: get_pls_comp
 Computes the first PLS component from a hybrid predictor and response vector using regularization.
 
 - Inputs
@@ -1297,24 +1322,8 @@ Computes the first PLS component from a hybrid predictor and response vector usi
 #' @export
 get_pls_comp <- function(W, y, L){
 
-  V_star <- get_pre_corrcov(W, y)
-
-  #invL <- Matrix::chol2inv(L)
-  invL <- solve(L)
-  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
-  E <- invL %*% A               # E = inv(L) × A
-
-  eigen_result <- eigen(E)
-  e <- eigen_result$vectors[, 1]
-  if (is.complex(e)){
-    print("stop")
-    return("stop")
-  } 
-
-
-  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
+  xi_star <- get_pls_direction_coeff(W, y, L)
   xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)
-
   return(list(
     xi_hat = xi_hat,
     E = E,
@@ -1325,6 +1334,24 @@ get_pls_comp <- function(W, y, L){
 ```
 
 ## linear system method
+
+### helper: get_xi_hat_linear
+```{r}
+get_xi_hat_linear <- function(W, y){
+  n <- W$n_sample
+  K <- W$n_functional
+  d = list()
+  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
+    Ct <- W$functional_list[[i]]$coefs
+    Phi <- W$gram_list[[i]]
+    rhs <-  t(Phi) %*% Ct %*% y
+    d[[i]] <- solve(Phi, rhs)
+  }
+  d[[K+1]] <- t(W$Z) %*% y
+  d_vec <- do.call(c, d)  # or: unlist(d)
+  return(d_vec)
+}
+```
 
 ```{r}
 get_xi_direct <- function(W, y) {
@@ -1343,45 +1370,6 @@ get_xi_direct <- function(W, y) {
 ```
 
 
-
-### get_pls_comp_simple
-```{r}
-#' Compute First PLS Component (Direct Hilbert Averaging)
-#'
-#' Computes the first PLS component as a normalized weighted average of predictor objects,
-#' where weights are given by the centered response values.
-#'
-#' @param W A `predictor_hybrid` object containing `n_sample` observations.
-#' @param y A numeric response vector of length `n_sample`.
-#'
-#' @return A normalized `predictor_hybrid` object representing the first PLS component.
-#' @export
-get_pls_comp_simple <- function(W, y) {
-  n <- W$n_sample
-  if (length(y) != n) stop("Length of y must match number of samples in W.")
-
-  # Center the response (optional, but often improves interpretability)
-  y_centered <- y - mean(y)
-
-  # Initialize zero element
-  xi_sum <- scalar_mul.predictor_hybrid(subset_predictor_hybrid(W, 1), y_centered[1])
-    
-
-  # Accumulate weighted sum: sum_i y_i * W_i
-  for (i in 2:n) {
-    Wi <- subset_predictor_hybrid(W, i)
-    xi_sum <- add.predictor_hybrid(xi_sum, Wi, alpha = y_centered[i])
-  }
-
-  # Normalize
-  xi_sum <- scalar_mul.predictor_hybrid(xi_sum, 1/n)
-  norm_val <- sqrt(inprod.predictor_hybrid(xi_sum))
-  xi_hat <- scalar_mul.predictor_hybrid(xi_sum, 1 / norm_val)
-
-  return(xi_hat)
-}
-
-```
 
 
 
@@ -1438,6 +1426,12 @@ L <- chol(constr_mat)
 
 # --- Step 5: Run eigen-based PLS ---
 W_template <- W  # prevent mutation
+xi_hat_eig <- get_pls_direction_coeff(W, y, L)
+xi_hat_lin <- get_xi_hat_linear(W, y)
+xi_hat_block <- get_xi_direct(W, y)
+cat("xi_hat_eig", xi_hat_eig,  "\n")
+cat("xi_hat_lin", xi_hat_lin,  "\n")
+
 pls_eig_result <- get_pls_comp(W, y, L)
 xi_hat_eig <- pls_eig_result$xi_hat
 
