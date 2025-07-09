@@ -79,13 +79,19 @@
 "0","ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)"
 "0","norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))"
 "0","norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))"
+"0","cat(""norm 1"", norm1,  ""\n"")"
+"1","norm 1 6.796349 
+"
+"0","cat(""norm 2"", norm2,  ""\n"")"
+"1","norm 2 1 
+"
 "0","cos_theta <- ip / (norm1 * norm2)"
 "0",""
 "0","cat(""Cosine similarity between eigen-based and direct PLS components:"", cos_theta, ""\n"")"
-"1","Cosine similarity between eigen-based and direct PLS components: 0.9727659 
+"1","Cosine similarity between eigen-based and direct PLS components: 0.2389617 
 "
 "0","cat(""Projection score (eig):"", sum(inprod.predictor_hybrid(xi_hat_eig, W) * y), ""\n"")"
-"1","Projection score (eig): 243.925 
+"1","Projection score (eig): 391.645 
 "
 "0","cat(""Projection score (direct):"", sum(inprod.predictor_hybrid(xi_hat_direct, W) * y), ""\n"")"
 "1","Projection score (direct): 241.1519 

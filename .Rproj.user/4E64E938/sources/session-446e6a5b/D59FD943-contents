@@ -1282,17 +1282,17 @@ Computes the first PLS component from a hybrid predictor and response vector usi
 #' Computes the coefficients of the first Partial Least Squares (PLS) component based on 
 #' a hybrid predictor object and a response vector, using a regularized generalized eigenvalue problem.
 #'
-#' @param W A \code{predictor_hybrid} object containing both functional and scalar predictors.
-#' @param y A numeric response vector of length equal to the number of samples in \code{W}.
+#' @param W A predictor_hybrid object containing both functional and scalar predictors.
+#' @param y A numeric response vector of length equal to the number of samples in W.
 #' @param L cholesky decompisition of a regularization matrix (typically positive definite) used in the generalized eigenproblem.
 #'
 #' @return A list with the following elements:
-#' \describe{
-#'   \item{\code{xi_hat}}{The estimated first PLS component as a \code{predictor_hybrid} object.}
-#'   \item{\code{E}}{The generalized eigenvalue problem matrix \code{E = inv(L) V* t(inv(L))}.}
-#'   \item{\code{V_star}}{The cross-covariance matrix between predictors and response.}
-#'   \item{\code{eigen_val}}{The leading eigenvalue of \code{E}.}
-#' }
+#'
+#'   xi_hat: The estimated first PLS component as a predictor_hybrid object.
+#'   E: The generalized eigenvalue problem matrix E = inv(L) V* t(inv(L)).
+#'   V_star: The cross-covariance matrix between predictors and response.}
+#'   eigen_val: The leading eigenvalue of E.
+#' 
 #'
 #' @export
 get_pls_comp <- function(W, y, L){
@@ -1468,6 +1468,9 @@ xi_new <- get_xi_direct(W, y)
 ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)
 norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))
 norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
+cat("norm 1", norm1,  "\n")
+cat("norm 2", norm2,  "\n")
+
 cos_theta <- ip / (norm1 * norm2)
 
 cat("Cosine similarity between eigen-based and direct PLS components:", cos_theta, "\n")
