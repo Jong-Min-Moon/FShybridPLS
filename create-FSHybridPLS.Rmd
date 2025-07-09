@@ -202,6 +202,7 @@ testthat::test_that("rep_fd correctly replicates a list of fd objects", {
 - We define an S3 object `predictor_hybrid` that represent this structure, and implement Hilbert space operations for this class, and our algorithm is built on these foundational operations.
 
 The class definition is a simple list that contains a matrix and a collection of \code{fd} objects from the \code{fda} package, along with the necessary metadata.
+- gram matrices are saved as a list.
 ```{r classdef:predictor_hybrid}
 
 #' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
@@ -375,7 +376,6 @@ testthat::test_that("hybrid_from_coef reconstructs single-sample predictor_hybri
   testthat::expect_equal(drop(coef(obj_single$functional_list[[1]])), 1:4)
   testthat::expect_equal(drop(coef(obj_single$functional_list[[2]])), 5:8)
 })
-
 ```
 
 ## Basic arithmetic
@@ -1334,7 +1334,8 @@ get_xi_direct <- function(W, y) {
 
   J_star <- get_gram_matrix_block(W)
   alpha <- solve(J_star, t(b))                # unconstrained maximizer
-  xi_hat <- alpha / sqrt(t(alpha) %*% J_star %*% alpha)  # normalize
+  norm_squared <- as.numeric( t(alpha) %*% J_star %*% alpha )
+  xi_hat <- alpha / sqrt(norm_squared)  # normalize
 
   return(xi_hat)
 }
@@ -1382,68 +1383,6 @@ get_pls_comp_simple <- function(W, y) {
 ```
 
 
-```{r}
-library(fda)
-
-set.seed(011111)
-n_sample <- 100
-n_scalar <- 3
-
-# --- Step 1: Zero functional predictors ---
-zero_basis <- create.bspline.basis(c(0, 1), nbasis = 4)
-zero_fd <- fd(coef = matrix(0, nrow = 4, ncol = n_sample), basisobj = zero_basis)
-functional_list <- list(zero_fd, zero_fd)  # two zero-valued functional predictors
-
-# --- Step 2: Simulate scalar predictors and response ---
-Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
-Z <- scale(Z, center = TRUE, scale = FALSE)
-W <- predictor_hybrid(Z = Z, functional_list = functional_list)
-
-beta_true <- rnorm(n_scalar)
-y <- Z %*% beta_true + rnorm(n_sample, sd = 0.1)
-y <- scale(y, center = TRUE, scale = FALSE)
-
-# --- Step 3: Compute constraint matrix ---
-lambda <- rep(0, W$n_functional)
-L <- chol(get_constraint_matrix_hybrid(W, lambda))
-
-# --- Step 4: PLS with get_pls_comp ---
-pls <- get_pls_comp(W, y, L)
-xi_hat <- pls$xi_hat
-
-# --- Step 5: PLS via raw Euclidean eigenproblem ---
-V_star_vec <- as.vector(t(Z) %*% y)     # equivalent to colSums(Z * y)
-
-J <- crossprod(Z)                       # J = Z^T Z
-L_Z <- chol(J)
-invL <- solve(L_Z)
-E <- invL %*% tcrossprod(V_star_vec) %*% t(invL)
-
-eig <- eigen(E)
-e <- eig$vectors[, 1]
-xi_manual <- backsolve(L_Z, e, transpose = TRUE)  # xi = L^T \ e
-
-# --- Step 6: get_pls_comp_simple ---
-xi_simple <- get_pls_comp_simple(W, y)
-xi_simple_vec <- tail(xi_simple$Z, 1)
-xi_direct <- get_xi_direct(W, y)
-# --- Step 7: Compare all three scalar parts ---
-
-# From get_pls_comp
-xi_hat_vec <- tail(xi_hat$Z, 1)
-
-# Cosine similarities
-cos_eig_manual <- sum(xi_manual * xi_hat_vec) / (sqrt(sum(xi_manual^2)) * sqrt(sum(xi_hat_vec^2)))
-cos_simple_manual <- sum(xi_manual * xi_simple_vec) / (sqrt(sum(xi_manual^2)) * sqrt(sum(xi_simple_vec^2)))
-cos_eig_simple <- sum(xi_simple_vec * xi_hat_vec) / (sqrt(sum(xi_simple_vec^2)) * sqrt(sum(xi_hat_vec^2)))
-
-# --- Step 8: Report ---
-cat("Cosine similarity (get_pls_comp vs manual eig):", cos_eig_manual, "\n")
-cat("Cosine similarity (get_pls_comp_simple vs manual eig):", cos_simple_manual, "\n")
-cat("Cosine similarity (get_pls_comp vs get_pls_comp_simple):", cos_eig_simple, "\n")
-
-
-```
 
 
 ```{r}
