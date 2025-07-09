@@ -281,44 +281,33 @@ In \eqref{eq: hybrid inner product},
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}
-In practice, the functional predictors $X^{(1)}, \ldots, X^{(K)}$ are not observed as complete curves, but only through their values at a finite set of time points, which may differ across the $K$ predictors. Thus, each observation is represented by a finite-dimensional vector $X_i^{(k)}(\mathbf{t}_k) \in \mathbb{R}^{|\mathbf{t}_k|}$, where $\mathbf{t}_k \subset \mathcal{T}_k$. The first step in functional data analysis typically involves reconstructing the underlying functional form from these discrete measurements, commonly by assuming that sample paths lie in a finite-dimensional space spanned by basis functions.
+ Thus, each observation is represented by a finite-dimensional vector $X_i^{(k)}(\mathbf{t}_k) \in \mathbb{R}^{|\mathbf{t}_k|}$, where $\mathbf{t}_k \subset \mathcal{T}_k$. 
 
-Given an orthonormal basis $\{b_l(t)\}$, the functional predictors and the corresponding regression coefficients can be decomposed into
-\begin{align*}
+Given an orthonormal basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
+\begin{equation*}
 	X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t), \quad 
 	\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
-\end{align*}
-where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively. While it is possible to use a different basis for each functional predictor, we adopt a common basis system for all predictors for notational simplicity.
+\end{equation*}
+where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively.
+In practice, functional predictors are observed only at a finite set of time points rather than as complete curves. Rather than reconstructing infinite-dimensional object stated above via finite observations, we approximate each predictor using a finite-dimensional projection by truncating its basis expansion at a finite number $M$. This $M$ can be set to a sufficiently large value (e.g., 15 or 20) to capture a wide range of functional patterns. 
+Notably, it is unnecessary to fine-tune $M$, as a  penalization scheme introduced in Section \ref{sec: Regularization of PLS Components} regularizes each functional component to achieve the desired smoothness. We denote the projected predictors and coefficients as
+\begin{equation*}
+	\tilde{X}_{ij}(t) = \sum_{l=1}^M \theta_{ijl} \, b_l(t), \quad 
+	\tilde{\beta}_j(t) = \sum_{l=1}^M \eta_{0,jl} \, b_l(t).
+\end{equation*}
+Write $\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top$ and  $\boldsymbol{\eta}_{0j} := (\eta_{0,j1}, \ldots, \eta_{0,jM})^\top$. 
+Let $\Theta_j$ be an $n \times M$ matrix whose rows are given by $\{\boldsymbol{\theta}_{ij}, \; i = 1, \ldots, n\}$.
+
+\begin{remark}
+ While it is possible to use a different basis for each functional predictor, we adopt a common basis system for all predictors for notational simplicity.
+\end{remark}
 
 
 
-For $k = 1, \ldots, K$, let $\Phi^{(k)}   := \{\phi^{(k)}_1, \ldots, \phi^{(k)}_M\}$, with $M \geq 1$, be an $M$-dimensional basis in $L^2(\mathcal{T}_k)$. In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	The number of basis functions $M$ for each functional predictor can be set to a sufficiently large value (e.g., 15 or 20) to incorporate a rich variety of patterns that functional predictors may exhibit. Note that there is no need to carefully choose different $M$ values for different functional predictors, as an appropriate penalization scheme will be introduced in the later section to regularize each functional predictor to achieve a desired smoothness (see Section \ref{sec: Regularization of PLS Components}).
+
+ Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	T
 	
-For $k = 1, \ldots, K$, we project the $k$th functional predictor $X_i^{(k)}$ onto 
-$\operatorname{span}(\Phi^{(k)})$:
-\begin{equation*}
-	X_i^{(k)} \approx \sum_{m=1}^M c_{im}^{(k)} \phi_m^{(k)}, \quad i = 1, \ldots, n,
-\end{equation*}
-where the coefficients $c_{im}^{(k)}$ satisfy
-\begin{equation*}
-	X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} \phi_m^{(k)}(t_k), \quad \text{for all } t_k \in \mathbf{t}_k \subset \mathcal{T}_k.
-\end{equation*}
-Thus, the $n$ observations of the $k$th functional predictor can be represented by an $n \times M$ matrix of coefficients, 	where rows index samples and columns index basis functions:
-\begin{equation*}
-		\widetilde{\mathbf{C}}^{(k)} := ( c_{im}^{(k)} ).
-\end{equation*}
 
-Importantly, the core computation of our algorithm involves the inner product between $n$ hybrid predictor observations and a single hybrid object (the PLS direction), defined via the inner product in Definition \ref{def:hilbert_space}.
- With the basis expansion, this reduces to simple matrix operations. 
-For each $k = 1, \ldots, K$, let $\boldsymbol{\Phi}^{(k)} := (\phi^{(k)}_{m \ell })$
-denote the	$M \times M$ symmetric matrix with entries  the inner products between basis functions 
-\begin{equation}\label{def:gram_basis}
-\phi^{(k)}_{m \ell } 
-:= 
-\langle \phi^{(k)}_m,  \phi^{(k)}_\ell \rangle
-=  
-\int_{\mathcal{T}_k} \phi^{(k)}_m(t_k) \, \phi^{(k)}_\ell(t_k) \, dt_k.
-\end{equation}
 
 
 	
