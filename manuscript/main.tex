@@ -395,18 +395,16 @@ denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
 
 
 %	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
-	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
-		  For any unit-length direction in $\mathcal{H}$
-		  whose functional parts lie in $\operatorname{span}(\Phi^{(1)})$, $\ldots,$ $\operatorname{span}(\Phi^{(K)})$,
-		let us define
-		the empirical and basis-approximated sample covariance between the resulting component and response as
-\begin{equation*}
-	\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )
-	:=
-	\frac{1}{n} 
-	\mathbf{y}^\top 
- \langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_\mathcal{H},
-\end{equation*}
+\begin{proposition} \label{Proposition: generalized rayleigh quotient}
+	Let $\boldsymbol{\xi} \in \mathcal{H}$ be any unit-norm direction such that its $1$st through $K$th functional components lie in $\operatorname{span}(\Phi^{(1)}), \ldots, \operatorname{span}(\Phi^{(K)})$, respectively.
+	Then, the empirical covariance between the projected component $\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response $Y$, approximated in terms of the basis, is given by
+	\begin{equation*}
+		\widehat{\textnormal{Cov}} \left( \langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y \right)
+		:=
+		\frac{1}{n} 
+		\mathbf{y}^\top 
+		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}},
+	\end{equation*}
 where right-hand side notation comes from Definition \ref{def:n_one_inner_product}.
 Then the PLS direction 
 $	\hat{\boldsymbol{\xi}}$ 
