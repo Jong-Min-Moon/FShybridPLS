@@ -1264,30 +1264,7 @@ get_pre_corrcov <- function(W, y){
 ```
 
 
-### core computation: get_pls_direction_coeff
-```{r}
-#' @export
-get_pls_direction_coeff <- function(W, y, L){
 
-  V_star <- get_pre_corrcov(W, y)
-
-  #invL <- Matrix::chol2inv(L)
-  invL <- solve(L)
-  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
-  E <- invL %*% A               # E = inv(L) × A
-
-  eigen_result <- eigen(E)
-  e <- eigen_result$vectors[, 1]
-  if (is.complex(e)){
-    print("stop")
-    return("stop")
-  } 
-
-
-  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
-  return(xi_star)
-}
-```
 
 ### main function (wrapper: get_pls_comp
 Computes the first PLS component from a hybrid predictor and response vector using regularization.
@@ -1322,7 +1299,23 @@ Computes the first PLS component from a hybrid predictor and response vector usi
 #' @export
 get_pls_comp <- function(W, y, L){
 
-  xi_star <- get_pls_direction_coeff(W, y, L)
+  
+  V_star <- get_pre_corrcov(W, y)
+
+  #invL <- Matrix::chol2inv(L)
+  invL <- solve(L)
+  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
+  E <- invL %*% A               # E = inv(L) × A
+
+  eigen_result <- eigen(E)
+  e <- eigen_result$vectors[, 1]
+  if (is.complex(e)){
+    print("stop")
+    return("stop")
+  } 
+
+
+  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
   xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)
   return(list(
     xi_hat = xi_hat,
@@ -1426,31 +1419,16 @@ L <- chol(constr_mat)
 
 # --- Step 5: Run eigen-based PLS ---
 W_template <- W  # prevent mutation
-xi_hat_eig <- get_pls_direction_coeff(W, y, L)
-xi_hat_lin <- get_xi_hat_linear(W, y)
-xi_hat_block <- get_xi_direct(W, y)
-cat("xi_hat_eig", xi_hat_eig,  "\n")
-cat("xi_hat_lin", xi_hat_lin,  "\n")
+
 
 pls_eig_result <- get_pls_comp(W, y, L)
 xi_hat_eig <- pls_eig_result$xi_hat
 
-# --- Step 6 (Revised): Manually compute direct PLS component and wrap with predictor_hybrid_from_coef ---
 
-# Scalar part
-
-# Functional part: stack the weighted coefficients
-func_weighted_vec <- unlist(lapply(functional_list, function(fd_j) {
-  coef(fd_j) %*% y  # nbasis × 1
-}))
-
-# Full coefficient vector
-Z_weighted <- colSums(Z * y)
-
-xi_raw_vec <- c(func_weighted_vec, Z_weighted)
+xi_hat_lin <- get_xi_hat_linear(W, y)
 
 # Wrap into predictor_hybrid object using format template
-xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_raw_vec)
+xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin)
 
 # Normalize
 norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
