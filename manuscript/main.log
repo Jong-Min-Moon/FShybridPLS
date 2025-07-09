@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 14:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 14:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -565,7 +565,52 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 File: l3backend-pdftex.def 2025-03-14 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count331
 )
-(./main.aux)
+(./main.aux
+
+Package natbib Warning: Citation `Beyaztas2020' multiply defined.
+
+
+Package natbib Warning: Citation `Delaigle2012' multiply defined.
+
+
+Package natbib Warning: Citation `Febrero2017' multiply defined.
+
+
+Package natbib Warning: Citation `goldsmith_penalized_2011' multiply defined.
+
+
+Package natbib Warning: Citation `happ_multivariate_2018' multiply defined.
+
+
+Package natbib Warning: Citation `Hsing2015' multiply defined.
+
+
+Package natbib Warning: Citation `kolar_graph_2014' multiply defined.
+
+
+Package natbib Warning: Citation `Preda2005' multiply defined.
+
+
+Package natbib Warning: Citation `Rice1991' multiply defined.
+
+
+Package natbib Warning: Citation `Silverman1996' multiply defined.
+
+
+Package natbib Warning: Citation `storeySignificanceAnalysisTime2005' multiply 
+defined.
+
+
+Package natbib Warning: Citation `Tucker1938' multiply defined.
+
+
+Package natbib Warning: Citation `Wang2018' multiply defined.
+
+
+Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' multiply defi
+ned.
+
+)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 60.
@@ -667,11 +712,6 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 62.
 (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-
-Package natbib Warning: Citation `storeySignificanceAnalysisTime2005' on page 1
- undefined on input line 65.
-
-
 Overfull \hbox (8.27756pt too wide) in paragraph at lines 65--66
 \OT1/cmr/m/n/12 Functional re-gres-sion set-tings in-volv-ing a large num-ber o
 f pre-dic-tors, $\OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cm
@@ -691,51 +731,37 @@ Overfull \hbox (86.8508pt too wide) in paragraph at lines 78--85
 [1
 
 {c:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for U+bbold on input line 1
-08.
+Overfull \hbox (0.86652pt too wide) in paragraph at lines 106--107
+\OT1/cmr/m/n/12 We as-sume, with-out loss of gen-er-al-ity, that the func-tiona
+l pre-dic-tors $\OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr
+/m/n/12 )\OML/cmm/m/it/12 ; X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/
+12 )\OML/cmm/m/it/12 ; [] ; X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/
+12 )$
+ []
 
+LaTeX Font Info:    Trying to load font information for U+bbold on input line 1
+11.
 (c:/texlive/2025/texmf-dist/tex/latex/bbold/Ubbold.fd)
 
 [2]
 
 [3]
 LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 1
-59.
+65.
  (c:/texlive/2025/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 159.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 165.
 
 
 [4]
 
-Package natbib Warning: Citation `Preda2005' on page 5 undefined on input line 
-169.
-
-
-Package natbib Warning: Citation `Delaigle2012' on page 5 undefined on input li
-ne 169.
-
-
-Package natbib Warning: Citation `Febrero2017' on page 5 undefined on input lin
-e 169.
-
-
-Package natbib Warning: Citation `Beyaztas2020' on page 5 undefined on input li
-ne 169.
-
-
-Package natbib Warning: Citation `Wang2018' on page 5 undefined on input line 1
-69.
-
-
-
 [5]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 185.
+put line 191.
 
-Underfull \hbox (badness 4940) in paragraph at lines 189--193
+Underfull \hbox (badness 4940) in paragraph at lines 195--199
 []\OT1/cmr/m/n/12 Hybrid pre-dic-tors $\OMS/cmsy/m/n/12 f\OT1/cmr/bx/n/12 W[]\O
 ML/cmm/m/it/12 ; [] ; \OT1/cmr/bx/n/12 W[]\OMS/cmsy/m/n/12 g \OT1/cmr/m/n/12 = 
 \OMS/cmsy/m/n/12 f\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12 )\O
@@ -759,19 +785,6 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
 
 [12]
 
-Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line 
-435.
-
-
-Package natbib Warning: Citation `Silverman1996' on page 13 undefined on input 
-line 451.
-
-
-Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line 
-451.
-
-
-
 [13]
 
 [14]
@@ -786,22 +799,14 @@ Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line
 
 [19]
 
-Package natbib Warning: Citation `Tucker1938' on page 20 undefined on input lin
-e 602.
-
-
-
 [20]
-
-Package natbib Warning: Citation `Hsing2015' on page 21 undefined on input line
- 636.
-
-
 
 [21]
 
 [22]
-Overfull \hbox (12.39862pt too wide) detected at line 691
+
+[23]
+Overfull \hbox (12.39862pt too wide) detected at line 697
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -810,46 +815,35 @@ OMS/cmsy/m/n/12 j ^^@ [] [] j\OT1/cmr/bx/n/12 R\OMS/cmsy/m/n/12 j ^^@ [][] [] \
 OML/cmm/m/it/12 :
  []
 
-
-
-[23]
-<image/cor_strong.pdf, id=344, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=377, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 707.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 713.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/cor_weak.pdf, id=345, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=378, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 714.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 720.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/graph_strong.pdf, id=346, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=379, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 723.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 729.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
-<image/graph_weak.pdf, id=347, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=380, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 730.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 736.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
 
 
-Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' on page 24 un
-defined on input line 754.
+[24{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
 
-
-
-[24 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
+[25 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
 
-[25{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-
-Package natbib Warning: Citation `kolar_graph_2014' on page 26 undefined on inp
-ut line 771.
-
-
-Overfull \hbox (33.94724pt too wide) detected at line 784
+[26]
+Overfull \hbox (33.94724pt too wide) detected at line 790
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -861,42 +855,34 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 
 
 
-[26]
-<image/graph.png, id=389, 447.3513pt x 447.3513pt>
+[27]
+<image/graph.png, id=433, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 815.
+Package pdftex.def Info: image/graph.png  used on input line 821.
 (pdftex.def)             Requested size: 187.89914pt x 187.89992pt.
 
 
-[27]
-
 [28 <./image/graph.png>]
 
-Package natbib Warning: Citation `goldsmith_penalized_2011' on page 29 undefine
-d on input line 841.
+LaTeX Warning: Reference `table ' on page 29 undefined on input line 852.
 
-
-Package natbib Warning: Citation `happ_multivariate_2018' on page 29 undefined 
-on input line 841.
-
-
-LaTeX Warning: Reference `table ' on page 29 undefined on input line 846.
-
-<Screenshot 2025-02-25 125839.png, id=401, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=445, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 8
-49.
+55.
 (pdftex.def)             Requested size: 422.77664pt x 177.74849pt.
 
 
-[29 <./Screenshot 2025-02-25 125839.png>]
+[29]
 
-[30]
+[30 <./Screenshot 2025-02-25 125839.png>] (./main.bbl
 
-[31]
-Overfull \hbox (7.0366pt too wide) in paragraph at lines 932--934
+[31])
+
+[32]
+Overfull \hbox (7.0366pt too wide) in paragraph at lines 940--942
 \OT1/cmr/m/n/12 part of the PLS com-po-nent in terms of the same ba-sis func-ti
 ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12 
 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m
@@ -904,64 +890,147 @@ ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12
  []
 
 
-Overfull \hbox (1.60547pt too wide) in paragraph at lines 941--942
+
+[33]
+Overfull \hbox (1.60547pt too wide) in paragraph at lines 949--950
 \OT1/cmr/m/n/12 put-ing PLS com-po-nent, de-tailed in Sec-tion []4.1.3[], in-co
 r-po-rates reg-u-lar-iza-tion based on second-
  []
 
 
 
-[32]
-
-[33]
-
 [34]
-Overfull \hbox (3.56172pt too wide) detected at line 1079
-[]
- []
-
-
 
 [35]
 
 [36]
+Overfull \hbox (3.56172pt too wide) detected at line 1087
+[]
+ []
+
+
 
 [37]
 
 [38]
-Overfull \hbox (29.18288pt too wide) detected at line 1206
-[]
- []
-
-
 
 [39]
 
-Package natbib Warning: Citation `Hsing2015' on page 40 undefined on input line
- 1232.
-
-
-Overfull \hbox (13.91545pt too wide) detected at line 1254
+[40]
+Overfull \hbox (29.18288pt too wide) detected at line 1214
 []
  []
 
 
 
-[40]
-
 [41]
+Overfull \hbox (13.91545pt too wide) detected at line 1262
+[]
+ []
+
+
 
 [42]
 
-[43] (./main.bbl)
-
-Package natbib Warning: There were undefined citations.
-
-
+[43]
 
 [44]
 
-[45] (./main.aux)
+[45] (./main.bbl
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Beyaztas
+2020}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.3 ...tem[Beyaztas and Shang, 2020]{Beyaztas2020}
+                                                  
+
+[46]
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Delaigle
+2012}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.8 ...item[Delaigle and Hall, 2012]{Delaigle2012}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Febrero2
+017}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.14 ...m[Febrero-Bande et~al., 2017]{Febrero2017}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.goldsmit
+h_penalized_2011}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.20 ...th et~al., 2011]{goldsmith_penalized_2011}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.happ_mul
+tivariate_2018}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.26 ... and Greven, 2018]{happ_multivariate_2018}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Hsing201
+5}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.33 \bibitem[Hsing and Eubank, 2015]{Hsing2015}
+                                                
+pdfTeX warning (ext4): destination with the same identifier (name{cite.kolar_gr
+aph_2014}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.39 ...item[Kolar et~al., 2014]{kolar_graph_2014}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Preda200
+5}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.44 \bibitem[Preda and Saporta, 2005]{Preda2005}
+                                                 
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Rice1991
+}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.49 \bibitem[Rice and Silverman, 1991]{Rice1991}
+                                                 
+
+[47]
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Silverma
+n1996}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.56 \bibitem[Silverman, 1996]{Silverman1996}
+                                             
+pdfTeX warning (ext4): destination with the same identifier (name{cite.storeySi
+gnificanceAnalysisTime2005}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.61 ... 2005]{storeySignificanceAnalysisTime2005}
+                                                  
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Tucker19
+38}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.67 \bibitem[Tucker, 1938]{Tucker1938}
+                                       
+pdfTeX warning (ext4): destination with the same identifier (name{cite.Wang2018
+}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.72 \bibitem[Wang, 2018]{Wang2018}
+                                   
+pdfTeX warning (ext4): destination with the same identifier (name{cite.zhuBayes
+ianGraphicalModels2016}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.77 ...al., 2016]{zhuBayesianGraphicalModels2016}
+                                                  )
+
+Package natbib Warning: There were multiply defined citations.
+
+
+
+[48] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -974,13 +1043,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 66D52BB7FFE1BEEA3A4851967346F1EC;5862.
  ) 
 Here is how much of TeX's memory you used:
- 16061 strings out of 469626
- 254462 string characters out of 5475183
- 663806 words of memory out of 5000000
- 42487 multiletter control sequences out of 15000+600000
+ 16129 strings out of 469626
+ 255938 string characters out of 5475183
+ 664318 words of memory out of 5000000
+ 42533 multiletter control sequences out of 15000+600000
  640594 words of font info for 91 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 86i,21n,93p,1773b,682s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 86i,21n,93p,1392b,682s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2025/texmf-dist/fonts/type1/public/bbold-type1/bbold10.pfb><c:/te
 xlive/2025/texmf-dist/fonts/type1/public/bbold-type1/bbold7.pfb><c:/texlive/202
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pfb><c:/texlive/2025/texmf-
@@ -1002,10 +1071,10 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (45 pages, 951637 bytes).
+Output written on main.pdf (48 pages, 961251 bytes).
 PDF statistics:
- 627 PDF objects out of 1000 (max. 8388607)
- 514 compressed objects within 6 object streams
- 124 named destinations out of 1000 (max. 500000)
+ 691 PDF objects out of 1000 (max. 8388607)
+ 575 compressed objects within 6 object streams
+ 144 named destinations out of 1000 (max. 500000)
  271 words of extra memory for PDF output out of 10000 (max. 10000000)
 
