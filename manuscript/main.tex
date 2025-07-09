@@ -62,6 +62,7 @@
 	
 	
 	\section{Introduction} \label{sec: Introduction}
+	Functional regression settings involving a large number of predictors, $X_{i1}(t), X_{i2}(t), \ldots, X_{iK}(t)$, are becoming increasingly common. For example, \cite{storeySignificanceAnalysisTime2005} analyzes two gene expression datasets measured over time, which involve only a small number of patients but tens of thousands of functional predictors.
 	
 	
 	
@@ -102,6 +103,8 @@
 	
 	
 	\section{Data Objects and Model Formulation} 
+	We assume without loss of generality that each predictor is observed over the range $0 \leq t \leq 1$.
+	
 	Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on respective compact domains $\mathcal{T}_k \in \mathbb{R}^{d_k}$ ($d_k \in \mathbb{N})$; i.e., $X^{(k)}: \mathcal{T}_k \rightarrow \mathbb{R}$. Assume that each $X^{(k)}$ is in $L^2(\mathcal{T}_k)$, a Hilbert space of square integrable functions with respect to Lebesgue measure $dt_k$ on $\mathcal{T}_k$. Without loss of generality, we further assume that each  $\mathcal{T}_k$ is a $d_k$-dimensional unit interval; for instance  $\mathcal{T}_k=[0,1]$ (unit interval) if $d_k=1$, $\mathcal{T}_k=[0,1] \times [0,1]$ (unit square) if $d_k=2$, and so forth. Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2(\mathcal{T}_K)$---a cartesian product of individual $L^2(\mathcal{T}_k)$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times \mathcal{T}_K$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
 	
 	Let $\mathbf{Z}=(Z_1, \ldots, Z_p)^\top$ denote a $p$-dimensional multivariate scalar data  in $\mathbb{R}^p$. We assume that $\mathbf{Z}$ is a random vector with finite first two moments and equipped with the Euclidean inner product and norm; i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 14:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 14:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -667,7 +667,21 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 62.
 (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Overfull \hbox (86.8508pt too wide) in paragraph at lines 77--84
+
+Package natbib Warning: Citation `storeySignificanceAnalysisTime2005' on page 1
+ undefined on input line 65.
+
+
+Overfull \hbox (8.27756pt too wide) in paragraph at lines 65--66
+\OT1/cmr/m/n/12 Functional re-gres-sion set-tings in-volv-ing a large num-ber o
+f pre-dic-tors, $\OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cm
+r/m/n/12 )\OML/cmm/m/it/12 ; X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n
+/12 )\OML/cmm/m/it/12 ; [] ; X[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n
+/12 )$,
+ []
+
+
+Overfull \hbox (86.8508pt too wide) in paragraph at lines 78--85
 \OT1/cmr/m/n/12 tional lin-ear re-gres-sion, Ann.Stat. 34(5) (2006) 2159{2179.)
  - Wavelet (Y.Zhao,R.T.Ogden,P.T.Reiss,Wavelet-
  []
@@ -678,7 +692,7 @@ Overfull \hbox (86.8508pt too wide) in paragraph at lines 77--84
 
 {c:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    Trying to load font information for U+bbold on input line 1
-05.
+08.
 
 (c:/texlive/2025/texmf-dist/tex/latex/bbold/Ubbold.fd)
 
@@ -686,39 +700,42 @@ LaTeX Font Info:    Trying to load font information for U+bbold on input line 1
 
 [3]
 LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 1
-56.
+59.
  (c:/texlive/2025/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 156.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 159.
 
 
 [4]
 
 Package natbib Warning: Citation `Preda2005' on page 5 undefined on input line 
-166.
+169.
 
 
 Package natbib Warning: Citation `Delaigle2012' on page 5 undefined on input li
-ne 166.
+ne 169.
 
 
 Package natbib Warning: Citation `Febrero2017' on page 5 undefined on input lin
-e 166.
+e 169.
 
 
 Package natbib Warning: Citation `Beyaztas2020' on page 5 undefined on input li
-ne 166.
+ne 169.
 
 
 Package natbib Warning: Citation `Wang2018' on page 5 undefined on input line 1
-66.
+69.
 
+
+
+[5]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 182.
+put line 185.
 
-Underfull \hbox (badness 4940) in paragraph at lines 186--190
+Underfull \hbox (badness 4940) in paragraph at lines 189--193
 []\OT1/cmr/m/n/12 Hybrid pre-dic-tors $\OMS/cmsy/m/n/12 f\OT1/cmr/bx/n/12 W[]\O
 ML/cmm/m/it/12 ; [] ; \OT1/cmr/bx/n/12 W[]\OMS/cmsy/m/n/12 g \OT1/cmr/m/n/12 = 
 \OMS/cmsy/m/n/12 f\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12 )\O
@@ -727,8 +744,6 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
  []
 
 
-
-[5]
 
 [6]
 
@@ -742,19 +757,18 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
 
 [11]
 
-Package natbib Warning: Citation `Rice1991' on page 12 undefined on input line 
-432.
-
-
-
 [12]
 
+Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line 
+435.
+
+
 Package natbib Warning: Citation `Silverman1996' on page 13 undefined on input 
-line 448.
+line 451.
 
 
 Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line 
-448.
+451.
 
 
 
@@ -773,21 +787,21 @@ Package natbib Warning: Citation `Rice1991' on page 13 undefined on input line
 [19]
 
 Package natbib Warning: Citation `Tucker1938' on page 20 undefined on input lin
-e 599.
+e 602.
 
 
 
 [20]
 
 Package natbib Warning: Citation `Hsing2015' on page 21 undefined on input line
- 633.
+ 636.
 
 
 
 [21]
 
 [22]
-Overfull \hbox (12.39862pt too wide) detected at line 688
+Overfull \hbox (12.39862pt too wide) detected at line 691
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -796,44 +810,46 @@ OMS/cmsy/m/n/12 j ^^@ [] [] j\OT1/cmr/bx/n/12 R\OMS/cmsy/m/n/12 j ^^@ [][] [] \
 OML/cmm/m/it/12 :
  []
 
-<image/cor_strong.pdf, id=340, 310.15875pt x 289.08pt>
+
+
+[23]
+<image/cor_strong.pdf, id=344, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 704.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 707.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/cor_weak.pdf, id=341, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=345, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 711.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 714.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
-<image/graph_strong.pdf, id=342, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=346, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 720.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 723.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
-<image/graph_weak.pdf, id=343, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=347, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 727.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 730.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
 
-Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' on page 23 un
-defined on input line 751.
+
+Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' on page 24 un
+defined on input line 754.
 
 
-
-[23{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
 
 [24 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
 
-Package natbib Warning: Citation `kolar_graph_2014' on page 25 undefined on inp
-ut line 768.
+[25{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+
+Package natbib Warning: Citation `kolar_graph_2014' on page 26 undefined on inp
+ut line 771.
 
 
-
-[25]
-Overfull \hbox (33.94724pt too wide) detected at line 781
+Overfull \hbox (33.94724pt too wide) detected at line 784
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -849,37 +865,38 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 <image/graph.png, id=389, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 812.
+Package pdftex.def Info: image/graph.png  used on input line 815.
 (pdftex.def)             Requested size: 187.89914pt x 187.89992pt.
 
 
 [27]
 
-Package natbib Warning: Citation `goldsmith_penalized_2011' on page 28 undefine
-d on input line 838.
-
-
-Package natbib Warning: Citation `happ_multivariate_2018' on page 28 undefined 
-on input line 838.
-
-
-
 [28 <./image/graph.png>]
 
-LaTeX Warning: Reference `table ' on page 29 undefined on input line 843.
+Package natbib Warning: Citation `goldsmith_penalized_2011' on page 29 undefine
+d on input line 841.
+
+
+Package natbib Warning: Citation `happ_multivariate_2018' on page 29 undefined 
+on input line 841.
+
+
+LaTeX Warning: Reference `table ' on page 29 undefined on input line 846.
 
 <Screenshot 2025-02-25 125839.png, id=401, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 8
-46.
+49.
 (pdftex.def)             Requested size: 422.77664pt x 177.74849pt.
 
 
 [29 <./Screenshot 2025-02-25 125839.png>]
 
 [30]
-Overfull \hbox (7.0366pt too wide) in paragraph at lines 929--931
+
+[31]
+Overfull \hbox (7.0366pt too wide) in paragraph at lines 932--934
 \OT1/cmr/m/n/12 part of the PLS com-po-nent in terms of the same ba-sis func-ti
 ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12 
 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m
@@ -887,9 +904,7 @@ ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12
  []
 
 
-
-[31]
-Overfull \hbox (1.60547pt too wide) in paragraph at lines 938--939
+Overfull \hbox (1.60547pt too wide) in paragraph at lines 941--942
 \OT1/cmr/m/n/12 put-ing PLS com-po-nent, de-tailed in Sec-tion []4.1.3[], in-co
 r-po-rates reg-u-lar-iza-tion based on second-
  []
@@ -901,7 +916,7 @@ r-po-rates reg-u-lar-iza-tion based on second-
 [33]
 
 [34]
-Overfull \hbox (3.56172pt too wide) detected at line 1076
+Overfull \hbox (3.56172pt too wide) detected at line 1079
 []
  []
 
@@ -914,7 +929,7 @@ Overfull \hbox (3.56172pt too wide) detected at line 1076
 [37]
 
 [38]
-Overfull \hbox (29.18288pt too wide) detected at line 1203
+Overfull \hbox (29.18288pt too wide) detected at line 1206
 []
  []
 
@@ -923,10 +938,10 @@ Overfull \hbox (29.18288pt too wide) detected at line 1203
 [39]
 
 Package natbib Warning: Citation `Hsing2015' on page 40 undefined on input line
- 1229.
+ 1232.
 
 
-Overfull \hbox (13.91545pt too wide) detected at line 1251
+Overfull \hbox (13.91545pt too wide) detected at line 1254
 []
  []
 
@@ -987,7 +1002,7 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (45 pages, 950739 bytes).
+Output written on main.pdf (45 pages, 951637 bytes).
 PDF statistics:
  627 PDF objects out of 1000 (max. 8388607)
  514 compressed objects within 6 object streams
