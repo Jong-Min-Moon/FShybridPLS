@@ -54,7 +54,6 @@
 "0","pls_eig_result <- get_pls_comp(W, y, L)"
 "0","xi_hat_eig <- pls_eig_result$xi_hat"
 "0",""
-"0",""
 "0","xi_hat_lin <- get_xi_hat_linear(W, y)"
 "0",""
 "0","# Wrap into predictor_hybrid object using format template"
@@ -64,11 +63,12 @@
 "0","norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))"
 "0","xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)"
 "0",""
-"0","xi_new <- get_xi_direct(W, y)"
 "0",""
 "0","# --- Step 7: Compare and evaluate ---"
 "0","ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)"
 "0","norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))"
+"0","xi_hat_eig <- scalar_mul.predictor_hybrid(xi_hat_eig,  1 / norm1)"
+"0",""
 "0","norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))"
 "0","cat(""norm 1"", norm1,  ""\n"")"
 "1","norm 1 1.039818 
@@ -82,7 +82,7 @@
 "1","Cosine similarity between eigen-based and direct PLS components: 0.9727659 
 "
 "0","cat(""Projection score (eig):"", sum(inprod.predictor_hybrid(xi_hat_eig, W) * y), ""\n"")"
-"1","Projection score (eig): 243.925 
+"1","Projection score (eig): 234.5842 
 "
 "0","cat(""Projection score (direct):"", sum(inprod.predictor_hybrid(xi_hat_direct, W) * y), ""\n"")"
 "1","Projection score (direct): 241.1519 

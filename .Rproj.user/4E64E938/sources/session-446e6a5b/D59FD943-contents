@@ -1371,7 +1371,7 @@ get_xi_direct <- function(W, y) {
 library(fda)
 
 # --- Step 1: Simulate Data ---
-set.seed(777)
+set.seed(20)
 
 n_sample <- 100
 n_scalar <- 2
@@ -1424,7 +1424,6 @@ W_template <- W  # prevent mutation
 pls_eig_result <- get_pls_comp(W, y, L)
 xi_hat_eig <- pls_eig_result$xi_hat
 
-
 xi_hat_lin <- get_xi_hat_linear(W, y)
 
 # Wrap into predictor_hybrid object using format template
@@ -1434,11 +1433,12 @@ xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_l
 norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
 xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)
 
-xi_new <- get_xi_direct(W, y)
 
 # --- Step 7: Compare and evaluate ---
 ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)
 norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))
+xi_hat_eig <- scalar_mul.predictor_hybrid(xi_hat_eig,  1 / norm1)
+
 norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
 cat("norm 1", norm1,  "\n")
 cat("norm 2", norm2,  "\n")
