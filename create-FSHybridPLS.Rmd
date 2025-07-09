@@ -1371,7 +1371,7 @@ get_xi_direct <- function(W, y) {
 library(fda)
 
 # --- Step 1: Simulate Data ---
-set.seed(777)
+set.seed(2222)
 
 n_sample <- 100
 n_scalar <- 2

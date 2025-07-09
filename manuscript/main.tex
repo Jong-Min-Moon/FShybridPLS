@@ -274,9 +274,18 @@ In \eqref{eq: hybrid inner product},
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}
 In practice, the functional predictors $X^{(1)}, \ldots, X^{(K)}$ are not observed as complete curves, but only through their values at a finite set of time points, which may differ across the $K$ predictors. Thus, each observation is represented by a finite-dimensional vector $X_i^{(k)}(\mathbf{t}_k) \in \mathbb{R}^{|\mathbf{t}_k|}$, where $\mathbf{t}_k \subset \mathcal{T}_k$. The first step in functional data analysis typically involves reconstructing the underlying functional form from these discrete measurements, commonly by assuming that sample paths lie in a finite-dimensional space spanned by basis functions.
 
+Given an orthonormal basis $\{b_l(t)\}$, the functional predictors and the corresponding regression coefficients can be decomposed into
+\begin{align*}
+	X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t), \quad 
+	\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
+\end{align*}
+where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively. While it is possible to use a different basis for each functional predictor, we adopt a common basis system for all predictors for notational simplicity.
+
+
+
 For $k = 1, \ldots, K$, let $\Phi^{(k)}   := \{\phi^{(k)}_1, \ldots, \phi^{(k)}_M\}$, with $M \geq 1$, be an $M$-dimensional basis in $L^2(\mathcal{T}_k)$. In our proposed hybrid PLS regression algorithm, this basis system is used to approximate both the predictors and the PLS components. Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	The number of basis functions $M$ for each functional predictor can be set to a sufficiently large value (e.g., 15 or 20) to incorporate a rich variety of patterns that functional predictors may exhibit. Note that there is no need to carefully choose different $M$ values for different functional predictors, as an appropriate penalization scheme will be introduced in the later section to regularize each functional predictor to achieve a desired smoothness (see Section \ref{sec: Regularization of PLS Components}).
 	
-For $k = 1, \ldots, K$, we project the $k$th functional predictor onto 
+For $k = 1, \ldots, K$, we project the $k$th functional predictor $X_i^{(k)}$ onto 
 $\operatorname{span}(\Phi^{(k)})$:
 \begin{equation*}
 	X_i^{(k)} \approx \sum_{m=1}^M c_{im}^{(k)} \phi_m^{(k)}, \quad i = 1, \ldots, n,
@@ -944,6 +953,34 @@ The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provi
 		\item[--] ``CSI": Cauchy–Schwarz inequality
 	\end{itemize}
 	
+	\subsection{Proof of new Proposition}
+		\begin{align*}
+		\widehat{\textnormal{Cov}} (
+		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y 
+		) 
+		&= 
+		\frac{1}{n} \sum \limits_{i=1}^n 
+		y_i
+		\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_\mathcal{H} \\
+		&= 
+		\frac{1}{n} 
+		\sum \limits_{i=1}^n
+		y_i
+		\langle \widetilde{X_i}, \psi \rangle_\mathcal{F}  
+		+  
+		\frac{1}{n} 
+		\sum \limits_{i=1}^n  
+		y_i
+		\langle \mathbf{Z}_i, 
+		\boldsymbol{\theta} 
+		\rangle 
+		\\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
+	\end{align*}	
 	\subsection{Proof of Propositions \ref{Proposition: generalized rayleigh quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
 	%
 	%
