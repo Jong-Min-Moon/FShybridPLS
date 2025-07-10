@@ -281,7 +281,7 @@
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
-	Given an orthonormal basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
+	Given a basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
 	\begin{equation*}
 		X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t), \quad 
 		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
@@ -300,7 +300,7 @@
 		X_{i1}, \ldots, X_{iK}, \boldsymbol{Z}_i
 		).
 	\end{equation*}
-	We adopt the following notion for the coefficients:
+	We adopt the following notation for the coefficients:
 	\begin{equation}
 		\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top \in \mathbb{R}^M,
 		\quad
@@ -337,11 +337,16 @@
 	\end{equation}
 	where $\hat{\boldsymbol{\zeta}} \in \mathbb{R}^p$ is the scalar part, and each functional part $\hat{\xi}_j \in L^2([0,1])$ lies in $\operatorname{span}(b_1(t), \ldots, b_M(t))$ and is expressed as
 	\begin{equation*}
-		\hat{\xi}_j(t) = 
+		\hat{\xi}_j(t) := 
 		\sum_{l=1}^M d_{jl} \, b_l(t), \quad j = 1, \ldots, K.
 	\end{equation*}
 	
-	Let $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$ and $\mathbf{y} := (y_1, \ldots, y_n)^\top$. We compute $\mathbf{d}_1, \ldots, \mathbf{d}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
+	Let $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$ and $\mathbf{y} := (y_1, \ldots, y_n)^\top$. 
+	Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions, with entries
+	\[
+	B_{l, l'} := \langle b_l, b_{l'} \rangle_{L^2([0,1])}, \quad l, l' = 1, \ldots, M.
+	\]
+	We compute $\mathbf{d}_1, \ldots, \mathbf{d}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
 	First, we obtain the unnormalized coefficient vectors. For each $j$, the unnormalized vector $\bar{\mathbf{d}}_j$ is computed by solving
 	\begin{equation*}
 		B \bar{\mathbf{d}}_j = (\Theta_j B)^\top \mathbf{y},

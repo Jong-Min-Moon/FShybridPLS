@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 17:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 17:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -733,7 +733,7 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
 [8]
 
 [9]
-Overfull \hbox (26.815pt too wide) in paragraph at lines 339--341
+Overfull \hbox (26.815pt too wide) in paragraph at lines 337--339
 \OT1/cmr/m/n/12 where $[] \OMS/cmsy/m/n/12 2 \U/bbold/m/n/12 R[]$ \OT1/cmr/m/n/
 12 is the scalar part, and each func-tional part $[] \OMS/cmsy/m/n/12 2 \OML/cm
 m/m/it/12 L[]\OT1/cmr/m/n/12 ([0\OML/cmm/m/it/12 ; \OT1/cmr/m/n/12 1])$ lies in
@@ -769,7 +769,9 @@ ML/cmm/m/it/12 ; [] ; b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ))$
 [21]
 
 [22]
-Overfull \hbox (12.39862pt too wide) detected at line 702
+
+[23]
+Overfull \hbox (12.39862pt too wide) detected at line 705
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -778,36 +780,35 @@ OMS/cmsy/m/n/12 j ^^@ [] [] j\OT1/cmr/bx/n/12 R\OMS/cmsy/m/n/12 j ^^@ [][] [] \
 OML/cmm/m/it/12 :
  []
 
-
-
-[23]
 <image/cor_strong.pdf, id=382, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 718.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 721.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
 <image/cor_weak.pdf, id=383, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 725.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 728.
 (pdftex.def)             Requested size: 211.38832pt x 197.02171pt.
 <image/graph_strong.pdf, id=384, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 734.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 737.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
 <image/graph_weak.pdf, id=385, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 741.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 744.
 (pdftex.def)             Requested size: 211.38832pt x 211.38834pt.
 
 
-[24 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
+[24{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+
+[25 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
 
-[25{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-Overfull \hbox (33.94724pt too wide) detected at line 795
+[26]
+Overfull \hbox (33.94724pt too wide) detected at line 798
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -819,36 +820,34 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 
 
 
-[26]
-<image/graph.png, id=434, 447.3513pt x 447.3513pt>
+[27]
+<image/graph.png, id=438, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 826.
+Package pdftex.def Info: image/graph.png  used on input line 829.
 (pdftex.def)             Requested size: 187.89914pt x 187.89992pt.
 
 
-[27]
-
 [28 <./image/graph.png>]
 
-LaTeX Warning: Reference `table ' on page 29 undefined on input line 857.
+LaTeX Warning: Reference `table ' on page 29 undefined on input line 860.
 
 <Screenshot 2025-02-25 125839.png, id=450, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 8
-60.
+63.
 (pdftex.def)             Requested size: 422.77664pt x 177.74849pt.
 
 
-[29 <./Screenshot 2025-02-25 125839.png>] (./main.bbl
+[29]
 
-[30]
+[30 <./Screenshot 2025-02-25 125839.png>] (./main.bbl
 
 [31])
 
 [32]
-Overfull \hbox (7.0366pt too wide) in paragraph at lines 945--947
+Overfull \hbox (7.0366pt too wide) in paragraph at lines 948--950
 \OT1/cmr/m/n/12 part of the PLS com-po-nent in terms of the same ba-sis func-ti
 ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12 
 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m
@@ -858,7 +857,7 @@ ons: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/m/n/12
 
 
 [33]
-Overfull \hbox (1.60547pt too wide) in paragraph at lines 954--955
+Overfull \hbox (1.60547pt too wide) in paragraph at lines 957--958
 \OT1/cmr/m/n/12 put-ing PLS com-po-nent, de-tailed in Sec-tion []4.1.3[], in-co
 r-po-rates reg-u-lar-iza-tion based on second-
  []
@@ -870,7 +869,7 @@ r-po-rates reg-u-lar-iza-tion based on second-
 [35]
 
 [36]
-Overfull \hbox (3.56172pt too wide) detected at line 1092
+Overfull \hbox (3.56172pt too wide) detected at line 1095
 []
  []
 
@@ -883,14 +882,14 @@ Overfull \hbox (3.56172pt too wide) detected at line 1092
 [39]
 
 [40]
-Overfull \hbox (29.18288pt too wide) detected at line 1219
+Overfull \hbox (29.18288pt too wide) detected at line 1222
 []
  []
 
 
 
 [41]
-Overfull \hbox (13.91545pt too wide) detected at line 1267
+Overfull \hbox (13.91545pt too wide) detected at line 1270
 []
  []
 
@@ -947,7 +946,7 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (47 pages, 958233 bytes).
+Output written on main.pdf (47 pages, 958068 bytes).
 PDF statistics:
  693 PDF objects out of 1000 (max. 8388607)
  578 compressed objects within 6 object streams
