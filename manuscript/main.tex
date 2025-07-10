@@ -338,42 +338,42 @@
 	where $\hat{\boldsymbol{\zeta}} \in \mathbb{R}^p$ is the scalar part, and each functional part $\hat{\xi}_j \in L^2([0,1])$ lies in $\operatorname{span}(b_1(t), \ldots, b_M(t))$ and is expressed as
 	\begin{equation*}
 		\hat{\xi}_j(t) := 
-		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K.
+		\sum_{m=1}^M \hat{d}_{jm} \, b_m(t), \quad j = 1, \ldots, K.
 	\end{equation*}
 	
-	Let $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$ and $\mathbf{y} := (y_1, \ldots, y_n)^\top$. 
+	Let $\hat{\mathbf{d}}_j := (\hat{d}_{j1}, \ldots, \hat{d}_{jM})^\top \in \mathbb{R}^M$ and $\mathbf{y} := (y_1, \ldots, y_n)^\top$. 
 	Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions, with entries
 	\[
 	B_{m, m'} := \langle b_m, b_{m'} \rangle, \quad m, m' = 1, \ldots, M.
 	\]
-	We compute $\mathbf{d}_1, \ldots, \mathbf{d}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
-	First, we obtain the unnormalized coefficient vectors. For each $j$, the unnormalized vector $\bar{\mathbf{d}}_j$ is computed by solving
+	We compute $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
+	First, we obtain the unnormalized coefficient vectors. For each $j$, the unnormalized vector $\hat{\mathbf{d}}_j'$ is computed by solving a linear equation:
 	\begin{equation*}
-		B \bar{\mathbf{d}}_j = (\Theta_j B)^\top \mathbf{y},
+		B \hat{\mathbf{d}}_j' = (\Theta_j B)^\top \mathbf{y},
 	\end{equation*}
 	The unnormalized scalar component is given by
 	\begin{equation}
-		\bar{\boldsymbol{\zeta}} := Z^\top \mathbf{y}.
+		\hat{ \boldsymbol{\zeta} }' := Z^\top \mathbf{y}.
 	\end{equation}
 	Next, we normalize all components with respect to the hybrid Hilbert norm (see Definition~\ref{def:hilbert_space}) to ensure $\hat{\xi}$ has unit length. Specifically, we define
 	\begin{equation}\label{def:computed_PLS_direction}
-		\mathbf{d}_j := 
+		\hat{ \mathbf{d}}_j := 
 		\frac{1}{
 			\left(
-			\sum_{j=1}^K \bar{\mathbf{d}}_j^\top B \bar{\mathbf{d}}_j +
-			\bar{\boldsymbol{\zeta}}^\top \bar{\boldsymbol{\zeta}}
+			\sum_{j=1}^K \hat{\mathbf{d}}_j'^\top B \hat{\mathbf{d}}_j' +
+		(\hat{ \boldsymbol{\zeta} }')^\top \hat{ \boldsymbol{\zeta} }'
 			\right)^{1/2}
-		} \bar{\mathbf{d}}_j, \quad j = 1, \ldots, K,
+		} \hat{\mathbf{d}}_j', \quad j = 1, \ldots, K,
 	\end{equation}
 	and
 	\begin{equation}
 		\hat{\boldsymbol{\zeta}} :=
 		\frac{1}{
 			\left(
-			\sum_{j=1}^K \bar{\mathbf{d}}_j^\top B \bar{\mathbf{d}}_j +
-			\bar{\boldsymbol{\zeta}}^\top \bar{\boldsymbol{\zeta}}
+			\sum_{j=1}^K \hat{\mathbf{d}}_j'^\top B \hat{\mathbf{d}}_j' +
+		(\hat{ \boldsymbol{\zeta} }')^\top \hat{ \boldsymbol{\zeta} }'
 			\right)^{1/2}
-		} \bar{\boldsymbol{\zeta}}.
+		} 	\hat{ \boldsymbol{\zeta} }'.
 	\end{equation}
 	Details of the hybrid norm computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
 	
@@ -1062,6 +1062,56 @@ B
 Z \boldsymbol{\zeta} 
 \biggr).
 	\end{align*}	
+	
+The squared hybrid Hilbert norm $\langle {\xi},{\xi} \rangle_{\mathcal{H}}$ 
+is computed as follows:
+\begin{align*}
+\langle {\xi},{\xi} \rangle_{\mathcal{H}}
+&=
+\sum_{j=1}^K
+\langle
+\xi_j, \xi_j
+\rangle
++
+\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+\sum \limits_{k=1}^K \int_0^1
+\biggl(
+\sum_{m=1}^M d_{jm'} b_{m}(t) 
+\biggr) 
+\biggl(
+\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
+\biggr) 
+dt
++
+\boldsymbol{\zeta}^\top \boldsymbol{\zeta}  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+aaaaa
+\end{align*}
+admits the following matrix representation:
+	\[
+	\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} = \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta}.
+	\]
+
+
+
+	By the definition of the inner product on $\mathcal{H} = \mathbb{R}^{KM} \times \mathbb{R}^p$, we have
+	\[
+	\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} = \sum_{j=1}^K \langle \xi_j, \xi_j \rangle_{L^2([0,1])} + \|\boldsymbol{\zeta}\|^2.
+	\]
+	Since $\xi_j(t) = \sum_{m=1}^M d_{jm} b_m(t)$, it follows that
+	\[
+	\langle \xi_j, \xi_j \rangle_{L^2([0,1])} 
+	= \int_0^1 \left( \sum_{m=1}^M d_{jm} b_m(t) \right)^2 dt 
+	= \mathbf{d}_j^\top B \mathbf{d}_j,
+	\]
+	where $B$ is the Gram matrix of the basis. Substituting this into the definition yields
+	\[
+	\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} = \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta}.
+	\]
+
 		\jongmin{
 		Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
 		\begin{align*}
