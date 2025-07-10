@@ -111,7 +111,7 @@
 		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
 	\end{remark} 
 	
-	Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2(\mathcal{T}_K)$---a cartesian product of individual $L^2(\mathcal{T}_k)$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times \mathcal{T}_K$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
+	Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2([0,1])$---a cartesian product of individual $L^2([0,1])$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times [0,1]$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
 	
 	Let $\mathbf{Z}=(Z_1, \ldots, Z_p)^\top$ denote a $p$-dimensional multivariate scalar data  in $\mathbb{R}^p$. We assume that $\mathbf{Z}$ is a random vector with finite first two moments and equipped with the Euclidean inner product and norm; i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
 	
@@ -119,7 +119,7 @@
 	Without loss of generality, assume that both multivariate functional and scalar data are centered; that is, $E(X)=0$ and $E(\mathbf{Z})=\mathbf{0}$. Our goal is to predict a real outcome $Y$ based on $X$ and $\mathbf{Z}$ via the following functional regression model:
 	
 	\begin{equation}
-		Y = \sum \limits_{r=1}^p \alpha_r Z_r + \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \beta^{(k)}(t_k) X^{(k)}(t_k) dt_k + \epsilon = \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
+		Y = \sum \limits_{r=1}^p \alpha_r Z_r + \sum \limits_{k=1}^K \int_0^1 \beta^{(k)}(t_k) X^{(k)}(t_k) dt_k + \epsilon = \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
 		\label{eq: functional model}
 	\end{equation}
 	where $\boldsymbol{\alpha}=(\alpha_1, \ldots, \alpha_p)^\top \in \mathbb{R}^p$ and $\beta=(\beta^{(1)}, \ldots, \beta^{(K)}) \in \mathcal{F}$ are respectively the regression coefficient vector and function that characterize the effect of scalar and functional predictors on the outcome.
@@ -141,7 +141,7 @@
 			:= 
 			\langle f_1, f_2\rangle_\mathcal{F} 
 			+
-			\omega \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k
+			\omega \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k
 			+
 			\omega \sum \limits_{r=1}^p v_{1r}v_{2r}, 
 			\label{eq: hybrid inner product}
@@ -162,7 +162,7 @@
 		\mathbf{W}[\mathbf{t}] = \sum \limits_{l=1}^{\infty} \rho_{l} \boldsymbol{\delta}_l[\mathbf{t}] \quad \textnormal{and} \quad Y = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon,
 		\label{eq: decomposition}
 	\end{equation}
-	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases. The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \boldsymbol{\xi}_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\boldsymbol{\xi}_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \boldsymbol{\xi}_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\boldsymbol{\xi}_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \boldsymbol{\xi}_l, \boldsymbol{\xi}_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
+	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases. The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \xi_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\xi_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \xi_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\xi_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \xi_l, \xi_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
 	
 	
 	
@@ -208,7 +208,7 @@
 			\For{ $\mathbf{t} = \mathbf{t}_1 , \ldots  \mathbf{t}_m$} \Comment{Compute PLS loading}
 			\State 
 			$
-			\widehat{\boldsymbol{\xi}}_{l}[\mathbf{t}] 
+			\widehat{\xi}_{l}[\mathbf{t}] 
 			\leftarrow 
 			\dfrac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}[\mathbf{t}]}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}
 			$
@@ -216,9 +216,9 @@
 			\EndFor
 			\State $  \{ \widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl} \} \leftarrow
 			\bigl\{
-			\langle \mathbf{W}_{1}^{[l]}, \widehat{\boldsymbol{\xi}}_{l} \rangle_{\mathcal{H}},
+			\langle \mathbf{W}_{1}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}},
 			\ldots,
-			\langle \mathbf{W}_{n}^{[l]}, \widehat{\boldsymbol{\xi}}_{l} \rangle_{\mathcal{H}}
+			\langle \mathbf{W}_{n}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}}
 			\bigr\}
 			$
 			\Comment{Compute PLS scores \eqref{def:pls_score_naive}}
@@ -244,11 +244,11 @@
 		\item
 		We compute the $l$th PLS score of the $i$th subject as
 		\begin{equation}\label{def:pls_score_naive}
-			\widehat{\rho}_{il} = \langle \mathbf{W}_{i}^{[l]}, \widehat{\boldsymbol{\xi}}_{l} \rangle_{\mathcal{H}} = \langle X_i^{[l]}, \widehat{\psi}_{l} \rangle_{\mathcal{F}} + \langle \mathbf{Z}_i^{[l]}, \widehat{\boldsymbol{\theta}}_{l} \rangle, 
+			\widehat{\rho}_{il} = \langle \mathbf{W}_{i}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}} = \langle X_i^{[l]}, \widehat{\psi}_{l} \rangle_{\mathcal{F}} + \langle \mathbf{Z}_i^{[l]}, \widehat{\boldsymbol{\theta}}_{l} \rangle, 
 		\end{equation}
-		where the $l$-th PLS loading $\widehat{\boldsymbol{\xi}}_{l} = (\widehat{\psi}_{l}, \widehat{\boldsymbol{\theta}}_{l}) \in \mathcal{H}$ maximizes $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}_{i}^{[l]}, \widehat{\boldsymbol{\xi}}_{l} \rangle_{\mathcal{H}}, Y_i^{[l]})=\widehat{\textnormal{Cov}}^2(\widehat{\rho_{il}}, Y_i^{[l]})$. Specifically, we define the $l$-th PLS loadings pointwise as follows:
+		where the $l$-th PLS loading $\widehat{\xi}_{l} = (\widehat{\psi}_{l}, \widehat{\boldsymbol{\theta}}_{l}) \in \mathcal{H}$ maximizes $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}_{i}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}}, Y_i^{[l]})=\widehat{\textnormal{Cov}}^2(\widehat{\rho_{il}}, Y_i^{[l]})$. Specifically, we define the $l$-th PLS loadings pointwise as follows:
 		\begin{equation}\label{def:pls_loading_ptws}
-			\widehat{\boldsymbol{\xi}}_{l}[\mathbf{t}] = \frac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}[\mathbf{t}]}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} = \left[ \frac{\sum_{i=1}^n Y_i^{[l]} X_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}, \frac{\sum_{i=1}^n Y_i^{[l]}\mathbf{Z}_i^{[l]}}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} \right]^\top,
+			\widehat{\xi}_{l}[\mathbf{t}] = \frac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}[\mathbf{t}]}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} = \left[ \frac{\sum_{i=1}^n Y_i^{[l]} X_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}, \frac{\sum_{i=1}^n Y_i^{[l]}\mathbf{Z}_i^{[l]}}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} \right]^\top,
 		\end{equation}
 		where the normalizing factor  is computed as
 		\begin{equation}
@@ -277,7 +277,7 @@
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{subsec: Step 1: Computing Smoothed PLS components} and~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{subsec: Obtaining the Estimated Hybrid Regression Coefficient}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
 	\subsection{Step 1: Computing smoothed PLS components}  \label{subsec: Step 1: Computing Smoothed PLS components}
-	The function part $\psi$ of the hybrid PLS component $\boldsymbol{\xi}$ is inherently infinite-dimensional, rendering its estimation impossible with finite sample size. As such, we first approximate each functional predictor (observed version when $l=1$, or residualized version when $l \ge 2$) as a linear combination of $M$ basis functions and coefficients. 
+	The function part $\psi$ of the hybrid PLS component $\xi$ is inherently infinite-dimensional, rendering its estimation impossible with finite sample size. As such, we first approximate each functional predictor (observed version when $l=1$, or residualized version when $l \ge 2$) as a linear combination of $M$ basis functions and coefficients. 
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
@@ -318,7 +318,7 @@
 	
 	
 	
-	Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	T
+	Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
 	
 	
 	
@@ -328,23 +328,23 @@
 	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS component direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply solving a linear equation.
 	We now describe the strategy for computing the PLS component direction at the $l$-th iteration. For simplicity, we omit the iteration index and assume that the observations have been residualized and are orthogonal to those from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for the residualization procedure).
 	
-	The goal is to find a unit-norm direction $\boldsymbol{\xi} \in \mathcal{H}$, whose functional components lie in $\operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr)$, that maximizes the empirical covariance between the resulting PLS component scores $\langle \widetilde{W}_1, \boldsymbol{\xi} \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$.
+	The goal is to find a unit-norm direction $\xi \in \mathcal{H}$, whose functional components lie in $\operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr)$, that maximizes the empirical covariance between the resulting PLS component scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$.
 	We denote the solution as
 	\begin{equation}
-		\hat{\boldsymbol{\xi}} 
+		\hat{\xi} 
 		= 
 		(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}}),
 	\end{equation}
 	where $\hat{\boldsymbol{\zeta}} \in \mathbb{R}^p$ is the scalar part, and each functional part $\hat{\xi}_j \in L^2([0,1])$ lies in $\operatorname{span}(b_1(t), \ldots, b_M(t))$ and is expressed as
 	\begin{equation*}
 		\hat{\xi}_j(t) := 
-		\sum_{l=1}^M d_{jl} \, b_l(t), \quad j = 1, \ldots, K.
+		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K.
 	\end{equation*}
 	
 	Let $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$ and $\mathbf{y} := (y_1, \ldots, y_n)^\top$. 
 	Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions, with entries
 	\[
-	B_{l, l'} := \langle b_l, b_{l'} \rangle_{L^2([0,1])}, \quad l, l' = 1, \ldots, M.
+	B_{m, m'} := \langle b_m, b_{m'} \rangle, \quad m, m' = 1, \ldots, M.
 	\]
 	We compute $\mathbf{d}_1, \ldots, \mathbf{d}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
 	First, we obtain the unnormalized coefficient vectors. For each $j$, the unnormalized vector $\bar{\mathbf{d}}_j$ is computed by solving
@@ -355,7 +355,7 @@
 	\begin{equation}
 		\bar{\boldsymbol{\zeta}} := Z^\top \mathbf{y}.
 	\end{equation}
-	Next, we normalize all components with respect to the hybrid Hilbert norm (see Definition~\ref{def:hilbert_space}) to ensure $\hat{\boldsymbol{\xi}}$ has unit length. Specifically, we define
+	Next, we normalize all components with respect to the hybrid Hilbert norm (see Definition~\ref{def:hilbert_space}) to ensure $\hat{\xi}$ has unit length. Specifically, we define
 	\begin{equation}\label{def:computed_PLS_direction}
 		\mathbf{d}_j := 
 		\frac{1}{
@@ -375,32 +375,19 @@
 			\right)^{1/2}
 		} \bar{\boldsymbol{\zeta}}.
 	\end{equation}
-	
 	Details of the hybrid norm computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
 	
-	Finally, the estimated $l$th PLS scores for the $n$ observations,
-	denoted $\hat{\boldsymbol{\rho}} \in \mathbb{R}^n$
+The estimated $l$th PLS component score for the $i$th observations,
+	denoted $\hat{\rho}_i$
 	is computed via hybrid inner product. In a matrix multiplication form, it is computed as:
 	\begin{align*}
-		\hat{\boldsymbol{\rho}}
+	\hat{\rho}_i
 		&:=
-		\biggl(
-		\langle \widetilde{\mathbf{W}}_1, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}},
-		\ldots,
-		\langle \widetilde{\mathbf{W}}_n, \hat{\boldsymbol{\xi}} \rangle_{\mathcal{H}}
-		\biggr)^\top
-		\\&	=
-		\frac{1}{
-			\bigl(
-			\mathbf{d}^\top \mathbf{d} + 
-			\sum_{k=1}^K (\mathbf{d}^{(k)})^\top  \boldsymbol{\Phi}^{(K)}  \mathbf{d}^{(k)} 
-			\bigr)^{1/2}
-		}
-		\biggl(
-		\mathbf{Z} \mathbf{d}
+		\langle \widetilde{\mathbf{W}}_i, \hat{\xi} \rangle_{\mathcal{H}}
+		=
+		\sum_{j=1}^K \Theta_j B  \mathbf{d}_j
 		+
-		\sum_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \boldsymbol{\Phi}^{(k)} \mathbf{d}^{(k)}
-		\biggr)
+			Z \hat{\boldsymbol{\zeta}} 
 		. 
 	\end{align*}
 	The details of this computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
@@ -409,19 +396,19 @@
 	
 	%	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 	\begin{proposition} \label{Proposition: generalized rayleigh quotient}
-		Let $\boldsymbol{\xi} \in \mathcal{H}$ be any unit-norm direction such that its $1$st through $K$th functional components lie in $\operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr)$, respectively.
-		Then, the empirical covariance between the projected component $\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}$ and the response $Y$, approximated in terms of the basis, is given by
+		Let $\xi \in \mathcal{H}$ be any unit-norm direction such that its $1$st through $K$th functional components lie in $\operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr)$, respectively.
+		Then, the empirical covariance between the projected component $\langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}$ and the response $Y$, approximated in terms of the basis, is given by
 		\begin{equation*}
-			\widehat{\textnormal{Cov}} \left( \langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y \right)
+			\widehat{\textnormal{Cov}} \left( \langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y \right)
 			:=
 			\frac{1}{n} 
 			\sum_{i=1}^n
 			y_i
-			\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_{\mathcal{H}}.
+			\langle \widetilde{\mathbf{W}}_i, \xi \rangle_{\mathcal{H}}.
 		\end{equation*}
 		Then the PLS component direction 
-		$	\hat{\boldsymbol{\xi}}$ 
-		computed in \eqref{def:computed_PLS_direction} maximizes $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$.
+		$	\hat{\xi}$ 
+		computed in \eqref{def:computed_PLS_direction} maximizes $\widehat{\textnormal{Cov}} (\langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y )$.
 	\end{proposition}
 	
 	
@@ -431,14 +418,14 @@
 	
 	
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
-	Although Proposition \ref{Proposition: generalized rayleigh quotient} provides an efficient and principled way to compute the PLS components $\boldsymbol{\xi}$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{Proposition: generalized rayleigh quotient} that yields regularized (smoothed) PLS components.
+	Although Proposition \ref{Proposition: generalized rayleigh quotient} provides an efficient and principled way to compute the PLS components $\xi$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{Proposition: generalized rayleigh quotient} that yields regularized (smoothed) PLS components.
 	
 	
 	
 	A widely-used approach to smoothing a function $\psi^{(k)}$ is to penalize its roughness that can be quantified by the integrated squared second derivative:
 	\begin{equation}
 		\textnormal{PEN} \left(\psi^{(k)} \right) 
-		=  \int_{\mathcal{T}_k} \ddot{\psi}^{(k)}(t)^2 dt = \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)},
+		=  \int_0^1 \ddot{\psi}^{(k)}(t)^2 dt = \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)},
 		\label{eq: roughness penalty}
 	\end{equation}
 	where the last term is obtained using the basis expansion $\psi^{(k)}(t)=\mathbf{a}^{(k)T}\mathbf{b}^{(k)}(t)$.
@@ -446,14 +433,14 @@
 	
 	
 	
-	Now, maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)$ is not the only aim; we also want to prevent the roughness of each $\psi^{(k)}$---that is, $\textnormal{PEN}(\psi^{(k)})$---from being too large. One possible way to achieve this is to extend \citet{Rice1991}'s approach of obtaining smoothed functional PCA components, and find $\boldsymbol{\xi}^*$ that maximizes:
+	Now, maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ is not the only aim; we also want to prevent the roughness of each $\psi^{(k)}$---that is, $\textnormal{PEN}(\psi^{(k)})$---from being too large. One possible way to achieve this is to extend \citet{Rice1991}'s approach of obtaining smoothed functional PCA components, and find $\xi^*$ that maximizes:
 	\begin{equation}
-		\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right) - \sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right),
+		\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right) - \sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right),
 		\label{eq: penalized squred variance}
 	\end{equation}
-	subject to $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$. The equation \eqref{eq: penalized squred variance} quantifies the trade-off between fidelity to the data (in this case the sample covariance between the $\rho=\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}$ and $Y$ in the direction of $\boldsymbol{\xi}$) and roughness as measured by the sum of the individual penalty terms in \eqref{eq: roughness penalty}. The smoothing parameters $\{\lambda_k\}_{k=1}^K$ control the relative importance between the two objectives. Note that the penalty term can be written concisely using matrices as:
+	subject to $\xi^{*\top} J^\ast \xi^*=1$. The equation \eqref{eq: penalized squred variance} quantifies the trade-off between fidelity to the data (in this case the sample covariance between the $\rho=\langle \mathbf{W}, \xi \rangle_\mathcal{H}$ and $Y$ in the direction of $\xi$) and roughness as measured by the sum of the individual penalty terms in \eqref{eq: roughness penalty}. The smoothing parameters $\{\lambda_k\}_{k=1}^K$ control the relative importance between the two objectives. Note that the penalty term can be written concisely using matrices as:
 	\begin{equation*}
-		\sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right) = \sum \limits_{k=1}^K \lambda_k \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)} = \boldsymbol{\xi}^{* \top} \Lambda \ddot{J}^\ast \boldsymbol{\xi}^*,
+		\sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right) = \sum \limits_{k=1}^K \lambda_k \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)} = \xi^{* \top} \Lambda \ddot{J}^\ast \xi^*,
 	\end{equation*}
 	where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
 	\begin{equation}\label{def:Lambda}
@@ -462,7 +449,7 @@
 	$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
 	
 	
-	In this paper, we take an alternative strategy that extends the idea of \citet{Silverman1996}. This approach is known to produce appropriately smoothed functional PCA components under milder conditions than the \citet{Rice1991}'s approach by replacing the usual $L^2$-orthonormality constraint with the one that takes account the roughness of functions via the modified inner product. Specifically, the following proposition provides a generalized Rayleigh quotient problem which modifies the $\mathcal{H}$-orthonormality constraint of the hybrid PLS components to incorporate roughness penalty, and thus whose solution corresponds to a smoothed PLS component maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness.
+	In this paper, we take an alternative strategy that extends the idea of \citet{Silverman1996}. This approach is known to produce appropriately smoothed functional PCA components under milder conditions than the \citet{Rice1991}'s approach by replacing the usual $L^2$-orthonormality constraint with the one that takes account the roughness of functions via the modified inner product. Specifically, the following proposition provides a generalized Rayleigh quotient problem which modifies the $\mathcal{H}$-orthonormality constraint of the hybrid PLS components to incorporate roughness penalty, and thus whose solution corresponds to a smoothed PLS component maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness.
 	\begin{proposition} \label{Proposition: Regularized generalized rayleigh quotient}
 		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
 		\begin{equation*}
@@ -472,32 +459,32 @@
 			\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
 			\in \mathbb{R}^{(MK+p) \times (MK+p)}.
 		\end{equation*}
-		and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th smoothed PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained in the following way.
+		and  $\xi^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th smoothed PLS component, $\widehat{\xi} \equiv \widehat{\xi}_l$ can be obtained in the following way.
 		We first compute the basis coefficients by solving the optimization problem
 		\begin{align}
 			\begin{split}
-				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*} , \quad \textit{or equivalently}, \\ 
-				&\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1.
+				&\argmax \limits_{\xi^* \in \mathbb{R}^{MK+p}} \; \frac{\xi^{*\top} \mathbf{V}^\ast \xi^*}{\xi^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \xi^*} , \quad \textit{or equivalently}, \\ 
+				&\argmax \limits_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1.
 				\label{eq: Regularized generalized rayleigh quotient equation}
 			\end{split}
 		\end{align}
 		We then express the smoothed component in terms of the basis functions as
 		\begin{equation*}
-			\widehat{\boldsymbol{\xi}}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  B^\ast[\mathbf{t}]^\top \widehat{\boldsymbol{\xi}}^\ast.   
+			\widehat{\xi}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  B^\ast[\mathbf{t}]^\top \widehat{\xi}^\ast.   
 		\end{equation*}
 		The $l$-th PLS score $\widehat{\rho}_{i} \equiv \widehat{\rho}_{il}$ can be obtained as 
 		\begin{equation}\label{compute_pls_score}
-			\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}
+			\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\xi} \rangle_\mathcal{H}
 		\end{equation}
 	\end{proposition}
 	The proof of Proposition \ref{Proposition: Regularized generalized rayleigh quotient} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{Proposition: generalized rayleigh quotient} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
-	The constraint $\boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\boldsymbol{\xi}}_1, \widehat{\boldsymbol{\xi}}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
+	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
 	\begin{align*}
-		\langle \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle \rangle 
-		&= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
-		&= \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_{\mathcal{T}_k} \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
+		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
+		&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
+		&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
 		& = \mathbb{1}(l=j). 
 	\end{align*}
 	This modified orthonormality condition is one of the main geometric properties of the proposed PLS algorithm and is formally stated with proof in Section \ref{sec: Properties of the Proposed PLS Framework} (see Proposition \ref{proposition: modified orthnormality of PLS components}), along with other properties. 
@@ -507,7 +494,7 @@
 	\begin{equation*}
 		\max \limits_{\mathbf{e} \in \mathbb{R}^{MK + p}} \, \frac{\mathbf{e}^\top E \mathbf{e}}{\mathbf{e}^\top \mathbf{e}} \; \Longleftrightarrow \;   \max \limits_{\substack{\mathbf{e} \in \mathbb{R}^{MK+p}}} \;  \mathbf{e}^\top E \mathbf{e} \quad \textnormal{subject to} \quad \Vert \mathbf{e} \Vert^2 = 1
 	\end{equation*}
-	through the transformations $\mathbf{e} = L^\top \boldsymbol{\xi}^*$ and $E = L^{-1} \mathbf{V}^\ast L^{\top-1}$. Once $\mathbf{e}$ is obtained as the first eigenvector of $E$, we set $\boldsymbol{\xi}^* = L^{\top-1} \mathbf{e}$ and $\widehat{\boldsymbol{\xi}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \boldsymbol{\xi}^*$.
+	through the transformations $\mathbf{e} = L^\top \xi^*$ and $E = L^{-1} \mathbf{V}^\ast L^{\top-1}$. Once $\mathbf{e}$ is obtained as the first eigenvector of $E$, we set $\xi^* = L^{\top-1} \mathbf{e}$ and $\widehat{\xi}[\mathbf{t}] = B^*[\mathbf{t}]^\top \xi^*$.
 	
 	
 	
@@ -550,9 +537,9 @@
 	
 	\subsection{Obtaining the Estimated Hybrid Regression Coefficient}
 	\label{subsec: Obtaining the Estimated Hybrid Regression Coefficient}
-	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\boldsymbol{\xi}}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\boldsymbol{\xi}}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\boldsymbol{\xi}}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\boldsymbol{\xi}}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
+	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
 	\begin{equation*}
-		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\boldsymbol{\xi}}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathcal{H}+\epsilon_i,
+		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathcal{H}+\epsilon_i,
 	\end{equation*}
 	which, given the uniqueness of $\boldsymbol{\eta}$, leads to
 	\begin{equation*}
@@ -582,12 +569,12 @@
 			\For{ l = 1, 2, \ldots  $T$}
 			\State $\mathbf{V}^\ast \leftarrow n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast$
 			\Comment{ \eqref{def:V_star}}
-			\State 	$\widehat{\boldsymbol{\xi}}_l^\ast \leftarrow \argmax_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \boldsymbol{\xi}^*=1
+			\State 	$\widehat{\xi}_l^\ast \leftarrow \argmax_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1
 			$
 			\Comment{ \eqref{eq: Regularized generalized rayleigh quotient equation}} 
 			\State $\widehat{\boldsymbol{\rho}}_l
 			\leftarrow 
-			\widetilde{C}^* J^\ast  \widehat{\boldsymbol{\xi}}_l^\ast
+			\widetilde{C}^* J^\ast  \widehat{\xi}_l^\ast
 			$
 			\Comment{$\in \mathbb{R}^n$; \eqref{compute_pls_score}}
 			\EndFor
@@ -623,7 +610,7 @@
 	\end{equation*}
 	We also introduce two cross-covariance operators, $\mathcal{C}_{YW}=E(\mathbf{W} \otimes_\mathcal{H} Y): \mathcal{H} \rightarrow \mathbb{R}$ and $\mathcal{C}_{WY}=E(Y \otimes \mathbf{W}): \mathbb{R} \rightarrow \mathcal{H}$, which respectively map $h=(f, \mathbf{v}) \in \mathcal{H}$ to $\mathbb{R}$ and $d \in \mathbb{R}$ to $\mathcal{H}$ as follows:
 	\begin{align*}
-		& \mathcal{C}_{YW} \mathbf{h} = E\{\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y \} = \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \sigma_{YX}^{(k)}(t_k) f^{(k)}(t_k) dt_k + E(Y \mathbf{Z}^\top) \mathbf{v} \\
+		& \mathcal{C}_{YW} \mathbf{h} = E\{\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y \} = \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)}(t_k) f^{(k)}(t_k) dt_k + E(Y \mathbf{Z}^\top) \mathbf{v} \\
 		& \mathcal{C}_{WY} d = E (\langle Y, d \rangle \mathbf{W} ) = E(Y\mathbf{W})d =  \Sigma_{YW} \, d. 
 	\end{align*}
 	
@@ -638,28 +625,28 @@
 	\begin{proposition} \label{Proposition: property of U}
 		The operator $\mathcal{U} = \mathcal{C}_{WY} \circ \mathcal{C}_{YW}= \Sigma_{YW} \otimes \Sigma_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ is positive and self-adjoint. Furthermore, if there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}
-			\max \limits_{k=1, \ldots, K} \sup \limits_{t_k \in \mathcal{T}_k} \sigma_{YX}^{(k)2}(t_k) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+			\max \limits_{k=1, \ldots, K} \sup \limits_{t_k \in [0,1]} \sigma_{YX}^{(k)2}(t_k) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 		\end{align}
-		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous in a sense that for any $\epsilon > 0$, there exists $\delta_k > 0$ such that for every $t_k,t^*_k \in \mathcal{T}_k$ with $|t_k - t_k^* | < \delta_k$, we have that
+		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous in a sense that for any $\epsilon > 0$, there exists $\delta_k > 0$ such that for every $t_k,t^*_k \in [0,1]$ with $|t_k - t_k^* | < \delta_k$, we have that
 		\begin{equation*}
 			|\sigma_{yx}^{(k)}(t_k) - \sigma_{yx}^{(k)}(t_k^*) | < \epsilon,
 		\end{equation*}
 		then $\mathcal{U}$ is a compact operator.
 	\end{proposition}
 	The proof of Proposition \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{Hsing2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\boldsymbol{\xi}_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \boldsymbol{\xi}_{(u)} = \kappa_{(u)}  \boldsymbol{\xi}_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{Hsing2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
 	\begin{proposition}\label{proposition: eigenanalysis}
 		\begin{equation*}
-			\max \limits_{\substack{\boldsymbol{\xi} \in \mathcal{H} \\ \Vert \boldsymbol{\xi} \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)
+			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)
 		\end{equation*}
-		is achieved when $\boldsymbol{\xi}$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
+		is achieved when $\xi$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
 	\end{proposition}
 	The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendix \ref{section:proof:proposition: eigenanalysis}.
-	In other words, $l$-th PLS component $\boldsymbol{\xi}_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
+	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
 	
 	\subsection{Geometric Properties}
@@ -667,10 +654,10 @@
 	
 	The following proposition states that the PLS components estimated from Proposition  \ref{Proposition: Regularized generalized rayleigh quotient} are orthonormal with respect to the modified inner product $\langle \langle \cdot \rangle \rangle$ that incorporates the roughness of the functions.
 	\begin{proposition}\label{proposition: modified orthnormality of PLS components}
-		The estimated PLS components, $\widehat{\boldsymbol{\xi}}_1, \widehat{\boldsymbol{\xi}}_2, \ldots, \widehat{\boldsymbol{\xi}}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
+		The estimated PLS components, $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
 		\begin{equation*}
-			\langle \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle \rangle 
-			= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}
+			\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
+			= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}
 			= \mathbb{1}(l=j). 
 		\end{equation*}
 	\end{proposition}
@@ -917,7 +904,7 @@
 	
 	Then we can approximate the functional predictor observations as
 	\begin{equation*}
-		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in \mathcal{T}_k, \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
+		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in [0,1], \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
 	\end{equation*}
 	This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{\mathbf{C}}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, 
 	This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
@@ -945,7 +932,7 @@
 	
 	
 	\paragraph{Basis approximation of the PLS component.}
-	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\boldsymbol{\xi}[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
+	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\xi[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
 	%
 	
 	Using this definition, we construct the following block-diagonal matrices:
@@ -956,7 +943,7 @@
 	\paragraph{Regularization based on second-order derivatives.}
 	Our proposed strategy for computing PLS component, detailed in Section \ref{sec: Regularization of PLS Components}, incorporates regularization based on second-order derivatives. To this end, let $\ddot{J}^{(k)}$ denote the $M \times M$ Gram matrix formed by the second derivatives of the basis functions,  defined as
 	\begin{equation}\label{def:dodot_J_k}
-		\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
+		\ddot{J}^{(k)} = \left[ \int_0^1 \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
 	\end{equation}
 	and define a block-diagonal matrix 
 	$ \ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$ as
@@ -973,44 +960,197 @@
 	\end{itemize}
 	
 	\subsection{Proof of new Proposition}
+	For any $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta})\in \mathcal{H}$, we have:
 	\begin{align*}
 		\widehat{\textnormal{Cov}} (
-		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y 
+		\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
 		) 
-		&= 
-		\frac{1}{n} \sum \limits_{i=1}^n 
+		&=  %1
+		\frac{1}{n} 
+		\sum 
+		\limits_{i=1}^n 
 		y_i
-		\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_\mathcal{H} \\
-		&= 
+		\langle \widetilde{W}_i, \xi \rangle_\mathcal{H} \\
+		&= %2
 		\frac{1}{n} 
 		\sum \limits_{i=1}^n
 		y_i
-		\langle \widetilde{X_i}, \psi \rangle_\mathcal{F}  
-		+  
-		\frac{1}{n} 
-		\sum \limits_{i=1}^n  
+		\biggl(
+		\sum_{j=1}^K
+		\langle \widetilde{X}_{ij}, \xi_j \rangle  
+		+
+	 \mathbf{Z}_i^\top 
+		\boldsymbol{\zeta} 
+		\biggr)
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\\&= %3
+		\frac{1}{n}
+		\sum
+		\limits_{i=1}^n 
 		y_i
-		\langle \mathbf{Z}_i, 
-		\boldsymbol{\theta} 
-		\rangle 
-		\\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
+		\biggl( \sum \limits_{k=1}^K \int_0^1 \widetilde{X}_{ij}(t) \, \xi_j(t) \, dt \biggr)
+		+
+		 \frac{1}{n}
+		 \sum
+		 \limits_{i=1}^n
+		 y_i
+		 ( \mathbf{Z}_i^\top \boldsymbol{\zeta} )
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		  \\&=  
+		  \frac{1}{n} \sum \limits_{i=1}^n 
+		  y_i
+		\biggl\{ 
+		  \sum \limits_{k=1}^K \int_0^1
+		   \biggl(
+		   \sum_{m=1}^M \theta_{ijm} b_{m}(t) 
+		   \biggr) 
+		   \biggl(
+		   \sum_{m'=1}^M d_{jm'} b_{m'}(t) 
+		   \biggr) 
+		   dt
+		\biggr\}  
+		  +
+	\frac{1}{n}
+	\mathbf{y}^\top
+	Z \boldsymbol{\zeta} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=  
+\frac{1}{n} \sum \limits_{i=1}^n 
+y_i
+\biggl\{ 
+\sum \limits_{k=1}^K 
+\sum_{m=1}^M
+\sum_{m'=1}^M  
+\theta_{ijm}
+d_{jm'}
+\int_0^1
+ b_{m}(t) 
+ b_{m'}(t) 
+dt
+\biggr\}  
++
+\frac{1}{n}
+\mathbf{y}^\top
+Z \boldsymbol{\zeta} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=  
+\sum \limits_{k=1}^K 
+\biggl\{
+\frac{1}{n} \sum \limits_{i=1}^n 
+y_i
+(
+\boldsymbol{\theta}_{ij}^\top
+B
+\mathbf{d}_j
+)  
+\biggr\}
++
+\frac{1}{n}
+\mathbf{y}^\top
+Z \boldsymbol{\zeta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=  
+\frac{1}{n}
+\biggl(
+\sum \limits_{k=1}^K 
+\mathbf{y}^\top
+\Theta_{j}
+B
+\mathbf{d}_j
++
+\mathbf{y}^\top
+Z \boldsymbol{\zeta} 
+\biggr).
 	\end{align*}	
+		\jongmin{
+		Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
+		\begin{align*}
+			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \xi \rangle_\mathcal{H} Y_i \\
+			&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
+			\\&=
+			\frac{1}{n}\tilde{\mathbf{y}}^\top
+			\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix} \;      \underbrace{
+				\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+			}_{:= \boldsymbol{\beta}}.
+		\end{align*}
+		Let us 
+		denote $\mathbf{b} =  \widetilde{\mathbf{y}}^\top \begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$. This is the weighted row sum of $\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$, weighted by $\widetilde{\mathbf{y}}$.
+		Then using the symmetricity of $J^\ast$, we solve a linear system $J^\ast \mathbf{d} =
+		\mathbf{b}^\top$ to obtain $\mathbf{d}$. Then we have
+		\begin{align*}
+			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) 
+			%%%%%%%%%%%%%%%%%%%%%
+			&= 
+			%%%%%%%%%%%%%%%%%%%%%%%%
+			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+			\frac{1}{n} \mathbf{d}^\top J^\ast  \boldsymbol{\beta}
+			\\& \overset{(i)}{\leq} 
+			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
+			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}
+			\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}}
+			\\& \overset{(ii)}{=}
+			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}    ,
+		\end{align*}
+		where step $(i)$ uses the Cauchy-Schwarz inequality with the inner product $\langle x, y \rangle_{J^\ast} = x^\top J^\ast y$,
+		and step $(ii)$ uses the norm constraint.
+		By the Cauchy-Schwarz inequality, the maximum displayed in the last term is obtained by a unit vector (with respect to $\langle \cdot, \cdot \rangle_{J^\ast}$) parallel to $\mathbf{d}$. Therefore we have
+		\begin{equation*}
+			\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
+			= \frac{1}{\sqrt{\mathbf{d}^\top  J^\ast \mathbf{d} }}\mathbf{d},
+		\end{equation*}
+		which only involves solving one linear equation.
+	}
+	
+\subsection{Proof of Lemma}
+		We verify that the function
+		\[
+		\langle \mathbf{u}, \mathbf{v} \rangle_{\mathcal{H}} := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega},
+		\]
+		defines a valid inner product on $\mathcal{H} := \mathbb{R}^{KM} \times \mathbb{R}^p$, where $\mathbf{u} = (\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})$ and $\mathbf{v} = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$.
+		
+		\textit{Linearity in the first argument}: For any $a, b \in \mathbb{R}$ and $\mathbf{u}_1, \mathbf{u}_2, \mathbf{v} \in \mathcal{H}$,
+		\[
+		\langle a \mathbf{u}_1 + b \mathbf{u}_2, \mathbf{v} \rangle_{\mathcal{H}} 
+		= a \langle \mathbf{u}_1, \mathbf{v} \rangle_{\mathcal{H}} + b \langle \mathbf{u}_2, \mathbf{v} \rangle_{\mathcal{H}}.
+		\]
+		
+		\textit{Symmetry}: Since $B$ is symmetric and the standard inner product is symmetric,
+		\[
+		\langle \mathbf{u}, \mathbf{v} \rangle_{\mathcal{H}} 
+		= \langle \mathbf{v}, \mathbf{u} \rangle_{\mathcal{H}}.
+		\]
+		
+		\textit{Positive definiteness}: If $\mathbf{u} \ne 0$, then either some $\mathbf{d}_j \ne 0$ or $\boldsymbol{\zeta} \ne 0$. Since $B$ is positive definite,
+		\[
+		\langle \mathbf{u}, \mathbf{u} \rangle_{\mathcal{H}} = \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} > 0.
+		\]
+		Thus, $\langle \cdot, \cdot \rangle_{\mathcal{H}}$ is a valid inner product.
+		
+		Now let
+		\[
+		\mathbf{g} := \left( \tfrac{1}{n} \Theta_1^\top \mathbf{y}, \ldots, \tfrac{1}{n} \Theta_K^\top \mathbf{y}, \tfrac{1}{n} Z^\top \mathbf{y} \right).
+		\]
+		Then, for any $\mathbf{u} = (\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta}) \in \mathcal{H}$,
+		\[
+		\left\langle \mathbf{u}, \mathbf{g} \right\rangle_{\mathcal{H}} 
+		= \frac{1}{n} \sum_{j=1}^K \mathbf{d}_j^\top B \Theta_j^\top \mathbf{y} + \frac{1}{n} \boldsymbol{\zeta}^\top Z^\top \mathbf{y}
+		= \frac{1}{n} \left( \sum_{j=1}^K \mathbf{y}^\top \Theta_j B \mathbf{d}_j + \mathbf{y}^\top Z \boldsymbol{\zeta} \right),
+		\]
+		as claimed.
+
+	
 	\subsection{Proof of Propositions \ref{Proposition: generalized rayleigh quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
 	%
 	%
 	\begin{align*}
 		\widehat{\textnormal{Cov}} (
-		\langle \widetilde{\mathbf{W}}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y 
+		\langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y 
 		) 
 		&= 
 		\frac{1}{n} \sum \limits_{i=1}^n 
 		y_i
-		\langle \widetilde{\mathbf{W}}_i, \boldsymbol{\xi} \rangle_\mathcal{H} \\
+		\langle \widetilde{\mathbf{W}}_i, \xi \rangle_\mathcal{H} \\
 		&= 
 		\frac{1}{n} 
 		\sum \limits_{i=1}^n
@@ -1024,9 +1164,9 @@
 		\boldsymbol{\theta} 
 		\rangle 
 		\\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_0^1 X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_0^1 \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_0^1 \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
 	\end{align*}	
@@ -1058,28 +1198,28 @@
 	\end{equation}
 	
 	
-	Here, $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$ is expressed as $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ based on the aforementioned basis approximations. Thus, finding $\boldsymbol{\xi}^*$ that maximizes $\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ amounts to finding $\widehat{\boldsymbol{\xi}}$ that maximizes the sample squared covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y)$, which is the first step of the PLS algorithm. The constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$ scales the obtained PLS component to have a unit norm, that is, $\langle \widehat{\boldsymbol{\xi}}, \widehat{\boldsymbol{\xi}} \rangle_\mathcal{H}=1$. 
+	Here, $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y)$ is expressed as $\xi^{*\top} \mathbf{V}^\ast \xi^*$ based on the aforementioned basis approximations. Thus, finding $\xi^*$ that maximizes $\xi^{*\top} \mathbf{V}^\ast \xi^*$ amounts to finding $\widehat{\xi}$ that maximizes the sample squared covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y)$, which is the first step of the PLS algorithm. The constraint $\xi^{*\top} J^\ast \xi^*=1$ scales the obtained PLS component to have a unit norm, that is, $\langle \widehat{\xi}, \widehat{\xi} \rangle_\mathcal{H}=1$. 
 	
-	and  $\boldsymbol{\xi}^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\boldsymbol{\xi}} \equiv \widehat{\boldsymbol{\xi}}_l$ can be obtained by solving
+	and  $\xi^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th PLS component, $\widehat{\xi} \equiv \widehat{\xi}_l$ can be obtained by solving
 	\begin{equation}\label{def:eigenproblem_smoothed}
-		\argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*}, \quad \textit{or equivalently}, \quad \argmax \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
+		\argmax \limits_{\xi^* \in \mathbb{R}^{MK+p}} \; \frac{\xi^{*\top} \mathbf{V}^\ast \xi^*}{\xi^{*\top} J^\ast \xi^*}, \quad \textit{or equivalently}, \quad \argmax \limits_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} J^\ast \xi^*=1,
 	\end{equation}
-	with respect to $\widehat{\boldsymbol{\xi}}^*=(\widehat{\mathbf{a}}^{\top}, \widehat{\boldsymbol{\theta}}^{\top})^\top$
+	with respect to $\widehat{\xi}^*=(\widehat{\mathbf{a}}^{\top}, \widehat{\boldsymbol{\theta}}^{\top})^\top$
 	
 	We show that the solutions to the generalized eigenvalue problems \eqref{def:eigenproblem_smoothed} and \eqref{eq: Regularized generalized rayleigh quotient equation} maximize the covariance with the response.
 	Based on the basis function expansions  $X_i^{(k)}(t) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t)$ and $\psi^{(k)}(t) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t)$, $k=1, \ldots, K$, we can express the sample covariance between the PLS score and the outcome, which needs to be maximized to estimate the corresponding PLS component, as:
 	\begin{align*}
-		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i \\
+		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \xi \rangle_\mathcal{H} Y_i \\
 		&=  \frac{1}{n} \sum \limits_{i=1}^n  \langle X_i, \psi \rangle_\mathcal{F} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n  \langle \mathbf{Z}_i, \boldsymbol{\theta} \rangle Y_i \\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_{\mathcal{T}_k} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n  \left\{ \sum \limits_{k=1}^K \int_0^1 X_i(t_k) \psi^{(k)}(t_k) dt_k \right\} Y_i +  \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&=  \frac{1}{n} \sum \limits_{i=1}^n \left[ \sum \limits_{k=1}^K \int_0^1 \left\{\sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t) \right\} \left\{\sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t) \right\} dt_k \right] Y_i + \frac{1}{n} \sum \limits_{i=1}^n \mathbf{Z}_i^\top \boldsymbol{\theta} Y_i \\
+		&= n^{-1} \widetilde{\mathbf{y}}^\top \left[ \sum \limits_{k=1}^K \widetilde{\mathbf{C}}^{(k)} \left\{ \int_0^1 \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top dt_k \right\} \mathbf{a}^{(k)} \right] + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C} J \mathbf{a}) + n^{-1}\widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} \\
 		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
 	\end{align*}
 	This implies that
 	\begin{align*}
-		\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= n^{-2} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}) (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta})^\top \widetilde{\mathbf{y}} \\
+		\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) &= n^{-2} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}) (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta})^\top \widetilde{\mathbf{y}} \\
 		&= n^{-2} \{\mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} +  \mathbf{a}^\top J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta} +  \boldsymbol{\theta} \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J \mathbf{a} + \boldsymbol{\theta}^\top \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \boldsymbol{\theta}\} \\
 		&= \begin{bmatrix}
 			\mathbf{a}^\top & \boldsymbol{\theta}^\top
@@ -1091,15 +1231,15 @@
 		\begin{bmatrix}
 			\mathbf{a} \\ \boldsymbol{\theta}
 		\end{bmatrix} \\
-		&\equiv \boldsymbol{\xi}^{*T} \mathbf{V}^\ast \boldsymbol{\xi}^*.
+		&\equiv \xi^{*T} \mathbf{V}^\ast \xi^*.
 	\end{align*}
 	Also, the unit norm constraint of the PLS components in $\mathcal{H}$ can be translated into:
 	\begin{align*}
-		\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} &= \sum \limits_{k=1}^K \int_{\mathcal{T}} \psi^{(k)}(t_k) \psi^{(k)}(t_k) dt_k + \boldsymbol{\theta}^{\top} \boldsymbol{\theta} \\
+		\langle \xi, \xi \rangle_{\mathcal{H}} &= \sum \limits_{k=1}^K \int_{\mathcal{T}} \psi^{(k)}(t_k) \psi^{(k)}(t_k) dt_k + \boldsymbol{\theta}^{\top} \boldsymbol{\theta} \\
 		&= \sum \limits_{k=1}^K  \int_\mathcal{T} \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k)}(t_k)^\top   \mathbf{a}^{(k)} dt_k + \boldsymbol{\theta}^{\top} \boldsymbol{\theta} \\
 		&= \sum \limits_{k=1}^K  \mathbf{a}^{(k)\top} J^{(k)}   \mathbf{a}^{(k)} + \boldsymbol{\theta}^{\top} \boldsymbol{\theta} \\
 		&= \mathbf{a}^\top J \mathbf{a} + \boldsymbol{\theta}^{\top} \boldsymbol{\theta} \\
-		&= \boldsymbol{\xi}^{*\top} J^\ast  \boldsymbol{\xi}^{*} \\ 
+		&= \xi^{*\top} J^\ast  \xi^{*} \\ 
 		&= 1 \\
 	\end{align*}
 	
@@ -1107,61 +1247,23 @@
 	
 	Thus, the first step of the PLS algorithm translates into solving
 	\begin{equation*}
-		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \;  \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^* \quad \textnormal{subject to}  \quad \boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1,
+		\max \limits_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} J^\ast \xi^*=1,
 	\end{equation*}
 	or equivalently solving
 	\begin{equation*}
-		\max \limits_{\boldsymbol{\xi}^* \in \mathbb{R}^{MK+p}} \; \frac{\boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*},
+		\max \limits_{\xi^* \in \mathbb{R}^{MK+p}} \; \frac{\xi^{*\top} \mathbf{V}^\ast \xi^*}{\xi^{*\top} J^\ast \xi^*},
 	\end{equation*}
-	where $J^\ast = \mathrm{blkdiag}[J, \mathbf{I}_p] \in \mathbb{R}^{MK+p}$. In other words, the PLS component is chosen to maximize the squared sample covariance  $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) = \boldsymbol{\xi}^{*\top} \mathbf{V}^\ast \boldsymbol{\xi}^*$ subject to the constraint $\boldsymbol{\xi}^{*\top} J^\ast \boldsymbol{\xi}^*=1$. 
+	where $J^\ast = \mathrm{blkdiag}[J, \mathbf{I}_p] \in \mathbb{R}^{MK+p}$. In other words, the PLS component is chosen to maximize the squared sample covariance  $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) = \xi^{*\top} \mathbf{V}^\ast \xi^*$ subject to the constraint $\xi^{*\top} J^\ast \xi^*=1$. 
 	
-	\jongmin{
-		Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
-		\begin{align*}
-			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \boldsymbol{\xi} \rangle_\mathcal{H} Y_i \\
-			&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
-			\\&=
-			\frac{1}{n}\tilde{\mathbf{y}}^\top
-			\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix} \;      \underbrace{
-				\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-			}_{:= \boldsymbol{\beta}}.
-		\end{align*}
-		Let us 
-		denote $\mathbf{b} =  \widetilde{\mathbf{y}}^\top \begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$. This is the weighted row sum of $\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$, weighted by $\widetilde{\mathbf{y}}$.
-		Then using the symmetricity of $J^\ast$, we solve a linear system $J^\ast \mathbf{d} =
-		\mathbf{b}^\top$ to obtain $\mathbf{d}$. Then we have
-		\begin{align*}
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y ) 
-			%%%%%%%%%%%%%%%%%%%%%
-			&= 
-			%%%%%%%%%%%%%%%%%%%%%%%%
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\frac{1}{n} \mathbf{d}^\top J^\ast  \boldsymbol{\beta}
-			\\& \overset{(i)}{\leq} 
-			\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}
-			\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}}
-			\\& \overset{(ii)}{=}
-			\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}    ,
-		\end{align*}
-		where step $(i)$ uses the Cauchy-Schwarz inequality with the inner product $\langle x, y \rangle_{J^\ast} = x^\top J^\ast y$,
-		and step $(ii)$ uses the norm constraint.
-		By the Cauchy-Schwarz inequality, the maximum displayed in the last term is obtained by a unit vector (with respect to $\langle \cdot, \cdot \rangle_{J^\ast}$) parallel to $\mathbf{d}$. Therefore we have
-		\begin{equation*}
-			\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-			= \frac{1}{\sqrt{\mathbf{d}^\top  J^\ast \mathbf{d} }}\mathbf{d},
-		\end{equation*}
-		which only involves solving one linear equation.
-	}
+
 	
 	
 	
-	% Similar in spirit to the regularized principal component analysis (see equation [9.1] of \citealp{Ramsay2005}), one way to penalize the squared sample covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_{\mathcal{H}}, Y )$ is to divide it by $\{ 1+ \kappa \textnormal{PEN}(\psi) \}$, where $\textnormal{PEN}(\psi)$ is a roughness penalty term. This leads to the penalized squared sample covariance
+	% Similar in spirit to the regularized principal component analysis (see equation [9.1] of \citealp{Ramsay2005}), one way to penalize the squared sample covariance $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y )$ is to divide it by $\{ 1+ \kappa \textnormal{PEN}(\psi) \}$, where $\textnormal{PEN}(\psi)$ is a roughness penalty term. This leads to the penalized squared sample covariance
 	% \begin{equation*}
-		%         \frac{\boldsymbol{\xi}^{*T} \mathbf{V}^\ast \boldsymbol{\xi}^*}{\boldsymbol{\xi}^{*T} J^\ast \boldsymbol{\xi}^* + \kappa \textnormal{PEN}(\psi)},
+		%         \frac{\xi^{*T} \mathbf{V}^\ast \xi^*}{\xi^{*T} J^\ast \xi^* + \kappa \textnormal{PEN}(\psi)},
 		% \end{equation*}
-	% whose maximizer corresponds to a smoothed PLS component that maximizes $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \boldsymbol{\xi} \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness conditions. 
+	% whose maximizer corresponds to a smoothed PLS component that maximizes $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness conditions. 
 	
 	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
 	$\mathcal{U}$ is \textit{positive} because for every $\mathbf{h} \in \mathcal{H}$,
@@ -1177,14 +1279,14 @@
 		&= \langle \mathbf{h}_1, \mathcal{U} \mathbf{h}_2 \rangle_\mathcal{H}.
 	\end{align*}
 	
-	Next, We will show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous, and then apply the Arzel\'{a}-Ascoli theorem to show $\mathcal{U}$ is \textit{compact}. Let $\mathcal{B}=\{\mathbf{h} \in \mathcal{H}: \Vert \mathbf{h} \Vert_\mathcal{H}^2 \le B\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < B < \infty$. Clearly, $\mathbf{h}=(f, \mathbf{v}) \in \mathcal{B}$ also implies $\Vert f \Vert_\mathcal{F}^2 \le B$ and $\Vert \mathbf{v} \Vert^2 \le B$. Define $\mathcal{I}  = \{\mathcal{U}\mathbf{h}: \mathbf{h} \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$. We will first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$. Let $\mu(\mathcal{T}_k)$ denote a Lebesgue measure of $\mathcal{T}_k$, and let $T = \max_{k=1, \ldots, K} \, \mu(\mathcal{T}_k)$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in \mathcal{T}$,
+	Next, We will show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous, and then apply the Arzel\'{a}-Ascoli theorem to show $\mathcal{U}$ is \textit{compact}. Let $\mathcal{B}=\{\mathbf{h} \in \mathcal{H}: \Vert \mathbf{h} \Vert_\mathcal{H}^2 \le B\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < B < \infty$. Clearly, $\mathbf{h}=(f, \mathbf{v}) \in \mathcal{B}$ also implies $\Vert f \Vert_\mathcal{F}^2 \le B$ and $\Vert \mathbf{v} \Vert^2 \le B$. Define $\mathcal{I}  = \{\mathcal{U}\mathbf{h}: \mathbf{h} \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$. We will first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$. Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in \mathcal{T}$,
 	\begin{align*}
 		\Vert g[\mathbf{t}] \Vert^2 &= \Vert (\mathcal{U}\mathbf{h})[\mathbf{t}] \Vert^2 \\
 		&= \Vert \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} \, \Sigma_{YW}[\mathbf{t}] \Vert^2 \\
 		&= \left( \langle \sigma_{YX}, f \rangle_\mathcal{F} + \langle \sigma_{YZ}, \mathbf{v} \rangle \right)^2 \Vert [\sigma_{YX}^\top(\mathbf{t}), \sigma_{YZ}^\top]^\top \Vert^2 \\
 		&\le \left( \langle \sigma_{YX}, \sigma_{YX} \rangle_\mathcal{F}^{1/2} \langle f, f \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2} \right)^2 \Vert [\sigma_{YX}^\top(\mathbf{t}), \sigma_{YZ}^\top]^\top \Vert^2 \quad (\because \textnormal{CSI})\\
-		&= \left[ \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \left(\sum \limits_{k=1}^K \sigma_{YX}^{(k)2}(t_k) + \sum \limits_{r=1}^p \sigma^2_{YZ,r} \right) \\
-		& \le \left\{ \left(\sum \limits_{k=1}^K \int_{\mathcal{T}_k} Q_1 dt_k \right)^{\frac{1}{2}} B^{\frac{1}{2}} + \left(\sum \limits_{r=1}^p Q_2 \right)^{\frac{1}{2}} B^{\frac{1}{2}} \right\}^2 \left( \sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 \right) \\
+		&= \left[ \left\{ \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \left(\sum \limits_{k=1}^K \sigma_{YX}^{(k)2}(t_k) + \sum \limits_{r=1}^p \sigma^2_{YZ,r} \right) \\
+		& \le \left\{ \left(\sum \limits_{k=1}^K \int_0^1 Q_1 dt_k \right)^{\frac{1}{2}} B^{\frac{1}{2}} + \left(\sum \limits_{r=1}^p Q_2 \right)^{\frac{1}{2}} B^{\frac{1}{2}} \right\}^2 \left( \sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 \right) \\
 		&= B \left\{(KTQ_1)^{\frac{1}{2}} + (PQ_2)^\frac{1}{2} \right\}^2 (KQ_1 +pQ_2) < \infty.
 	\end{align*}
 	We now show that $\mathcal{I}$ is equicontinuous. For $\epsilon > 0$, define 
@@ -1217,7 +1319,7 @@
 			\mathbf{0}
 		\end{bmatrix}
 		\right\Vert^2 \\
-		&= \left[ \left\{ \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \sum \limits_{k=1}^K  \left\{\sigma_{YX}^{(k)}(t_k) -\sigma_{YX}^{(k)}(t_k^*) \right\}^2 \\
+		&= \left[ \left\{ \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \sum \limits_{k=1}^K  \left\{\sigma_{YX}^{(k)}(t_k) -\sigma_{YX}^{(k)}(t_k^*) \right\}^2 \\
 		&\le B \left\{(KTQ_1)^{\frac{1}{2}} + (PQ_2)^\frac{1}{2} \right\} K\tilde{\epsilon}^2 = \epsilon^2.
 	\end{align*}
 	Now we can apply the Arzel\'{a}-Ascoli theorem to conflude that for any bounded sequence $\{\mathbf{h}_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}\mathbf{h}_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a convergent subsequence. Therefore, $\mathcal{U}$ is a compact operator.
@@ -1262,11 +1364,11 @@
 	
 	Firstly, it is obvious by the unit-norm constraint enforced in Proposition \ref{proposition: eigenanalysis} that:
 	\begin{align*}
-		\langle \langle \hat{\boldsymbol{\xi}}_l,  \hat{\boldsymbol{\xi}}_l \rangle \rangle &= \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}  \\
-		&= \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_{\mathcal{T}_k} \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
-		&= \sum \limits_{k=1}^K \int_{\mathcal{T}_k} \hat{\mathbf{a}}^{(k) \top}_l \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k + \boldsymbol{\theta}_l^\top \boldsymbol{\theta}_l + \sum \limits_{k=1}^K \lambda_k \int_{\mathcal{T}_k} \hat{\mathbf{a}}^{(k) \top}_l \ddot{\mathbf{b}}^{(k)}(t_k) \ddot{\mathbf{b}}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k \\
+		\langle \langle \hat{\xi}_l,  \hat{\xi}_l \rangle \rangle &= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}  \\
+		&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
+		&= \sum \limits_{k=1}^K \int_0^1 \hat{\mathbf{a}}^{(k) \top}_l \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k + \boldsymbol{\theta}_l^\top \boldsymbol{\theta}_l + \sum \limits_{k=1}^K \lambda_k \int_0^1 \hat{\mathbf{a}}^{(k) \top}_l \ddot{\mathbf{b}}^{(k)}(t_k) \ddot{\mathbf{b}}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k \\
 		& = \sum \limits_{k=1}^K \hat{\mathbf{a}}_l^{(k) \top} J^{(k)} \hat{\mathbf{a}}_l^{(k)} + \boldsymbol{\theta}_l^\top \boldsymbol{\theta}_l +  \sum \limits_{k=1}^K \lambda_k \hat{\mathbf{a}}^{(k) \top}_l \ddot{J}^{(k)} \hat{\mathbf{a}}^{(k)}_l \\
-		& = \hat{\boldsymbol{\xi}}_l^{*\top} J^\ast \hat{\boldsymbol{\xi}}_l^* + \hat{\boldsymbol{\xi}}_l^{*\top} \Lambda \ddot{J}^\ast \hat{\boldsymbol{\xi}}_l^* = \hat{\boldsymbol{\xi}}_l^{*\top} (J^\ast +\Lambda \ddot{J}^\ast) \hat{\boldsymbol{\xi}}_l^* = 1
+		& = \hat{\xi}_l^{*\top} J^\ast \hat{\xi}_l^* + \hat{\xi}_l^{*\top} \Lambda \ddot{J}^\ast \hat{\xi}_l^* = \hat{\xi}_l^{*\top} (J^\ast +\Lambda \ddot{J}^\ast) \hat{\xi}_l^* = 1
 	\end{align*}
 	where $\ddot{\mathbf{b}}^{(k)}(t_k) = (\ddot{b}_1^{(k)}(t_k), \ldots, \ddot{b}_M^{(k)}(t_k))^\top$
 	
@@ -1293,31 +1395,31 @@
 	\end{equation*}
 	Then for $j < l$,
 	\begin{align*}
-		\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} &= \int_{\mathcal{T}} P   \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right)\widetilde{W}^{[j]}[\mathbf{t}]  \widehat{\boldsymbol{\xi}}_k[\mathbf{t}] d\mathbf{t}  \\
-		&= P \left\{\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} \right\} \\ 
+		\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} &= \int_{\mathcal{T}} P   \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right)\widetilde{W}^{[j]}[\mathbf{t}]  \widehat{\xi}_k[\mathbf{t}] d\mathbf{t}  \\
+		&= P \left\{\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} \right\} \\ 
 		&=P \left( \widehat{\boldsymbol{\rho}}_j - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \widehat{\boldsymbol{\rho}}_j \right) \\
 		&= P(\widehat{\boldsymbol{\rho}}_j-\widehat{\boldsymbol{\rho}}_j) \\
 		&= \mathbf{0} \in \mathbb{R}^n, 
 	\end{align*}
-	noting that $\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} = \widehat{\boldsymbol{\rho}}_j$. Now by the generalized eigenvalue problem (i.e., generalized Rayleigh quotient problem) presented in Proposition 2, we have that for $j < l$,
+	noting that $\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \widehat{\boldsymbol{\rho}}_j$. Now by the generalized eigenvalue problem (i.e., generalized Rayleigh quotient problem) presented in Proposition 2, we have that for $j < l$,
 	\begin{align*}
-		\langle \langle \widehat{\boldsymbol{\xi}}_l, \widehat{\boldsymbol{\xi}}_j \rangle \rangle &= \widehat{\boldsymbol{\xi}}_l^{*\top} (J^\ast + \Lambda \ddot{J}^\ast)\widehat{\boldsymbol{\xi}}_j^{*} \\
-		& = \frac{1}{\kappa_l} (V^\ast_l \widehat{\boldsymbol{\xi}}_l^{*})^\top \widehat{\boldsymbol{\xi}}_j^{*} \\
-		&=  \frac{1}{\kappa_l}\widehat{\boldsymbol{\xi}}_l^{* \top} V^\ast_l \widehat{\boldsymbol{\xi}}_j^{*} \\
-		&= \frac{1}{\kappa_l}\widehat{\boldsymbol{\xi}}_l^{* \top} \left(n^{-2} J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top} \widetilde{C}^{*[l]} J^\ast \right) \widehat{\boldsymbol{\xi}}_j^{*} \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\boldsymbol{\xi}}_l^{* \top} \ J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \widetilde{C}^{*[l]}\left(\int_{\mathcal{T}} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top d\mathbf{t}  \right) \widehat{\boldsymbol{\xi}}_j^{*} \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\boldsymbol{\xi}}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{C}^{*[l]} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top \widehat{\boldsymbol{\xi}}_j^{*} d\mathbf{t}  \right)   \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\boldsymbol{\xi}}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t}  \right)   \\
+		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle &= \widehat{\xi}_l^{*\top} (J^\ast + \Lambda \ddot{J}^\ast)\widehat{\xi}_j^{*} \\
+		& = \frac{1}{\kappa_l} (V^\ast_l \widehat{\xi}_l^{*})^\top \widehat{\xi}_j^{*} \\
+		&=  \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} V^\ast_l \widehat{\xi}_j^{*} \\
+		&= \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} \left(n^{-2} J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top} \widetilde{C}^{*[l]} J^\ast \right) \widehat{\xi}_j^{*} \\
+		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top} \ J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \widetilde{C}^{*[l]}\left(\int_{\mathcal{T}} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top d\mathbf{t}  \right) \widehat{\xi}_j^{*} \\
+		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{C}^{*[l]} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top \widehat{\xi}_j^{*} d\mathbf{t}  \right)   \\
+		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t}  \right)   \\
 		&=0, 
 	\end{align*}
-	where the last equality follows from the above result that $\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_j[\mathbf{t}] d\mathbf{t} = \mathbf{0}$.
+	where the last equality follows from the above result that $\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \mathbf{0}$.
 	
 	
 	\section{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
 	
 	
 	
-	First note that $\widehat{\boldsymbol{\rho}}_l = \int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\boldsymbol{\xi}}_l[\mathbf{t}] d\mathbf{t}= \widetilde{C}^{*[l]} J^\ast \widehat{\boldsymbol{\xi}}^*_{l}$ for $l=1, \ldots, L$. Then, as above, we first express the $l$-th residualized hybrid predictor in terms of its previous $(l-1)$-th version:
+	First note that $\widehat{\boldsymbol{\rho}}_l = \int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_l[\mathbf{t}] d\mathbf{t}= \widetilde{C}^{*[l]} J^\ast \widehat{\xi}^*_{l}$ for $l=1, \ldots, L$. Then, as above, we first express the $l$-th residualized hybrid predictor in terms of its previous $(l-1)$-th version:
 	\begin{equation*}
 		\widetilde{W}^{[l]}[\mathbf{t}] = \widetilde{W}^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\delta}}_l[\mathbf{t}]^\top 
 	\end{equation*}
@@ -1328,28 +1430,28 @@
 			\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\mathbf{d}}^*_{l-1}B^*[\mathbf{t}] \\
 			&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
 			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}}  \\
-			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\boldsymbol{\xi}}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}},
+			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}},
 		\end{aligned}
 	\end{equation*}
 	Since the equation should hold for all argument values $\mathbf{t} \in \mathcal{T}$, we can write:
 	\begin{equation*}
 		\setlength{\jot}{10pt}
 		\begin{aligned}
-			\widetilde{C}^{*[l]} &= \widetilde{C}^{*[l-1]} -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\boldsymbol{\xi}}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \\
-			&= \widetilde{C}^{*[l-1]} \left(I_{MK+p} - \frac{J^\ast \widehat{\boldsymbol{\xi}}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \\
-			&= \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\boldsymbol{\xi}}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P},
+			\widetilde{C}^{*[l]} &= \widetilde{C}^{*[l-1]} -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \\
+			&= \widetilde{C}^{*[l-1]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \\
+			&= \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P},
 		\end{aligned}
 	\end{equation*}
 	where $\widetilde{P}$ is a $(MK+p) \times (MK+p)$ matrix defined as
 	\begin{equation*}
-		\widetilde{P} = \prod \limits_{h=j+1}^{l-1} \left(I_{MK+p} - \frac{J^\ast \hat{\boldsymbol{\xi}}^*_h \widehat{\boldsymbol{\rho}}_{h}^\top \widetilde{C}^{*[h]}}{\widehat{\boldsymbol{\rho}}_{h}^\top \widehat{\boldsymbol{\rho}}_{h}} \right)
+		\widetilde{P} = \prod \limits_{h=j+1}^{l-1} \left(I_{MK+p} - \frac{J^\ast \hat{\xi}^*_h \widehat{\boldsymbol{\rho}}_{h}^\top \widetilde{C}^{*[h]}}{\widehat{\boldsymbol{\rho}}_{h}^\top \widehat{\boldsymbol{\rho}}_{h}} \right)
 	\end{equation*}
 	Then, for $j < l$,
 	\begin{equation*}
 		\setlength{\jot}{10pt}
 		\begin{aligned}
-			\widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[l]} &=  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\boldsymbol{\xi}}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
-			&=\left( \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} - \frac{ \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} J^\ast \widehat{\boldsymbol{\xi}}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
+			\widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[l]} &=  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
+			&=\left( \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} - \frac{ \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
 			&=\left( \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} - \frac{ \widehat{\boldsymbol{\rho}}_j^\top \widehat{\boldsymbol{\rho}}_j  \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
 			&= \left(  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} -  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} \right) \widetilde{P} \\
 			&= \mathbf{0} \in \mathbb{R}^{1 \times (MK+p)},
