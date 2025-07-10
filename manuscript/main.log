@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 17:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  9 JUL 2025 17:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -565,52 +565,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 File: l3backend-pdftex.def 2025-03-14 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count331
 )
-(./main.aux
-
-Package natbib Warning: Citation `Beyaztas2020' multiply defined.
-
-
-Package natbib Warning: Citation `Delaigle2012' multiply defined.
-
-
-Package natbib Warning: Citation `Febrero2017' multiply defined.
-
-
-Package natbib Warning: Citation `goldsmith_penalized_2011' multiply defined.
-
-
-Package natbib Warning: Citation `happ_multivariate_2018' multiply defined.
-
-
-Package natbib Warning: Citation `Hsing2015' multiply defined.
-
-
-Package natbib Warning: Citation `kolar_graph_2014' multiply defined.
-
-
-Package natbib Warning: Citation `Preda2005' multiply defined.
-
-
-Package natbib Warning: Citation `Rice1991' multiply defined.
-
-
-Package natbib Warning: Citation `Silverman1996' multiply defined.
-
-
-Package natbib Warning: Citation `storeySignificanceAnalysisTime2005' multiply 
-defined.
-
-
-Package natbib Warning: Citation `Tucker1938' multiply defined.
-
-
-Package natbib Warning: Citation `Wang2018' multiply defined.
-
-
-Package natbib Warning: Citation `zhuBayesianGraphicalModels2016' multiply defi
-ned.
-
-)
+(./main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 60.
@@ -947,101 +902,11 @@ Overfull \hbox (13.91545pt too wide) detected at line 1267
 
 [44]
 
-[45] (./main.bbl
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Beyaztas
-2020}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.3 ...tem[Beyaztas and Shang, 2020]{Beyaztas2020}
-                                                  
+[45]
 
 [46]
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Delaigle
-2012}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.8 ...item[Delaigle and Hall, 2012]{Delaigle2012}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Febrero2
-017}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.14 ...m[Febrero-Bande et~al., 2017]{Febrero2017}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.goldsmit
-h_penalized_2011}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.20 ...th et~al., 2011]{goldsmith_penalized_2011}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.happ_mul
-tivariate_2018}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.26 ... and Greven, 2018]{happ_multivariate_2018}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Hsing201
-5}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.33 \bibitem[Hsing and Eubank, 2015]{Hsing2015}
-                                                
-pdfTeX warning (ext4): destination with the same identifier (name{cite.kolar_gr
-aph_2014}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.39 ...item[Kolar et~al., 2014]{kolar_graph_2014}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Preda200
-5}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.44 \bibitem[Preda and Saporta, 2005]{Preda2005}
-                                                 
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Rice1991
-}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.49 \bibitem[Rice and Silverman, 1991]{Rice1991}
-                                                 
 
-[47]
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Silverma
-n1996}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.56 \bibitem[Silverman, 1996]{Silverman1996}
-                                             
-pdfTeX warning (ext4): destination with the same identifier (name{cite.storeySi
-gnificanceAnalysisTime2005}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.61 ... 2005]{storeySignificanceAnalysisTime2005}
-                                                  
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Tucker19
-38}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.67 \bibitem[Tucker, 1938]{Tucker1938}
-                                       
-pdfTeX warning (ext4): destination with the same identifier (name{cite.Wang2018
-}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.72 \bibitem[Wang, 2018]{Wang2018}
-                                   
-pdfTeX warning (ext4): destination with the same identifier (name{cite.zhuBayes
-ianGraphicalModels2016}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.77 ...al., 2016]{zhuBayesianGraphicalModels2016}
-                                                  )
-
-Package natbib Warning: There were multiply defined citations.
-
-
-
-[48] (./main.aux)
+[47] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -1054,9 +919,9 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 66D52BB7FFE1BEEA3A4851967346F1EC;5862.
  ) 
 Here is how much of TeX's memory you used:
- 16133 strings out of 469626
- 255975 string characters out of 5475183
- 664219 words of memory out of 5000000
+ 16129 strings out of 469626
+ 255940 string characters out of 5475183
+ 664169 words of memory out of 5000000
  42532 multiletter control sequences out of 15000+600000
  640594 words of font info for 91 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1082,10 +947,10 @@ texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/20
 ist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (48 pages, 960746 bytes).
+Output written on main.pdf (47 pages, 958233 bytes).
 PDF statistics:
- 698 PDF objects out of 1000 (max. 8388607)
- 582 compressed objects within 6 object streams
- 149 named destinations out of 1000 (max. 500000)
+ 693 PDF objects out of 1000 (max. 8388607)
+ 578 compressed objects within 6 object streams
+ 147 named destinations out of 1000 (max. 500000)
  271 words of extra memory for PDF output out of 10000 (max. 10000000)
 
