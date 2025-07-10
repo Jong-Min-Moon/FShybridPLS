@@ -2,54 +2,46 @@ This is BibTeX, Version 0.99d (TeX Live 2025)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
 The style file: apalike.bst
-Illegal, another \bibstyle command---line 121 of file main.aux
- : \bibstyle
- :          {apa}
-I'm skipping whatever remains of this command
-Illegal, another \bibdata command---line 122 of file main.aux
- : \bibdata
- :         {Reference}
-I'm skipping whatever remains of this command
+A level-1 auxiliary file: bu.aux
 Database file #1: Reference.bib
-You've used 14 entries,
+You've used 26 entries,
             1935 wiz_defined-function locations,
-            577 strings with 6165 characters,
-and the built_in function-call counts, 5494 in all, are:
-= -- 540
-> -- 209
-< -- 9
-+ -- 70
-- -- 68
-* -- 492
-:= -- 964
-add.period$ -- 42
-call.type$ -- 14
-change.case$ -- 102
-chr.to.int$ -- 14
-cite$ -- 14
-duplicate$ -- 194
-empty$ -- 394
-format.name$ -- 94
-if$ -- 1067
+            667 strings with 9075 characters,
+and the built_in function-call counts, 10494 in all, are:
+= -- 1043
+> -- 409
+< -- 14
++ -- 140
+- -- 134
+* -- 959
+:= -- 1826
+add.period$ -- 78
+call.type$ -- 26
+change.case$ -- 195
+chr.to.int$ -- 26
+cite$ -- 26
+duplicate$ -- 362
+empty$ -- 745
+format.name$ -- 180
+if$ -- 2022
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 14
-newline$ -- 73
-num.names$ -- 42
-pop$ -- 72
+missing$ -- 26
+newline$ -- 133
+num.names$ -- 78
+pop$ -- 136
 preamble$ -- 1
-purify$ -- 104
+purify$ -- 197
 quote$ -- 0
-skip$ -- 148
+skip$ -- 273
 stack$ -- 0
-substring$ -- 427
-swap$ -- 14
+substring$ -- 851
+swap$ -- 26
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 82
+type$ -- 154
 warning$ -- 0
-while$ -- 45
+while$ -- 93
 width$ -- 0
-write$ -- 184
-(There were 2 error messages)
+write$ -- 340
