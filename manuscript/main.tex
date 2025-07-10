@@ -99,14 +99,15 @@ University of Southern California$^1$ and University of Texas Medical Branch$^2$
 
 \bigskip
 \begin{abstract}
-abstract.
+Modern biomedical studies increasingly collect both functional and vector-valued predictors for each subject, introducing challenges due to high dimensionality and cross-modality correlations. Existing methods often model these components separately, failing to capture their joint predictive structure.
+We propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space equipped with a tailored inner product. By iteratively maximizing empirical covariance with the response, our method identifies low-dimensional directions that capture both within- and between-modality variation. The procedure is computationally efficient, requiring only to solve linear systems at each step. We provide theoretical guarantees and demonstrate the effectiveness of our approach through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 \end{abstract}
 
 \noindent%
 {\it Keywords:}  dimension reduction; functional data analysis; multiple data modalities; multivariate data analysis; multivariate functional data; partial least square
 
 
-\vfill
+%\vfill
 
 %\newpage
 \spacingset{1.9} % DON'T change the spacing!
