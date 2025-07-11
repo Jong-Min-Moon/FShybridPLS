@@ -1346,8 +1346,100 @@ get_xi_hat_linear <- function(W, y){
 }
 ```
 
+### helper: get_xi_hat_linear
+```{r}
+get_xi_hat_linear_new <- function(W, y){
+  n <- W$n_sample
+  K <- W$n_functional
+  normalizer <- 0
+  d = list()
+  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
+    Theta_t <- W$functional_list[[i]]$coefs
+    B <- W$gram_list[[i]]
+    d[[i]] <- Theta_t %*% y
+    normalizer <- normalizer + t(y) %*% t(Theta_t) %*% B %*% Theta_t %*% y
+  }
+  d[[K+1]] <- t(W$Z) %*% y
+  normalizer <- normalizer+ t(y) %*% W$Z %*% t(W$Z) %*% y
+  d_vec <- do.call(c, d)  # or: unlist(d)
+  d_vec <- d_vec/ sqrt(normalizer)
+  return(d_vec)
+}
+```
 
 
+compare xi_hat_lin, xi_hat_lin_new
+
+```{r}
+library(fda)
+
+# --- Step 1: Simulate Data ---
+set.seed(2222)
+
+n_sample <- 100
+n_scalar <- 2
+n_basis <- 5
+n_functional <- 2
+
+# Scalar predictors Z (centered)
+Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
+Z <- scale(Z, center = TRUE, scale = FALSE)
+
+# Create functional predictors (centered)
+basis <- create.bspline.basis(c(0, 1), nbasis = n_basis)
+functional_list <- list()
+for (j in 1:n_functional) {
+  coefs <- matrix(rnorm(n_basis * n_sample), nrow = n_basis)
+  fdobj <- fd(coef = coefs, basisobj = basis)
+  mean_fd <- mean.fd(fdobj)
+  mean_coef <- coef(mean_fd)
+  centered_coefs <- coefs - matrix(mean_coef, nrow = n_basis, ncol = n_sample)
+  functional_list[[j]] <- fd(coef = centered_coefs, basisobj = basis)
+}
+
+# --- Step 2: Construct hybrid object ---
+W <- predictor_hybrid(Z = Z, functional_list = functional_list)
+
+# --- Step 3: Simulate and center response ---
+total_coef_len <- sum(W$n_basis_list) + W$n_scalar
+true_coef <- rnorm(total_coef_len)
+
+# Flatten design matrix
+Xmat <- matrix(NA, n_sample, total_coef_len)
+for (i in 1:n_sample) {
+  W_i <- subset_predictor_hybrid(W, i)
+  func_coefs <- do.call(c, lapply(W_i$functional_list, function(fdobj) as.vector(coef(fdobj))))
+  Xmat[i, ] <- c(func_coefs, W_i$Z)
+}
+
+y <- Xmat %*% true_coef + rnorm(n_sample, sd = 0.1)
+y <- as.vector(scale(y, center = TRUE, scale = FALSE))
+
+# --- Step 4: Compute constraint matrix ---
+lambda <- rep(0, W$n_functional)
+constr_mat <- get_constraint_matrix_hybrid(W, lambda)
+L <- chol(constr_mat)
+
+# --- Step 5: Run eigen-based PLS ---
+W_template <- W  # prevent mutation
+
+
+pls_eig_result <- get_pls_comp(W, y, L)
+xi_hat_eig <- pls_eig_result$xi_hat
+
+xi_hat_lin <- get_xi_hat_linear(W, y)
+xi_hat_lin_new <- get_xi_hat_linear_new(W, y)
+# Wrap into predictor_hybrid object using format template
+xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin)
+norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
+xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)
+xi_hat_direct_new <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin_new)
+
+cat(xi_hat_direct_new$functional_list[[1]]$coefs- xi_hat_direct$functional_list[[1]]$coefs)
+cat(xi_hat_direct_new$functional_list[[2]]$coefs- xi_hat_direct$functional_list[[2]]$coefs)
+
+
+```
 
 
 
@@ -1409,9 +1501,10 @@ pls_eig_result <- get_pls_comp(W, y, L)
 xi_hat_eig <- pls_eig_result$xi_hat
 
 xi_hat_lin <- get_xi_hat_linear(W, y)
-
+xi_hat_lin_new <- get_xi_hat_linear_new(W, y)
 # Wrap into predictor_hybrid object using format template
 xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin)
+xi_hat_direct_new <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin_new)
 
 # Normalize
 norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
