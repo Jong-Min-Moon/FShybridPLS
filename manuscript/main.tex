@@ -387,7 +387,7 @@ Since functional predictors are observed at finitely many discrete time points, 
 	The goal is to find a unit-norm direction $\xi \in 
 	(\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}$ that maximizes the squared empirical covariance between the resulting PLS component scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$,
 	 defined as
-	 		\begin{equation}\label{def:squared_empirical_cov}
+\begin{equation}\label{def:squared_empirical_cov}
 	 	\widehat{\textnormal{Cov}}^2 \left( \langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y \right)
 	 	:=
 	 	\biggl(
@@ -399,12 +399,12 @@ Since functional predictors are observed at finitely many discrete time points, 
 	 	.
 	 \end{equation}
 	We denote the maximizer as
-	\begin{equation*}
+	\begin{equation}\label{def:maximizer_squared_empirical_cov}
 		\hat{\xi} 
 = 
 (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}})
 := \arg \max_{\xi \in (\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}} \widehat{\textnormal{Cov}}^2 \left( \langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y \right)
-	\end{equation*}
+	\end{equation}
 %
 	where each functional part $\hat{\xi}_j $  is expressed as
 	\begin{equation*}
@@ -419,7 +419,13 @@ Since functional predictors are observed at finitely many discrete time points, 
 	%	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 
 	\begin{proposition}\label{proposition:generalized_rayleigh_quotient}
-At the $l$-th iteration of the PLS algorithm, the unit-norm direction in $(\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}$ that maximizes the squared empirical covariance \eqref{def:squared_empirical_cov} is the solution to the following generalized eigenvalue problem:
+At the $l$-th iteration of the PLS algorithm, let $
+( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top
+$ denote the coefficients 
+of $	\hat{\xi}$, 
+defined in \eqref{def:maximizer_squared_empirical_cov},
+which is
+the projected unit-norm direction that maximizes the squared empirical covariance. These coefficients can be obtained by solving the following generalized eigenvalue problem
 \begin{align}
 	\left(
 	\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
