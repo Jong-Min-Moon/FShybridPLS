@@ -1346,22 +1346,6 @@ get_xi_hat_linear <- function(W, y){
 }
 ```
 
-```{r}
-get_xi_direct <- function(W, y) {
-  K <- W$n_functional
-  C_J <- get_CJ(W)
-  A <- cbind(C_J, W$Z)                      # shape: n × d
-  b <- t(y) %*% A / W$n_sample   # equivalent to V_star
-
-  J_star <- get_gram_matrix_block(W)
-  alpha <- solve(J_star, t(b))                # unconstrained maximizer
-  norm_squared <- as.numeric( t(alpha) %*% J_star %*% alpha )
-  xi_hat <- alpha / sqrt(norm_squared)  # normalize
-
-  return(xi_hat)
-}
-```
-
 
 
 
