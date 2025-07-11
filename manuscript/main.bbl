@@ -12,6 +12,11 @@ Aguilera, A.~M., Escabias, M., Preda, C., and Saporta, G. (2010).
 \newblock {\em Chemometrics and Intelligent Laboratory Systems},
   104(2):289--305.
 
+\bibitem[Bazaraa et~al., 2006]{bazaraaNonlinearProgrammingTheory2006}
+Bazaraa, M.~S., Sherali, H.~D., and Shetty, C.~M. (2006).
+\newblock {\em Nonlinear {{Programming}}: {{Theory}} and {{Algorithms}}}.
+\newblock Wiley-Interscience, Hoboken, N.J.
+
 \bibitem[Beyaztas and Lin~Shang, 2022]{beyaztasRobustFunctionalPartial2022}
 Beyaztas, U. and Lin~Shang, H. (2022).
 \newblock A robust functional partial least squares for

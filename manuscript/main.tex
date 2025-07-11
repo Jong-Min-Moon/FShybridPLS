@@ -52,7 +52,7 @@
 \usepackage{etoolbox}  
 \usepackage{algorithm}
 \DeclareMathOperator*{\argmax}{arg\,max}
-
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand{\jongmin}[1]{
 	{ \color{teal} JM: #1}
 }
@@ -100,7 +100,7 @@ University of Southern California$^1$ and University of Texas Medical Branch$^2$
 \bigskip
 \begin{abstract}
 Modern biomedical studies increasingly collect both functional and vector-valued predictors for each subject, introducing challenges due to high dimensionality and cross-modality correlations. Existing methods often model these components separately, failing to capture their joint predictive structure.
-We propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space equipped with a tailored inner product. By iteratively maximizing empirical covariance with the response, our method identifies low-dimensional directions that capture both within- and between-modality variation. The procedure is computationally efficient, requiring only to solve linear systems at each step. We provide theoretical guarantees and demonstrate the effectiveness of our approach through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
+We propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space. By iteratively maximizing empirical covariance with the response, our method identifies low-dimensional directions that capture both within- and between-modality variation. The procedure is computationally efficient, requiring only to solve linear systems at each step. We provide theoretical guarantees and demonstrate the effectiveness of our approach through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 \end{abstract}
 
 \noindent%
@@ -399,51 +399,26 @@ Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis function
 \[
 B_{m, m'} := \langle b_m, b_{m'} \rangle, \quad m, m' = 1, \ldots, M.
 \]
-We compute $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$ as follows.
-First, we obtain the unnormalized coefficient vectors. For each $j$, the unnormalized vector $\hat{\mathbf{d}}_j'$ is computed by solving a linear equation:
+We compute $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$ as 
 \begin{equation*}
-	B \hat{\mathbf{d}}_j' = (\Theta_j B)^\top \mathbf{y},
+	\hat{\mathbf{d}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			B \Theta_j^\top \mathbf{y} 
+			+ 
+			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
+	\Theta_j^\top \mathbf{y},
+	\quad
+	%%%%%%%%%%%%%%%%
+	\hat{\boldsymbol{\zeta}}  = \frac{1}{\sqrt{\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			B \Theta_j^\top \mathbf{y} 
+			+ 
+			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
+	Z^\top \mathbf{y}.
 \end{equation*}
-The unnormalized scalar component is given by
-\begin{equation}
-	\hat{ \boldsymbol{\zeta} }' := Z^\top \mathbf{y}.
-\end{equation}
-Next, we normalize all components with respect to the hybrid Hilbert norm (see Definition~\ref{def:hilbert_space}) to ensure $\hat{\xi}$ has unit length. Specifically, we define
-\begin{equation}\label{def:computed_PLS_direction}
-	\hat{ \mathbf{d}}_j := 
-	\frac{1}{
-		\left(
-		\sum_{j=1}^K \hat{\mathbf{d}}_j'^\top B \hat{\mathbf{d}}_j' +
-		(\hat{ \boldsymbol{\zeta} }')^\top \hat{ \boldsymbol{\zeta} }'
-		\right)^{1/2}
-	} \hat{\mathbf{d}}_j', \quad j = 1, \ldots, K,
-\end{equation}
-and
-\begin{equation}
-	\hat{\boldsymbol{\zeta}} :=
-	\frac{1}{
-		\left(
-		\sum_{j=1}^K \hat{\mathbf{d}}_j'^\top B \hat{\mathbf{d}}_j' +
-		(\hat{ \boldsymbol{\zeta} }')^\top \hat{ \boldsymbol{\zeta} }'
-		\right)^{1/2}
-	} 	\hat{ \boldsymbol{\zeta} }'.
-\end{equation}
-Details of the hybrid norm computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
-
-The estimated $l$th PLS component score for the $i$th observations,
-denoted $\hat{\rho}_i$
-is computed via hybrid inner product. In a matrix multiplication form, it is computed as:
-\begin{align*}
-	\hat{\rho}_i
-	&:=
-	\langle \widetilde{\mathbf{W}}_i, \hat{\xi} \rangle_{\mathcal{H}}
-	=
-	\sum_{j=1}^K \Theta_j B  \mathbf{d}_j
-	+
-	Z \hat{\boldsymbol{\zeta}} 
-	. 
-\end{align*}
-The details of this computation are provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
+The derivation of this formula is provided in Appendix~\ref{section:proof:eigenproblem_derivation}.
 Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS component direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
 
@@ -468,8 +443,10 @@ Although the unnormalized coefficients are computed separately for the functiona
 The proof of Proposition \ref{Proposition: generalized rayleigh quotient} is given in the Appendix \ref{section:proof:eigenproblem_derivation}.
 
 
-
-
+\begin{proposition} \label{Proposition:linear_system_unregularized}
+aaa
+\end{proposition}
+Proof of is provided in Appendix \ref{section:proof:Proposition:linear_system_unregularized}.
 \subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
 Although Proposition \ref{Proposition: generalized rayleigh quotient} provides an efficient and principled way to compute the PLS components $\xi$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{Proposition: generalized rayleigh quotient} that yields regularized (smoothed) PLS components.
 
@@ -1013,13 +990,28 @@ $\boldsymbol{\cdot}$ \underline{Abbreviations}
 	\item[--] ``CSI": Cauchy–Schwarz inequality
 \end{itemize}
 
-\subsection{Proof of new Proposition}
-For any $\boldsymbol{\xi} = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$, where each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions $\{b_1(t), \ldots, b_M(t)\}$ and is expressed as
+\subsection{Proof of Proposition \ref{Proposition:linear_system_unregularized}}\label{section:proof:Proposition:linear_system_unregularized}
+\begin{comment}
+We start by defining a  inner product in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$:
+\begin{lemma}[Inner product of tuples]
+	\label{lemma:valid_inner_product_tuple}
+	Let $B \in \mathbb{R}^{M \times M}$ be a symmetric positive semi-definite matrix. 
+	For any two tuples $u = (\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})$ and $v = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$ in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, define the bilinear form
+	\[
+	\langle u, v \rangle_{B} := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega}.
+	\]
+	Then $\langle \cdot, \cdot \rangle_{B}$ is a valid inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$.
+\end{lemma}
+The proof of Lemma \ref{lemma:valid_inner_product_tuple} is provided in Appendix \ref{section:proof:lemma:valid_inner_product_tuple}
+\end{comment}
+Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 \begin{equation*}
 	\xi_j(t) := 
 	\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
 \end{equation*}
-with coefficient vectors $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$, the squared norm of $\boldsymbol{\xi}$ in the hybrid Hilbert space $\mathcal{H}$ is given by
+with coefficient vectors $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
+Then, the squared norm of $\xi$ in the hybrid Hilbert space $\mathcal{H}$ 
+%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
 is computed as follows:
 \begin{align*}
 	\langle {\xi},{\xi} \rangle_{\mathcal{H}}
@@ -1059,11 +1051,16 @@ is computed as follows:
 	\\&=
 	\sum \limits_{j=1}^K 
 	\mathbf{d}_j^\top
-	\Theta_j
+B
 	\mathbf{d}_j
 	+
-	\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+	\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\\&=\bigl \langle(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta}),(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})\bigr\rangle_B.
 \end{align*}
+In a similar manner, the empirical covariance is
+% expressed as the inner product on  defined in Lemma \ref{lemma:valid_inner_product_tuple} as follows:
+computed as follows:
 \begin{align*}
 	\widehat{\textnormal{Cov}} (
 	\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
@@ -1163,79 +1160,118 @@ is computed as follows:
 	+
 	\mathbf{y}^\top
 	Z \boldsymbol{\zeta} 
-	\biggr).
+	\biggr)
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\\&=
+%	\frac{1}{n}
+%\bigl \langle
+%(\Theta_1^\top \mathbf{y} , \ldots, \Theta_K^\top %\mathbf{y}, Z^\top \mathbf{y}),
+%(\mathbf{d}_1, \ldots, \mathbf{d}_K, %\boldsymbol{\zeta})
+%\bigr\rangle_B.
 \end{align*}	
-Both expressions in \eqref{...} and \eqref{...} can be represented as inner products in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, which is defined as follows:
-\begin{lemma}[Inner product of tuples]
-	\label{lemma:valid_inner_product_tuple}
-	Let $B \in \mathbb{R}^{M \times M}$ be a symmetric positive semi-definite matrix. 
-	For any two tuples $u = (\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})$ and $v = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$ in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, define the bilinear form
-	\[
-	\langle u, v \rangle_{B} := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega}.
-	\]
-	Then $\langle \cdot, \cdot \rangle_{B}$ is a valid inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$.
-\end{lemma}
-The proof of Lemma \ref{lemma:valid_inner_product_tuple} is provided in Appendix \ref{section:proof:lemma:valid_inner_product_tuple}
+Therefore, problem of maximizing the squared covariance can be written as
+\begin{comment}
+\begin{equation*}
+	\widehat{\textnormal{Cov}}^2 (
+\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
+) 
+=
+\frac{1}{n^2}
+\bigl \langle
+(\Theta_1^\top \mathbf{y} , \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y}),
+(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})
+\bigr\rangle_B^2.
+\end{equation*}
+\end{comment}
+%Therefore, the optimization problem 
+presented in Proposition \ref{Proposition:linear_system_unregularized} is equivalent to the following constrained optimization problem on the Euclidean space:
+\begin{align*}
+	\max_{\mathbf{d}_1, \ldots, \mathbf{d}_K \in \mathbb{R}^M,
+		 \boldsymbol{\zeta} \in \mathbb{R}^p
+	}~&
+	\frac{1}{n^2}
+	\biggl(
+\sum \limits_{k=1}^K 
+\mathbf{y}^\top
+\Theta_{j}
+B
+\mathbf{d}_j
++
+\mathbf{y}^\top
+Z \boldsymbol{\zeta} 
+\biggr)^2,
+\\&~s.t.~	\sum \limits_{j=1}^K 
+\mathbf{d}_j^\top
+B
+\mathbf{d}_j
++
+\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
+\end{align*} 
+ Let us denote the objective function as
+ \[
+ f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := 
+ \frac{1}{n^2}
+ \left(
+ \sum_{j=1}^K \mathbf{y}^\top \Theta_j B \mathbf{d}_j + \mathbf{y}^\top Z \boldsymbol{\zeta}
+ \right)^2,
+ \]
+ and the constraint function as
+ \[
+ g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1 = 0.
+ \]
+ 
+ The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function $f$ is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
+ 
+ Define the Lagrangian:
+ \[
+ \mathcal{L}(\{\mathbf{d}_j\}, \boldsymbol{\zeta}, \lambda) = f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}).
+ \]
+ The constraint function $g$ is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible (the constraint requires norm 1), the gradient of $g$ is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
+ Taking gradients of $\mathcal{L}$ and setting them to zero yields:
+ \begin{align*}
+ 	\nabla_{\mathbf{d}_j} \mathcal{L} &= 
+ 	\frac{2}{n^2} 
+ 	\left(
+ 	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
+ 	\right)
+ 	B \Theta_j^\top \mathbf{y}
+ 	- 2\lambda B \mathbf{d}_j = 0, \quad \forall j, 
+ 	\numberthis \label{lag_grad_d}
+ 	\\
+ 	\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
+ 	\frac{2}{n^2} 
+ 	\left(
+ 	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
+ 	\right)
+ 	Z^\top \mathbf{y}
+ 	- 2\lambda \boldsymbol{\zeta} = 0.
+ 		\numberthis \label{lag_grad_zeta}
+ \end{align*}
+By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
+$$
+\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
+$$
+all scaled by the same factor. There exists only one set of vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
+\begin{equation*}
+	\mathbf{d}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			 B \Theta_j^\top \mathbf{y} 
+			 + 
+			 \mathbf{y}^\top Z Z^\top \mathbf{y}}}
+		 \Theta_j^\top \mathbf{y},
+		 \quad
+		 %%%%%%%%%%%%%%%%
+		 	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+		 		\mathbf{y}^\top
+		 		\Theta_j
+		 		B \Theta_j^\top \mathbf{y} 
+		 		+ 
+		 		\mathbf{y}^\top Z Z^\top \mathbf{y}}}
+		 Z^\top \mathbf{y},
+\end{equation*}
+which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$. This completes the proof of  Proposition \ref{Proposition:linear_system_unregularized}.
 
-
-
-
-
-
-By the definition of the inner product on $\mathcal{H} = \mathbb{R}^{KM} \times \mathbb{R}^p$, we have
-\[
-\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} = \sum_{j=1}^K \langle \xi_j, \xi_j \rangle_{L^2([0,1])} + \|\boldsymbol{\zeta}\|^2.
-\]
-Since $\xi_j(t) = \sum_{m=1}^M d_{jm} b_m(t)$, it follows that
-\[
-\langle \xi_j, \xi_j \rangle_{L^2([0,1])} 
-= \int_0^1 \left( \sum_{m=1}^M d_{jm} b_m(t) \right)^2 dt 
-= \mathbf{d}_j^\top B \mathbf{d}_j,
-\]
-where $B$ is the Gram matrix of the basis. Substituting this into the definition yields
-\[
-\langle \boldsymbol{\xi}, \boldsymbol{\xi} \rangle_{\mathcal{H}} = \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta}.
-\]
-
-\jongmin{
-	Another way of computing \eqref{def:eigenproblem_smoothed}, rather than solving an eigenproblem, is as follows. As shown in the proof in Appendix \ref{section:proof:eigenproblem_derivation}, the empirical covariance is simplified as:
-	\begin{align*}
-		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) &= \frac{1}{n} \sum \limits_{i=1}^n \langle \mathbf{W}_i, \xi \rangle_\mathcal{H} Y_i \\
-		&= n^{-1} \widetilde{\mathbf{y}}^\top (\widetilde{C}J\mathbf{a} + \mathbf{Z} \boldsymbol{\theta}).
-		\\&=
-		\frac{1}{n}\tilde{\mathbf{y}}^\top
-		\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix} \;      \underbrace{
-			\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-		}_{:= \boldsymbol{\beta}}.
-	\end{align*}
-	Let us 
-	denote $\mathbf{b} =  \widetilde{\mathbf{y}}^\top \begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$. This is the weighted row sum of $\begin{bmatrix} \widetilde{C}J \; \mathbf{Z} \end{bmatrix}$, weighted by $\widetilde{\mathbf{y}}$.
-	Then using the symmetricity of $J^\ast$, we solve a linear system $J^\ast \mathbf{d} =
-	\mathbf{b}^\top$ to obtain $\mathbf{d}$. Then we have
-	\begin{align*}
-		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-		\widehat{\textnormal{Cov}} (\langle \mathbf{W}, \xi \rangle_{\mathcal{H}}, Y ) 
-		%%%%%%%%%%%%%%%%%%%%%
-		&= 
-		%%%%%%%%%%%%%%%%%%%%%%%%
-		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-		\frac{1}{n} \mathbf{d}^\top J^\ast  \boldsymbol{\beta}
-		\\& \overset{(i)}{\leq} 
-		\max_{\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}} = 1}
-		\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}
-		\sqrt{\boldsymbol{\beta} J^\ast  \boldsymbol{\beta}}
-		\\& \overset{(ii)}{=}
-		\frac{1}{n} \sqrt{\mathbf{d}^\top J^\ast  \mathbf{d}}    ,
-	\end{align*}
-	where step $(i)$ uses the Cauchy-Schwarz inequality with the inner product $\langle x, y \rangle_{J^\ast} = x^\top J^\ast y$,
-	and step $(ii)$ uses the norm constraint.
-	By the Cauchy-Schwarz inequality, the maximum displayed in the last term is obtained by a unit vector (with respect to $\langle \cdot, \cdot \rangle_{J^\ast}$) parallel to $\mathbf{d}$. Therefore we have
-	\begin{equation*}
-		\begin{bmatrix} \mathbf{a} \\ \mathbf{\theta} \end{bmatrix}
-		= \frac{1}{\sqrt{\mathbf{d}^\top  J^\ast \mathbf{d} }}\mathbf{d},
-	\end{equation*}
-	which only involves solving one linear equation.
-}
 
 \subsection{Proof of Lemma \ref{lemma:valid_inner_product_tuple}}\label{section:proof:lemma:valid_inner_product_tuple}
 \begin{proof}
