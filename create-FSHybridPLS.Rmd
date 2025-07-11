@@ -1374,7 +1374,7 @@ compare xi_hat_lin, xi_hat_lin_new
 library(fda)
 
 # --- Step 1: Simulate Data ---
-set.seed(2222)
+set.seed(111)
 
 n_sample <- 100
 n_scalar <- 2
