@@ -368,9 +368,6 @@ We choose a moderately large value of $M$ (e.g., 15 or 20) to capture rich funct
 	\begin{equation}
 		\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M}.
 	\end{equation}
-	
-
-
 The observations in the hybrid PLS problem can be compactly represented by the tuple
 \begin{equation}\label{def:problem_instance}
 	(\mathbb{B}, \Theta, \mathbf{y})
@@ -378,24 +375,31 @@ The observations in the hybrid PLS problem can be compactly represented by the t
 	,
 \end{equation}
 defined as follows.
-Let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
+First, let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
 \begin{equation}
 	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
 	\quad
 	B^{\prime\prime}_{m, m'} := \int_0^1 b^{\prime\prime}_m(t)\, b^{\prime\prime}_{m'}(t)\, dt,
 \end{equation}
 for $m, m' = 1, \ldots, M$.
-
-Define the $(MK + p) \times (MK + p)$ block-diagonal matrices
+Leveraging these notations, 
+we define the $(MK + p) \times (MK + p)$ block-diagonal matrices
 \[
 \mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p)
 \quad \text{and} \quad
 \mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
 \]
-and let $\Theta := (\Theta_1, \ldots, \Theta_K, Z)$ denote the combined design matrix. Finally, let $\mathbf{y} := (y_1, \ldots, y_n)^\top$ denote the observed response vector.
+We denote $\Theta := (\Theta_1, \ldots, \Theta_K, Z)
+\in
+\mathbb{R}^{n \times (MK+p)}
+$ , and let $\mathbf{y} := (y_1, \ldots, y_n)^\top$ denote the observed response vector.
 
 	\begin{remark}
-While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of $\mathbb{B}$ remains general enough to accommodate different bases across the $K$ predictors.
+While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of 
+$\mathbb{B}$
+and
+$\mathbb{B}^{\prime \prime}$
+ remains general enough to accommodate different bases across the $K$ predictors.
 \end{remark}
 
 	%Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
