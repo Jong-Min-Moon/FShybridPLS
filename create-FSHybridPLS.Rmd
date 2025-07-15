@@ -1328,23 +1328,7 @@ get_pls_comp <- function(W, y, L){
 
 ## linear system method
 
-### helper: get_xi_hat_linear
-```{r}
-get_xi_hat_linear <- function(W, y){
-  n <- W$n_sample
-  K <- W$n_functional
-  d = list()
-  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
-    Ct <- W$functional_list[[i]]$coefs
-    Phi <- W$gram_list[[i]]
-    rhs <-  t(Phi) %*% Ct %*% y
-    d[[i]] <- solve(Phi, rhs)
-  }
-  d[[K+1]] <- t(W$Z) %*% y
-  d_vec <- do.call(c, d)  # or: unlist(d)
-  return(d_vec)
-}
-```
+
 
 ### helper: get_xi_hat_linear
 ```{r}

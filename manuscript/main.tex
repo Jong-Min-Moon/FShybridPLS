@@ -388,7 +388,9 @@ Since functional predictors are observed at finitely many discrete time points, 
 	(\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}$ that maximizes the squared empirical covariance between the resulting PLS component scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$,
 	 defined as
 \begin{equation}\label{def:squared_empirical_cov}
-	 	\widehat{\textnormal{Cov}}^2 \left( \langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y \right)
+	 	\widehat{\textnormal{Cov}}^2 \left( \langle 
+	 	\widetilde{W},
+	 	\xi \rangle_{\mathcal{H}}, Y \right)
 	 	:=
 	 	\biggl(
 	 	\frac{1}{n} 
@@ -403,7 +405,10 @@ Since functional predictors are observed at finitely many discrete time points, 
 		\hat{\xi} 
 = 
 (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}})
-:= \arg \max_{\xi \in (\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}} \widehat{\textnormal{Cov}}^2 \left( \langle \widetilde{\mathbf{W}}, \xi \rangle_{\mathcal{H}}, Y \right)
+:= \arg \max_{\xi \in (\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}} \widehat{\textnormal{Cov}}^2 
+\left( 
+\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
+\right)
 	\end{equation}
 %
 	where each functional part $\hat{\xi}_j $  is expressed as
@@ -1251,7 +1256,9 @@ Although the unnormalized coefficients are computed separately for the functiona
 	
 	Define the Lagrangian:
 	\[
-	\mathcal{L}(\{\mathbf{d}_j\}, \boldsymbol{\zeta}, \lambda) = f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}).
+	\mathcal{L}(\{\mathbf{d}_j\}, \boldsymbol{\zeta}, \lambda) 
+	:= 
+	f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}).
 	\]
 	The constraint function $g$ is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible (the constraint requires norm 1), the gradient of $g$ is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
 	Taking gradients of $\mathcal{L}$ and setting them to zero yields:
@@ -1274,10 +1281,10 @@ Although the unnormalized coefficients are computed separately for the functiona
 		- 2\lambda \boldsymbol{\zeta} = 0.
 		\numberthis \label{lag_grad_zeta}
 	\end{align*}
-	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
-	$$
+	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
+	$
 	\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
-	$$
+	$
 	all scaled by the same factor. There exists only one set of vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
 	\begin{equation*}
 		\mathbf{d}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
