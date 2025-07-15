@@ -333,12 +333,26 @@
 	The function part $\psi$ of the hybrid PLS component $\xi$ is inherently infinite-dimensional, rendering its estimation impossible with finite sample size. As such, we first approximate each functional predictor (observed version when $l=1$, or residualized version when $l \ge 2$) as a linear combination of $M$ basis functions and coefficients. 
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
-	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
-	Given a twice-differentiable basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
+\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
+Given a twice-differentiable basis $\{b_l(t)\}$ of $L^2([0,1])$,
+the functional predictors,
+the corresponding regression coefficients,
+and PLS component direction
+ can be decomposed into
 	\begin{equation*}
-		X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t), \quad 
-		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
+		X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t),~
+		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t), j=1, \ldots, K,~
+		%%%%%%%%%%%%%%%%%%%%%%
+		\xi 
+		=
+		\sum_{l=1}^\infty 
+		b_l(t)
 	\end{equation*}
+	At the $l$-th iteration of the PLS algorithm, let
+	\begin{equation}
+		( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
+	\end{equation}
+	
 	where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively.
 Since functional predictors are observed at finitely many discrete time points in practice,
 we use finite-dimensional projections obtained by the expansion truncating at $M$ terms.
@@ -391,11 +405,11 @@ First, let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram mat
 for $m, m' = 1, \ldots, M$.
 Leveraging these notations, 
 we define the $(MK + p) \times (MK + p)$ block-diagonal matrices
-\[
+\begin{equation}\label{def:gram_block}
 \mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p)
 \quad \text{and} \quad
 \mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
-\]
+\end{equation}
 We denote $\Theta := (\Theta_1, \ldots, \Theta_K, Z)
 \in
 \mathbb{R}^{n \times (MK+p)}
@@ -467,13 +481,16 @@ $
 $
 denote the observed data defined in \eqref{def:problem_instance}.
 At the $l$-th iteration of the PLS algorithm, let
-$( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top$
+\begin{equation}
+( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
+\end{equation}
+
 denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
 which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
 These coefficients are obtained by solving the following generalized eigenvalue problem:
 \begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 	\left(
-	\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
+	\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
 	\right)^\top
 	=
 	\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
@@ -489,9 +506,9 @@ V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \m
 \end{proposition}
 Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem is easily obtained by matrix multiplication and normalization:
 	\begin{proposition} \label{proposition:linear_noregul}
-	We can compute  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\xi}}$ in Proposition \ref{proposition:eigen_noregul} as 
+	We can compute  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}$ in Proposition \ref{proposition:eigen_noregul} as 
 \begin{equation*}
-	\hat{\mathbf{d}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
+	\hat{\boldsymbol{\gamma}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
 			\mathbf{y}^\top
 			\Theta_j
 			B \Theta_j^\top \mathbf{y} 
@@ -543,17 +560,17 @@ One possible approach is to extend smoothed functional PCA \citep{Rice1991} to o
 \end{equation*}
 where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. Here, the penalization term can be written in matrix form as:
 		\begin{align*}
-	\sum \limits_{k=1}^K 
-	\lambda_k 
+	\sum \limits_{j=1}^K 
+	\lambda_j
 	\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
 &=
-	\sum \limits_{k=1}^K 
-\lambda_k 
+	\sum \limits_{j=1}^K 
+\lambda_j
 \int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
 \\&	 =
 %%%%%%%%%%%%%%%%%%%
-	\sum \limits_{k=1}^K 
-\lambda_k 
+	\sum \limits_{j=1}^K 
+\lambda_j
 \sum_{l=1}^M
 \sum_{m=1}^M
 \theta_{ijl} \theta_{ijm}
@@ -563,8 +580,22 @@ where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off bet
   dt
 \\&	 =
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	  \sum \limits_{k=1}^K \lambda_k \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)} = \xi^{* \top} \Lambda \ddot{J}^\ast \xi^*,
+\sum \limits_{j=1}^K
+\lambda_j
+\boldsymbol{\gamma}_j^\top
+B^{\prime \prime} 
+\boldsymbol{\gamma}_j
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&= 
+\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
 \end{align*}
+where we recall that $\mathbb{B}^{\prime \prime} $ is defined in \eqref{def:gram_block}, 
+	where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
+\begin{equation}\label{def:Lambda}
+	\Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
+\end{equation}
+$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
+
 However, the above approach assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which works under weaker conditions than those required by \citet{Rice1991}. This is achieved by replacing the standard orthonormality constraint with one based on a modified inner product that accounts for roughness. Building on this idea, the following proposition reformulates the hybrid PLS problem as a generalized Rayleigh quotient, yielding a smoothed PLS direction that maximizes the squared covariance over a class of smooth functions.
 
 \begin{proposition}\label{proposition:eigen_noregul}
@@ -574,13 +605,13 @@ However, the above approach assumes that the functional predictors admit an orth
 	$
 	denote the observed data defined in \eqref{def:problem_instance}.
 	At the $l$-th iteration of the PLS algorithm, let
-	$( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top$
+	$( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top$
 	denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
 	which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
 	These coefficients are obtained by solving the following generalized eigenvalue problem:
 	\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 		\left(
-		\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
+		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
 		\right)^\top
 		=
 		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
@@ -618,11 +649,7 @@ However, the above approach assumes that the functional predictors admit an orth
 		
 		
 
-		where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
-		\begin{equation}\label{def:Lambda}
-			\Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
-		\end{equation}
-		$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
+	
 		
 		\begin{align}
 			\begin{split}
@@ -671,27 +698,27 @@ However, the above approach assumes that the functional predictors admit an orth
 	\end{equation}
 	where $\mathbf{e}[\mathbf{t}]$ is an $n \times (K+p)$ matrix of errors. 
 	
-	As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \mathbf{d}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\mathbf{d}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\mathbf{d}^* = (\mathbf{d}^{(1)\top}, \ldots, \mathbf{d}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: $\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \mathbf{d}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
+	As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: $\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
 	\begin{equation}
-		\widetilde{C}^* B^*[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \mathbf{d}^* B^*[\mathbf{t}] + \mathbf{e}[\mathbf{t}].
+		\widetilde{C}^* B^*[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] + \mathbf{e}[\mathbf{t}].
 		\label{eq: rewritten hybrid on scalar regression model}
 	\end{equation}
 	
 	Based on the model formulation \eqref{eq: rewritten hybrid on scalar regression model}, we can now formulate the following least squares criterion whose minimizing solution gives the estimate of the regression coefficient $\boldsymbol{\delta}[\mathbf{t}]$ in the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model}:
 	\begin{equation}
 		\begin{aligned}
-			\textnormal{SSE}(\delta) &= \int_\mathcal{T} \left\Vert \,  \widetilde{C}^* B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}} \, \mathbf{d}^* B^*[\mathbf{t}] \, \right\Vert_F^2 \, d\mathbf{t}  \\
-			&= tr\left(\widetilde{C}^{*T}\widetilde{C}^*J^\ast \right) - 2\,tr \left(\mathbf{d}^* J^\ast \widetilde{C}^{*T} \widehat{\boldsymbol{\rho}} \right) + tr\left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \mathbf{d}^* J^\ast \mathbf{d}^{*T}\right),
+			\textnormal{SSE}(\delta) &= \int_\mathcal{T} \left\Vert \,  \widetilde{C}^* B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] \, \right\Vert_F^2 \, d\mathbf{t}  \\
+			&= tr\left(\widetilde{C}^{*T}\widetilde{C}^*J^\ast \right) - 2\,tr \left(\boldsymbol{\gamma}^* J^\ast \widetilde{C}^{*T} \widehat{\boldsymbol{\rho}} \right) + tr\left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* J^\ast \boldsymbol{\gamma}^{*T}\right),
 		\end{aligned}
 		\label{eq: least squares}
 	\end{equation}
-	where $tr$ denotes the trace of a matrix, and $\Vert \cdot \Vert_F$ is a Frobenius norm. Now taking the derivative of \eqref{eq: least squares} with respect to $\mathbf{d}^*$ and setting the result to zero, we find that  $\mathbf{d}^*$ satisfies the system of linear equations
+	where $tr$ denotes the trace of a matrix, and $\Vert \cdot \Vert_F$ is a Frobenius norm. Now taking the derivative of \eqref{eq: least squares} with respect to $\boldsymbol{\gamma}^*$ and setting the result to zero, we find that  $\boldsymbol{\gamma}^*$ satisfies the system of linear equations
 	\begin{equation*}
-		\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \mathbf{d}^*  J^\ast =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast,
+		\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^*  J^\ast =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast,
 	\end{equation*}
-	whose solutions lead to the following estimates of $\mathbf{d}^*$ and $\boldsymbol{\delta}[\mathbf{t}]$:
+	whose solutions lead to the following estimates of $\boldsymbol{\gamma}^*$ and $\boldsymbol{\delta}[\mathbf{t}]$:
 	\begin{equation*}
-		\widehat{\mathbf{d}}^*  =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast \left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} J^\ast \right)^{-1} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \, \widehat{\mathbf{d}}^{*\top}.
+		\widehat{\boldsymbol{\gamma}}^*  =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast \left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} J^\ast \right)^{-1} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \, \widehat{\boldsymbol{\gamma}}^{*\top}.
 	\end{equation*}
 	Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subsequent residualized hybrid predictor as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$. 
 	
@@ -1125,9 +1152,9 @@ However, the above approach assumes that the functional predictors admit an orth
 		\begin{lemma}[Inner product of tuples]
 			\label{lemma:valid_inner_product_tuple}
 			Let $B \in \mathbb{R}^{M \times M}$ be a symmetric positive semi-definite matrix. 
-			For any two tuples $u = (\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})$ and $v = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$ in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, define the bilinear form
+			For any two tuples $u = (\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta})$ and $v = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$ in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, define the bilinear form
 			\[
-			\langle u, v \rangle_{B} := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega}.
+			\langle u, v \rangle_{B} := \sum_{j=1}^K \boldsymbol{\gamma}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega}.
 			\]
 			Then $\langle \cdot, \cdot \rangle_{B}$ is a valid inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$.
 		\end{lemma}
@@ -1139,7 +1166,7 @@ However, the above approach assumes that the functional predictors admit an orth
 		\xi_j(t) := 
 		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
 	\end{equation*}
-	with coefficient vectors $\mathbf{d}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
+	with coefficient vectors $\boldsymbol{\gamma}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
 	Then, the squared norm of $\xi$ in the hybrid Hilbert space $\mathcal{H}$ 
 	%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
 	is computed as follows:
@@ -1180,13 +1207,13 @@ However, the above approach assumes that the functional predictors admit an orth
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=
 		\sum \limits_{j=1}^K 
-		\mathbf{d}_j^\top
+		\boldsymbol{\gamma}_j^\top
 		B
-		\mathbf{d}_j
+		\boldsymbol{\gamma}_j
 		+
 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		%\\&=\bigl \langle(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta}),(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})\bigr\rangle_B.
+		%\\&=\bigl \langle(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta}),(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta})\bigr\rangle_B.
 	\end{align*}
 	In a similar manner, the empirical covariance is
 	% expressed as the inner product on  defined in Lemma \ref{lemma:valid_inner_product_tuple} as follows:
@@ -1271,7 +1298,7 @@ However, the above approach assumes that the functional predictors admit an orth
 		(
 		\boldsymbol{\theta}_{ij}^\top
 		B
-		\mathbf{d}_j
+		\boldsymbol{\gamma}_j
 		)  
 		\biggr\}
 		+
@@ -1286,7 +1313,7 @@ However, the above approach assumes that the functional predictors admit an orth
 		\mathbf{y}^\top
 		\Theta_{j}
 		B
-		\mathbf{d}_j
+		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
 		Z \boldsymbol{\zeta} 
@@ -1296,12 +1323,12 @@ However, the above approach assumes that the functional predictors admit an orth
 		%	\frac{1}{n}
 		%\bigl \langle
 		%(\Theta_1^\top \mathbf{y} , \ldots, \Theta_K^\top %\mathbf{y}, Z^\top \mathbf{y}),
-		%(\mathbf{d}_1, \ldots, \mathbf{d}_K, %\boldsymbol{\zeta})
+		%(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, %\boldsymbol{\zeta})
 		%\bigr\rangle_B.
 	\end{align*}	
 	Therefore, problem of maximizing the squared covariance  is equivalent to the following constrained optimization problem on the Euclidean space:
 	\begin{align*}
-		\max_{\mathbf{d}_1, \ldots, \mathbf{d}_K \in \mathbb{R}^M,
+		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
 			\boldsymbol{\zeta} \in \mathbb{R}^p
 		}~&
 		\frac{1}{n^2}
@@ -1310,16 +1337,16 @@ However, the above approach assumes that the functional predictors admit an orth
 		\mathbf{y}^\top
 		\Theta_{j}
 		B
-		\mathbf{d}_j
+		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
 		Z \boldsymbol{\zeta} 
 		\biggr)^2,
 		\numberthis \label{optim:summation_form}
 		\\&~s.t.~	\sum \limits_{j=1}^K 
-		\mathbf{d}_j^\top
+		\boldsymbol{\gamma}_j^\top
 		B
-		\mathbf{d}_j
+		\boldsymbol{\gamma}_j
 		+
 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
 	\end{align*} 
@@ -1331,7 +1358,7 @@ The objective function matches that of \eqref{eq: Regularized generalized raylei
 \mathbf{y}^\top
 \Theta_{j}
 B
-\mathbf{d}_j
+\boldsymbol{\gamma}_j
 +
 \mathbf{y}^\top
 Z \boldsymbol{\zeta} 
@@ -1359,9 +1386,9 @@ V
 and the constraint is identical to that in \eqref{eq: Regularized generalized rayleigh quotient equation}, because we have:
 \begin{equation*}
 		\sum \limits_{j=1}^K 
-	\mathbf{d}_j^\top
+	\boldsymbol{\gamma}_j^\top
 	B
-	\mathbf{d}_j
+	\boldsymbol{\gamma}_j
 	+ \boldsymbol{\zeta}^\top \boldsymbol{\zeta}
 	=
 	\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}.
@@ -1373,52 +1400,52 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
  \begin{proof}
 	From \eqref{optim:summation_form}, let us denote the objective function as
 	\[
-	f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := 
+	f(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) := 
 	\frac{1}{n^2}
 	\left(
-	\sum_{j=1}^K \mathbf{y}^\top \Theta_j B \mathbf{d}_j + \mathbf{y}^\top Z \boldsymbol{\zeta}
+	\sum_{j=1}^K \mathbf{y}^\top \Theta_j B \boldsymbol{\gamma}_j + \mathbf{y}^\top Z \boldsymbol{\zeta}
 	\right)^2,
 	\]
 	and the constraint function as
 	\[
-	g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1 = 0.
+	g(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) := \sum_{j=1}^K \boldsymbol{\gamma}_j^\top B \boldsymbol{\gamma}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1 = 0.
 	\]
 	The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function $f$ is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
 	
 	Define the Lagrangian:
 	\[
-	\mathcal{L}(\{\mathbf{d}_j\}, \boldsymbol{\zeta}, \lambda) 
+	\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \lambda) 
 	:= 
-	f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}).
+	f(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}).
 	\]
 	The constraint function $g$ is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible (the constraint requires norm 1), the gradient of $g$ is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
 	Taking gradients of $\mathcal{L}$ and setting them to zero yields:
 	\begin{align*}
-		\nabla_{\mathbf{d}_j} \mathcal{L} &= 
+		\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
 		\frac{2}{n^2} 
 		\left(
-		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
+		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
 		\right)
 		B \Theta_j^\top \mathbf{y}
-		- 2\lambda B \mathbf{d}_j = 0, \quad \forall j, 
+		- 2\lambda B \boldsymbol{\gamma}_j = 0, \quad \forall j, 
 		\numberthis \label{lag_grad_d}
 		\\
 		\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
 		\frac{2}{n^2} 
 		\left(
-		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
+		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
 		\right)
 		Z^\top \mathbf{y}
 		- 2\lambda \boldsymbol{\zeta} = 0.
 		\numberthis \label{lag_grad_zeta}
 	\end{align*}
-	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \mathbf{d}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
+	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
 	$
 	\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
 	$
 	all scaled by the same factor. There exists only one set of vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
 	\begin{equation*}
-		\mathbf{d}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+		\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
 				\mathbf{y}^\top
 				\Theta_j
 				B \Theta_j^\top \mathbf{y} 
@@ -1435,7 +1462,7 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
 				\mathbf{y}^\top Z Z^\top \mathbf{y}}}
 		Z^\top \mathbf{y},
 	\end{equation*}
-	which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\xi}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul}.
+	which are the same as  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul}.
 	\end{proof}
 	
 	
@@ -1555,7 +1582,7 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
 	\end{equation*}
 	which, after applying the finite-dimensional form (9), implies that
 	\begin{align*}
-		\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\mathbf{d}}^*_{l-1}B^*[\mathbf{t}] \\
+		\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
 		&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
 		& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \left(\frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}] \\
 		&= \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}].
@@ -1604,7 +1631,7 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
 	\begin{equation*}
 		\setlength{\jot}{10pt}
 		\begin{aligned}
-			\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\mathbf{d}}^*_{l-1}B^*[\mathbf{t}] \\
+			\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
 			&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
 			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}}  \\
 			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}},
