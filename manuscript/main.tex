@@ -518,8 +518,10 @@ One possible approach is to extend smoothed functional PCA \citep{Rice1991} to o
 	\biggr\}
 	,
 \end{equation*}
-where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between covariance maximization and roughness penalization.
-However,   we take an alternative strategy that extends the idea of \citet{Silverman1996}. This approach is known to produce appropriately smoothed functional PCA components under milder conditions than the \citet{Rice1991}'s approach by replacing the usual $L^2$-orthonormality constraint with the one that takes account the roughness of functions via the modified inner product. Specifically, the following proposition provides a generalized Rayleigh quotient problem which modifies the $\mathcal{H}$-orthonormality constraint of the hybrid PLS components to incorporate roughness penalty, and thus whose solution corresponds to a smoothed PLS component maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness.
+where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. However, the above approach assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which works under weaker conditions than those required by \citet{Rice1991}. This is achieved by replacing the standard orthonormality constraint with one based on a modified inner product that accounts for roughness. Building on this idea, the following proposition reformulates the hybrid PLS problem as a generalized Rayleigh quotient, yielding a smoothed PLS direction that maximizes the squared covariance over a class of smooth functions.
+
+
+
 	\begin{proposition} \label{Proposition: Regularized generalized rayleigh quotient}
 		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
 		\begin{equation*}
