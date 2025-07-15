@@ -367,14 +367,26 @@ Since functional predictors are observed at finitely many discrete time points, 
 		\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M}.
 	\end{equation}
 	
+
+
+The observations in the hybrid PLS problem can be compactly represented by the tuple
+\begin{equation}\label{def:problem_instance}
+	(B^\ast, \Theta, \mathbf{y}),
+\end{equation}
+defined as follows.
+Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions, with entries  
+\[
+B_{m, m'} := \langle b_m, b_{m'} \rangle = \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
+\]
+for $m, m' = 1, \ldots, M$.
+Then define $B^\ast := \operatorname{blkdiag}(B, \ldots, B, I_p) \in \mathbb{R}^{(MK + p) \times (MK + p)}$,  
+$\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$,  
+and $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
 	\begin{remark}
-		While it is possible to use a different basis for each functional predictor, we adopt a common basis system for all predictors for notational simplicity.
-	\end{remark}
-	
-	
-	
-	
-	Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
+While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of $B^\ast$ remains general enough to accommodate different bases across the $K$ predictors.
+\end{remark}
+
+	%Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
 	
 	
 	
@@ -430,7 +442,9 @@ $ denote the coefficients
 of $	\hat{\xi}$, 
 defined in \eqref{def:maximizer_squared_empirical_cov},
 which is
-the projected unit-norm direction that maximizes the squared empirical covariance. These coefficients can be obtained by solving the following generalized eigenvalue problem
+the projected unit-norm direction that maximizes the squared empirical covariance.
+
+ These coefficients can be obtained by solving the following generalized eigenvalue problem
 \begin{align}
 	\left(
 	\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
@@ -444,14 +458,7 @@ where
 $$
 V := \frac{1}{n^2} (B^\ast \Theta^\top \mathbf{y})(B^\ast \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
 $$
-where
-$B^\ast := \operatorname{blkdiag}(B, \ldots, B, I_p)  \in  \mathbb{R}^{(MK+p) \times (MK+p)}$,
- $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$,
-$B \in \mathbb{R}^{M \times M}$ is the gram matrix  of the basis functions  with entries
-$
-B_{m, m'} := \langle b_m, b_{m'} \rangle = \int_0^1  b_m(t)  b_{m'}(t) dt
-$
-for $m, m' = 1, \ldots, M$.
+
 \end{proposition}
 Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem is easily obtained by matrix multiplication and normalization:
 	\begin{proposition} \label{proposition:generalized_rayleigh_quotient_linear}
