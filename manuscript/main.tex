@@ -446,19 +446,20 @@ $( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\z
 denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
 which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
 These coefficients are obtained by solving the following generalized eigenvalue problem:
-\begin{align}
+\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 	\left(
 	\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
 	\right)^\top
 	=
 	\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
 	\quad \text{subject to} \quad \boldsymbol{\xi}^\top B^\ast \boldsymbol{\xi} = 1,
-	\label{eq: Regularized generalized rayleigh quotient equation}
-\end{align}
+\end{equation}
 where
-$$
+\begin{equation}\label{def:V_matrix}
 V := \frac{1}{n^2} (B^\ast \Theta^\top \mathbf{y})(B^\ast \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
-$$
+\end{equation}
+
+
 
 \end{proposition}
 Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem is easily obtained by matrix multiplication and normalization:
@@ -1024,13 +1025,9 @@ Although the unnormalized coefficients are computed separately for the functiona
 	%
 	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
-	\section{Proofs of Propositions}
-	$\boldsymbol{\cdot}$ \underline{Abbreviations}
-	\begin{itemize}
-		\item[--] ``CSI": Cauchy–Schwarz inequality
-	\end{itemize}
+
 	
-	\subsection{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:linear_noregul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
+	\section{Proof of Proposition \ref{proposition:eigen_noregul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
 	\begin{comment}
 		We start by defining a  inner product in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$:
 		\begin{lemma}[Inner product of tuples]
@@ -1044,6 +1041,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		\end{lemma}
 		The proof of Lemma \ref{lemma:valid_inner_product_tuple} is provided in Appendix \ref{section:proof:lemma:valid_inner_product_tuple}
 	\end{comment}
+	\begin{proof}
 	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
 		\xi_j(t) := 
@@ -1209,22 +1207,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		%(\mathbf{d}_1, \ldots, \mathbf{d}_K, %\boldsymbol{\zeta})
 		%\bigr\rangle_B.
 	\end{align*}	
-	Therefore, problem of maximizing the squared covariance can be written as
-	\begin{comment}
-		\begin{equation*}
-			\widehat{\textnormal{Cov}}^2 (
-			\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
-			) 
-			=
-			\frac{1}{n^2}
-			\bigl \langle
-			(\Theta_1^\top \mathbf{y} , \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y}),
-			(\mathbf{d}_1, \ldots, \mathbf{d}_K, \boldsymbol{\zeta})
-			\bigr\rangle_B^2.
-		\end{equation*}
-	\end{comment}
-	%Therefore, the optimization problem 
-	presented in Proposition \ref{proposition:linear_noregul_system_unregularized} is equivalent to the following constrained optimization problem on the Euclidean space:
+	Therefore, problem of maximizing the squared covariance  is equivalent to the following constrained optimization problem on the Euclidean space:
 	\begin{align*}
 		\max_{\mathbf{d}_1, \ldots, \mathbf{d}_K \in \mathbb{R}^M,
 			\boldsymbol{\zeta} \in \mathbb{R}^p
@@ -1240,6 +1223,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		\mathbf{y}^\top
 		Z \boldsymbol{\zeta} 
 		\biggr)^2,
+		\numberthis \label{optim:summation_form}
 		\\&~s.t.~	\sum \limits_{j=1}^K 
 		\mathbf{d}_j^\top
 		B
@@ -1247,7 +1231,55 @@ Although the unnormalized coefficients are computed separately for the functiona
 		+
 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
 	\end{align*} 
-	Let us denote the objective function as
+The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, taking the form of a quadratic expression involving the matrix $V$ defined in \eqref{def:V_matrix}:
+\begin{align*}
+	\frac{1}{n^2}
+\biggl(
+\sum \limits_{k=1}^K 
+\mathbf{y}^\top
+\Theta_{j}
+B
+\mathbf{d}_j
++
+\mathbf{y}^\top
+Z \boldsymbol{\zeta} 
+\biggr)^2
+%%%%%%%%%%%%%%%%%%%%
+&=
+\frac{1}{n^2} 
+(
+\mathbf{y}^\top
+\Theta
+B^\ast  
+\boldsymbol{\xi}
+)^2
+\\
+&	= 
+\frac{1}{n^2} 
+\boldsymbol{\xi}^\top
+(B^\ast \Theta^\top \mathbf{y})(B^\ast \Theta^\top \mathbf{y})^\top 
+\boldsymbol{\xi}
+\\&=
+	\boldsymbol{\xi}^\top
+V 
+\boldsymbol{\xi},
+\end{align*}
+and the constraint is identical to that in \eqref{eq: Regularized generalized rayleigh quotient equation}, because we have:
+\begin{equation*}
+		\sum \limits_{j=1}^K 
+	\mathbf{d}_j^\top
+	B
+	\mathbf{d}_j
+	+ \boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+	=
+	\boldsymbol{\xi}^\top B^\ast \boldsymbol{\xi}.
+\end{equation*}
+Therefore, the optimization problem \eqref{optim:summation_form}, which is equivalent to the squared covariance maximization problem, reduces to the generalized eigenvalue problem \eqref{eq: Regularized generalized rayleigh quotient equation}. This completes the proof of Proposition~\ref{proposition:eigen_noregul}.
+ \end{proof}
+ 
+ \section{Proof of Proposition  \ref{proposition:linear_noregul}}
+ \begin{proof}
+	From \eqref{optim:summation_form}, let us denote the objective function as
 	\[
 	f(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := 
 	\frac{1}{n^2}
@@ -1259,7 +1291,6 @@ Although the unnormalized coefficients are computed separately for the functiona
 	\[
 	g(\{\mathbf{d}_j\}, \boldsymbol{\zeta}) := \sum_{j=1}^K \mathbf{d}_j^\top B \mathbf{d}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1 = 0.
 	\]
-	
 	The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function $f$ is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
 	
 	Define the Lagrangian:
@@ -1312,8 +1343,8 @@ Although the unnormalized coefficients are computed separately for the functiona
 				\mathbf{y}^\top Z Z^\top \mathbf{y}}}
 		Z^\top \mathbf{y},
 	\end{equation*}
-	which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul_system_unregularized}.
-	
+	which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul}.
+	\end{proof}
 	
 	
 	
