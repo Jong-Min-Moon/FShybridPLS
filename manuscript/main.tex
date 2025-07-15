@@ -118,7 +118,7 @@
 	\section{Introduction} \label{sec: Introduction}
 	Functional data analysis (FDA) treats each observed process as a realization of a random function over a continuous domain, such as time or space. The smoothness and infinite-dimensional nature of functional data allow researchers to exploit rich structural features, including derivatives and complex covariance patterns. This enables regression analysis for predicting clinical outcomes using complex functional predictors collected with advanced recording technologies, such as medical imaging data.
 	
-	In modern biomedical studies, it is increasingly common to collect heterogeneous data modalities for each subject. For instance, the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021} records both multiple renogram curves (functional data) and multiple renogram variables (vector data) per kidney, capturing distinct yet related physiological information. Such settings call for statistical methods that can jointly model functional and vector-valued covariates to account for both shared and modality-specific variation linked to clinical outcomes.
+	In modern biomedical studies, it is increasingly common to collect heterogeneous data modalities for each subject. As an illustrative example we use the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021}. The data records both multiple renogram curves (functional data) and multiple renogram variables (vector data) per kidney, capturing distinct yet related physiological information. Such settings call for statistical methods that can jointly model functional and vector-valued covariates to account for both shared and modality-specific variation linked to clinical outcomes.
 	
 	%Infinite dimensional beta estimation problem (ill-posed problem)
 	%Multicollinearity and high-dimensionality in scalar predictors are not handled.
@@ -518,33 +518,8 @@ One possible approach is to extend smoothed functional PCA \citep{Rice1991} to o
 	\biggr\}
 	,
 \end{equation*}
-'s approach of obtaining smoothed functional PCA components, and find $\xi^*$ that maximizes:
-	\begin{equation}
-		\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right) - \sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right),
-		\label{eq: penalized squred variance}
-	\end{equation}
-	subject to $\xi^{*\top} J^\ast \xi^*=1$. The equation \eqref{eq: penalized squred variance} quantifies the trade-off between fidelity to the data (in this case the sample covariance between the $\rho=\langle \mathbf{W}, \xi \rangle_\mathcal{H}$ and $Y$ in the direction of $\xi$) and roughness as measured by the sum of the individual penalty terms in \eqref{eq: roughness penalty}. The smoothing parameters $\{\lambda_k\}_{k=1}^K$ control the relative importance between the two objectives. Note that the penalty term can be written concisely using matrices as:
-		\begin{equation}
-		\textnormal{PEN} \left( \hat{\xi}_j \right) 
-		=  \int_0^1 
-		\bigl\{ \hat{\xi}_j^{''}(t) \bigr\}^2 dt = \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)},
-		\label{eq: roughness penalty}
-	\end{equation}
-		where the last term is obtained using the basis expansion $\psi^{(k)}(t)=\mathbf{a}^{(k)T}\mathbf{b}^{(k)}(t)$.
-	
-	
-	
-	\begin{equation*}
-		\sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right) = \sum \limits_{k=1}^K \lambda_k \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)} = \xi^{* \top} \Lambda \ddot{J}^\ast \xi^*,
-	\end{equation*}
-	where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
-	\begin{equation}\label{def:Lambda}
-		\Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
-	\end{equation}
-	$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
-	
-	
-	In this paper, we take an alternative strategy that extends the idea of \citet{Silverman1996}. This approach is known to produce appropriately smoothed functional PCA components under milder conditions than the \citet{Rice1991}'s approach by replacing the usual $L^2$-orthonormality constraint with the one that takes account the roughness of functions via the modified inner product. Specifically, the following proposition provides a generalized Rayleigh quotient problem which modifies the $\mathcal{H}$-orthonormality constraint of the hybrid PLS components to incorporate roughness penalty, and thus whose solution corresponds to a smoothed PLS component maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness.
+where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between covariance maximization and roughness penalization.
+However,   we take an alternative strategy that extends the idea of \citet{Silverman1996}. This approach is known to produce appropriately smoothed functional PCA components under milder conditions than the \citet{Rice1991}'s approach by replacing the usual $L^2$-orthonormality constraint with the one that takes account the roughness of functions via the modified inner product. Specifically, the following proposition provides a generalized Rayleigh quotient problem which modifies the $\mathcal{H}$-orthonormality constraint of the hybrid PLS components to incorporate roughness penalty, and thus whose solution corresponds to a smoothed PLS component maximizing $\widehat{\textnormal{Cov}}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)$ over the class of all functions satisfying sufficient smoothness.
 	\begin{proposition} \label{Proposition: Regularized generalized rayleigh quotient}
 		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
 		\begin{equation*}
@@ -556,6 +531,26 @@ One possible approach is to extend smoothed functional PCA \citep{Rice1991} to o
 		\end{equation*}
 		and  $\xi^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th smoothed PLS component, $\widehat{\xi} \equiv \widehat{\xi}_l$ can be obtained in the following way.
 		We first compute the basis coefficients by solving the optimization problem
+		Note that the penalty term can be written concisely using matrices as:
+		\begin{equation}
+			\textnormal{PEN} \left( \hat{\xi}_j \right) 
+			=  \int_0^1 
+			\bigl\{ \hat{\xi}_j^{''}(t) \bigr\}^2 dt = \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)},
+			\label{eq: roughness penalty}
+		\end{equation}
+		where the last term is obtained using the basis expansion $\psi^{(k)}(t)=\mathbf{a}^{(k)T}\mathbf{b}^{(k)}(t)$.
+		
+		
+		
+		\begin{equation*}
+			\sum \limits_{k=1}^K \lambda_k \textnormal{PEN} \left(\psi^{(k)} \right) = \sum \limits_{k=1}^K \lambda_k \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)} = \xi^{* \top} \Lambda \ddot{J}^\ast \xi^*,
+		\end{equation*}
+		where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
+		\begin{equation}\label{def:Lambda}
+			\Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
+		\end{equation}
+		$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
+		
 		\begin{align}
 			\begin{split}
 				&\arg \max \limits_{\xi^* \in \mathbb{R}^{MK+p}} \; \frac{\xi^{*\top} \mathbf{V}^\ast \xi^*}{\xi^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \xi^*} , \quad \textit{or equivalently}, \\ 
