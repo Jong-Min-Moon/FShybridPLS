@@ -435,16 +435,17 @@ While it is possible to use a different basis for each functional predictor, we 
 	
 	%	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
 
-	\begin{proposition}\label{proposition:generalized_rayleigh_quotient}
-At the $l$-th iteration of the PLS algorithm, let $
-( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top
-$ denote the coefficients 
-of $	\hat{\xi}$, 
-defined in \eqref{def:maximizer_squared_empirical_cov},
-which is
-the projected unit-norm direction that maximizes the squared empirical covariance.
-
- These coefficients can be obtained by solving the following generalized eigenvalue problem
+	\begin{proposition}\label{proposition:eigen_noregul}
+Let
+$
+(B^\ast, \Theta, \mathbf{y})
+$
+denote the observed data defined in \eqref{def:problem_instance}.
+At the $l$-th iteration of the PLS algorithm, let
+$( \hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top$
+denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
+which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
+These coefficients are obtained by solving the following generalized eigenvalue problem:
 \begin{align}
 	\left(
 	\hat{\mathbf{d}}_1^\top, \ldots, \hat{\mathbf{d}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
@@ -461,8 +462,8 @@ $$
 
 \end{proposition}
 Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem is easily obtained by matrix multiplication and normalization:
-	\begin{proposition} \label{proposition:generalized_rayleigh_quotient_linear}
-	We can compute  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$ in Proposition \ref{proposition:generalized_rayleigh_quotient} as 
+	\begin{proposition} \label{proposition:linear_noregul}
+	We can compute  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$ in Proposition \ref{proposition:eigen_noregul} as 
 \begin{equation*}
 	\hat{\mathbf{d}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
 			\mathbf{y}^\top
@@ -483,11 +484,11 @@ Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem
 \end{equation*}
 \end{proposition}
 The expressions above represent matrix–vector multiplications normalized by a common factor. 
-Proofs of Propositions \ref{proposition:generalized_rayleigh_quotient} and \ref{proposition:generalized_rayleigh_quotient_linear} are provided in Appendix~\ref{section:proof:proposition:generalized_rayleigh_quotient_linear_system_unregularized}.
+Proofs of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:linear_noregul} are provided in Appendix~\ref{section:proof:proposition:linear_noregul_system_unregularized}.
 Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS component direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
-	Although Proposition \ref{proposition:generalized_rayleigh_quotient} provides an efficient and principled way to compute the PLS components $\xi$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{proposition:generalized_rayleigh_quotient} that yields regularized (smoothed) PLS components.
+	Although Proposition \ref{proposition:eigen_noregul} provides an efficient and principled way to compute the PLS components $\xi$, their functional part $\psi=(\psi^{(1)}, \ldots, \psi^{(K)})$ may not be smooth, which can lead to overfitting and unstable predictions. Thus, in this section, we provide a modification of Proposition  \ref{proposition:eigen_noregul} that yields regularized (smoothed) PLS components.
 	
 	
 	
@@ -547,7 +548,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		\end{equation}
 	\end{proposition}
 	The proof of Proposition \ref{Proposition: Regularized generalized rayleigh quotient} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
-	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:generalized_rayleigh_quotient} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
+	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
 	\begin{align*}
@@ -1029,7 +1030,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		\item[--] ``CSI": Cauchy–Schwarz inequality
 	\end{itemize}
 	
-	\subsection{Proof of Proposition \ref{proposition:generalized_rayleigh_quotient_linear_system_unregularized}}\label{section:proof:proposition:generalized_rayleigh_quotient_linear_system_unregularized}
+	\subsection{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:linear_noregul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
 	\begin{comment}
 		We start by defining a  inner product in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$:
 		\begin{lemma}[Inner product of tuples]
@@ -1223,7 +1224,7 @@ Although the unnormalized coefficients are computed separately for the functiona
 		\end{equation*}
 	\end{comment}
 	%Therefore, the optimization problem 
-	presented in Proposition \ref{proposition:generalized_rayleigh_quotient_linear_system_unregularized} is equivalent to the following constrained optimization problem on the Euclidean space:
+	presented in Proposition \ref{proposition:linear_noregul_system_unregularized} is equivalent to the following constrained optimization problem on the Euclidean space:
 	\begin{align*}
 		\max_{\mathbf{d}_1, \ldots, \mathbf{d}_K \in \mathbb{R}^M,
 			\boldsymbol{\zeta} \in \mathbb{R}^p
@@ -1311,14 +1312,14 @@ Although the unnormalized coefficients are computed separately for the functiona
 				\mathbf{y}^\top Z Z^\top \mathbf{y}}}
 		Z^\top \mathbf{y},
 	\end{equation*}
-	which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$. This completes the proof of  Proposition \ref{proposition:generalized_rayleigh_quotient_linear_system_unregularized}.
+	which are the same as  $\hat{\mathbf{d}}_1, \ldots, \hat{\mathbf{d}}_K$ and $\hat{\boldsymbol{\zeta}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul_system_unregularized}.
 	
 	
 	
 	
 	
 	
-	\subsection{Proof of Propositions \ref{proposition:generalized_rayleigh_quotient} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
+	\subsection{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{Proposition: Regularized generalized rayleigh quotient} }\label{section:proof:eigenproblem_derivation}
 	%
 	%
 	\begin{align*}
