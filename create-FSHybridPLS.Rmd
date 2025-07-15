@@ -1352,31 +1352,6 @@ get_xi_hat_linear_new <- function(W, y){
 ```
 
 
-### helper: get_xi_hat_linear
-```{r}
-get_xi_hat_eigen <- function(W, y){
-  M <- W$n_basis_list[1]
-  n <- W$n_sample
-  K <- W$n_functional
-  p <- W$n_scalar
-  
-  Theta_t <- W$functional_list[[1]]$coefs
-  B <- W$gram_list[[1]]
-  mat <- B %*% Theta_t %*% y
-  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
-    Theta_t <- W$functional_list[[i]]$coefs
-    B <- W$gram_list[[i]]
-    B_theta_y <- B %*% Theta_t %*% y
-    mat <- rbind(mat, B_theta_y )
-  }
-  Zty<- t(W$Z) %*% y
-  mat <- rbind(mat, Zty)
-  mat <- mat %*% t(mat)
-  geigen(mat, B, symmetric, only.values=FALSE)
-  return(geigen)
-}
-```
-
 
 ```{r}
 library(fda)
