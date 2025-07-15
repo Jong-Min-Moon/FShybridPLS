@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  15 JUL 2025 01:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  15 JUL 2025 01:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -824,68 +824,39 @@ cmr/m/n/12 and ob-serv-ing that the scalar quan-tity $\OML/cmm/m/it/12 n[] [][]
  []
 
 
-Overfull \hbox (6.63953pt too wide) detected at line 1382
-[]
- []
-
-
 
 [40]
-Overfull \hbox (8.97237pt too wide) detected at line 1416
-[][][][] []  []\OML/cmm/m/it/12 ;  [];  [] []  ^^X[]\OT1/cmr/bx/n/12 V[]\OML/cm
-m/m/it/12 ^^X[] [] ^^X[]J[]^^X[] \OT1/cmr/m/n/12 = 1\OML/cmm/m/it/12 ;
+Overfull \hbox (7.42436pt too wide) detected at line 1376
+[]
  []
 
 
 
 [41]
-Overfull \hbox (6.63953pt too wide) detected at line 1429
-[]
- []
-
-
-Overfull \hbox (10.29605pt too wide) detected at line 1445
+Overfull \hbox (36.97052pt too wide) detected at line 1409
 []
  []
 
 
 
 [42]
+Overfull \hbox (18.96121pt too wide) detected at line 1457
+[]
+ []
+
+
 
 [43]
-Overfull \hbox (7.42436pt too wide) detected at line 1501
-[]
- []
-
-
 
 [44]
-Overfull \hbox (36.97052pt too wide) detected at line 1534
-[]
- []
-
-
 
 [45]
 
 [46]
-Overfull \hbox (18.96121pt too wide) detected at line 1582
-[]
- []
-
-
 
 [47]
 
-[48]
-
-[49]
-
-[50]
-
-[51]
-
-[52] (./main.aux (./bu.aux))
+[48] (./main.aux (./bu.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -897,40 +868,54 @@ LaTeX Warning: There were undefined references.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 8AA084F0436635344FA832D13C079C50;5849.
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `main.out':
+(rerunfilecheck)             Before: 8AA084F0436635344FA832D13C079C50;5849
+(rerunfilecheck)             After:  505967F9053062C29F97858CA0634889;5622.
  ) 
 Here is how much of TeX's memory you used:
- 15010 strings out of 469626
- 239071 string characters out of 5475183
+ 15005 strings out of 469626
+ 239032 string characters out of 5475183
  640219 words of memory out of 5000000
  41409 multiletter control sequences out of 15000+600000
  643150 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,16n,79p,1392b,629s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texlive/2025
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/2025/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmmi12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmmi6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib
-10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.p
-fb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2025/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texlive/2025/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2025/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmsy8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pf
-b><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive
-/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/202
-5/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (52 pages, 973998 bytes).
+
+pdfTeX warning (dest): name{equation.35} has been referenced but does not exist
+, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.E.1} has been referenced but does not ex
+ist, replaced by a fixed one
+
+<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/texli
+ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texlive/2025/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/2025/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmmi12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmmi6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10
+.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb
+><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texli
+ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2025/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texlive/2025/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/c
+msy8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texli
+ve/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2
+025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/
+texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on main.pdf (48 pages, 965048 bytes).
 PDF statistics:
- 781 PDF objects out of 1000 (max. 8388607)
- 664 compressed objects within 7 object streams
- 171 named destinations out of 1000 (max. 500000)
+ 758 PDF objects out of 1000 (max. 8388607)
+ 645 compressed objects within 7 object streams
+ 166 named destinations out of 1000 (max. 500000)
  271 words of extra memory for PDF output out of 10000 (max. 10000000)
 
