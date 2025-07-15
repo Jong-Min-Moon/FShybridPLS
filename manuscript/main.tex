@@ -334,7 +334,7 @@
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 	\subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
-	Given a basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
+	Given a twice-differentiable basis $\{b_l(t)\}$ of $L^2([0,1])$, the functional predictors and the corresponding regression coefficients can be decomposed into
 	\begin{equation*}
 		X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t), \quad 
 		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
@@ -374,7 +374,11 @@ The observations in the hybrid PLS problem can be compactly represented by the t
 	(B^\ast, \Theta, \mathbf{y}),
 \end{equation}
 defined as follows.
-Let $B \in \mathbb{R}^{M \times M}$ denote the Gram matrix of the basis functions, with entries  
+Let 
+$B, B^{''} \in \mathbb{R}^{M \times M}$
+denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
+\begin{equation}
+\end{equation}
 \[
 B_{m, m'} := \langle b_m, b_{m'} \rangle = \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
 \]
