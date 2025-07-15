@@ -340,7 +340,9 @@
 		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t),
 	\end{equation*}
 	where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively.
-Since functional predictors are observed at finitely many discrete time points, we approximate them by truncating the expansion at $M$ terms, yielding a finite-dimensional projection. A moderately large $M$ (e.g., 15 or 20) suffices to capture rich functional variation, and no fine-tuning is needed, as our method controlls smoothness  via penalization (Section~\ref{sec: Regularization of PLS Components}). We denote the truncated space by
+Since functional predictors are observed at finitely many discrete time points in practice,
+we use finite-dimensional projections obtained by the expansion truncating at $M$ terms.
+We choose a moderately large value of $M$ (e.g., 15 or 20) to capture rich functional variation without requiring fine-tuning, as our method promotes smoothness through penalization (see Section~\ref{sec: Regularization of PLS Components}). We denote the truncated space by
 	\begin{equation}
 		\mathcal{B} := \operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr).
 	\end{equation}
@@ -371,23 +373,29 @@ Since functional predictors are observed at finitely many discrete time points, 
 
 The observations in the hybrid PLS problem can be compactly represented by the tuple
 \begin{equation}\label{def:problem_instance}
-	(B^\ast, \Theta, \mathbf{y}),
+	(\mathbb{B}, \Theta, \mathbf{y})
+	\in
+	,
 \end{equation}
 defined as follows.
-Let 
-$B, B^{''} \in \mathbb{R}^{M \times M}$
-denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
+Let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
 \begin{equation}
+	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
+	\quad
+	B^{\prime\prime}_{m, m'} := \int_0^1 b^{\prime\prime}_m(t)\, b^{\prime\prime}_{m'}(t)\, dt,
 \end{equation}
-\[
-B_{m, m'} := \langle b_m, b_{m'} \rangle = \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
-\]
 for $m, m' = 1, \ldots, M$.
-Then define $B^\ast := \operatorname{blkdiag}(B, \ldots, B, I_p) \in \mathbb{R}^{(MK + p) \times (MK + p)}$,  
-$\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$,  
-and $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
+
+Define the $(MK + p) \times (MK + p)$ block-diagonal matrices
+\[
+\mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p)
+\quad \text{and} \quad
+\mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
+\]
+and let $\Theta := (\Theta_1, \ldots, \Theta_K, Z)$ denote the combined design matrix. Finally, let $\mathbf{y} := (y_1, \ldots, y_n)^\top$ denote the observed response vector.
+
 	\begin{remark}
-While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of $B^\ast$ remains general enough to accommodate different bases across the $K$ predictors.
+While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of $\mathbb{B}$ remains general enough to accommodate different bases across the $K$ predictors.
 \end{remark}
 
 	%Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
@@ -444,7 +452,7 @@ While it is possible to use a different basis for each functional predictor, we 
 	\begin{proposition}\label{proposition:eigen_noregul}
 Let
 $
-(B^\ast, \Theta, \mathbf{y})
+(\mathbb{B}, \Theta, \mathbf{y})
 $
 denote the observed data defined in \eqref{def:problem_instance}.
 At the $l$-th iteration of the PLS algorithm, let
@@ -458,11 +466,11 @@ These coefficients are obtained by solving the following generalized eigenvalue 
 	\right)^\top
 	=
 	\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
-	\quad \text{subject to} \quad \boldsymbol{\xi}^\top B^\ast \boldsymbol{\xi} = 1,
+	\quad \text{subject to} \quad \boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi} = 1,
 \end{equation}
 where
 \begin{equation}\label{def:V_matrix}
-V := \frac{1}{n^2} (B^\ast \Theta^\top \mathbf{y})(B^\ast \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
+V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
 \end{equation}
 
 
@@ -566,7 +574,7 @@ where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off bet
 		\end{align}
 		We then express the smoothed component in terms of the basis functions as
 		\begin{equation*}
-			\widehat{\xi}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  B^\ast[\mathbf{t}]^\top \widehat{\xi}^\ast.   
+			\widehat{\xi}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  \mathbb{B}[\mathbf{t}]^\top \widehat{\xi}^\ast.   
 		\end{equation*}
 		The $l$-th PLS score $\widehat{\rho}_{i} \equiv \widehat{\rho}_{il}$ can be obtained as 
 		\begin{equation}\label{compute_pls_score}
@@ -1275,14 +1283,14 @@ Z \boldsymbol{\zeta}
 (
 \mathbf{y}^\top
 \Theta
-B^\ast  
+\mathbb{B}  
 \boldsymbol{\xi}
 )^2
 \\
 &	= 
 \frac{1}{n^2} 
 \boldsymbol{\xi}^\top
-(B^\ast \Theta^\top \mathbf{y})(B^\ast \Theta^\top \mathbf{y})^\top 
+(\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top 
 \boldsymbol{\xi}
 \\&=
 	\boldsymbol{\xi}^\top
@@ -1297,7 +1305,7 @@ and the constraint is identical to that in \eqref{eq: Regularized generalized ra
 	\mathbf{d}_j
 	+ \boldsymbol{\zeta}^\top \boldsymbol{\zeta}
 	=
-	\boldsymbol{\xi}^\top B^\ast \boldsymbol{\xi}.
+	\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}.
 \end{equation*}
 Therefore, the optimization problem \eqref{optim:summation_form}, which is equivalent to the squared covariance maximization problem, reduces to the generalized eigenvalue problem \eqref{eq: Regularized generalized rayleigh quotient equation}. This completes the proof of Proposition~\ref{proposition:eigen_noregul}.
  \end{proof}
