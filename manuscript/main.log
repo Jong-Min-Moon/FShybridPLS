@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  16 JUL 2025 13:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  16 JUL 2025 15:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -834,49 +834,33 @@ v-a-lent to the gen-er-al-ized Raleigh
 [38]
 
 [39]
-Overfull \hbox (10.47163pt too wide) in paragraph at lines 1406--1412
-\OT1/cmr/m/n/12 By pre-multiplying equa-tion [] by $\OML/cmm/m/it/12 B[]$\OT1/c
-mr/m/n/12 , and ob-serv-ing that $2\OML/cmm/m/it/12 n[] [][] \OT1/cmr/bx/n/12 y
-[]\OT1/cmr/m/n/12 ^^B[]\OML/cmm/m/it/12 B\OML/cmm/b/it/12 ^^M[] \OT1/cmr/m/n/12
- + \OT1/cmr/bx/n/12 y[]\OML/cmm/m/it/12 Z\OML/cmm/b/it/12 ^^X[]$\OT1/cmr/m/n/12
- ,
- []
-
-
-Overfull \hbox (7.31958pt too wide) detected at line 1429
-\OML/cmm/b/it/12 ^^M[] \OT1/cmr/m/n/12 = []^^B[]\OT1/cmr/bx/n/12 y\OML/cmm/m/it
-/12 ;  \OML/cmm/b/it/12 ^^X[] \OT1/cmr/m/n/12 = []\OML/cmm/m/it/12 Z[]\OT1/cmr/
-bx/n/12 y\OML/cmm/m/it/12 ;
- []
-
-
 
 [40]
 
 [41]
 
 [42]
-Overfull \hbox (7.42436pt too wide) detected at line 1530
-[]
- []
-
-
 
 [43]
-Overfull \hbox (36.97052pt too wide) detected at line 1563
+Overfull \hbox (7.42436pt too wide) detected at line 1554
 []
  []
 
 
 
 [44]
-Overfull \hbox (18.96121pt too wide) detected at line 1611
+Overfull \hbox (36.97052pt too wide) detected at line 1587
 []
  []
 
 
 
 [45]
+Overfull \hbox (18.96121pt too wide) detected at line 1635
+[]
+ []
+
+
 
 [46]
 
@@ -886,7 +870,9 @@ Overfull \hbox (18.96121pt too wide) detected at line 1611
 
 [49]
 
-[50] (./main.aux (./bu.aux))
+[50]
+
+[51] (./main.aux (./bu.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -899,10 +885,10 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 3B1B0C7BB72E4A19C5A1ADBAE80302C3;5701.
  ) 
 Here is how much of TeX's memory you used:
- 15008 strings out of 469626
- 239084 string characters out of 5475183
- 640197 words of memory out of 5000000
- 41409 multiletter control sequences out of 15000+600000
+ 15013 strings out of 469626
+ 239296 string characters out of 5475183
+ 640227 words of memory out of 5000000
+ 41412 multiletter control sequences out of 15000+600000
  643150 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,15n,79p,1446b,629s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -926,10 +912,10 @@ ts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
 2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025
 /texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/tex
 mf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (50 pages, 977951 bytes).
+Output written on main.pdf (51 pages, 979903 bytes).
 PDF statistics:
- 787 PDF objects out of 1000 (max. 8388607)
- 670 compressed objects within 7 object streams
- 169 named destinations out of 1000 (max. 500000)
+ 794 PDF objects out of 1000 (max. 8388607)
+ 676 compressed objects within 7 object streams
+ 171 named destinations out of 1000 (max. 500000)
  263 words of extra memory for PDF output out of 10000 (max. 10000000)
 

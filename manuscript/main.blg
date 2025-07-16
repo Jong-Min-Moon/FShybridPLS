@@ -4,44 +4,44 @@ The top-level auxiliary file: main.aux
 The style file: apalike.bst
 A level-1 auxiliary file: bu.aux
 Database file #1: Reference.bib
-You've used 27 entries,
+You've used 28 entries,
             1935 wiz_defined-function locations,
-            673 strings with 9294 characters,
-and the built_in function-call counts, 10839 in all, are:
-= -- 1074
-> -- 427
-< -- 14
-+ -- 146
-- -- 140
-* -- 987
-:= -- 1890
-add.period$ -- 81
-call.type$ -- 27
-change.case$ -- 202
-chr.to.int$ -- 27
-cite$ -- 27
-duplicate$ -- 376
-empty$ -- 768
-format.name$ -- 187
-if$ -- 2088
+            680 strings with 9472 characters,
+and the built_in function-call counts, 11126 in all, are:
+= -- 1102
+> -- 434
+< -- 15
++ -- 148
+- -- 142
+* -- 1007
+:= -- 1943
+add.period$ -- 84
+call.type$ -- 28
+change.case$ -- 208
+chr.to.int$ -- 28
+cite$ -- 28
+duplicate$ -- 390
+empty$ -- 791
+format.name$ -- 190
+if$ -- 2145
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 28
-newline$ -- 138
-num.names$ -- 81
-pop$ -- 146
+missing$ -- 30
+newline$ -- 143
+num.names$ -- 84
+pop$ -- 152
 preamble$ -- 1
-purify$ -- 205
+purify$ -- 211
 quote$ -- 0
-skip$ -- 282
+skip$ -- 292
 stack$ -- 0
-substring$ -- 863
-swap$ -- 27
+substring$ -- 875
+swap$ -- 28
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 158
+type$ -- 162
 warning$ -- 0
-while$ -- 95
+while$ -- 97
 width$ -- 0
-write$ -- 353
+write$ -- 367

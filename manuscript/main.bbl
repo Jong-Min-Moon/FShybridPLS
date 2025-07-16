@@ -64,6 +64,11 @@ Febrero-Bande, M., Galeano, P., and Gonz\'{a}lez-Manteiga, W. (2017).
   least-squares regression: An overview and a comparative study.
 \newblock {\em International Statistical Review}, 85(1):61--83.
 
+\bibitem[Gockenbach, 2010]{gockenbachFiniteDimensionalLinearAlgebra2010}
+Gockenbach, M.~S. (2010).
+\newblock {\em Finite-{{Dimensional Linear Algebra}}}.
+\newblock CRC Press, Boca Raton, FL, 1st edition edition.
+
 \bibitem[Goldsmith et~al., 2011]{goldsmithPenalizedFunctionalRegression2011}
 Goldsmith, J., Bobb, J., Crainiceanu, C.~M., Caffo, B., and Reich, D. (2011).
 \newblock Penalized functional regression.

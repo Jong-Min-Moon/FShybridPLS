@@ -629,13 +629,13 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	
 	\subsection{Obtaining the Estimated Hybrid Regression Coefficient}
 	\label{subsec: Obtaining the Estimated Hybrid Regression Coefficient}
-	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}_{K+1}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\xi}_{K+1}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\xi}_{K+1}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\xi}_{K+1}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
+	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
 	\begin{equation*}
-		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\xi}_{K+1}}_l \right\rangle_\mathcal{H}+\epsilon_i,
+		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathcal{H}+\epsilon_i,
 	\end{equation*}
 	which, given the uniqueness of $\boldsymbol{\eta}$, leads to
 	\begin{equation*}
-		\widehat{\boldsymbol{\eta}} = \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\xi}_{K+1}}_l.
+		\widehat{\boldsymbol{\eta}} = \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l.
 	\end{equation*}
 	Here, the number of PLS components $L$ to be estimated can be chosen by cross-validation.
 	
@@ -1050,7 +1050,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	
 	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
 	\begin{proof}
-	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\xi}_{K+1}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
+	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
 		\xi_j(t) := 
 		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
@@ -1078,7 +1078,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\langle \widetilde{X}_{ij}, \xi_j \rangle  
 		+
 		\mathbf{Z}_i^\top 
-		\boldsymbol{\xi}_{K+1} 
+		\boldsymbol{\zeta} 
 		\biggr)
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&= %3
@@ -1092,7 +1092,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\sum
 		\limits_{i=1}^n
 		y_i
-		( \mathbf{Z}_i^\top \boldsymbol{\xi}_{K+1} )
+		( \mathbf{Z}_i^\top \boldsymbol{\zeta} )
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n} \sum \limits_{i=1}^n 
@@ -1110,7 +1110,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\xi}_{K+1} 
+		Z \boldsymbol{\zeta} 
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n} \sum \limits_{i=1}^n 
@@ -1129,7 +1129,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\xi}_{K+1} 
+		Z \boldsymbol{\zeta} 
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\sum \limits_{k=1}^K 
@@ -1145,7 +1145,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\xi}_{K+1}
+		Z \boldsymbol{\zeta}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n}
@@ -1157,7 +1157,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
-		Z \boldsymbol{\xi}_{K+1} 
+		Z \boldsymbol{\zeta} 
 		\biggr)
 	\end{align*}	
 	Building on this computation, the squared empirical covariance is
@@ -1177,7 +1177,7 @@ expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V
 		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
-		Z \boldsymbol{\xi}_{K+1} 
+		Z \boldsymbol{\zeta} 
 		\biggr)^2
 		%%%%%%%%%%%%%%%%%%%%
 	\\	&=
@@ -1211,7 +1211,7 @@ expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V
 		\xi_j, \xi_j
 		\rangle
 		+
-		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}
+		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=
 		\sum \limits_{j=1}^K \int_0^1
@@ -1223,7 +1223,7 @@ expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V
 		\biggr) 
 		dt
 		+
-		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}  
+		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}  
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=
 		\sum \limits_{j=1}^K 
@@ -1236,7 +1236,7 @@ expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V
 		b_{m'}(t) 
 		dt
 		+
-		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}
+		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=
 		\sum \limits_{j=1}^K 
@@ -1244,7 +1244,7 @@ expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V
 		B
 		\boldsymbol{\gamma}_j
 		+
-		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1},
+		\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
 %%%%%%%%%%%%%
 \\&=
 \boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
@@ -1325,7 +1325,7 @@ This computation along with \eqref{covariance_squares_as_quadratic_form} implies
  	\ref{eq: Regularized generalized rayleigh quotient equation} can be written as
  		\begin{align*}
  		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
- 			\boldsymbol{\xi}_{K+1} \in \mathbb{R}^p
+ 			\boldsymbol{\zeta} \in \mathbb{R}^p
  		}~&
  		\frac{1}{n^2}
  		\biggl(
@@ -1336,75 +1336,99 @@ This computation along with \eqref{covariance_squares_as_quadratic_form} implies
  		\boldsymbol{\gamma}_j
  		+
  		\mathbf{y}^\top
- 		Z \boldsymbol{\xi}_{K+1} 
+ 		Z \boldsymbol{\zeta} 
  		\biggr)^2,
  		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
  		\boldsymbol{\gamma}_j^\top
  	(	B + \lambda_k B^{\prime \prime})
  		\boldsymbol{\gamma}_j
  		+
- 		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} = 1.
+ 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
  	\end{align*} 
- Let $\mathbf{u}_j := \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data and not decision variables. Then the optimization problem becomes
+ Let $\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data and not decision variables. Then the optimization problem becomes
  	 		\begin{align*}
  		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
- 			\boldsymbol{\xi}_{K+1} \in \mathbb{R}^p
+ 			\boldsymbol{\zeta} \in \mathbb{R}^p
  		}~&
  		\frac{1}{n^2}
  		\biggl(
  		\sum \limits_{k=1}^K 
- 	\mathbf{u}_j^\top
- 		B  
+ 	\mathbf{u}_j^\top		
  		\boldsymbol{\gamma}_j
  		+
- 		\mathbf{v}^\top \boldsymbol{\xi}_{K+1} 
+ 		\mathbf{v}^\top \boldsymbol{\zeta} 
  		\biggr)^2,
  		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
  		\boldsymbol{\gamma}_j^\top
  		(	B + \lambda_k B^{\prime \prime})
  		\boldsymbol{\gamma}_j
  		+
- 		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} = 1.
+ 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
  	\end{align*}  	
-The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
-
-Define the Lagrangian:
+ 	The objective function is continuous.
+The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Therefore, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
+The constraint function is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not a feasible point, the gradient  is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
+To use this fact,
+define the Lagrangian as follows:
 \[
-\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\xi}_{K+1}, \mu) 
+\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \mu) 
 := 
-	\left( \sum_{j=1}^K \mathbf{u}_j^\top B \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\xi}_{K+1} \right)^2
+	\left( \sum_{j=1}^K \mathbf{u}_j^\top  \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)^2
 - 
 \mu 
 \biggl[
 \bigl\{
-	\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + 	\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} 
+	\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + 	\boldsymbol{\zeta}^\top \boldsymbol{\zeta} 
 	\bigr\}
 	- 1
 	\biggr]
 .
 \]
-The constraint function   is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible, the gradient  is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
-Therefore, for any local maxima, gradients of $\mathcal{L}$ must be zero:
+Then, if
+$(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, 
+	\boldsymbol{\zeta}
+)$
+is a local maximizer, the gradients of $\mathcal{L}$ must vanish at that point:
 \begin{align*}
 	\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
-	\frac{2}{n^2} 
-	\left(
-	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}
-	\right)
-	B \Theta_j^\top \mathbf{y}
-	- 2\lambda (B + \lambda_j B^{\prime \prime}) \boldsymbol{\gamma}_j = 0, \quad \forall j, 
+	s
+	 \mathbf{u}_j
+	- 2\mu (B + \lambda_j B^{\prime \prime}) \boldsymbol{\gamma}_j = 0, \quad \forall j, 
 	\numberthis \label{lag_grad_d}
 	\\
-	\nabla_{\boldsymbol{\xi}_{K+1}} \mathcal{L} &= 
-	\frac{2}{n^2} 
-	\left(
-	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}
-	\right)
-	Z^\top \mathbf{y}
-	- 2\lambda \boldsymbol{\xi}_{K+1} = 0.
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
+	s
+\mathbf{v}
+	- 2\mu \boldsymbol{\zeta} = 0,
 	\numberthis \label{lag_grad_zeta}
 \end{align*}
-By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
+where 
+\begin{equation*}
+	s := \frac{2}{n^2} 
+	\left(
+	\sum_{\ell=1}^K \mathbf{u}_\ell^\top B \boldsymbol{\gamma}_\ell + \mathbf{v}^\top  \boldsymbol{\zeta}
+	\right).
+\end{equation*}
+Since we assumed in Section~\ref{sec: finite basis approximation} that the functions $\{b_m(t)\}$ and their second derivatives are linearly independent, both $B$ and $B^{\prime\prime}$ are positive definite (see, for example, Theorem 273 of \citealp{gockenbachFiniteDimensionalLinearAlgebra2010}). As positive definiteness is preserved under conic combinations, $B + \lambda_j B^{\prime\prime}$ is also positive definite. Therefore, \eqref{lag_grad_d} implies that 
+\begin{equation*}
+	\boldsymbol{\gamma}_j
+	=
+	\frac{s}{2\mu}	
+	(B + \lambda_j B^{\prime \prime})^{-1}
+	\mathbf{u}_j
+	   , \quad \forall j.
+\end{equation*}
+If $\boldsymbol{\gamma}_j$ is part of a local optimum, then it must be a scalar multiple of 
+$\tilde{\mathbf{u}}_j := (B + \lambda_j B^{\prime \prime})^{-1} \mathbf{u}_j$, 
+i.e., $\boldsymbol{\gamma}_j = c_j \tilde{\mathbf{u}}_j$.
+Similarly, \eqref{lag_grad_zeta} implies that if 
+$\boldsymbol{\zeta}$ is a local optimum, then it must be a scalar multiple of $\mathbf{v}$,
+i.e., $\boldsymbol{\zeta} = d \mathbf{v}$.
+
+
+Therefore, it suffices to 
+By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
 $
 \Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
 $
@@ -1419,7 +1443,7 @@ all scaled by the same factor. There exists only one such set of  vectors  that 
 	\Theta_j^\top \mathbf{y},
 	\quad
 	%%%%%%%%%%%%%%%%
-	\boldsymbol{\xi}_{K+1}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
 			\mathbf{y}^\top
 			\Theta_j
 			B \Theta_j^\top \mathbf{y} 
@@ -1428,11 +1452,11 @@ all scaled by the same factor. There exists only one such set of  vectors  that 
 	Z^\top \mathbf{y},
 \end{equation*}
 
- 	Observe that the objective is linear in each $\boldsymbol{\gamma}_j$ and in $\boldsymbol{\xi}_{K+1}$, and the constraint is a strictly convex quadratic form. Hence, the optimal solution lies in the direction of the gradient of the linear objective.
+ 	Observe that the objective is linear in each $\boldsymbol{\gamma}_j$ and in $\boldsymbol{\zeta}$, and the constraint is a strictly convex quadratic form. Hence, the optimal solution lies in the direction of the gradient of the linear objective.
  	
  	Define scalar weights $c_j$ and $c$ such that
  	\[
- 	\boldsymbol{\gamma}_j = c_j \mathbf{u}_j, \quad \boldsymbol{\xi}_{K+1} = c \mathbf{v}.
+ 	\boldsymbol{\gamma}_j = c_j \mathbf{u}_j, \quad \boldsymbol{\zeta} = c \mathbf{v}.
  	\]
  	
  	Substituting into the objective:
@@ -1486,7 +1510,7 @@ all scaled by the same factor. There exists only one such set of  vectors  that 
  	
  	\textbf{Conclusion}: The optimal coefficients are
  	\[
- 	\boldsymbol{\gamma}_j = \frac{a_j}{d_j \sqrt{S}} \mathbf{u}_j, \quad \boldsymbol{\xi}_{K+1} = \frac{1}{\sqrt{S}} \mathbf{v},
+ 	\boldsymbol{\gamma}_j = \frac{a_j}{d_j \sqrt{S}} \mathbf{u}_j, \quad \boldsymbol{\zeta} = \frac{1}{\sqrt{S}} \mathbf{v},
  	\]
  	where
  	\[
