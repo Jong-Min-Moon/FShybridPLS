@@ -330,8 +330,7 @@
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{subsec: Step 1: Computing Smoothed PLS components} and~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{subsec: Obtaining the Estimated Hybrid Regression Coefficient}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
 	\subsection{Step 1: Computing smoothed PLS components}  \label{subsec: Step 1: Computing Smoothed PLS components}
-	The function part $\psi$ of the hybrid PLS component $\xi$ is inherently infinite-dimensional, rendering its estimation impossible with finite sample size. As such, we first approximate each functional predictor (observed version when $l=1$, or residualized version when $l \ge 2$) as a linear combination of $M$ basis functions and coefficients. 
-	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
+	This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 \subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
 Given a twice-differentiable basis $\{b_m(t)\}$ of $L^2([0,1])$,  the $j$th functional predictor, regression coefficient, and PLS direction (suppressing iteration indices) are represented as
@@ -345,12 +344,11 @@ Given a twice-differentiable basis $\{b_m(t)\}$ of $L^2([0,1])$,  the $j$th func
 		\gamma_{jm}
 		b_m(t)
 	\end{equation*}	
-In practice, the full set of coefficients can not be obtained, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms and define the truncated basis space
-\begin{equation}
+In practice, the full set of coefficients can not be obtained  with finite sample size, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms and define the truncated basis space
+$
 	\mathcal{B} := \operatorname{span}\bigl(b_1(t), \ldots, b_M(t)\bigr).
-\end{equation}
+$
 We choose a moderately large $M$ (e.g., 15 or 20) to capture functional variation without fine-tuning, as smoothness is handled via penalization (see Section~\ref{sec: Regularization of PLS Components}).
-	
 	The truncated expansions of the predictor and coefficient are denoted as
 	\begin{equation*}
 		\widetilde{X}_{ij}(t) := \sum_{m=1}^M \theta_{ijm} \, b_m(t), \quad
@@ -360,7 +358,11 @@ We choose a moderately large $M$ (e.g., 15 or 20) to capture functional variatio
 	\begin{equation*}
 		\xi_j(t) = \sum_{m=1}^M \gamma_{jm} \, b_m(t).
 	\end{equation*}
-The $i$th hybrid predictor, with its functional parts projected onto the $\mathcal{B}$, is represented by the tuple
+This implies that all computations in this paper are carried out entirely within the subspace
+\begin{equation}\label{def:truncated_hilbert_space}
+	\widetilde{ \mathcal{H} } := \mathcal{B}^K \times \mathbb{R}^p \in \mathcal{H}.
+\end{equation}
+The $i$th hybrid predictor, projected on $\widetilde{ \mathcal{H} }$, is represented by the tuple
 	\begin{equation*}
 		\widetilde{W}_i := 
 		(
@@ -368,7 +370,7 @@ The $i$th hybrid predictor, with its functional parts projected onto the $\mathc
 		).
 	\end{equation*}
 Let $\boldsymbol{\theta}_{ij}$, $\boldsymbol{\eta}_j$, and $\boldsymbol{\gamma}_j$ denote the $M$-dimensional vectors of coefficients:
-	\begin{equation}
+	\begin{equation}\label{def:coef_vector_form}
 		\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top,
 		\quad
 		\boldsymbol{\eta}_{j} := (\eta_{j1}, \ldots, \eta_{jM})^\top ,
@@ -408,84 +410,74 @@ the full design matrix $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}
 	
 	
 	
-	\subsubsection{Main estimation strategy}\label{sec: pls component computation intermediate}
-	Building on the basis function approximation from Section~\ref{sec: finite basis approximation}, we now introduce an intermediate strategy for implementing the first step of the PLS algorithm. This approach directly obtains a hybrid PLS component direction, sharing the same structure as the hybrid predictors presented in \eqref{eq: Hybrid functional model}, by simply doing matrix-vector multiplications
+	\subsubsection{Core strategy for PLS component direction estimation}\label{sec: pls component computation intermediate}
+Building on the basis function approximation in Section~\ref{sec: finite basis approximation}, we now present the core strategy for directly estimating the hybrid PLS component direction. This method fully leverages both the continuous nature of the functional components and the function-scalar hybrid structure, and can be implemented via simple matrix-vector multiplications.
 	
-	We now describe the strategy for computing the PLS component direction at the $l$-th iteration. For simplicity, we omit the iteration index and assume that the observations have been residualized and are orthogonal to those from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for the residualization procedure).
-	The goal is to find a unit-norm direction $\xi \in 
-	(\mathcal{B}^K \times \mathbb{R}^p) \subset \mathcal{H}$ that maximizes the squared empirical covariance between the resulting PLS component scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$,
-	 defined as
+We describe the strategy at the $l$-th iteration. For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for details). The  PLS component direction is estimated by the unit-norm direction $\xi \in \tilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
+
 \begin{equation}\label{def:squared_empirical_cov}
-	 	\widehat{\textnormal{Cov}}^2 \left( \langle 
+	 	\widehat{\textnormal{Cov}} 
+	 	( \langle 
 	 	\widetilde{W},
-	 	\xi \rangle_{\mathcal{H}}, Y \right)
+	 	\xi \rangle_{\mathcal{H}}, Y )
 	 	:=
-	 	\biggl(
 	 	\frac{1}{n} 
 	 	\sum_{i=1}^n
 	 	y_i
 	 	\langle \widetilde{W}_i, \xi \rangle_{\mathcal{H}}
-	 	\biggr)^2
 	 	.
 	 \end{equation}
-	We denote the maximizer as
+We denote the estimated PLS component direction as
 	\begin{equation}\label{def:maximizer_squared_empirical_cov}
 		\hat{\xi} 
 = 
-(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1})
+(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1}
+)
 := \arg \max_{\xi \in \mathcal{B}^K \times \mathbb{R}^p,
 \| \xi  \|_\mathcal{H} = 1
  } \widehat{\textnormal{Cov}}^2 
 \bigl(
 \langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
-\bigr)
+\bigr),
 	\end{equation}
 %
-	where each functional part $\hat{\xi}_j $  is expressed as
-	\begin{equation*}
+	where each functional part $\hat{\xi}_j $  is expanded as
+$
 		\hat{\xi}_j(t) := 
-		\sum_{m=1}^M \hat{d}_{jm} \, b_m(t), \quad j = 1, \ldots, K.
-	\end{equation*}
-
-
-
-	
-	
-	%	consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Let 
-
+		\sum_{m=1}^M \hat{\gamma}_{jm} \, b_m(t),
+$
+and $\hat{\boldsymbol{\xi}}_{K+1}$ is the scalar part. This maximizer can also be represented as a Euclidean vector
+\begin{equation}\label{def:maximizer_euclidean_form}
+	( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
+	\in \mathbb{R}^{MK+p},
+\end{equation}
+where the coefficient vectors $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ are defined as in \eqref{def:coef_vector_form}.
+Proposition \ref{proposition:eigen_noregul} reformulates  the problem \eqref{def:maximizer_squared_empirical_cov} as  a generalized Rayleigh quotient.
+%
 \begin{proposition}\label{proposition:eigen_noregul}
 Let
 $
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
 $
 denote the observed data defined in \eqref{def:problem_instance}.
-At the $l$-th iteration of the PLS algorithm, let
-\begin{equation}
-( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
-\end{equation}
-
-denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
-which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
-These coefficients are obtained by solving the following generalized eigenvalue problem:
+At the $l$-th iteration of the PLS algorithm, the unit-norm maximizer of  the squared empirical covariance defined in \eqref{def:maximizer_squared_empirical_cov}, represented as the Euclidean vector form as in \eqref{def:maximizer_euclidean_form},
+is obtained by solving 
 \begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 	\left(
 	\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
 	\right)^\top
 	=
 	\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
-	\quad \text{subject to} \quad \boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi} = 1,
+	\quad \text{subject to} \quad \boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi} = 1.
 \end{equation}
 where
 \begin{equation}\label{def:V_matrix}
-V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
+V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)}.
 \end{equation}
-
-
-
 \end{proposition}
-Since $V$ is a rank 1 matrix, the solution of the generalized eigenvalue problem is easily obtained by matrix multiplication and normalization:
+Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and normalization:
 	\begin{proposition} \label{proposition:linear_noregul}
-	We can compute  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}$ in Proposition \ref{proposition:eigen_noregul} as 
+	We can compute  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}_{K+1}$ in Proposition \ref{proposition:eigen_noregul} as 
 \begin{equation*}
 	\hat{\boldsymbol{\gamma}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
 			\mathbf{y}^\top
