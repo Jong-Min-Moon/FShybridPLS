@@ -473,8 +473,28 @@ V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \m
 \end{equation}
 \end{proposition}
 The proof of Proposition \ref{proposition:eigen_noregul}
-is provided in Appendix \ref{section:proof:proposition:linear_noregul_system_unregularized}.
+is provided in Appendix \ref{section:proof:proposition:linear_regul_system_unregularized}.
 Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and normalization:
+
+\begin{proposition}[Closed-form solution to the regularized PLS direction]
+	\label{prop:closed_form_pls}
+	Let $\{\mathbf{u}_j\}_{j=1}^K$ and $\mathbf{v}$ be defined as
+	\[
+	\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M, \quad
+	\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p,
+	\]	
+	Then the unique (up to sign) solution 
+	is given in closed form as
+	\[
+	\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
+	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{q}} \mathbf{v},
+	\]
+	where
+	\[
+	q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
+	\]
+\end{proposition}
+
 	\begin{proposition} \label{proposition:linear_noregul}
 	We can compute  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}_{K+1}$ in Proposition \ref{proposition:eigen_noregul} as 
 \begin{equation*}
@@ -496,7 +516,7 @@ Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and n
 	Z^\top \mathbf{y}.
 \end{equation*}
 \end{proposition}
-The proof of Proposition \ref{proposition:linear_noregul}  is provided in Appendix \ref{section:proof:proposition:linear_noregul}.
+The proof of Proposition \ref{proposition:linear_noregul}  is provided in Appendix \ref{section:proof:proposition:linear_regul}.
 The expressions above represent matrix–vector multiplications normalized by a common factor. 
 Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS component direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
@@ -569,7 +589,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\end{equation}
 		where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 \end{proposition}
-	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_noregul_system_unregularized}.
+	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_regul_system_unregularized}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
@@ -1048,7 +1068,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	
 
 	
-	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
+	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
 	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
@@ -1319,212 +1339,111 @@ This computation along with \eqref{covariance_squares_as_quadratic_form} implies
 
  \end{proof}
  
- \section{Proof of Proposition  \ref{proposition:linear_noregul}}\label{section:proof:proposition:linear_noregul}
+ \section{Proof of Proposition  \ref{proposition:linear_noregul}}\label{section:proof:proposition:linear_regul}
  \begin{proof}
- 	The optimization problem
- 	\ref{eq: Regularized generalized rayleigh quotient equation} can be written as
- 		\begin{align*}
- 		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
- 			\boldsymbol{\zeta} \in \mathbb{R}^p
- 		}~&
- 		\frac{1}{n^2}
- 		\biggl(
- 		\sum \limits_{k=1}^K 
- 		\mathbf{y}^\top
- 		\Theta_{j}
- 		B  
- 		\boldsymbol{\gamma}_j
- 		+
- 		\mathbf{y}^\top
- 		Z \boldsymbol{\zeta} 
- 		\biggr)^2,
- 		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
- 		\boldsymbol{\gamma}_j^\top
- 	(	B + \lambda_k B^{\prime \prime})
- 		\boldsymbol{\gamma}_j
- 		+
- 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
- 	\end{align*} 
- Let $\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data and not decision variables. Then the optimization problem becomes
- 	 		\begin{align*}
- 		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
- 			\boldsymbol{\zeta} \in \mathbb{R}^p
- 		}~&
- 		\frac{1}{n^2}
- 		\biggl(
- 		\sum \limits_{k=1}^K 
- 	\mathbf{u}_j^\top		
- 		\boldsymbol{\gamma}_j
- 		+
- 		\mathbf{v}^\top \boldsymbol{\zeta} 
- 		\biggr)^2,
- 		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
- 		\boldsymbol{\gamma}_j^\top
- 		(	B + \lambda_k B^{\prime \prime})
- 		\boldsymbol{\gamma}_j
- 		+
- 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
- 	\end{align*}  	
- 	The objective function is continuous.
-The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Therefore, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
-The constraint function is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not a feasible point, the gradient  is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
-To use this fact,
-define the Lagrangian as follows:
+The optimization problem 
+\eqref{eq: Regularized generalized rayleigh quotient equation} can be written as
+\begin{align*}
+	\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,\;
+		\boldsymbol{\zeta} \in \mathbb{R}^p}~&
+	\frac{1}{n^2}
+	\left(
+	\sum_{j=1}^K 
+	\mathbf{y}^\top
+	\Theta_j
+	B  
+	\boldsymbol{\gamma}_j
+	+
+	\mathbf{y}^\top
+	Z \boldsymbol{\zeta} 
+	\right)^2,
+	\\
+	\text{subject to}\quad&
+	\sum_{j=1}^K 
+	\boldsymbol{\gamma}_j^\top
+	(B + \lambda_j B^{\prime\prime})
+	\boldsymbol{\gamma}_j
+	+
+	\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
+\end{align*}
+
+Let $\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data. Then the objective becomes
+\[
+\frac{1}{n^2}
+\left(
+\sum_{j=1}^K 
+\mathbf{u}_j^\top \boldsymbol{\gamma}_j
++
+\mathbf{v}^\top \boldsymbol{\zeta}
+\right)^2.
+\]
+The objective function is continuous. The constraint defines the boundary of an ellipsoid in a finite-dimensional Euclidean space, the feasible set is compact. By the Weierstrass Extreme Value Theorem (see, e.g., Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}), a global maximizer exists. The constraint function is continuously differentiable and its gradient vanishes only at the origin, which is not feasible. 
+Thus the gradient  is nonzero at all feasible points.
+Hence, the Linear Independence Constraint Qualification (LICQ) holds, and the Karush-Kuhn-Tucker (KKT) conditions are necessary for local optimality (see, e.g., Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
+
+Define the Lagrangian:
 \[
 \mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \mu) 
 := 
-	\left( \sum_{j=1}^K \mathbf{u}_j^\top  \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)^2
+\left( \sum_{j=1}^K \mathbf{u}_j^\top  \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)^2
 - 
 \mu 
-\biggl[
-\bigl\{
-	\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + 	\boldsymbol{\zeta}^\top \boldsymbol{\zeta} 
-	\bigr\}
-	- 1
-	\biggr]
-.
+\left[
+\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1
+\right].
 \]
-Then, if
-$(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, 
-	\boldsymbol{\zeta}
-)$
-is a local maximizer, the gradients of $\mathcal{L}$ must vanish at that point:
-\begin{align*}
+
+Let $s := \dfrac{2}{n^2} \left( \sum_{j=1}^K \mathbf{u}_j^\top \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)$. The KKT conditions require that:
+\begin{align}
 	\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
-	s
-	 \mathbf{u}_j
-	- 2\mu (B + \lambda_j B^{\prime \prime}) \boldsymbol{\gamma}_j = 0, \quad \forall j, 
-	\numberthis \label{lag_grad_d}
-	\\
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	s \mathbf{u}_j - 2\mu (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = 0, \quad \text{for } j = 1, \ldots, K, \label{eq:lag_grad_gamma} \\
 	\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
-	s
-\mathbf{v}
-	- 2\mu \boldsymbol{\zeta} = 0,
-	\numberthis \label{lag_grad_zeta}
+	s \mathbf{v} - 2\mu \boldsymbol{\zeta} = 0. \label{eq:lag_grad_zeta}
+\end{align}
+
+From \eqref{eq:lag_grad_gamma} and \eqref{eq:lag_grad_zeta}, we have
+\[
+(B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = \frac{s}{2\mu} \mathbf{u}_j, \quad
+\boldsymbol{\zeta} = \frac{s}{2\mu} \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
+\]
+This implies that for any local maximizer, there exists $c \ne 0$ such that 
+\[
+\boldsymbol{\gamma}_j = c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
+\boldsymbol{\zeta} = c \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
+\]
+Since we assumed in Section~\ref{sec: finite basis approximation} that the functions $\{b_m(t)\}$ and their second derivatives are linearly independent, both $B$ and $B^{\prime\prime}$ are positive definite (see, for example, Theorem 273 of \citealp{gockenbachFiniteDimensionalLinearAlgebra2010}). As positive definiteness is preserved under conic combinations, $B + \lambda_j B^{\prime\prime}$ is also positive definite. 
+
+A local maximizer must also be primal feasible. Substituting the conditions above in to the primal constraint:
+\begin{align*}
+	\sum_{j=1}^K 
+	\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)^\top 
+	(B + \lambda_j B^{\prime\prime}) 
+	\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)
+	+ c^2 \mathbf{v}^\top \mathbf{v} &= 1 \\
+	\Rightarrow 
+	c^2 \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right) &= 1.
 \end{align*}
-where 
-\begin{equation*}
-	s := \frac{2}{n^2} 
-	\left(
-	\sum_{\ell=1}^K \mathbf{u}_\ell^\top B \boldsymbol{\gamma}_\ell + \mathbf{v}^\top  \boldsymbol{\zeta}
-	\right).
-\end{equation*}
-Since we assumed in Section~\ref{sec: finite basis approximation} that the functions $\{b_m(t)\}$ and their second derivatives are linearly independent, both $B$ and $B^{\prime\prime}$ are positive definite (see, for example, Theorem 273 of \citealp{gockenbachFiniteDimensionalLinearAlgebra2010}). As positive definiteness is preserved under conic combinations, $B + \lambda_j B^{\prime\prime}$ is also positive definite. Therefore, \eqref{lag_grad_d} implies that 
-\begin{equation*}
-	\boldsymbol{\gamma}_j
-	=
-	\frac{s}{2\mu}	
-	(B + \lambda_j B^{\prime \prime})^{-1}
-	\mathbf{u}_j
-	   , \quad \forall j.
-\end{equation*}
-If $\boldsymbol{\gamma}_j$ is part of a local optimum, then it must be a scalar multiple of 
-$\tilde{\mathbf{u}}_j := (B + \lambda_j B^{\prime \prime})^{-1} \mathbf{u}_j$, 
-i.e., $\boldsymbol{\gamma}_j = c_j \tilde{\mathbf{u}}_j$.
-Similarly, \eqref{lag_grad_zeta} implies that if 
-$\boldsymbol{\zeta}$ is a local optimum, then it must be a scalar multiple of $\mathbf{v}$,
-i.e., $\boldsymbol{\zeta} = d \mathbf{v}$.
+
+Solving for $c^2$ gives:
+\[
+c^2 = \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right)^{-1}.
+\]
+
+Hence, the unique maximizer (up to sign) is:
+\[
+\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
+\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{q}} \mathbf{v},
+\]
+where
+\[
+q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
+\]
+
+This completes the proof of Proposition \ref{section:proof:proposition:linear_regul}.
 
 
-Therefore, it suffices to 
-By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
-$
-\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
-$
-all scaled by the same factor. There exists only one such set of  vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
-\begin{equation*}
-	\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
-			\mathbf{y}^\top
-			\Theta_j
-			B \Theta_j^\top \mathbf{y} 
-			+ 
-			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-	\Theta_j^\top \mathbf{y},
-	\quad
-	%%%%%%%%%%%%%%%%
-	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
-			\mathbf{y}^\top
-			\Theta_j
-			B \Theta_j^\top \mathbf{y} 
-			+ 
-			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-	Z^\top \mathbf{y},
-\end{equation*}
-
- 	Observe that the objective is linear in each $\boldsymbol{\gamma}_j$ and in $\boldsymbol{\zeta}$, and the constraint is a strictly convex quadratic form. Hence, the optimal solution lies in the direction of the gradient of the linear objective.
- 	
- 	Define scalar weights $c_j$ and $c$ such that
- 	\[
- 	\boldsymbol{\gamma}_j = c_j \mathbf{u}_j, \quad \boldsymbol{\zeta} = c \mathbf{v}.
- 	\]
- 	
- 	Substituting into the objective:
- 	\[
- 	\left( \sum_{j=1}^K c_j \mathbf{y}^\top \Theta_j B \mathbf{u}_j + c \mathbf{y}^\top Z \mathbf{v} \right)^2 = \left( \sum_{j=1}^K c_j a_j + c b \right)^2,
- 	\]
- 	where we define $a_j := \mathbf{u}_j^\top B \mathbf{u}_j$ and $b := \| \mathbf{v} \|^2$.
- 	
- 	The constraint becomes:
- 	\[
- 	\sum_{j=1}^K c_j^2 \, d_j + c^2 b = 1,
- 	\]
- 	where $d_j := \mathbf{u}_j^\top (B + \mu_j B^{\prime\prime}) \mathbf{u}_j$.
- 	
- 	Now we define the Lagrangian:
- 	\[
- 	\mathcal{L}(c_1, \ldots, c_K, c; \lambda) = \left( \sum_{j=1}^K c_j a_j + c b \right)^2 - \lambda \left( \sum_{j=1}^K c_j^2 d_j + c^2 b - 1 \right).
- 	\]
- 	
- 	Taking partial derivatives and setting them to zero:
- 	\begin{align*}
- 		\frac{\partial \mathcal{L}}{\partial c_j} &= 2 \left( \sum_{j'=1}^K c_{j'} a_{j'} + c b \right) a_j - 2\lambda c_j d_j = 0, \quad \forall j, \\
- 		\frac{\partial \mathcal{L}}{\partial c} &= 2 \left( \sum_{j'=1}^K c_{j'} a_{j'} + c b \right) b - 2\lambda c b = 0.
- 	\end{align*}
- 	
- 	Let $s := \sum_{j'=1}^K c_{j'} a_{j'} + c b$, then the optimality conditions reduce to:
- 	\[
- 	s a_j = \lambda c_j d_j, \quad s b = \lambda c b.
- 	\]
- 	
- 	Solving for $c_j$ and $c$:
- 	\[
- 	c_j = \frac{a_j}{d_j} \cdot \frac{s}{\lambda}, \quad c = \frac{s}{\lambda}.
- 	\]
- 	
- 	Substitute into the constraint:
- 	\begin{align*}
- 		\sum_{j=1}^K \left( \frac{a_j}{d_j} \cdot \frac{s}{\lambda} \right)^2 d_j + \left( \frac{s}{\lambda} \right)^2 b &= 1, \\
- 		\left( \frac{s}{\lambda} \right)^2 \left( \sum_{j=1}^K \frac{a_j^2}{d_j} + b \right) &= 1.
- 	\end{align*}
- 	
- 	Let $S := \sum_{j=1}^K \frac{a_j^2}{d_j} + b$, then
- 	\[
- 	\left( \frac{s}{\lambda} \right)^2 = \frac{1}{S}, \quad \Rightarrow \quad \frac{s}{\lambda} = \frac{1}{\sqrt{S}}.
- 	\]
- 	
- 	Hence,
- 	\[
- 	c_j = \frac{a_j}{d_j \sqrt{S}}, \quad c = \frac{1}{\sqrt{S}}.
- 	\]
- 	
- 	\textbf{Conclusion}: The optimal coefficients are
- 	\[
- 	\boldsymbol{\gamma}_j = \frac{a_j}{d_j \sqrt{S}} \mathbf{u}_j, \quad \boldsymbol{\zeta} = \frac{1}{\sqrt{S}} \mathbf{v},
- 	\]
- 	where
- 	\[
- 	a_j = \mathbf{u}_j^\top B \mathbf{u}_j, \quad d_j = \mathbf{u}_j^\top (B + \mu_j B^{\prime\prime}) \mathbf{u}_j, \quad \mathbf{u}_j = \Theta_j^\top \mathbf{y}, \quad \mathbf{v} = Z^\top \mathbf{y},
- 	\]
- 	and
- 	\[
- 	S = \sum_{j=1}^K \frac{a_j^2}{d_j} + \| \mathbf{v} \|^2.
- 	\]
- 	
-	which are the same as  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul}.
 	\end{proof}
-	
-	
+
 	
 	
 	
