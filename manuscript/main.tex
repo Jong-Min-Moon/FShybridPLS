@@ -1118,19 +1118,6 @@ However, the above approach assumes that the functional predictors admit an orth
 
 	
 	\section{Proof of Proposition \ref{proposition:eigen_noregul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
-	\begin{comment}
-		We start by defining a  inner product in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$:
-		\begin{lemma}[Inner product of tuples]
-			\label{lemma:valid_inner_product_tuple}
-			Let $B \in \mathbb{R}^{M \times M}$ be a symmetric positive semi-definite matrix. 
-			For any two tuples $u = (\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta})$ and $v = (\mathbf{g}_1, \ldots, \mathbf{g}_K, \boldsymbol{\omega})$ in the product space $(\mathbb{R}^M)^K \times \mathbb{R}^p$, define the bilinear form
-			\[
-			\langle u, v \rangle_{B} := \sum_{j=1}^K \boldsymbol{\gamma}_j^\top B \mathbf{g}_j + \boldsymbol{\zeta}^\top \boldsymbol{\omega}.
-			\]
-			Then $\langle \cdot, \cdot \rangle_{B}$ is a valid inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$.
-		\end{lemma}
-		The proof of Lemma \ref{lemma:valid_inner_product_tuple} is provided in Appendix \ref{section:proof:lemma:valid_inner_product_tuple}
-	\end{comment}
 	\begin{proof}
 	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
