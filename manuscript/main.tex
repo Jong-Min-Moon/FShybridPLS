@@ -334,93 +334,72 @@
 	Due to the hybrid nature of the predictors, this approximation requires careful explanation, provided in Section \ref{sec: finite basis approximation}. This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
 	
 \subsubsection{Finite-basis approximation of the predictors and regression coefficients}\label{sec: finite basis approximation}	
-Given a twice-differentiable basis $\{b_l(t)\}$ of $L^2([0,1])$,
-the functional predictors,
-the corresponding regression coefficients,
-and PLS component direction
- can be decomposed into
+Given a twice-differentiable basis $\{b_m(t)\}$ of $L^2([0,1])$,  the $j$th functional predictor, regression coefficient, and PLS direction (suppressing iteration indices) are represented as
 	\begin{equation*}
-		X_{ij}(t) = \sum_{l=1}^\infty \theta_{ijl} \, b_l(t),~
-		\beta_j(t) = \sum_{l=1}^\infty \eta_{0,jl} \, b_l(t), j=1, \ldots, K,~
+		X_{ij}(t) = \sum_{m=1}^\infty \theta_{ijm} \, b_m(t),\quad
+		\beta_j(t) = \sum_{m=1}^\infty \eta_{jm} \, b_m(t),\quad
 		%%%%%%%%%%%%%%%%%%%%%%
-		\xi 
+		\xi_j(t)
 		=
-		\sum_{l=1}^\infty 
-		b_l(t)
-	\end{equation*}
-	At the $l$-th iteration of the PLS algorithm, let
-	\begin{equation}
-		( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
-	\end{equation}
+		\sum_{m=1}^\infty
+		\gamma_{jm}
+		b_m(t)
+	\end{equation*}	
+In practice, the full set of coefficients can not be obtained, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms and define the truncated basis space
+\begin{equation}
+	\mathcal{B} := \operatorname{span}\bigl(b_1(t), \ldots, b_M(t)\bigr).
+\end{equation}
+We choose a moderately large $M$ (e.g., 15 or 20) to capture functional variation without fine-tuning, as smoothness is handled via penalization (see Section~\ref{sec: Regularization of PLS Components}).
 	
-	where $\theta_{ijl}$ and $\eta_{0,jl}$ are the coefficients of $X_{ij}(t)$ and $\beta_j(t)$ corresponding to the $l$th basis function $b_l(t)$, respectively.
-Since functional predictors are observed at finitely many discrete time points in practice,
-we use finite-dimensional projections obtained by the expansion truncating at $M$ terms.
-We choose a moderately large value of $M$ (e.g., 15 or 20) to capture rich functional variation without requiring fine-tuning, as our method promotes smoothness through penalization (see Section~\ref{sec: Regularization of PLS Components}). We denote the truncated space by
-	\begin{equation}
-		\mathcal{B} := \operatorname{span} \bigl( b_1(t), \ldots, b_M(t) \bigr).
-	\end{equation}
-	 We denote the  predictors projected onto $\mathcal{B}$ and the resulting coefficients as
+	The truncated expansions of the predictor and coefficient are denoted as
 	\begin{equation*}
-		\widetilde{X}_{ij}(t) = \sum_{l=1}^M \theta_{ijl} \, b_l(t), \quad 
-		\tilde{\beta}_j(t) = \sum_{l=1}^M \eta_{0,jl} \, b_l(t).
+		\widetilde{X}_{ij}(t) := \sum_{m=1}^M \theta_{ijm} \, b_m(t), \quad
+		\tilde{\beta}_j(t) := \sum_{m=1}^M \eta_{jm} \, b_m(t),
 	\end{equation*}
-	The $i$th  hybrid predictor with projected functional parts, is a tuple, denoted as
+	and our suggest method restricts each PLS direction to admit the following expansion:
+	\begin{equation*}
+		\xi_j(t) = \sum_{m=1}^M \gamma_{jm} \, b_m(t).
+	\end{equation*}
+The $i$th hybrid predictor, with its functional parts projected onto the $\mathcal{B}$, is represented by the tuple
 	\begin{equation*}
 		\widetilde{W}_i := 
 		(
-		X_{i1}, \ldots, X_{iK}, \boldsymbol{Z}_i
+		\widetilde{X}_{i1}, \ldots, \widetilde{X}_{iK}, \boldsymbol{Z}_i
 		).
 	\end{equation*}
-	We adopt the following notation for the coefficients:
+Let $\boldsymbol{\theta}_{ij}$, $\boldsymbol{\eta}_j$, and $\boldsymbol{\gamma}_j$ denote the $M$-dimensional vectors of coefficients:
 	\begin{equation}
-		\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top \in \mathbb{R}^M,
+		\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top,
 		\quad
-		\boldsymbol{\eta}_{0j} := (\eta_{0,j1}, \ldots, \eta_{0,jM})^\top  \in \mathbb{R}^M,
+		\boldsymbol{\eta}_{j} := (\eta_{j1}, \ldots, \eta_{jM})^\top ,
+			\boldsymbol{\gamma}_{j} := (\gamma_{j1}, \ldots, \gamma_{jM})^\top.
 	\end{equation}
-	and
+For the predictors, we stack the coefficient vectors across observations into the matrix
 	\begin{equation}
 		\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M}.
 	\end{equation}
-The observations in the hybrid PLS problem can be compactly represented by the tuple
+The full data for the hybrid PLS problem can be represented by the tuple
 \begin{equation}\label{def:problem_instance}
-	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
-	\in
-	\mathbb{R}^{(MK+p) \times (MK+p)}
-	\times 
-	\mathbb{R}^{(MK+p) \times (MK+p)}
-	\times
-	\mathbb{R}^{n \times (MK+p)}
-	\times
-	\mathbb{R}^{n}
-	,
+	(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta, \mathbf{y}) \in 
+	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
+	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
+	\mathbb{R}^{n \times (MK+p)} \times 
+	\mathbb{R}^n,
 \end{equation}
-defined as follows.
-First, let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, respectively, with entries  
+where $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ are the Gram matrices of the basis functions and their second derivatives, with entries
 \begin{equation}
-	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt,
-	\quad
-	B^{\prime\prime}_{m, m'} := \int_0^1 b^{\prime\prime}_m(t)\, b^{\prime\prime}_{m'}(t)\, dt,
+	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt, \quad
+	B^{\prime\prime}_{m, m'} := \int_0^1 b_m''(t)\, b_{m'}''(t)\, dt,
 \end{equation}
-for $m, m' = 1, \ldots, M$.
-Leveraging these notations, 
-we define the $(MK + p) \times (MK + p)$ block-diagonal matrices
+for $m, m' = 1, \ldots, M$. We then define the block-diagonal matrices
 \begin{equation}\label{def:gram_block}
-\mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p)
-\quad \text{and} \quad
-\mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
+	\mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p), \quad
+	\mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
 \end{equation}
-We denote $\Theta := (\Theta_1, \ldots, \Theta_K, Z)
-\in
-\mathbb{R}^{n \times (MK+p)}
-$ , and let $\mathbf{y} := (y_1, \ldots, y_n)^\top$ denote the observed response vector.
+the full design matrix $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$, and the response vector $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
 
-	\begin{remark}
-While it is possible to use a different basis for each functional predictor, we adopt a common basis for all predictors to simplify the notation. However, the definition of 
-$\mathbb{B}$
-and
-$\mathbb{B}^{\prime \prime}$
- remains general enough to accommodate different bases across the $K$ predictors.
+\begin{remark}
+	While different bases could be used for each functional predictor, we adopt a common basis for simplicity. The definitions of $\mathbb{B}$ and $\mathbb{B}^{\prime\prime}$ remain general enough to accommodate distinct bases if needed.
 \end{remark}
 
 	%Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
