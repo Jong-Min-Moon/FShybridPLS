@@ -357,7 +357,7 @@
 	\end{equation*}
 	This implies that all computations in this paper are carried out entirely within the subspace
 	\begin{equation}\label{def:truncated_hilbert_space}
-		\widetilde{ \mathcal{H} } := \mathcal{B}^K \times \mathbb{R}^p \in \mathcal{H}.
+		\widetilde{ \mathcal{H} } := \mathcal{B}^K \times \mathbb{R}^p \subset \mathcal{H}.
 	\end{equation}
 	The $i$th hybrid predictor, projected on $\widetilde{ \mathcal{H} }$, is represented by the tuple
 	\begin{equation*}
@@ -502,7 +502,11 @@ The expressions above represent matrix–vector multiplications normalized by a 
 Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS component direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
-Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative $\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt$.
+Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
+\begin{equation}
+\operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt.
+\end{equation}
+
 Instead of solely maximizing the squared empirical covariance
  $\widehat{\textnormal{Cov}}^2 
 \bigl(
@@ -511,30 +515,26 @@ Instead of solely maximizing the squared empirical covariance
 $, 
 we incorporate this roughness penalty to simultaneously control the complexity of the estimated functional components.
 
-One possible approach is to extend smoothed functional PCA \citep{Rice1991} to our optimization problem \eqref{def:maximizer_squared_empirical_cov}, leading to the following formulation:
+One possible approach is to extend the smoothed functional PCA framework of \citet{Rice1991} by modifying the objective in \eqref{def:maximizer_squared_empirical_cov} to
 	\begin{equation*}
-	\hat{\xi} 
-	= 
-	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1})
-	= \arg \max_{\xi \in \mathcal{B}^K \times \mathbb{R}^p,
-		\| \xi  \|_\mathcal{H} = 1
-	} 
-	\biggl\{
 	\widehat{\textnormal{Cov}}^2 
 	\bigl(
 	\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
 	\bigr)
 	- \sum \limits_{j=1}^K \lambda_j 
-	\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
-	\biggr\}
+	\operatorname{PEN}({\xi}_j)
 	,
 \end{equation*}
 where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. Here, the penalization term can be written in matrix form as:
 		\begin{align*}
+				\sum \limits_{j=1}^K 
+				\lambda_j
+				\operatorname{PEN}({\xi}_j)
+				&=
 	\sum \limits_{j=1}^K 
 	\lambda_j
 	\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
-&=
+\\&=
 	\sum \limits_{j=1}^K 
 \lambda_j
 \int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
@@ -566,8 +566,24 @@ where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as
 \end{equation}
 where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 
-However, the approach of \citet{Rice1991} assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which replaces the standard orthonormality constraint with a weaker one based on a modified inner product that incorporates roughness.
-Building on this idea, Proposition \ref{proposition:eigen_regul} modifies the optimization problem presented in Proposition \ref{proposition:eigen_noregul}, yielding a smoothed PLS direction that maximizes the squared covariance over a class of smooth functions.
+\medskip
+\noindent
+\textit{Proposed estimation procedure.}~
+However, the above approach of \citet{Rice1991} assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which replaces the standard orthonormality constraint with a weaker one based on a modified inner product that incorporates roughness. Accordingly, our estimation procedure at the $l$-th iteration, iteration index omitted and assuming the observations have been residualized in previous steps, solves the following optimization problem:
+	\begin{equation}\label{def:maximizer_squared_empirical_cov_reg}
+	\hat{\xi} 
+	= 
+	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1}
+	)
+	:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
+	}~\widehat{\textnormal{Cov}}^2 
+	\bigl(
+	\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
+	\bigr)~s.t.~\| \xi  \|_\mathcal{H} +  \sum \limits_{j=1}^K \lambda_j 
+	\operatorname{PEN}(\xi_K) = 1.
+\end{equation}
+This formulation maximizes the squared covariance over a class of smooth functions.
+Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalized Rayleigh quotient.
 
 \begin{proposition}\label{proposition:eigen_regul}
 	Let
@@ -575,26 +591,18 @@ Building on this idea, Proposition \ref{proposition:eigen_regul} modifies the op
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
 	$
 	denote the observed data defined in \eqref{def:problem_instance}.
-	At the $l$-th iteration of the PLS algorithm, let
-	$( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top$
-	denote the coefficients of $\hat{\xi}$, defined in \eqref{def:maximizer_squared_empirical_cov},
-	which corresponds to the projected unit-norm direction that maximizes the squared empirical covariance.
-	These coefficients are obtained by solving the following generalized eigenvalue problem:
+	At the $l$-th iteration of the PLS algorithm, the maximizer of  the squared empirical covariance defined in \eqref{def:maximizer_squared_empirical_cov_reg}, represented as the Euclidean vector form as in \eqref{def:maximizer_euclidean_form},
+	is obtained by solving 
 	\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 		\left(
 		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
 		\right)^\top
 		=
 		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
-		\quad \text{subject to} \quad \boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi} = 1,
+		\quad \text{s.t.} \quad \boldsymbol{\xi}^\top (\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \boldsymbol{\xi} = 1.
 	\end{equation}
-	where
-	\begin{equation}\label{def:V_matrix}
-		V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top \in \mathbb{R}^{(MK+p) \times (MK+p)},
-	\end{equation}
-	
-	
-	
+	where we recall that $
+		V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ is defined in  \eqref{def:V_matrix}.
 \end{proposition}
 
 	\begin{proposition} 
