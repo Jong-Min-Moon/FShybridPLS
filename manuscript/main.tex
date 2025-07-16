@@ -329,8 +329,7 @@
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{subsec: Step 1: Computing Smoothed PLS components} and~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{subsec: Obtaining the Estimated Hybrid Regression Coefficient}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
 		\subsection{Preliminary step: Finite-basis Approximation }\label{sec: finite basis approximation}	
-	
-	Given a twice-differentiable basis $\{b_m(t)\}$ of $L^2([0,1])$,  the $j$th functional predictor, regression coefficient, and PLS direction (suppressing iteration indices) are represented as
+Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, the $j$th functional predictor, regression coefficient, and PLS direction (suppressing iteration indices) are represented as follows:
 	\begin{equation*}
 		X_{ij}(t) = \sum_{m=1}^\infty \theta_{ijm} \, b_m(t),\quad
 		\beta_j(t) = \sum_{m=1}^\infty \eta_{jm} \, b_m(t),\quad
@@ -460,7 +459,7 @@ $
 denote the observed data defined in \eqref{def:problem_instance}.
 At the $l$-th iteration of the PLS algorithm, the unit-norm maximizer of  the squared empirical covariance defined in \eqref{def:maximizer_squared_empirical_cov}, represented as the Euclidean vector form as in \eqref{def:maximizer_euclidean_form},
 is obtained by solving 
-\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
+\begin{equation}	\label{eq: Unregularized generalized rayleigh quotient equation}
 	\left(
 	\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
 	\right)^\top
@@ -525,46 +524,7 @@ One possible approach is to extend the smoothed functional PCA framework of \cit
 	\operatorname{PEN}({\xi}_j)
 	,
 \end{equation*}
-where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. Here, the penalization term can be written in matrix form as:
-		\begin{align*}
-				\sum \limits_{j=1}^K 
-				\lambda_j
-				\operatorname{PEN}({\xi}_j)
-				&=
-	\sum \limits_{j=1}^K 
-	\lambda_j
-	\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
-\\&=
-	\sum \limits_{j=1}^K 
-\lambda_j
-\int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
-\\&	 =
-%%%%%%%%%%%%%%%%%%%
-	\sum \limits_{j=1}^K 
-\lambda_j
-\sum_{l=1}^M
-\sum_{m=1}^M
-\theta_{ijl} \theta_{ijm}
-\int_0^1
- \, b_l^{\prime \prime}(t) 
-  b_m^{\prime \prime}(t)
-  dt
-\\&	 =
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\sum \limits_{j=1}^K
-\lambda_j
-\boldsymbol{\gamma}_j^\top
-B^{\prime \prime} 
-\boldsymbol{\gamma}_j
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&= 
-\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
-\end{align*}
-where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is given by
-\begin{equation}\label{def:Lambda}
-	\Lambda := \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p}),
-\end{equation}
-where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
+where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. 
 
 \medskip
 \noindent
@@ -602,9 +562,14 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\quad \text{s.t.} \quad \boldsymbol{\xi}^\top (\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \boldsymbol{\xi} = 1.
 	\end{equation}
 	where we recall that $
-		V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ is defined in  \eqref{def:V_matrix}.
+		V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ is defined in  \eqref{def:V_matrix}, and 
+		$\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is given by
+		\begin{equation}\label{def:Lambda}
+			\Lambda := \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p}),
+		\end{equation}
+		where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 \end{proposition}
-	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
+	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_noregul_system_unregularized}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
@@ -664,13 +629,13 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	
 	\subsection{Obtaining the Estimated Hybrid Regression Coefficient}
 	\label{subsec: Obtaining the Estimated Hybrid Regression Coefficient}
-	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
+	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\xi}_{K+1}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\xi}_{K+1}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\xi}_{K+1}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\xi}_{K+1}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
 	\begin{equation*}
-		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathcal{H}+\epsilon_i,
+		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\xi}_{K+1}}_l \right\rangle_\mathcal{H}+\epsilon_i,
 	\end{equation*}
 	which, given the uniqueness of $\boldsymbol{\eta}$, leads to
 	\begin{equation*}
-		\widehat{\boldsymbol{\eta}} = \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l.
+		\widehat{\boldsymbol{\eta}} = \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\xi}_{K+1}}_l.
 	\end{equation*}
 	Here, the number of PLS components $L$ to be estimated can be chosen by cross-validation.
 	
@@ -1083,64 +1048,16 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	
 
 	
-	\section{Proof of Proposition \ref{proposition:eigen_noregul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
+	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_noregul_system_unregularized}
 	\begin{proof}
-	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
+	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\xi}_{K+1}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
 		\xi_j(t) := 
 		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
 	\end{equation*}
 	with coefficient vectors $\boldsymbol{\gamma}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
-	Then, the squared norm of $\xi$ in the hybrid Hilbert space $\mathcal{H}$ 
-	%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
-	is computed as follows:
-	\begin{align*}
-		\langle {\xi},{\xi} \rangle_{\mathcal{H}}
-		&=
-		\sum_{j=1}^K
-		\langle
-		\xi_j, \xi_j
-		\rangle
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K \int_0^1
-		\biggl(
-		\sum_{m=1}^M d_{jm} b_{m}(t) 
-		\biggr) 
-		\biggl(
-		\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
-		\biggr) 
-		dt
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}  
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K 
-		\sum_{m=1}^M
-		\sum_{m'=1}^M
-		d_{jm}
-		d_{jm'}
-		\int_0^1
-		b_{m}(t) 
-		b_{m'}(t) 
-		dt
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K 
-		\boldsymbol{\gamma}_j^\top
-		B
-		\boldsymbol{\gamma}_j
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		%\\&=\bigl \langle(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta}),(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, \boldsymbol{\zeta})\bigr\rangle_B.
-	\end{align*}
-	In a similar manner, the empirical covariance is
-	% expressed as the inner product on  defined in Lemma \ref{lemma:valid_inner_product_tuple} as follows:
+	Then, 
+	the empirical covariance is
 	computed as follows:
 	\begin{align*}
 		\widehat{\textnormal{Cov}} (
@@ -1161,7 +1078,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\langle \widetilde{X}_{ij}, \xi_j \rangle  
 		+
 		\mathbf{Z}_i^\top 
-		\boldsymbol{\zeta} 
+		\boldsymbol{\xi}_{K+1} 
 		\biggr)
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&= %3
@@ -1175,7 +1092,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\sum
 		\limits_{i=1}^n
 		y_i
-		( \mathbf{Z}_i^\top \boldsymbol{\zeta} )
+		( \mathbf{Z}_i^\top \boldsymbol{\xi}_{K+1} )
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n} \sum \limits_{i=1}^n 
@@ -1193,7 +1110,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
+		Z \boldsymbol{\xi}_{K+1} 
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n} \sum \limits_{i=1}^n 
@@ -1212,7 +1129,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
+		Z \boldsymbol{\xi}_{K+1} 
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\sum \limits_{k=1}^K 
@@ -1228,7 +1145,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		+
 		\frac{1}{n}
 		\mathbf{y}^\top
-		Z \boldsymbol{\zeta}
+		Z \boldsymbol{\xi}_{K+1}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&=  
 		\frac{1}{n}
@@ -1240,21 +1157,17 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
+		Z \boldsymbol{\xi}_{K+1} 
 		\biggr)
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		%\\&=
-		%	\frac{1}{n}
-		%\bigl \langle
-		%(\Theta_1^\top \mathbf{y} , \ldots, \Theta_K^\top %\mathbf{y}, Z^\top \mathbf{y}),
-		%(\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K, %\boldsymbol{\zeta})
-		%\bigr\rangle_B.
 	\end{align*}	
-	Therefore, problem of maximizing the squared covariance  is equivalent to the following constrained optimization problem on the Euclidean space:
+	Building on this computation, the squared empirical covariance is
+expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V_matrix}:
+%	The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, takin
 	\begin{align*}
-		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
-			\boldsymbol{\zeta} \in \mathbb{R}^p
-		}~&
+		\widehat{\textnormal{Cov}}^2 (
+		\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
+		)  
+		&= 
 		\frac{1}{n^2}
 		\biggl(
 		\sum \limits_{k=1}^K 
@@ -1264,128 +1177,326 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		\boldsymbol{\gamma}_j
 		+
 		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		\biggr)^2,
-		\numberthis \label{optim:summation_form}
-		\\&~s.t.~	\sum \limits_{j=1}^K 
+		Z \boldsymbol{\xi}_{K+1} 
+		\biggr)^2
+		%%%%%%%%%%%%%%%%%%%%
+	\\	&=
+		\frac{1}{n^2} 
+		(
+		\mathbf{y}^\top
+		\Theta
+		\mathbb{B}  
+		\boldsymbol{\xi}
+		)^2
+		\\
+		&	= 
+		\frac{1}{n^2} 
+		\boldsymbol{\xi}^\top
+		(\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top 
+		\boldsymbol{\xi}
+		\\&=
+		\boldsymbol{\xi}^\top
+		V 
+		\boldsymbol{\xi}.
+		\numberthis \label{covariance_squares_as_quadratic_form}
+	\end{align*}
+	The squared norm of $\xi$ in the hybrid Hilbert space $\mathcal{H}$ 
+	%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
+	is computed as follows:
+	\begin{align*}
+		\langle {\xi},{\xi} \rangle_{\mathcal{H}}
+		&=
+		\sum_{j=1}^K
+		\langle
+		\xi_j, \xi_j
+		\rangle
+		+
+		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\\&=
+		\sum \limits_{j=1}^K \int_0^1
+		\biggl(
+		\sum_{m=1}^M d_{jm} b_{m}(t) 
+		\biggr) 
+		\biggl(
+		\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
+		\biggr) 
+		dt
+		+
+		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}  
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\\&=
+		\sum \limits_{j=1}^K 
+		\sum_{m=1}^M
+		\sum_{m'=1}^M
+		d_{jm}
+		d_{jm'}
+		\int_0^1
+		b_{m}(t) 
+		b_{m'}(t) 
+		dt
+		+
+		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1}
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\\&=
+		\sum \limits_{j=1}^K 
 		\boldsymbol{\gamma}_j^\top
 		B
 		\boldsymbol{\gamma}_j
 		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
-	\end{align*} 
-The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, taking the form of a quadratic expression involving the matrix $V$ defined in \eqref{def:V_matrix}:
-\begin{align*}
-	\frac{1}{n^2}
-\biggl(
-\sum \limits_{k=1}^K 
-\mathbf{y}^\top
-\Theta_{j}
-B
-\boldsymbol{\gamma}_j
-+
-\mathbf{y}^\top
-Z \boldsymbol{\zeta} 
-\biggr)^2
-%%%%%%%%%%%%%%%%%%%%
-&=
-\frac{1}{n^2} 
-(
-\mathbf{y}^\top
-\Theta
-\mathbb{B}  
-\boldsymbol{\xi}
-)^2
-\\
-&	= 
-\frac{1}{n^2} 
-\boldsymbol{\xi}^\top
-(\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top 
-\boldsymbol{\xi}
+		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1},
+%%%%%%%%%%%%%
 \\&=
-	\boldsymbol{\xi}^\top
-V 
-\boldsymbol{\xi},
-\end{align*}
-and the constraint is identical to that in \eqref{eq: Regularized generalized rayleigh quotient equation}, because we have:
-\begin{equation*}
-		\sum \limits_{j=1}^K 
+\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
+\numberthis \label{unit_norm_as_quadform}
+	\end{align*}
+Therefore, the covariance maximization problem \eqref{def:maximizer_squared_empirical_cov} is equivalent to the generalized Raleigh quotient \eqref{eq: Unregularized generalized rayleigh quotient equation}. This completes  the proof of Proposition~\ref{proposition:eigen_noregul}.
+
+Now we prove Proposition \ref{proposition:eigen_regul}.
+The penalization term 
+$\sum \limits_{j=1}^K \lambda_j 
+\operatorname{PEN}(\xi_K)$
+can be written in matrix form as:
+\begin{align*}
+	\sum \limits_{j=1}^K 
+	\lambda_j
+	\operatorname{PEN}({\xi}_j)
+	&=
+	\sum \limits_{j=1}^K 
+	\lambda_j
+	\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
+	\\&=
+	\sum \limits_{j=1}^K 
+	\lambda_j
+	\int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
+	\\&	 =
+	%%%%%%%%%%%%%%%%%%%
+	\sum \limits_{j=1}^K 
+	\lambda_j
+	\sum_{l=1}^M
+	\sum_{m=1}^M
+	\theta_{ijl} \theta_{ijm}
+	\int_0^1
+	\, b_l^{\prime \prime}(t) 
+	b_m^{\prime \prime}(t)
+	dt
+	\\&	 =
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\sum \limits_{j=1}^K
+	\lambda_j
 	\boldsymbol{\gamma}_j^\top
-	B
+	B^{\prime \prime} 
 	\boldsymbol{\gamma}_j
-	+ \boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\&= 
+	\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
+\end{align*}
+where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda$ is defined in \eqref{def:Lambda}. 
+
+Combining this with \eqref{unit_norm_as_quadform}, 
+we can compute
+\begin{equation*}
+	\| \xi  \|_\mathcal{H} +  \sum \limits_{j=1}^K \lambda_j 
+	\operatorname{PEN}(\xi_K) 
+	= 
+	\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
+	+ 
+	\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi}
 	=
-	\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}.
+		\boldsymbol{\xi}^\top 
+		(
+		\mathbb{B}
+	+
+	\Lambda \mathbb{B}^{\prime \prime})
+		 \boldsymbol{\xi}.
 \end{equation*}
-Therefore, the optimization problem \eqref{optim:summation_form}, which is equivalent to the squared covariance maximization problem, reduces to the generalized eigenvalue problem \eqref{eq: Regularized generalized rayleigh quotient equation}. This completes the proof of Proposition~\ref{proposition:eigen_noregul}.
+This computation along with \eqref{covariance_squares_as_quadratic_form} implies that the covariance maximization problem  
+ \eqref{def:maximizer_squared_empirical_cov_reg} is equivalent to the generalized Raleigh quotient \eqref{eq: Regularized generalized rayleigh quotient equation}.  This completes  the proof of Proposition \ref{proposition:eigen_regul}.
+ 
+
+
+
+
  \end{proof}
  
  \section{Proof of Proposition  \ref{proposition:linear_noregul}}\label{section:proof:proposition:linear_noregul}
  \begin{proof}
-	From \eqref{optim:summation_form}, let us denote the objective function as
-	\[
-	f(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) := 
-	\frac{1}{n^2}
+ 	The optimization problem
+ 	\ref{eq: Regularized generalized rayleigh quotient equation} can be written as
+ 		\begin{align*}
+ 		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
+ 			\boldsymbol{\xi}_{K+1} \in \mathbb{R}^p
+ 		}~&
+ 		\frac{1}{n^2}
+ 		\biggl(
+ 		\sum \limits_{k=1}^K 
+ 		\mathbf{y}^\top
+ 		\Theta_{j}
+ 		B  
+ 		\boldsymbol{\gamma}_j
+ 		+
+ 		\mathbf{y}^\top
+ 		Z \boldsymbol{\xi}_{K+1} 
+ 		\biggr)^2,
+ 		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
+ 		\boldsymbol{\gamma}_j^\top
+ 	(	B + \lambda_k B^{\prime \prime})
+ 		\boldsymbol{\gamma}_j
+ 		+
+ 		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} = 1.
+ 	\end{align*} 
+ Let $\mathbf{u}_j := \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data and not decision variables. Then the optimization problem becomes
+ 	 		\begin{align*}
+ 		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,
+ 			\boldsymbol{\xi}_{K+1} \in \mathbb{R}^p
+ 		}~&
+ 		\frac{1}{n^2}
+ 		\biggl(
+ 		\sum \limits_{k=1}^K 
+ 	\mathbf{u}_j^\top
+ 		B  
+ 		\boldsymbol{\gamma}_j
+ 		+
+ 		\mathbf{v}^\top \boldsymbol{\xi}_{K+1} 
+ 		\biggr)^2,
+ 		\\\text{subject to}\quad&	\sum \limits_{j=1}^K 
+ 		\boldsymbol{\gamma}_j^\top
+ 		(	B + \lambda_k B^{\prime \prime})
+ 		\boldsymbol{\gamma}_j
+ 		+
+ 		\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} = 1.
+ 	\end{align*}  	
+The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
+
+Define the Lagrangian:
+\[
+\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\xi}_{K+1}, \mu) 
+:= 
+	\left( \sum_{j=1}^K \mathbf{u}_j^\top B \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\xi}_{K+1} \right)^2
+- 
+\mu 
+\biggl[
+\bigl\{
+	\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + 	\boldsymbol{\xi}_{K+1}^\top \boldsymbol{\xi}_{K+1} 
+	\bigr\}
+	- 1
+	\biggr]
+.
+\]
+The constraint function   is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible, the gradient  is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
+Therefore, for any local maxima, gradients of $\mathcal{L}$ must be zero:
+\begin{align*}
+	\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
+	\frac{2}{n^2} 
 	\left(
-	\sum_{j=1}^K \mathbf{y}^\top \Theta_j B \boldsymbol{\gamma}_j + \mathbf{y}^\top Z \boldsymbol{\zeta}
-	\right)^2,
-	\]
-	and the constraint function as
-	\[
-	g(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) := \sum_{j=1}^K \boldsymbol{\gamma}_j^\top B \boldsymbol{\gamma}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1 = 0.
-	\]
-	The feasible set is compact, as it corresponds to the boundary of an ellipsoid in a finite-dimensional Euclidean space. Since the objective function $f$ is continuous and the constraint defines a compact feasible set, the  Weierstrass Extreme Value Theorem (see, for example, Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}) ensures the existence of a global maximizer.
-	
-	Define the Lagrangian:
-	\[
-	\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \lambda) 
-	:= 
-	f(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}).
-	\]
-	The constraint function $g$ is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible (the constraint requires norm 1), the gradient of $g$ is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
-	Therefore, for any local maxima, gradients of $\mathcal{L}$ must be zero:
-	\begin{align*}
-		\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
-		\frac{2}{n^2} 
-		\left(
-		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
-		\right)
-		B \Theta_j^\top \mathbf{y}
-		- 2\lambda B \boldsymbol{\gamma}_j = 0, \quad \forall j, 
-		\numberthis \label{lag_grad_d}
-		\\
-		\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
-		\frac{2}{n^2} 
-		\left(
-		\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}
-		\right)
-		Z^\top \mathbf{y}
-		- 2\lambda \boldsymbol{\zeta} = 0.
-		\numberthis \label{lag_grad_zeta}
-	\end{align*}
-	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
-	$
-	\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
-	$
-	all scaled by the same factor. There exists only one such set of  vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
-	\begin{equation*}
-		\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
-				\mathbf{y}^\top
-				\Theta_j
-				B \Theta_j^\top \mathbf{y} 
-				+ 
-				\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-		\Theta_j^\top \mathbf{y},
-		\quad
-		%%%%%%%%%%%%%%%%
-		\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
-				\mathbf{y}^\top
-				\Theta_j
-				B \Theta_j^\top \mathbf{y} 
-				+ 
-				\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-		Z^\top \mathbf{y},
-	\end{equation*}
+	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}
+	\right)
+	B \Theta_j^\top \mathbf{y}
+	- 2\lambda (B + \lambda_j B^{\prime \prime}) \boldsymbol{\gamma}_j = 0, \quad \forall j, 
+	\numberthis \label{lag_grad_d}
+	\\
+	\nabla_{\boldsymbol{\xi}_{K+1}} \mathcal{L} &= 
+	\frac{2}{n^2} 
+	\left(
+	\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}
+	\right)
+	Z^\top \mathbf{y}
+	- 2\lambda \boldsymbol{\xi}_{K+1} = 0.
+	\numberthis \label{lag_grad_zeta}
+\end{align*}
+By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\xi}_{K+1}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
+$
+\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
+$
+all scaled by the same factor. There exists only one such set of  vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
+\begin{equation*}
+	\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			B \Theta_j^\top \mathbf{y} 
+			+ 
+			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
+	\Theta_j^\top \mathbf{y},
+	\quad
+	%%%%%%%%%%%%%%%%
+	\boldsymbol{\xi}_{K+1}^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			B \Theta_j^\top \mathbf{y} 
+			+ 
+			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
+	Z^\top \mathbf{y},
+\end{equation*}
+
+ 	Observe that the objective is linear in each $\boldsymbol{\gamma}_j$ and in $\boldsymbol{\xi}_{K+1}$, and the constraint is a strictly convex quadratic form. Hence, the optimal solution lies in the direction of the gradient of the linear objective.
+ 	
+ 	Define scalar weights $c_j$ and $c$ such that
+ 	\[
+ 	\boldsymbol{\gamma}_j = c_j \mathbf{u}_j, \quad \boldsymbol{\xi}_{K+1} = c \mathbf{v}.
+ 	\]
+ 	
+ 	Substituting into the objective:
+ 	\[
+ 	\left( \sum_{j=1}^K c_j \mathbf{y}^\top \Theta_j B \mathbf{u}_j + c \mathbf{y}^\top Z \mathbf{v} \right)^2 = \left( \sum_{j=1}^K c_j a_j + c b \right)^2,
+ 	\]
+ 	where we define $a_j := \mathbf{u}_j^\top B \mathbf{u}_j$ and $b := \| \mathbf{v} \|^2$.
+ 	
+ 	The constraint becomes:
+ 	\[
+ 	\sum_{j=1}^K c_j^2 \, d_j + c^2 b = 1,
+ 	\]
+ 	where $d_j := \mathbf{u}_j^\top (B + \mu_j B^{\prime\prime}) \mathbf{u}_j$.
+ 	
+ 	Now we define the Lagrangian:
+ 	\[
+ 	\mathcal{L}(c_1, \ldots, c_K, c; \lambda) = \left( \sum_{j=1}^K c_j a_j + c b \right)^2 - \lambda \left( \sum_{j=1}^K c_j^2 d_j + c^2 b - 1 \right).
+ 	\]
+ 	
+ 	Taking partial derivatives and setting them to zero:
+ 	\begin{align*}
+ 		\frac{\partial \mathcal{L}}{\partial c_j} &= 2 \left( \sum_{j'=1}^K c_{j'} a_{j'} + c b \right) a_j - 2\lambda c_j d_j = 0, \quad \forall j, \\
+ 		\frac{\partial \mathcal{L}}{\partial c} &= 2 \left( \sum_{j'=1}^K c_{j'} a_{j'} + c b \right) b - 2\lambda c b = 0.
+ 	\end{align*}
+ 	
+ 	Let $s := \sum_{j'=1}^K c_{j'} a_{j'} + c b$, then the optimality conditions reduce to:
+ 	\[
+ 	s a_j = \lambda c_j d_j, \quad s b = \lambda c b.
+ 	\]
+ 	
+ 	Solving for $c_j$ and $c$:
+ 	\[
+ 	c_j = \frac{a_j}{d_j} \cdot \frac{s}{\lambda}, \quad c = \frac{s}{\lambda}.
+ 	\]
+ 	
+ 	Substitute into the constraint:
+ 	\begin{align*}
+ 		\sum_{j=1}^K \left( \frac{a_j}{d_j} \cdot \frac{s}{\lambda} \right)^2 d_j + \left( \frac{s}{\lambda} \right)^2 b &= 1, \\
+ 		\left( \frac{s}{\lambda} \right)^2 \left( \sum_{j=1}^K \frac{a_j^2}{d_j} + b \right) &= 1.
+ 	\end{align*}
+ 	
+ 	Let $S := \sum_{j=1}^K \frac{a_j^2}{d_j} + b$, then
+ 	\[
+ 	\left( \frac{s}{\lambda} \right)^2 = \frac{1}{S}, \quad \Rightarrow \quad \frac{s}{\lambda} = \frac{1}{\sqrt{S}}.
+ 	\]
+ 	
+ 	Hence,
+ 	\[
+ 	c_j = \frac{a_j}{d_j \sqrt{S}}, \quad c = \frac{1}{\sqrt{S}}.
+ 	\]
+ 	
+ 	\textbf{Conclusion}: The optimal coefficients are
+ 	\[
+ 	\boldsymbol{\gamma}_j = \frac{a_j}{d_j \sqrt{S}} \mathbf{u}_j, \quad \boldsymbol{\xi}_{K+1} = \frac{1}{\sqrt{S}} \mathbf{v},
+ 	\]
+ 	where
+ 	\[
+ 	a_j = \mathbf{u}_j^\top B \mathbf{u}_j, \quad d_j = \mathbf{u}_j^\top (B + \mu_j B^{\prime\prime}) \mathbf{u}_j, \quad \mathbf{u}_j = \Theta_j^\top \mathbf{y}, \quad \mathbf{v} = Z^\top \mathbf{y},
+ 	\]
+ 	and
+ 	\[
+ 	S = \sum_{j=1}^K \frac{a_j^2}{d_j} + \| \mathbf{v} \|^2.
+ 	\]
+ 	
 	which are the same as  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}$. This completes the proof of  Proposition \ref{proposition:linear_noregul}.
 	\end{proof}
 	
