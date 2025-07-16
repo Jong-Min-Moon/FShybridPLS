@@ -403,20 +403,16 @@
 	
 	%Additionally, it serves as a regularization mechanism, borrowing strength across components and helping to prevent overfitting. 	
 	
-	\subsection{Step 1: Computing smoothed PLS components}  \label{subsec: Step 1: Computing Smoothed PLS components}
-	This representation allows us to work with coefficient vectors, simplifying notation. Section~\ref{sec: pls component computation intermediate} outlines the core strategy for computing the PLS components in this reduced space. Building on this, we then introduce our regularized and smoothed estimation procedure, which constitutes the first step of the iterative algorithm.
-	
+	\subsection{Step 1: Computing smoothed PLS component direction}  \label{subsec: Step 1: Computing Smoothed PLS components} 
+We begin with the first step of the iterative algorithm: estimating the smooth PLS component direction. Section~\ref{sec: pls component computation intermediate} introduces the core optimization problem for this step, formulated as a generalized Rayleigh quotient. Building on this, Section~\ref{sec: Regularization of PLS Components} presents a modified version that promotes smoothness, which is the estimation procedure for our proposed method, along with a efficient computation scheme.
+
+
+
+	\subsubsection{Core optimization problem for PLS component direction estimation}\label{sec: pls component computation intermediate}
+Building on the basis function approximation in Section~\ref{sec: finite basis approximation}, we now present the core optimization problem that directly estimates the hybrid PLS component direction. This strategy fully leverages the continuous nature of the functional components and the function-scalar hybrid structure, and can be implemented using simple matrix-vector multiplications.
 
 	
-	
-	
-	
-	
-	\subsubsection{Core strategy for PLS component direction estimation}\label{sec: pls component computation intermediate}
-Building on the basis function approximation in Section~\ref{sec: finite basis approximation}, we now present the core strategy for directly estimating the hybrid PLS component direction. 
-This stretagey fully leverages both the continuous nature of the functional components and the function-scalar hybrid structure, and can be implemented via simple matrix-vector multiplications. Building on this strategy, Section \ref{sec: Regularization of PLS Components} presents the estimation procedure for our suggest method.
-	
-We describe the strategy at the $l$-th iteration. For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for details). The  PLS component direction is estimated by the unit-norm direction $\xi \in \tilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
+We describe the strategy at the $l$-th iteration. For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for details). The  PLS component direction is estimated by the unit-norm direction $\xi \in \widetilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
 
 \begin{equation}\label{def:squared_empirical_cov}
 	 	\widehat{\textnormal{Cov}} 
@@ -436,12 +432,11 @@ We denote the estimated PLS component direction as
 = 
 (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1}
 )
-:= \arg \max_{\xi \in \mathcal{B}^K \times \mathbb{R}^p,
-\| \xi  \|_\mathcal{H} = 1
- } \widehat{\textnormal{Cov}}^2 
+:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
+ }~\widehat{\textnormal{Cov}}^2 
 \bigl(
 \langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
-\bigr),
+\bigr)~s.t.~\| \xi  \|_\mathcal{H} = 1,
 	\end{equation}
 %
 	where each functional part $\hat{\xi}_j $  is expanded as
@@ -565,16 +560,16 @@ B^{\prime \prime}
 \\&= 
 \boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
 \end{align*}
-where we recall that $\mathbb{B}^{\prime \prime} $ is defined in \eqref{def:gram_block}, 
-	where $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is defined as
+where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is given by
 \begin{equation}\label{def:Lambda}
-	\Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
+	\Lambda := \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p}),
 \end{equation}
-$0_{p \times p}$ denotes a $p \times p$ matrix with all elements equal to zero.
+where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 
-However, the above approach assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which works under weaker conditions than those required by \citet{Rice1991}. This is achieved by replacing the standard orthonormality constraint with one based on a modified inner product that accounts for roughness. Building on this idea, the following proposition reformulates the hybrid PLS problem as a generalized Rayleigh quotient, yielding a smoothed PLS direction that maximizes the squared covariance over a class of smooth functions.
+However, the approach of \citet{Rice1991} assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense. As an alternative, we adopt the strategy of \citet{Silverman1996}, which replaces the standard orthonormality constraint with a weaker one based on a modified inner product that incorporates roughness.
+Building on this idea, Proposition \ref{proposition:eigen_regul} modifies the optimization problem presented in Proposition \ref{proposition:eigen_noregul}, yielding a smoothed PLS direction that maximizes the squared covariance over a class of smooth functions.
 
-\begin{proposition}\label{proposition:eigen_noregul}
+\begin{proposition}\label{proposition:eigen_regul}
 	Let
 	$
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
@@ -602,7 +597,7 @@ However, the above approach assumes that the functional predictors admit an orth
 	
 \end{proposition}
 
-	\begin{proposition} \label{Proposition: Regularized generalized rayleigh quotient}
+	\begin{proposition} 
 		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
 		\begin{equation*}
 			\mathbf{V}^\ast = n^{-2}\begin{bmatrix}
@@ -643,7 +638,7 @@ However, the above approach assumes that the functional predictors admit an orth
 			\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\xi} \rangle_\mathcal{H}
 		\end{equation}
 	\end{proposition}
-	The proof of Proposition \ref{Proposition: Regularized generalized rayleigh quotient} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
+	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
@@ -818,7 +813,7 @@ However, the above approach assumes that the functional predictors admit an orth
 	\subsection{Geometric Properties}
 	In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 	
-	The following proposition states that the PLS components estimated from Proposition  \ref{Proposition: Regularized generalized rayleigh quotient} are orthonormal with respect to the modified inner product $\langle \langle \cdot \rangle \rangle$ that incorporates the roughness of the functions.
+	The following proposition states that the PLS components estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal with respect to the modified inner product $\langle \langle \cdot \rangle \rangle$ that incorporates the roughness of the functions.
 	\begin{proposition}\label{proposition: modified orthnormality of PLS components}
 		The estimated PLS components, $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
 		\begin{equation*}
@@ -1382,7 +1377,7 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
 	f(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}) - \lambda g(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}).
 	\]
 	The constraint function $g$ is continuously differentiable, and its gradient vanishes only at the origin. Since the origin is not feasible (the constraint requires norm 1), the gradient of $g$ is nonzero at all feasible points. Thus, the linear independence constraint qualification (LICQ) holds, ensuring that the KKT conditions are necessary for local maxima (see, for example, Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
-	Taking gradients of $\mathcal{L}$ and setting them to zero yields:
+	Therefore, for any local maxima, gradients of $\mathcal{L}$ must be zero:
 	\begin{align*}
 		\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
 		\frac{2}{n^2} 
@@ -1402,11 +1397,11 @@ Therefore, the optimization problem \eqref{optim:summation_form}, which is equiv
 		- 2\lambda \boldsymbol{\zeta} = 0.
 		\numberthis \label{lag_grad_zeta}
 	\end{align*}
-	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$ and observing that the scalar quantity $n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$ appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the gradient conditions together imply that any local optimum must be  scalar multiples of
+	By pre-multiplying equation \eqref{lag_grad_d} by $B^{-1}$,  and observing that  $2n^{-2}\sum_{\ell=1}^K \mathbf{y}^\top \Theta_\ell B \boldsymbol{\gamma}_\ell + \mathbf{y}^\top Z \boldsymbol{\zeta}$, which is a scalar quantity, appears in both \eqref{lag_grad_d} and \eqref{lag_grad_zeta}, the  conditions above together imply that any local maxima must be  scalar multiples of
 	$
 	\Theta_1^\top \mathbf{y}, \ldots, \Theta_K^\top \mathbf{y}, Z^\top \mathbf{y},
 	$
-	all scaled by the same factor. There exists only one set of vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
+	all scaled by the same factor. There exists only one such set of  vectors  that also satisfies the primal equality constraint, namely the normalized version of the vector set above. The global maximizer is therefore given by
 	\begin{equation*}
 		\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{\sum_{j=1}^K 
 				\mathbf{y}^\top

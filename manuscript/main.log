@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  15 JUL 2025 23:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  16 JUL 2025 00:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -557,9 +557,6 @@ File: l3backend-pdftex.def 2025-03-14 L3 backend support: PDF output (pdfTeX)
 )
 (./main.aux
 
-LaTeX Warning: Label `proposition:eigen_noregul' multiply defined.
-
-
 LaTeX Warning: Label `eq: Regularized generalized rayleigh quotient equation' m
 ultiply defined.
 
@@ -700,8 +697,8 @@ ML/cmm/m/it/12 ; [] ; \OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[]; Z[]\OT1/cmr/m/n/12
 [12]
 
 [13]
-Overfull \hbox (24.42789pt too wide) in paragraph at lines 510--518
-\OT1/cmr/m/n/12 Although Propo-si-tion []3[] ef-fi-ciently es-ti-mates the PLS 
+Overfull \hbox (24.42789pt too wide) in paragraph at lines 505--513
+\OT1/cmr/m/n/12 Although Propo-si-tion []1[] ef-fi-ciently es-ti-mates the PLS 
 com-po-nent di-rec-tion $[] = ([]\OML/cmm/m/it/12 ; [] ; []; []\OT1/cmr/m/n/12 
 )$,
  []
@@ -710,14 +707,14 @@ com-po-nent di-rec-tion $[] = ([]\OML/cmm/m/it/12 ; [] ; []; []\OT1/cmr/m/n/12
 
 [14]
 
-LaTeX Warning: Reference `def:V_star' on page 15 undefined on input line 606.
+LaTeX Warning: Reference `def:V_star' on page 15 undefined on input line 601.
 
 
 
 [15]
 
 LaTeX Warning: Reference `section:proof:eigenproblem_derivation' on page 16 und
-efined on input line 646.
+efined on input line 641.
 
 
 
@@ -731,7 +728,7 @@ efined on input line 646.
 
 [20]
 
-LaTeX Warning: Reference `def:V_star' on page 21 undefined on input line 737.
+LaTeX Warning: Reference `def:V_star' on page 21 undefined on input line 732.
 
 
 
@@ -744,7 +741,7 @@ LaTeX Warning: Reference `def:V_star' on page 21 undefined on input line 737.
 [24]
 
 [25]
-Overfull \hbox (19.88365pt too wide) detected at line 858
+Overfull \hbox (19.88365pt too wide) detected at line 853
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -753,25 +750,25 @@ OMS/cmsy/m/n/12 j ^^@ [] [] j\OT1/cmr/bx/n/12 R\OMS/cmsy/m/n/12 j ^^@ [][] [] \
 OML/cmm/m/it/12 :
  []
 
-<image/cor_strong.pdf, id=454, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=451, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 874.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 869.
 (pdftex.def)             Requested size: 208.02008pt x 193.88107pt.
-<image/cor_weak.pdf, id=455, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=452, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 881.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 876.
 (pdftex.def)             Requested size: 208.02008pt x 193.88107pt.
-<image/graph_strong.pdf, id=456, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=453, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 890.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 885.
 (pdftex.def)             Requested size: 208.02008pt x 208.01833pt.
-<image/graph_weak.pdf, id=457, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=454, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 897.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 892.
 (pdftex.def)             Requested size: 208.02008pt x 208.01833pt.
 
 
@@ -781,7 +778,7 @@ Package pdftex.def Info: image/graph_weak.pdf  used on input line 897.
 <./image/graph_weak.pdf>]
 
 [28]
-Overfull \hbox (41.43227pt too wide) detected at line 952
+Overfull \hbox (41.43227pt too wide) detected at line 947
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -794,27 +791,27 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 
 
 [29]
-<image/graph.png, id=507, 447.3513pt x 447.3513pt>
+<image/graph.png, id=504, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 983.
+Package pdftex.def Info: image/graph.png  used on input line 978.
 (pdftex.def)             Requested size: 184.90517pt x 184.90329pt.
 
 
 [30 <./image/graph.png>]
 
-LaTeX Warning: Reference `table ' on page 31 undefined on input line 1014.
+LaTeX Warning: Reference `table ' on page 31 undefined on input line 1009.
 
-<Screenshot 2025-02-25 125839.png, id=519, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=516, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
-017.
+012.
 (pdftex.def)             Requested size: 416.04016pt x 174.91663pt.
 
 
 [31]
-Overfull \hbox (2.9599pt too wide) in paragraph at lines 1030--1031
+Overfull \hbox (2.9599pt too wide) in paragraph at lines 1025--1026
 []\OT1/cmr/m/n/12 The two renogram curves, (i) and (ii), were treated as func-t
 ional pre-dic-tors and smoothed
  []
@@ -831,7 +828,7 @@ ional pre-dic-tors and smoothed
 [34]
 
 [35]
-Overfull \hbox (46.50742pt too wide) in paragraph at lines 1102--1104
+Overfull \hbox (46.50742pt too wide) in paragraph at lines 1097--1099
 \OT1/cmr/m/n/12 tional part of the PLS com-po-nent in terms of the same ba-sis 
 func-tions: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/
 m/n/12 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT
@@ -847,24 +844,16 @@ m/n/12 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT
 [38]
 
 [39]
-Overfull \hbox (45.9608pt too wide) in paragraph at lines 1404--1410
-\OT1/cmr/m/n/12 By pre-multiplying equa-tion [] by $\OML/cmm/m/it/12 B[]$ \OT1/
-cmr/m/n/12 and ob-serv-ing that the scalar quan-tity $\OML/cmm/m/it/12 n[] [][]
- \OT1/cmr/bx/n/12 y[]\OT1/cmr/m/n/12 ^^B[]\OML/cmm/m/it/12 B\OML/cmm/b/it/12 ^^
-M[] \OT1/cmr/m/n/12 +
- []
-
-
 
 [40]
-Overfull \hbox (7.42436pt too wide) detected at line 1458
+Overfull \hbox (7.42436pt too wide) detected at line 1453
 []
  []
 
 
 
 [41]
-Overfull \hbox (36.97052pt too wide) detected at line 1491
+Overfull \hbox (36.97052pt too wide) detected at line 1486
 []
  []
 
@@ -873,7 +862,7 @@ Overfull \hbox (36.97052pt too wide) detected at line 1491
 [42]
 
 [43]
-Overfull \hbox (18.96121pt too wide) detected at line 1539
+Overfull \hbox (18.96121pt too wide) detected at line 1534
 []
  []
 
@@ -901,74 +890,41 @@ LaTeX Warning: There were undefined references.
 
 LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: 8F70020264C767FF316C9BB81B1BED46;5535
-(rerunfilecheck)             After:  936243EB277DD05FFF146FEEAC38CDA8;5549.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 0B6977F8A1EE0118E6A07337E0EFBF53;5660.
  ) 
 Here is how much of TeX's memory you used:
- 15018 strings out of 469626
- 239224 string characters out of 5475183
- 640003 words of memory out of 5000000
+ 15011 strings out of 469626
+ 239095 string characters out of 5475183
+ 640067 words of memory out of 5000000
  41411 multiletter control sequences out of 15000+600000
  643150 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,16n,79p,1446b,629s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-pdfTeX warning (dest): name{subsection.8.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{section.8} has been referenced but does not exist, 
-replaced by a fixed one
-
-
-pdfTeX warning (dest): name{subsection.6.2} has been referenced but does not ex
-ist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{subsection.5.4} has been referenced but does not ex
-ist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{subsection.5.3} has been referenced but does not ex
-ist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{subsubsection.5.1.2} has been referenced but does n
-ot exist, replaced by a fixed one
-
-
-pdfTeX warning (dest): name{subsubsection.5.1.1} has been referenced but does n
-ot exist, replaced by a fixed one
-
-<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/texli
-ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texlive/2025/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/2025/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmmi12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmmi6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10
-.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb
-><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texli
-ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2025/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texlive/2025/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/c
-msy8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texli
-ve/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2
-025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/
-texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (49 pages, 968642 bytes).
+<c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/tex
+live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texlive/2025
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/2025/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-dist/fonts/t
+ype1/public/amsfonts/cmextra/cmex8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmmi12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmmi6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmmi8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pf
+b><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb><c
+:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texlive/
+2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2025/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texlive/2025/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
+8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><c:
+/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/
+2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025
+/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/tex
+mf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on main.pdf (49 pages, 976198 bytes).
 PDF statistics:
  774 PDF objects out of 1000 (max. 8388607)
- 660 compressed objects within 7 object streams
- 177 named destinations out of 1000 (max. 500000)
+ 658 compressed objects within 7 object streams
+ 170 named destinations out of 1000 (max. 500000)
  263 words of extra memory for PDF output out of 10000 (max. 10000000)
 
