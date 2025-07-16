@@ -604,48 +604,6 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	where we recall that $
 		V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ is defined in  \eqref{def:V_matrix}.
 \end{proposition}
-
-	\begin{proposition} 
-		At each $l$-th iteration of the first step of the PLS algorithm involving the residualized response and predictors $Y_i \equiv Y_i^{[l]}$ and $\mathbf{W}_i \equiv \mathbf{W}_i^{[l]}$, consider the basis function expansions of the functional predictors $X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)$, $i=1, \ldots, n$, and those of the functional parts of the PLS component $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k)$, $k=1, \ldots, K$. Recall from \eqref{def:V_star} that  $V^\ast$ is defined as
-		\begin{equation*}
-			\mathbf{V}^\ast = n^{-2}\begin{bmatrix}
-				J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z} \\
-				\mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \mathbf{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \mathbf{Z}
-			\end{bmatrix} = n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast
-			\in \mathbb{R}^{(MK+p) \times (MK+p)}.
-		\end{equation*}
-		and  $\xi^*=(\mathbf{a}^{\top}, \boldsymbol{\theta}^{\top})^\top \in \mathbb{R}^{MK + p}$. Then, the $l$-th smoothed PLS component, $\widehat{\xi} \equiv \widehat{\xi}_l$ can be obtained in the following way.
-		We first compute the basis coefficients by solving the optimization problem
-		Note that the penalty term can be written concisely using matrices as:
-		\begin{equation}
-			\textnormal{PEN} \left( \hat{\xi}_j \right) 
-			=  \int_0^1 
-			\bigl\{ \hat{\xi}_j^{''}(t) \bigr\}^2 dt = \mathbf{a}^{(k)T} \ddot{J}^{(k)} \mathbf{a}^{(k)},
-			\label{eq: roughness penalty}
-		\end{equation}
-		where the last term is obtained using the basis expansion $\psi^{(k)}(t)=\mathbf{a}^{(k)T}\mathbf{b}^{(k)}(t)$.
-		
-		
-		
-
-	
-		
-		\begin{align}
-			\begin{split}
-				&\arg \max \limits_{\xi^* \in \mathbb{R}^{MK+p}} \; \frac{\xi^{*\top} \mathbf{V}^\ast \xi^*}{\xi^{*\top}(J^\ast+\Lambda \ddot{J}^\ast) \xi^*} , \quad \textit{or equivalently}, \\ 
-				&\arg \max \limits_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1.
-				\label{eq: Regularized generalized rayleigh quotient equation}
-			\end{split}
-		\end{align}
-		We then express the smoothed component in terms of the basis functions as
-		\begin{equation*}
-			\widehat{\xi}[\mathbf{t}] = [\widehat{\psi}(\mathbf{t})^\top, \widehat{\boldsymbol{\theta}}^\top]^\top =  \mathbb{B}[\mathbf{t}]^\top \widehat{\xi}^\ast.   
-		\end{equation*}
-		The $l$-th PLS score $\widehat{\rho}_{i} \equiv \widehat{\rho}_{il}$ can be obtained as 
-		\begin{equation}\label{compute_pls_score}
-			\widehat{\rho}_i = \langle \mathbf{W}_i, \widehat{\xi} \rangle_\mathcal{H}
-		\end{equation}
-	\end{proposition}
 	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix \ref{section:proof:eigenproblem_derivation}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
