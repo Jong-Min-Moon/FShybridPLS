@@ -546,9 +546,13 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 		where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 \end{proposition}
 	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_regul_system_unregularized}.
-	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
+The smoothing parameter $\lambda_k > 0$ $(k = 1, \ldots, K)$ balances goodness of fit and smoothness in $\hat{\xi}_j$. Smaller $\lambda_k$ yields components that better fit the data but risks overfitting; setting $\lambda_k = 0$ recovers the unregularized solution in Proposition~\ref{proposition:eigen_noregul}. Larger $\lambda_k$ enforces greater smoothness, and in the limit $\lambda_k \to \infty$, $\hat{\xi}_j(t)$ approaches a linear form $a + bt$. In practice, both $\{\lambda_k\}$ and the number of components $L$ can be selected via cross-validation using a predictive criterion such as mean squared error.
+
 	
-	Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and normalization:	
+	\medskip
+	\noindent{\textit{Computation.}}~The generalized eigenproblem presented in Proposition~\ref{proposition:eigen_regul}  may be computationally unstable in practice. However, by leveraging the rank-one structure of the matrix 
+	$V$
+Proposition \ref{proposition:linear_regul} derives a closed-form solution that requires only the solution of linear systems.
 \begin{proposition}[Closed-form solution]  
 	\label{proposition:linear_regul}  
 	Consider the optimization problem described in Proposition~\ref{proposition:eigen_regul}. Define the following quantities, which depend on the observed data but are not decision variables:  
@@ -568,6 +572,8 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 \end{proposition}
 The proof of Proposition~\ref{proposition:linear_regul} is provided in Appendix~\ref{section:proof:proposition:linear_regul}. The expressions above involve solving linear systems for the functional and scalar components separately, followed by normalization by a common factor. Although the unnormalized coefficients are obtained independently, the normalization step couples the functional and scalar parts, allowing them to influence one another. This coupling enables the procedure to capture the correlation between the functional and scalar components of the PLS direction.
 	
+\medskip
+\noindent \textit{Orthonormality.}~
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
 	\begin{align*}
 		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
