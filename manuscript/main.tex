@@ -429,7 +429,7 @@ We denote the estimated PLS component direction as
 	\begin{equation}\label{def:maximizer_squared_empirical_cov}
 		\hat{\xi} 
 = 
-(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1}
+(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}}
 )
 := \arg \max_{\xi \in \widetilde{\mathcal{H}}
  }~\widehat{\textnormal{Cov}}^2 
@@ -443,9 +443,9 @@ $
 		\hat{\xi}_j(t) := 
 		\sum_{m=1}^M \hat{\gamma}_{jm} \, b_m(t),
 $
-and $\hat{\boldsymbol{\xi}}_{K+1}$ is the scalar part. This maximizer can also be represented as a Euclidean vector
+and $\hat{\boldsymbol{\zeta}}$ is the scalar part. This maximizer can also be represented as a Euclidean vector
 \begin{equation}\label{def:maximizer_euclidean_form}
-	( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top )^\top
+	( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top
 	\in \mathbb{R}^{MK+p},
 \end{equation}
 where the coefficient vectors $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ are defined as in \eqref{def:coef_vector_form}.
@@ -461,7 +461,7 @@ At the $l$-th iteration of the PLS algorithm, the unit-norm maximizer of  the sq
 is obtained by solving 
 \begin{equation}	\label{eq: Unregularized generalized rayleigh quotient equation}
 	\left(
-	\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
+	\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
 	\right)^\top
 	=
 	\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
@@ -474,54 +474,10 @@ V := \frac{1}{n^2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \m
 \end{proposition}
 The proof of Proposition \ref{proposition:eigen_noregul}
 is provided in Appendix \ref{section:proof:proposition:linear_regul_system_unregularized}.
-Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and normalization:
 
-\begin{proposition}[Closed-form solution to the regularized PLS direction]
-	\label{prop:closed_form_pls}
-	Let $\{\mathbf{u}_j\}_{j=1}^K$ and $\mathbf{v}$ be defined as
-	\[
-	\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M, \quad
-	\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p,
-	\]	
-	Then the unique (up to sign) solution 
-	is given in closed form as
-	\[
-	\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
-	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{q}} \mathbf{v},
-	\]
-	where
-	\[
-	q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
-	\]
-\end{proposition}
-
-	\begin{proposition} \label{proposition:linear_noregul}
-	We can compute  $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ and $\hat{\boldsymbol{\xi}}_{K+1}$ in Proposition \ref{proposition:eigen_noregul} as 
-\begin{equation*}
-	\hat{\boldsymbol{\gamma}}_j  = \frac{1}{\sqrt{\sum_{j=1}^K 
-			\mathbf{y}^\top
-			\Theta_j
-			B \Theta_j^\top \mathbf{y} 
-			+ 
-			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-	\Theta_j^\top \mathbf{y},
-	\quad
-	%%%%%%%%%%%%%%%%
-	\hat{\boldsymbol{\xi}}  = \frac{1}{\sqrt{\sum_{j=1}^K 
-			\mathbf{y}^\top
-			\Theta_j
-			B \Theta_j^\top \mathbf{y} 
-			+ 
-			\mathbf{y}^\top Z Z^\top \mathbf{y}}}
-	Z^\top \mathbf{y}.
-\end{equation*}
-\end{proposition}
-The proof of Proposition \ref{proposition:linear_noregul}  is provided in Appendix \ref{section:proof:proposition:linear_regul}.
-The expressions above represent matrix–vector multiplications normalized by a common factor. 
-Although the unnormalized coefficients are computed separately for the functional and scalar part of the PLS component direction, the normalization step couples them, allowing the components to influence each other. This enables the procedure to account for the correlation between functional and scalar components.
 
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
-Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
+Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
 \begin{equation}
 \operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt.
 \end{equation}
@@ -553,7 +509,7 @@ However, the above approach of \citet{Rice1991} assumes that the functional pred
 	\begin{equation}\label{def:maximizer_squared_empirical_cov_reg}
 	\hat{\xi} 
 	= 
-	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\xi}}_{K+1}
+	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}}
 	)
 	:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
 	}~\widehat{\textnormal{Cov}}^2 
@@ -575,7 +531,7 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	is obtained by solving 
 	\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 		\left(
-		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\xi}}_{K+1}^\top
+		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
 		\right)^\top
 		=
 		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
@@ -592,6 +548,26 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_regul_system_unregularized}.
 	Here, $\lambda_k$ $(k=1, \ldots, K)$ is a positive smoothing parameter that controls the trade-off between the goodness of fit and the amount of smoothness in $\psi^{(k)}$. Smaller $\lambda_k$ produces PLS components that fit more closely to the observed data, but selecting too small value may cause overfitting. The estimated PLS component reverts back to the unregularized version of Proposition \ref{proposition:eigen_noregul} when $\lambda_k=0$ for all $k$. On the other hand, larger $\lambda_k$ places more emphasis on smoothing $\psi^{(k)}$. In the limit $\lambda_k \rightarrow \infty$, each of the functions is forced to be of the form $\psi^{(k)}(t)=a+bt$ for some constants $a$ and $b$. In practice, $\{\lambda_k\}_{k=1}^K$ as well as the number of PLS components $L$ to be estimated can be chosen by cross-validation based on a certain predictive performance criterion (e.g., mean squared error). 
 	
+	Since $V$ is a rank 1, the solution  is  obtained by matrix multiplication and normalization:	
+\begin{proposition}[Closed-form solution]  
+	\label{proposition:linear_regul}  
+	Consider the optimization problem described in Proposition~\ref{proposition:eigen_regul}. Define the following quantities, which depend on the observed data but are not decision variables:  
+	\[
+	\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M \quad \text{for } j = 1, \ldots, K, \quad \text{and} \quad \mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p.
+	\]  
+	Let
+	\[
+	q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
+	\]  
+	
+	Then the unique (up to sign) solution to the regularized maximization problem is given in closed form by  
+	\[
+	\hat{\boldsymbol{\gamma}}_j = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \quad \text{for } j = 1, \ldots, K, \quad \text{and} \quad
+	\hat{\boldsymbol{\zeta}} = \frac{1}{\sqrt{q}} \mathbf{v}.
+	\]  
+\end{proposition}
+The proof of Proposition~\ref{proposition:linear_regul} is provided in Appendix~\ref{section:proof:proposition:linear_regul}. The expressions above involve solving linear systems for the functional and scalar components separately, followed by normalization by a common factor. Although the unnormalized coefficients are obtained independently, the normalization step couples the functional and scalar parts, allowing them to influence one another. This coupling enables the procedure to capture the correlation between the functional and scalar components of the PLS direction.
+	
 	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
 	\begin{align*}
 		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
@@ -602,11 +578,6 @@ Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalize
 	This modified orthonormality condition is one of the main geometric properties of the proposed PLS algorithm and is formally stated with proof in Section \ref{sec: Properties of the Proposed PLS Framework} (see Proposition \ref{proposition: modified orthnormality of PLS components}), along with other properties. 
 	
 	
-	To solve \eqref{eq: Regularized generalized rayleigh quotient equation} in practice, we first perform a Choleski factorization: $L L^\top = J^\ast + \Lambda \ddot{J}^\ast$, where $L$ is a lower triangular matrix, and then reduce it to maximizing the classical Rayleigh quotient problem:
-	\begin{equation*}
-		\max \limits_{\mathbf{e} \in \mathbb{R}^{MK + p}} \, \frac{\mathbf{e}^\top E \mathbf{e}}{\mathbf{e}^\top \mathbf{e}} \; \Longleftrightarrow \;   \max \limits_{\substack{\mathbf{e} \in \mathbb{R}^{MK+p}}} \;  \mathbf{e}^\top E \mathbf{e} \quad \textnormal{subject to} \quad \Vert \mathbf{e} \Vert^2 = 1
-	\end{equation*}
-	through the transformations $\mathbf{e} = L^\top \xi^*$ and $E = L^{-1} \mathbf{V}^\ast L^{\top-1}$. Once $\mathbf{e}$ is obtained as the first eigenvector of $E$, we set $\xi^* = L^{\top-1} \mathbf{e}$ and $\widehat{\xi}[\mathbf{t}] = B^*[\mathbf{t}]^\top \xi^*$.
 	
 	
 	
@@ -1339,7 +1310,7 @@ This computation along with \eqref{covariance_squares_as_quadratic_form} implies
 
  \end{proof}
  
- \section{Proof of Proposition  \ref{proposition:linear_noregul}}\label{section:proof:proposition:linear_regul}
+ \section{Proof of Proposition  \ref{proposition:linear_regul}}\label{section:proof:proposition:linear_regul}
  \begin{proof}
 The optimization problem 
 \eqref{eq: Regularized generalized rayleigh quotient equation} can be written as
