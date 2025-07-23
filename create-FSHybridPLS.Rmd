@@ -1091,27 +1091,6 @@ get_pls_comp <- function(W, y, L){
 
 ### helper: get_xi_hat_linear
 ```{r}
-get_xi_hat_linear_new <- function(W, y){
-  n <- W$n_sample
-  K <- W$n_functional
-  normalizer <- 0
-  d = list()
-  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
-    Theta_t <- W$functional_list[[i]]$coefs
-    B <- W$gram_list[[i]]
-    d[[i]] <- Theta_t %*% y
-    normalizer <- normalizer + t(y) %*% t(Theta_t) %*% B %*% Theta_t %*% y
-  }
-  d[[K+1]] <- t(W$Z) %*% y
-  normalizer <- normalizer+ t(y) %*% W$Z %*% t(W$Z) %*% y
-  d_vec <- do.call(c, d)  # or: unlist(d)
-  d_vec <- d_vec/ sqrt(normalizer)
-  return(d_vec)
-}
-```
-
-### helper: get_xi_hat_linear
-```{r}
 get_xi_hat_linear_pen <- function(W, y, lambda){
   # new
   ## step 1: inner products
