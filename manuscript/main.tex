@@ -575,7 +575,7 @@ b_m(t)
 		\end{equation}
 		where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
 	\end{proposition}
-	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:linear_regul_system_unregularized}.
+	The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:eigen_regul}.
 	The smoothing parameter $\lambda_k > 0$ $(k = 1, \ldots, K)$ balances goodness of fit and smoothness in $\hat{\xi}_j$. Smaller $\lambda_k$ yields components that better fit the data but risks overfitting; setting $\lambda_k = 0$ recovers the unregularized solution in Proposition~\ref{proposition:eigen_noregul}. Larger $\lambda_k$ enforces greater smoothness, and in the limit $\lambda_k \to \infty$, $\hat{\xi}_j(t)$ approaches a linear form $a + bt$. In practice, both $\{\lambda_k\}$ and the number of components $L$ can be selected via cross-validation using a predictive criterion such as mean squared error.
 	
 	
@@ -618,47 +618,32 @@ b_m(t)
 	
 	
 	\subsection{Step 2: Computing Residualized Predictors via Hybrid-on-Scalar Regression} \label{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}
-The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  $\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \widehat{\xi}^{[l]} \rangle_{\mathcal{H}}$, utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}.Subsequently, using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top$ is computed through the following matrix multiplication:
+The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  $\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}}$, utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. Subsequently, using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top$ is computed through the following matrix multiplication:
 \begin{equation*}
 ( \hat{\boldsymbol{\rho}}^{[l]} )^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j^{[l]})^\top B \, (\Theta_j^{[l]})^\top + \boldsymbol{\zeta}^\top (\mathbf{Z}^{[l]}).
 \end{equation*}
-Using this as a scalar predictor vector, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}.
- \begin{align*}
-\operatorname{PENSSE}( \delta)
-&=
-\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
-\,
-\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
-\rangle_{\mathcal{H}}
-+
-\tau
-\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
-%%%%%%%%%%%%%%%%%%%%
-\\&=
-\sum_{i=1}^n 
-\langle \widetilde{W}_i^{[l]},  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
--
-\sum_{i=1}^n 
- \hat{\rho}_i^{[l]} 
-\langle \delta,  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
-+
-\bigl(
-\sum_{i=1}^n 
-( \hat{\rho}_i^{[l]} )^2
-\bigr)
-\langle \delta,  \, \delta \rangle_{\mathcal{H}}
-+
-\tau
-\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
-\\&=
- \operatorname{tr}(C^{*T} C^{*}J^{*}\Lambda) 
- - 
- 2 \operatorname{tr}(d^{*}J^{*}C^{*T} \rho\Lambda) 
- +
- \rho^T \rho
-  \operatorname{tr}( d^{*}J^{*}d^{*T} \Lambda) + \tau \operatorname{tr}(\ddot{d}^{*}J^{*}\ddot{d}^{*T}) \jongmin{need to be fixed}
- \end{align*}
- 
+Using this as a scalar predictor vector, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
+\begin{equation}\label{def:argmin_pensse}
+	\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \operatorname{PENSSE}( \delta),
+\end{equation}
+where
+\begin{equation}\label{def:pensse}
+	\operatorname{PENSSE}( \delta)
+	:=
+	\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
+	\,
+	\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
+	\rangle_{\mathcal{H}}
+	+
+	\tau
+	\sum_{j=1}^K\operatorname{PEN}(\delta_j).
+\end{equation}
+The following proposition shows that the solution of the problem \ref{def:argmin_pensse} can be obtained by solving linear equations.
+
+ \begin{proposition}[Closed-form  orthogonalization]\label{proposition:closed_form_orthgonalization}
+ 	asdasdasd
+ \end{proposition}
+ Proof of Proposition \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
 %Using the basis expansion coefficient notation presented in \eqref{def:truncated_zeta_and_delta} and \eqref{def:coef_vector_form}, \eqref{def:theta}, \eqref{def:B_matrix}
 \jongmin{Old writing starts here. I temporarily mixed the order of the paragraphs.}
 %As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: 
@@ -693,7 +678,7 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 	The step for obtaining the subsequent residualized response is identical to that of the naive PLS algorithm in  in Section \ref{sec: Naive PLS Algorithm}. Specifically, the $(l-1)$-th residualized response can be obtained as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_l \widehat{\rho}_{il}$, where $\widehat{\nu}_l = \sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}/\sum_{i=1}^n \widehat{\rho}_{il}^2$  is the least square estimate of the simple linear model regressing $Y_i^{[l]}$ on $\widehat{\rho}_{il}$.
 	 the PLS algorithm involves iteratively obtaining the ($l+1$)-th residualized predictors as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$, where $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ is the least squares estimate from regressing the previous ($l$-th) residualized outcome $\mathbf{W}_i^{[l]}[\mathbf{t}]$ on the corresponding  estimated PLS score $\widehat{\rho}_{il}$.  The pointwise least squares estimate, $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] = (\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il})/(\sum_{i=1}^n \widehat{\rho}_{il}^2)$, presented in Section \ref{sec: Naive PLS Algorithm}, however, is  highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel strategy based on a hybrid-on-scalar regression model for obtaining $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ and implementing the second step.
 	
-	Again, we omit $l$ in the notations. Let $\widehat{\boldsymbol{\rho}}=(\widehat{\rho}_1, \ldots, \widehat{\rho}_n)^\top$ denote an $n$-dimensional vector of PLS scores estimated from the proposed algorithm, and let the $(K+P)$-vector $\boldsymbol{\delta}[\mathbf{t}] = [\pi(\mathbf{t})^\top, \boldsymbol{\gamma}^\top]^\top$ denote the regression coefficient consisting of the functional part $\pi(\mathbf{t}) = (\pi^{(1)}(t_1), \ldots,\pi^{(K)}(t_K))^\top \in \mathbb{R}^K$ and scalar part $\boldsymbol{\gamma} = (\gamma_1, \ldots,\gamma_p)^\top \in \mathbb{R}^p$. 
+ 
 	
 	
 	
@@ -1322,7 +1307,7 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 		\end{align*}
 		Therefore, the covariance maximization problem \eqref{def:maximizer_squared_empirical_cov} is equivalent to the generalized Raleigh quotient \eqref{eq: Unregularized generalized rayleigh quotient equation}. This completes  the proof of Proposition~\ref{proposition:eigen_noregul}.
 		
-		Now we prove Proposition \ref{proposition:eigen_regul}.
+		\section{Proof of Proposition \ref{proposition:eigen_regul} }\label{section:proof:proposition:eigen_regul}
 		The penalization term 
 		$\sum \limits_{j=1}^K \lambda_j 
 		\operatorname{PEN}(\xi_K)$
@@ -1495,7 +1480,42 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 	\end{proof}
 	
 	
-	
+	\section{Proof of Proposition \ref{proposition:closed_form_orthgonalization} \ref{}}\label{section:proof:proposition:closed_form_orthgonalization}
+	 \begin{align*}
+		\operatorname{PENSSE}( \delta)
+		&=
+		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
+		\,
+		\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
+		\rangle_{\mathcal{H}}
+		+
+		\tau
+		\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
+		%%%%%%%%%%%%%%%%%%%%
+		\\&=
+		\sum_{i=1}^n 
+		\langle \widetilde{W}_i^{[l]},  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
+		-
+		\sum_{i=1}^n 
+		\hat{\rho}_i^{[l]} 
+		\langle \delta,  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
+		+
+		\bigl(
+		\sum_{i=1}^n 
+		( \hat{\rho}_i^{[l]} )^2
+		\bigr)
+		\langle \delta,  \, \delta \rangle_{\mathcal{H}}
+		+
+		\tau
+		\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
+		\\&=
+		\operatorname{tr}(C^{*T} C^{*}J^{*}\Lambda) 
+		- 
+		2 \operatorname{tr}(d^{*}J^{*}C^{*T} \rho\Lambda) 
+		+
+		\rho^T \rho
+		\operatorname{tr}( d^{*}J^{*}d^{*T} \Lambda) + \tau \operatorname{tr}(\ddot{d}^{*}J^{*}\ddot{d}^{*T}) \jongmin{need to be fixed}
+	\end{align*}
 	
 	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
 	$\mathcal{U}$ is \textit{positive} because for every $\mathbf{h} \in \mathcal{H}$,
