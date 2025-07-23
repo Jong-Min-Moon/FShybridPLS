@@ -68,7 +68,114 @@ compute_gram_matrix <- function(basis) {
 
 ```
 
- 
+
+
+
+
+```{r}
+#' Check if all matrices in a list are identical (with tolerance for numeric comparison)
+#'
+#' This function iterates through a list of matrices and checks if all subsequent
+#' matrices are numerically identical to the first matrix in the list.
+#' It uses `all.equal` for robust comparison of numeric matrices, which accounts
+#' for small floating-point differences.
+#'
+#' @param gram_list A list of matrices.
+#' @param tolerance A numeric tolerance for comparing floating-point numbers.
+#'                  Defaults to `sqrt(.Machine$double.eps)`.
+#' @return A logical value: `TRUE` if all matrices are identical, `FALSE` otherwise.
+#' @export
+are_all_gram_matrices_identical <- function(gram_list, tolerance = sqrt(.Machine$double.eps)) {
+  # Handle edge cases: empty list or list with a single matrix
+  if (length(gram_list) == 0) {
+    message("The input list is empty. Returning TRUE as there are no differences.")
+    return(TRUE)
+  }
+  if (length(gram_list) == 1) {
+    message("The input list contains only one matrix. Returning TRUE.")
+    return(TRUE)
+  }
+
+  # Get the first matrix as the reference
+  first_matrix <- gram_list[[1]]
+
+  # Ensure the first element is a matrix
+  if (!is.matrix(first_matrix)) {
+    stop("The first element of 'gram_list' is not a matrix.")
+  }
+
+  # Iterate from the second matrix onwards and compare with the first
+  for (i in 2:length(gram_list)) {
+    current_matrix <- gram_list[[i]]
+
+    # Ensure current element is a matrix
+    if (!is.matrix(current_matrix)) {
+      stop(paste("Element", i, "of 'gram_list' is not a matrix."))
+    }
+
+    # Compare the current matrix with the first matrix
+    # all.equal returns TRUE if identical, or a character string describing differences
+    # We convert the result to a logical TRUE/FALSE
+    if (!isTRUE(all.equal(first_matrix, current_matrix, tolerance = tolerance))) {
+      # If not equal, return FALSE immediately
+      message(paste("Matrices at index 1 and", i, "are not identical."))
+      return(FALSE)
+    }
+  }
+
+  # If the loop completes, all matrices are identical
+  return(TRUE)
+}
+```
+
+
+
+```{r}
+
+# --- Example Usage ---
+
+# Example 1: All matrices are identical
+mat1 <- matrix(c(1, 2, 3, 4), nrow = 2)
+mat2 <- matrix(c(1, 2, 3, 4), nrow = 2)
+mat3 <- matrix(c(1, 2, 3, 4), nrow = 2)
+identical_list <- list(mat1, mat2, mat3)
+print("Test Case 1: All matrices identical")
+print(are_all_gram_matrices_identical(identical_list)) # Expected: TRUE
+
+# Example 2: Matrices with slight floating-point differences (within tolerance)
+mat4 <- matrix(c(1.000000000000001, 2, 3, 4), nrow = 2)
+mat5 <- matrix(c(1, 2, 3, 4), nrow = 2)
+tolerance_list <- list(mat4, mat5)
+print("Test Case 2: Matrices with slight floating-point differences")
+print(are_all_gram_matrices_identical(tolerance_list)) # Expected: TRUE
+
+# Example 3: Matrices are not identical
+mat6 <- matrix(c(1, 2, 3, 5), nrow = 2) # Different value
+non_identical_list <- list(mat1, mat6, mat3)
+print("Test Case 3: Matrices are not identical")
+print(are_all_gram_matrices_identical(non_identical_list)) # Expected: FALSE
+
+# Example 4: List with different dimensions
+mat7 <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3)
+diff_dim_list <- list(mat1, mat7)
+print("Test Case 4: Matrices with different dimensions")
+print(are_all_gram_matrices_identical(diff_dim_list)) # Expected: FALSE (all.equal will catch this)
+
+# Example 5: Empty list
+empty_list <- list()
+print("Test Case 5: Empty list")
+print(are_all_gram_matrices_identical(empty_list)) # Expected: TRUE
+
+# Example 6: List with a single matrix
+single_matrix_list <- list(mat1)
+print("Test Case 6: Single matrix list")
+print(are_all_gram_matrices_identical(single_matrix_list)) # Expected: TRUE
+
+# Example 7: List containing non-matrix elements (will stop with an error)
+# non_matrix_list <- list(mat1, "not a matrix", mat3)
+# print("Test Case 7: List with non-matrix element (will throw error)")
+# print(are_all_gram_matrices_identical(non_matrix_list))
+```
  
 
 ## helpers for functional data objects
