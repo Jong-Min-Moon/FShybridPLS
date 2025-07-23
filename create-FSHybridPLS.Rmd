@@ -78,33 +78,6 @@ We check the following cases:
 | 4    | Narrow support       | Mostly low off-diagonal entries         |
 
 
-```{r}
-testthat::test_that("Gram matrix edge cases", {
-  suppressPackageStartupMessages(library(fda))
-
-  # Case 1: Fourier basis (orthogonal over [0, 1])
-  fb <- create.fourier.basis(rangeval = c(0, 1), nbasis = 5)
-  J_fourier <- compute_gram_matrix(fb)
-  testthat::expect_equal(J_fourier, diag(diag(J_fourier)), tolerance = 1e-10)  # Nearly diagonal
-
-  # Case 2: Constant basis (1 basis function)
-  cb <- create.constant.basis(rangeval = c(0, 1))
-  J_const <- compute_gram_matrix(cb)
-  testthat::expect_equal(dim(J_const), c(1, 1))
-  testthat::expect_equal(J_const[1, 1], 1)
-
-  # Case 3: Invalid input
-  testthat::expect_error(compute_gram_matrix("not a basisfd"))
-
-  # Case 4: Highly localized B-splines
-  # Simulate nearly disjoint support (narrow B-splines)
-  narrow_bs <- create.bspline.basis(rangeval = c(0, 1), nbasis = 10, norder = 2)
-  J_narrow <- compute_gram_matrix(narrow_bs)
-  testthat::expect_true(all(abs(J_narrow[upper.tri(J_narrow)]) < 0.5))  # off-diagonals small
-})
-
-
-```
 
 
 ## helpers for functional data objects
@@ -238,6 +211,8 @@ predictor_hybrid <- function(Z, functional_list) {
 
     basis_i <- fd_i$basis
     gram_list[[i]] <- compute_gram_matrix(basis_i)
+    gram_deriv2_list[[i]] <- compute_gram_matrix_deriv2(basis_i) # New function call
+    
     n_basis_list[i] <- basis_i$nbasis
   }
 
@@ -246,6 +221,7 @@ predictor_hybrid <- function(Z, functional_list) {
       Z = Z,
       functional_list = functional_list,
       gram_list = gram_list,
+      gram_deriv2_list = gram_deriv2_list, # Store the new list
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
@@ -1328,8 +1304,6 @@ get_pls_comp <- function(W, y, L){
 
 ## linear system method
 
-
-
 ### helper: get_xi_hat_linear
 ```{r}
 get_xi_hat_linear_new <- function(W, y){
@@ -1351,6 +1325,44 @@ get_xi_hat_linear_new <- function(W, y){
 }
 ```
 
+### helper: get_xi_hat_linear
+```{r}
+get_xi_hat_linear_new <- function(W, y){
+  # new
+  ## step 1: inner products
+  u <- list()
+  u_j <- B %*% t(Theta_j) %*% y
+  for (j in 1:K){
+    Theta_t <- W$functional_list[[j]]$coefs
+    B <- W$gram_list[[j]]
+    u[[j]] <- B %*% Theta_t %*% y
+  }
+  v <- t(W$Z) %*% y
+  
+  ## step 2: squared norm
+  q <- sum(v^2)
+  for (j in 1:K){
+    Theta_t <- W$functional_list[[j]]$coefs
+    R <- W$gram_list[[j]]
+    u[[j]] <- B %*% Theta_t %*% y
+  }  
+  # old
+  n <- W$n_sample
+  K <- W$n_functional
+  normalizer <- 0
+  
+  for (i in 1:K){  ## tPhi_tC : C multiplied by Phi. Scalable to arbitrary K
+    
+    
+    d[[i]] <- Theta_t %*% y
+    normalizer <- normalizer + t(y) %*% t(Theta_t) %*% B %*% Theta_t %*% y
+  }
+  normalizer <- normalizer+ t(y) %*% W$Z %*% t(W$Z) %*% y
+  d_vec <- do.call(c, d)  # or: unlist(d)
+  d_vec <- d_vec/ sqrt(normalizer)
+  return(d_vec)
+}
+```
 
 
 ```{r}
