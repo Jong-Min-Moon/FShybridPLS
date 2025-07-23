@@ -68,17 +68,43 @@ compute_gram_matrix <- function(basis) {
 
 ```
 
-We check the following cases:
 
-| Case | Test                 | Expectation                             |
-|------|----------------------|------------------------------------------|
-| 1    | Orthogonal (Fourier) | Gram matrix ≈ diagonal                  |
-| 2    | Constant             | Single value equals interval length (1) |
-| 3    | Invalid              | Raises informative error                |
-| 4    | Narrow support       | Mostly low off-diagonal entries         |
+### compute_gram_matrix_deriv2
+```{r}
+# Helper function to compute the Gram matrix of the second derivatives of basis functions
+# This function assumes 'basisobj' is an 'fda' package basis object.
+compute_gram_matrix_deriv2 <- function(basisobj) {
+  # Get the range of the basis
+  basis_range <- basisobj$rangeval
+  
+  # Create a function to evaluate the second derivative of a basis function
+  # This uses the 'eval.basis' function with 'Lfdobj = 2' for second derivative.
+  deriv2_basis_eval_fun <- function(t_vec) {
+    eval.basis(t_vec, basisobj, Lfdobj = 2)
+  }
+  
+  # Numerically integrate the product of second derivatives of basis functions
+  # This is a general approach for computing inner products.
+  # For specific basis types (e.g., B-splines), there might be more efficient
+  # analytical solutions, but this approach is robust.
+  nbasis <- basisobj$nbasis
+  gram_matrix_deriv2 <- matrix(0, nbasis, nbasis)
+  
+  for (j in 1:nbasis) {
+    for (k in 1:nbasis) {
+      # Define the integrand: product of the j-th and k-th second derivatives
+      integrand <- function(t) {
+        deriv2_basis_eval_fun(t)[, j] * deriv2_basis_eval_fun(t)[, k]
+      }
+      # Integrate over the basis range
+      gram_matrix_deriv2[j, k] <- integrate(integrand, lower = basis_range[1], upper = basis_range[2])$value
+    }
+  }
+  return(gram_matrix_deriv2)
+}
+```
 
-
-
+ 
 
 ## helpers for functional data objects
 
