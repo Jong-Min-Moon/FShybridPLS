@@ -340,16 +340,24 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{subsec: Step 1: Computing Smoothed PLS components} and~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{subsec: Obtaining the Estimated Hybrid Regression Coefficient}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
 	\subsection{Preliminary step: Finite-basis Approximation }\label{sec: finite basis approximation}	
-	Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, the $j$th functional predictor, regression coefficient,  PLS direction (suppressing iteration indices) are represented as follows:
+	Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, 
+	the $j$th functional predictor, 
+	regression coefficient, PLS component direction, and orthogonalization regression coefficient (with iteration indices suppressed) are represented as follows:
 	\begin{equation*}
-		X_{ij}(t) = \sum_{m=1}^\infty \theta_{ijm} \, b_m(t),\quad
-		\beta_j(t) = \sum_{m=1}^\infty \eta_{jm} \, b_m(t),\quad
+		X_{ij}(t) = \sum_{m=1}^\infty \theta_{ijm} \, b_m(t),~
+		\beta_j(t) = \sum_{m=1}^\infty \eta_{jm} \, b_m(t),~
 		%%%%%%%%%%%%%%%%%%%%%%
 		\xi_j(t)
 		=
 		\sum_{m=1}^\infty
 		\gamma_{jm}
-		b_m(t)
+		b_m(t),
+		~
+		\delta_j(t)
+=
+\sum_{m=1}^\infty
+\pi_{jm}
+b_m(t)		
 	\end{equation*}	
 	In practice, the full set of coefficients can not be obtained  with finite sample size, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms and define the truncated basis space
 	$
@@ -361,10 +369,16 @@ For notational convenience, we assume throguth this paper that the responsd sand
 		\widetilde{X}_{ij}(t) := \sum_{m=1}^M \theta_{ijm} \, b_m(t), \quad
 		\tilde{\beta}_j(t) := \sum_{m=1}^M \eta_{jm} \, b_m(t),
 	\end{equation*}
-	and our suggest method restricts each PLS direction to admit the following expansion:
-	\begin{equation*}
-		\xi_j(t) = \sum_{m=1}^M \gamma_{jm} \, b_m(t).
-	\end{equation*}
+	and our suggest method restricts each PLS component direction and orthogonalization regression coefficient to admit the following expansion:
+	\begin{equation}\label{def:truncated_zeta_and_delta}
+		\xi_j(t) = \sum_{m=1}^M \gamma_{jm} \, b_m(t),
+		\quad
+				\delta_j(t)
+		=
+		\sum_{m=1}^M
+		\pi_{jm}
+		b_m(t)		
+	\end{equation}
 	This implies that all computations in this paper are carried out entirely within the subspace
 	\begin{equation}\label{def:truncated_hilbert_space}
 		\widetilde{ \mathcal{H} } := \mathcal{B}^K \times \mathbb{R}^p \subset \mathcal{H}.
@@ -376,15 +390,18 @@ For notational convenience, we assume throguth this paper that the responsd sand
 		\widetilde{X}_{i1}, \ldots, \widetilde{X}_{iK}, \boldsymbol{Z}_i
 		).
 	\end{equation*}
-	Let $\boldsymbol{\theta}_{ij}$, $\boldsymbol{\eta}_j$, and $\boldsymbol{\gamma}_j$ denote the $M$-dimensional vectors of coefficients:
+	Let $\boldsymbol{\theta}_{ij}$, $\boldsymbol{\eta}_j$,  $\boldsymbol{\gamma}_j$, and
+	$\boldsymbol{\pi}_j$
+	 denote the $M$-dimensional vectors of coefficients:
 	\begin{equation}\label{def:coef_vector_form}
 		\boldsymbol{\theta}_{ij} := (\theta_{ij1}, \ldots, \theta_{ijM})^\top,
-		\quad
-		\boldsymbol{\eta}_{j} := (\eta_{j1}, \ldots, \eta_{jM})^\top ,
-		\boldsymbol{\gamma}_{j} := (\gamma_{j1}, \ldots, \gamma_{jM})^\top.
+~
+		\boldsymbol{\eta}_{j} := (\eta_{j1}, \ldots, \eta_{jM})^\top ,~
+		\boldsymbol{\gamma}_{j} := (\gamma_{j1}, \ldots, \gamma_{jM})^\top,~
+			\boldsymbol{\pi}_{j} := (\pi_{j1}, \ldots, \pi_{jM})^\top
 	\end{equation}
 	For the predictors, we stack the coefficient vectors across observations into the matrix
-	\begin{equation}
+	\begin{equation}\label{def:theta}
 		\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M}.
 	\end{equation}
 	The full data for the hybrid PLS problem can be represented by the tuple
@@ -396,7 +413,7 @@ For notational convenience, we assume throguth this paper that the responsd sand
 		\mathbb{R}^n,
 	\end{equation}
 	where $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ are the Gram matrices of the basis functions and their second derivatives, with entries
-	\begin{equation}
+	\begin{equation}\label{def:B_matrix}
 		B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt, \quad
 		B^{\prime\prime}_{m, m'} := \int_0^1 b_m''(t)\, b_{m'}''(t)\, dt,
 	\end{equation}
@@ -601,12 +618,11 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	
 	
 	\subsection{Step 2: Computing Residualized Predictors via Hybrid-on-Scalar Regression} \label{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}
-The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, $$\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}\, \delta^{[l]} + E_i^{[l]},$$ and then taking the residuals. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ defined in \eqref{def:truncated_hilbert_space}. In the same spirit as in Section \ref{sec: Regularization of PLS Components}, we want the estimated regression coefficieint $\hat{\delta}^{[l]} 
-= 
-(\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ 
-have  smooth functional parts, for the whole PLS estimation proecedure to be stable.
-Therefore, we obtain $\delta^{[l]}$ by minimizing the followign penaluized least square criteria, where the functional part is penalized by 
- integeraed squared second derivative defined in \eqref{def:roughness_penalty}:
+The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  $\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \widehat{\xi}^{[l]} \rangle_{\mathcal{H}}$, utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}.Subsequently, using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top$ is computed through the following matrix multiplication:
+\begin{equation*}
+( \hat{\boldsymbol{\rho}}^{[l]} )^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j^{[l]})^\top B \, (\Theta_j^{[l]})^\top + \boldsymbol{\zeta}^\top (\mathbf{Z}^{[l]}).
+\end{equation*}
+Using this as a scalar predictor vector, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}.
  \begin{align*}
 \operatorname{PENSSE}( \delta)
 &=
@@ -614,21 +630,37 @@ Therefore, we obtain $\delta^{[l]}$ by minimizing the followign penaluized least
 \,
 \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
 \rangle_{\mathcal{H}}
++
+\tau
+\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
 %%%%%%%%%%%%%%%%%%%%
 \\&=
 \sum_{i=1}^n 
 \langle \widetilde{W}_i^{[l]},  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
-+
-\sum_{i=1}^n 
-\langle \delta,  \, \delta \rangle_{\mathcal{H}}
 -
 \sum_{i=1}^n 
-( \hat{\rho}_i^{[l]} )^2
+ \hat{\rho}_i^{[l]} 
 \langle \delta,  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
++
+\bigl(
+\sum_{i=1}^n 
+( \hat{\rho}_i^{[l]} )^2
+\bigr)
+\langle \delta,  \, \delta \rangle_{\mathcal{H}}
++
+\tau
+\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
+\\&=
+ \operatorname{tr}(C^{*T} C^{*}J^{*}\Lambda) 
+ - 
+ 2 \operatorname{tr}(d^{*}J^{*}C^{*T} \rho\Lambda) 
+ +
+ \rho^T \rho
+  \operatorname{tr}( d^{*}J^{*}d^{*T} \Lambda) + \tau \operatorname{tr}(\ddot{d}^{*}J^{*}\ddot{d}^{*T}) \jongmin{need to be fixed}
  \end{align*}
-
-
-
+ 
+%Using the basis expansion coefficient notation presented in \eqref{def:truncated_zeta_and_delta} and \eqref{def:coef_vector_form}, \eqref{def:theta}, \eqref{def:B_matrix}
+\jongmin{Old writing starts here. I temporarily mixed the order of the paragraphs.}
 %As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: 
 $\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
 \begin{equation}
