@@ -340,7 +340,7 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{subsec: Step 1: Computing Smoothed PLS components} and~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{subsec: Obtaining the Estimated Hybrid Regression Coefficient}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
 	\subsection{Preliminary step: Finite-basis Approximation }\label{sec: finite basis approximation}	
-	Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, the $j$th functional predictor, regression coefficient, and PLS direction (suppressing iteration indices) are represented as follows:
+	Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, the $j$th functional predictor, regression coefficient,  PLS direction (suppressing iteration indices) are represented as follows:
 	\begin{equation*}
 		X_{ij}(t) = \sum_{m=1}^\infty \theta_{ijm} \, b_m(t),\quad
 		\beta_j(t) = \sum_{m=1}^\infty \eta_{jm} \, b_m(t),\quad
@@ -422,7 +422,8 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	Building on the basis function approximation in Section~\ref{sec: finite basis approximation}, we now present the core optimization problem that directly estimates the hybrid PLS component direction. This strategy fully leverages the continuous nature of the functional components and the function-scalar hybrid structure, and can be implemented using simple matrix-vector multiplications.
 	
 	
-	We describe the strategy at the $l$-th iteration. For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for details). The  PLS component direction is estimated by the unit-norm direction $\xi \in \widetilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
+	We describe the strategy at the $l$-th iteration. %For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression} for details). 
+	The  PLS component direction is estimated by the unit-norm direction $\xi^{[l]} \in \widetilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
 	
 	\begin{equation}\label{def:squared_empirical_cov}
 		\widehat{\textnormal{Cov}} 
@@ -489,8 +490,9 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	
 	\subsubsection{Proposed Approach: Regularized and Smoothed Computation} \label{sec: Regularization of PLS Components}
 	Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
-	\begin{equation}
-		\operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt.
+	\begin{equation}\label{def:roughness_penalty}
+		\operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
+		.
 	\end{equation}
 	
 	Instead of solely maximizing the squared empirical covariance
@@ -599,40 +601,68 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	
 	
 	\subsection{Step 2: Computing Residualized Predictors via Hybrid-on-Scalar Regression} \label{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}
-	The second step of the PLS algorithm involves iteratively obtaining the ($l+1$)-th residualized predictors as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$, where $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ is the least squares estimate from regressing the previous ($l$-th) residualized outcome $\mathbf{W}_i^{[l]}[\mathbf{t}]$ on the corresponding  estimated PLS score $\widehat{\rho}_{il}$.  The pointwise least squares estimate, $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] = (\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il})/(\sum_{i=1}^n \widehat{\rho}_{il}^2)$, presented in Section \ref{sec: Naive PLS Algorithm}, however, is  highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel strategy based on a hybrid-on-scalar regression model for obtaining $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ and implementing the second step.
-	
-	Again, we omit $l$ in the notations. Let $\widehat{\boldsymbol{\rho}}=(\widehat{\rho}_1, \ldots, \widehat{\rho}_n)^\top$ denote an $n$-dimensional vector of PLS scores estimated from the proposed algorithm, and let the $(K+P)$-vector $\boldsymbol{\delta}[\mathbf{t}] = [\pi(\mathbf{t})^\top, \boldsymbol{\gamma}^\top]^\top$ denote the regression coefficient consisting of the functional part $\pi(\mathbf{t}) = (\pi^{(1)}(t_1), \ldots,\pi^{(K)}(t_K))^\top \in \mathbb{R}^K$ and scalar part $\boldsymbol{\gamma} = (\gamma_1, \ldots,\gamma_p)^\top \in \mathbb{R}^p$. The hybrid-on-scalar regression model we are interested in fitting is then:
-	\begin{equation}
-		\widetilde{W}[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top + \mathbf{e}[\mathbf{t}],
-		\label{eq: hybrid on scalar regression model}
-	\end{equation}
-	where $\mathbf{e}[\mathbf{t}]$ is an $n \times (K+p)$ matrix of errors. 
-	
-	As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: $\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
-	\begin{equation}
-		\widetilde{C}^* B^*[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] + \mathbf{e}[\mathbf{t}].
-		\label{eq: rewritten hybrid on scalar regression model}
-	\end{equation}
-	
+The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, $$\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}\, \delta^{[l]} + E_i^{[l]},$$ and then taking the residuals. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ defined in \eqref{def:truncated_hilbert_space}. In the same spirit as in Section \ref{sec: Regularization of PLS Components}, we want the estimated regression coefficieint $\hat{\delta}^{[l]} 
+= 
+(\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ 
+have  smooth functional parts, for the whole PLS estimation proecedure to be stable.
+Therefore, we obtain $\delta^{[l]}$ by minimizing the followign penaluized least square criteria, where the functional part is penalized by 
+ integeraed squared second derivative defined in \eqref{def:roughness_penalty}:
+ \begin{align*}
+\operatorname{PENSSE}( \delta)
+&=
+\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
+\,
+\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
+\rangle_{\mathcal{H}}
+%%%%%%%%%%%%%%%%%%%%
+\\&=
+\sum_{i=1}^n 
+\langle \widetilde{W}_i^{[l]},  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
++
+\sum_{i=1}^n 
+\langle \delta,  \, \delta \rangle_{\mathcal{H}}
+-
+\sum_{i=1}^n 
+( \hat{\rho}_i^{[l]} )^2
+\langle \delta,  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
+ \end{align*}
+
+
+
+%As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: 
+$\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
+\begin{equation}
+	\widetilde{C}^* B^*[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] + \mathbf{e}[\mathbf{t}].
+	\label{eq: rewritten hybrid on scalar regression model}
+\end{equation}
+$\mathbf{e}[\mathbf{t}]$ is an $n \times (K+p)$ matrix of errors. 
+\\
+
 	Based on the model formulation \eqref{eq: rewritten hybrid on scalar regression model}, we can now formulate the following least squares criterion whose minimizing solution gives the estimate of the regression coefficient $\boldsymbol{\delta}[\mathbf{t}]$ in the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model}:
-	\begin{equation}
-		\begin{aligned}
-			\textnormal{SSE}(\delta) &= \int_\mathcal{T} \left\Vert \,  \widetilde{C}^* B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] \, \right\Vert_F^2 \, d\mathbf{t}  \\
-			&= tr\left(\widetilde{C}^{*T}\widetilde{C}^*J^\ast \right) - 2\,tr \left(\boldsymbol{\gamma}^* J^\ast \widetilde{C}^{*T} \widehat{\boldsymbol{\rho}} \right) + tr\left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* J^\ast \boldsymbol{\gamma}^{*T}\right),
-		\end{aligned}
-		\label{eq: least squares}
-	\end{equation}
-	where $tr$ denotes the trace of a matrix, and $\Vert \cdot \Vert_F$ is a Frobenius norm. Now taking the derivative of \eqref{eq: least squares} with respect to $\boldsymbol{\gamma}^*$ and setting the result to zero, we find that  $\boldsymbol{\gamma}^*$ satisfies the system of linear equations
-	\begin{equation*}
-		\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^*  J^\ast =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast,
-	\end{equation*}
-	whose solutions lead to the following estimates of $\boldsymbol{\gamma}^*$ and $\boldsymbol{\delta}[\mathbf{t}]$:
-	\begin{equation*}
-		\widehat{\boldsymbol{\gamma}}^*  =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast \left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} J^\ast \right)^{-1} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \, \widehat{\boldsymbol{\gamma}}^{*\top}.
-	\end{equation*}
-	Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subsequent residualized hybrid predictor as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$. 
+\begin{equation}
+	\begin{aligned}
+		\textnormal{SSE}(\delta) &= \int_\mathcal{T} \left\Vert \,  \widetilde{C}^* B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] \, \right\Vert_F^2 \, d\mathbf{t}  \\
+		&= tr\left(\widetilde{C}^{*T}\widetilde{C}^*J^\ast \right) - 2\,tr \left(\boldsymbol{\gamma}^* J^\ast \widetilde{C}^{*T} \widehat{\boldsymbol{\rho}} \right) + tr\left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* J^\ast \boldsymbol{\gamma}^{*T}\right),
+	\end{aligned}
+	\label{eq: least squares}
+\end{equation}
+where $tr$ denotes the trace of a matrix, and $\Vert \cdot \Vert_F$ is a Frobenius norm. Now taking the derivative of \eqref{eq: least squares} with respect to $\boldsymbol{\gamma}^*$ and setting the result to zero, we find that  $\boldsymbol{\gamma}^*$ satisfies the system of linear equations
+\begin{equation*}
+	\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^*  J^\ast =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast,
+\end{equation*}
+whose solutions lead to the following estimates of $\boldsymbol{\gamma}^*$ and $\boldsymbol{\delta}[\mathbf{t}]$:
+\begin{equation*}
+	\widehat{\boldsymbol{\gamma}}^*  =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast \left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} J^\ast \right)^{-1} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \, \widehat{\boldsymbol{\gamma}}^{*\top}.
+\end{equation*}
+Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subsequent residualized hybrid predictor as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$. 
+
+
 	
 	The step for obtaining the subsequent residualized response is identical to that of the naive PLS algorithm in  in Section \ref{sec: Naive PLS Algorithm}. Specifically, the $(l-1)$-th residualized response can be obtained as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_l \widehat{\rho}_{il}$, where $\widehat{\nu}_l = \sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}/\sum_{i=1}^n \widehat{\rho}_{il}^2$  is the least square estimate of the simple linear model regressing $Y_i^{[l]}$ on $\widehat{\rho}_{il}$.
+	 the PLS algorithm involves iteratively obtaining the ($l+1$)-th residualized predictors as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$, where $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ is the least squares estimate from regressing the previous ($l$-th) residualized outcome $\mathbf{W}_i^{[l]}[\mathbf{t}]$ on the corresponding  estimated PLS score $\widehat{\rho}_{il}$.  The pointwise least squares estimate, $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] = (\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il})/(\sum_{i=1}^n \widehat{\rho}_{il}^2)$, presented in Section \ref{sec: Naive PLS Algorithm}, however, is  highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel strategy based on a hybrid-on-scalar regression model for obtaining $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ and implementing the second step.
+	
+	Again, we omit $l$ in the notations. Let $\widehat{\boldsymbol{\rho}}=(\widehat{\rho}_1, \ldots, \widehat{\rho}_n)^\top$ denote an $n$-dimensional vector of PLS scores estimated from the proposed algorithm, and let the $(K+P)$-vector $\boldsymbol{\delta}[\mathbf{t}] = [\pi(\mathbf{t})^\top, \boldsymbol{\gamma}^\top]^\top$ denote the regression coefficient consisting of the functional part $\pi(\mathbf{t}) = (\pi^{(1)}(t_1), \ldots,\pi^{(K)}(t_K))^\top \in \mathbb{R}^K$ and scalar part $\boldsymbol{\gamma} = (\gamma_1, \ldots,\gamma_p)^\top \in \mathbb{R}^p$. 
+	
 	
 	
 	\subsection{Obtaining the Estimated Hybrid Regression Coefficient}
