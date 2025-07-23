@@ -68,42 +68,7 @@ compute_gram_matrix <- function(basis) {
 
 ```
 
-
-### compute_gram_matrix_deriv2
-```{r}
-# Helper function to compute the Gram matrix of the second derivatives of basis functions
-# This function assumes 'basisobj' is an 'fda' package basis object.
-compute_gram_matrix_deriv2 <- function(basisobj) {
-  # Get the range of the basis
-  basis_range <- basisobj$rangeval
-  
-  # Create a function to evaluate the second derivative of a basis function
-  # This uses the 'eval.basis' function with 'Lfdobj = 2' for second derivative.
-  deriv2_basis_eval_fun <- function(t_vec) {
-    eval.basis(t_vec, basisobj, Lfdobj = 2)
-  }
-  
-  # Numerically integrate the product of second derivatives of basis functions
-  # This is a general approach for computing inner products.
-  # For specific basis types (e.g., B-splines), there might be more efficient
-  # analytical solutions, but this approach is robust.
-  nbasis <- basisobj$nbasis
-  gram_matrix_deriv2 <- matrix(0, nbasis, nbasis)
-  
-  for (j in 1:nbasis) {
-    for (k in 1:nbasis) {
-      # Define the integrand: product of the j-th and k-th second derivatives
-      integrand <- function(t) {
-        deriv2_basis_eval_fun(t)[, j] * deriv2_basis_eval_fun(t)[, k]
-      }
-      # Integrate over the basis range
-      gram_matrix_deriv2[j, k] <- integrate(integrand, lower = basis_range[1], upper = basis_range[2])$value
-    }
-  }
-  return(gram_matrix_deriv2)
-}
-```
-
+ 
  
 
 ## helpers for functional data objects
@@ -1195,101 +1160,7 @@ cat(xi_hat_direct_new$functional_list[[2]]$coefs- xi_hat_direct$functional_list[
 
 ```
 
-
-
-```{r}
-library(fda)
-
-# --- Step 1: Simulate Data ---
-set.seed(2222)
-
-n_sample <- 100
-n_scalar <- 2
-n_basis <- 5
-n_functional <- 2
-
-# Scalar predictors Z (centered)
-Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
-Z <- scale(Z, center = TRUE, scale = FALSE)
-
-# Create functional predictors (centered)
-basis <- create.bspline.basis(c(0, 1), nbasis = n_basis)
-functional_list <- list()
-for (j in 1:n_functional) {
-  coefs <- matrix(rnorm(n_basis * n_sample), nrow = n_basis)
-  fdobj <- fd(coef = coefs, basisobj = basis)
-  mean_fd <- mean.fd(fdobj)
-  mean_coef <- coef(mean_fd)
-  centered_coefs <- coefs - matrix(mean_coef, nrow = n_basis, ncol = n_sample)
-  functional_list[[j]] <- fd(coef = centered_coefs, basisobj = basis)
-}
-
-# --- Step 2: Construct hybrid object ---
-W <- predictor_hybrid(Z = Z, functional_list = functional_list)
-
-# --- Step 3: Simulate and center response ---
-total_coef_len <- sum(W$n_basis_list) + W$n_scalar
-true_coef <- rnorm(total_coef_len)
-
-# Flatten design matrix
-Xmat <- matrix(NA, n_sample, total_coef_len)
-for (i in 1:n_sample) {
-  W_i <- subset_predictor_hybrid(W, i)
-  func_coefs <- do.call(c, lapply(W_i$functional_list, function(fdobj) as.vector(coef(fdobj))))
-  Xmat[i, ] <- c(func_coefs, W_i$Z)
-}
-
-y <- Xmat %*% true_coef + rnorm(n_sample, sd = 0.1)
-y <- as.vector(scale(y, center = TRUE, scale = FALSE))
-
-# --- Step 4: Compute constraint matrix ---
-lambda <- rep(0, W$n_functional)
-constr_mat <- get_constraint_matrix_hybrid(W, lambda)
-L <- chol(constr_mat)
-
-# --- Step 5: Run eigen-based PLS ---
-W_template <- W  # prevent mutation
-
-
-pls_eig_result <- get_pls_comp(W, y, L)
-xi_hat_eig <- pls_eig_result$xi_hat
-
-xi_hat_lin <- get_xi_hat_linear(W, y)
-xi_hat_lin_new <- get_xi_hat_linear_new(W, y)
-# Wrap into predictor_hybrid object using format template
-xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin)
-xi_hat_direct_new <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin_new)
-
-# Normalize
-norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
-xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)
-
-
-# --- Step 7: Compare and evaluate ---
-ip <- inprod.predictor_hybrid(xi_hat_eig, xi_hat_direct)
-norm1 <- sqrt(inprod.predictor_hybrid(xi_hat_eig))
-xi_hat_eig <- scalar_mul.predictor_hybrid(xi_hat_eig,  1 / norm1)
-
-norm2 <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
-cat("norm 1", norm1,  "\n")
-cat("norm 2", norm2,  "\n")
-
-cos_theta <- ip / (norm1 * norm2)
-
-cat("Cosine similarity between eigen-based and direct PLS components:", cos_theta, "\n")
-cat("Projection score (eig):", sum(inprod.predictor_hybrid(xi_hat_eig, W) * y), "\n")
-cat("Projection score (direct):", sum(inprod.predictor_hybrid(xi_hat_direct, W) * y), "\n")
-
-# --- Step 8: Plot functional coefficients ---
-par(mfrow = c(n_functional, 1), mar = c(4, 4, 2, 2))
-for (j in 1:n_functional) {
-  plot(xi_hat_eig$functional_list[[j]], col = "blue", ylim = c(-1, 1),
-       main = paste("Functional Component", j), ylab = "Coefficient", xlab = "t")
-  lines(xi_hat_direct$functional_list[[j]], col = "red", lty = 2)
-  legend("topright", legend = c("Eigen-based", "Direct"), col = c("blue", "red"), lty = 1:2)
-}
-
-```
+ 
 
 ## Residualization
 
