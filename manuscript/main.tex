@@ -163,7 +163,7 @@ For notational convenience, we assume throguth this paper that the responsd sand
 	
 	
 	
-	
+	The framework is readily applicable to dense and irregular functionaldata, and supports regularization techniques to prevent overfitting and reduce variance.
 	
 	
 	
@@ -602,28 +602,33 @@ b_m(t)
 	\end{proposition}
 	The proof of Proposition~\ref{proposition:linear_regul} is provided in Appendix~\ref{section:proof:proposition:linear_regul}. The expressions above involve solving linear systems for the functional and scalar components separately, followed by normalization by a common factor. Although the unnormalized coefficients are obtained independently, the normalization step couples the functional and scalar parts, allowing them to influence one another. This coupling enables the procedure to capture the correlation between the functional and scalar components of the PLS direction.
 	
-	\medskip
-	\noindent \textit{Orthonormality.}~
-	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
-	\begin{align*}
-		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
-		&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
-		&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
-		& = \mathbb{1}(l=j). 
-	\end{align*}
-	This modified orthonormality condition is one of the main geometric properties of the proposed PLS algorithm and is formally stated with proof in Section \ref{sec: Properties of the Proposed PLS Framework} (see Proposition \ref{proposition: modified orthnormality of PLS components}), along with other properties. 
-	
-	
+
 	
 	
 	
 	\subsection{Step 2: Computing Residualized Predictors via Hybrid-on-Scalar Regression} \label{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}
-The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  
+The $l$-th iteration's second step involves residualization of both predictors and responses. We first compute the individual PLS score:  
 \begin{equation}\label{def:plsscore}
-\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}},
+	\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}},
 \end{equation}
- utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
-Using this as a scalar predictor observations, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} ) \in \tilde{\mathcal{H}}$, should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
+utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
+Using these PLS scores as scalar predictor observations, the $(l+1)$-th iteration's residualized response is computed as:
+\begin{equation}\label{algorithm_step:residualization_response}
+	Y_i^{[l+1]} := Y_i^{[l]} - 
+	\frac{
+		( \mathbf{y}^{[l]} )^\top  \hat{\boldsymbol{\rho}}^{[l]}
+	}{
+		( \hat{\boldsymbol{\rho}}^{[l]} )^\top  \hat{\boldsymbol{\rho}}^{[l]}
+	}
+	\widehat{\rho}_{il},
+\end{equation}
+which is equivalent to using the least squares estimate from regressing $Y_i^{[l]}$ on $\widehat{\rho}_{il}$,
+a procedure identical to that found in the naive PLS algorithm (Section \ref{sec: Naive PLS Algorithm}).
+
+For predictor residualization, we fit a hybrid-on-scalar regression model where the predictor is the PLS score for each observation. Specifically, we fit $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration.
+  Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively.
+Performing this pointwisely, as in Section \ref{sec: Naive PLS Algorithm}, is highly inefficient and potentially infeasible for dense or irregular functional data. Moreover, the results may lack smoothness, introducing instability that propagates to subsequent results and compromises the entire algorithm.
+Therefore, we employ a basis expansion approach to fit the entire hybrid object in one step. We assume both $\delta^{[l]}$ and $E_i^{[l]}$ are elements of $\tilde{\mathcal{H}}$, as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} ) \in \tilde{\mathcal{H}}$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
 \begin{equation}\label{def:argmin_pensse}
 	\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \operatorname{PENSSE}( \delta),
 \end{equation}
@@ -639,14 +644,15 @@ where
 	\tau
 	\sum_{j=1}^K\operatorname{PEN}(\delta_j).
 \end{equation}
+where $\tau>0$ is a  smoothing parameter controlling the trade-off between fit accuracy and functional regression coefficient smoothness.
 The following proposition shows that the solution of the problem \ref{def:argmin_pensse} can be obtained by solving linear equations.
 
- \begin{proposition}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
+ \begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
  	Let us denote
  	\begin{equation*}
  		 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top
  	\quad\text{and} \quad
- 			\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}
+ 			\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
  	\end{equation*}
  	The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
  	$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients and scalar parts given by:
@@ -670,21 +676,19 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	=
 	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}.
 \end{equation*}
- \end{proposition}
+ \end{lemma}
  Proof of Proposition \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
  
- Now we formally state the orthogonalization step.
+ The $(l+1)$-th iteration's residualized predictor is then computed as:
+\begin{equation}\label{algorithm_step:residualization_predictor}
+	\widetilde{W}_i^{[l+1]} 
+	 = 
+	 \widetilde{W}_i^{[l]}  - \widehat{\rho}_{il}  \widehat{ {\delta}}_{l}.
+	%%%%%%%%%%%
+\end{equation}
  
- 
- 
-%Using the basis expansion coefficient notation presented in \eqref{def:truncated_zeta_and_delta} and \eqref{def:coef_vector_form}, \eqref{def:theta}, \eqref{def:B_matrix}
-\jongmin{Old writing starts here. I temporarily mixed the order of the paragraphs.}
-Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subsequent residualized hybrid predictor as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$. 
-
-
 	
-	The step for obtaining the subsequent residualized response is identical to that of the naive PLS algorithm in  in Section \ref{sec: Naive PLS Algorithm}. Specifically, the $(l-1)$-th residualized response can be obtained as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_l \widehat{\rho}_{il}$, where $\widehat{\nu}_l = \sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}/\sum_{i=1}^n \widehat{\rho}_{il}^2$  is the least square estimate of the simple linear model regressing $Y_i^{[l]}$ on $\widehat{\rho}_{il}$.
-	 the PLS algorithm involves iteratively obtaining the ($l+1$)-th residualized predictors as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$, where $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ is the least squares estimate from regressing the previous ($l$-th) residualized outcome $\mathbf{W}_i^{[l]}[\mathbf{t}]$ on the corresponding  estimated PLS score $\widehat{\rho}_{il}$.  The pointwise least squares estimate, $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] = (\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il})/(\sum_{i=1}^n \widehat{\rho}_{il}^2)$, presented in Section \ref{sec: Naive PLS Algorithm}, however, is  highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel strategy based on a hybrid-on-scalar regression model for obtaining $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ and implementing the second step.
+	 
 	
  
 	
@@ -739,6 +743,10 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 	
 	
 	\subsection{Data Preprocessing} \label{subsec: Data Preprocessing}
+
+	
+	
+	
 	Functional and scalar elements of the hybrid predictors often have incompatible units and/or exhibit different amounts of variation. This can be problematic for our PLS framework which is not scale invariant as: i) each predictor has different chance of contributing to the predictor/response structure; and ii) a predictor with high correlation to $Y$ but relatively low variance may be overlooked. 
 	
 	To obtain PLS components that have a meaningful interpretation, we standardize the predictor data via the following steps. The first step is to account for discrepancies \textit{within} respective functional and scalar parts, if needed. If elements of multivariate functional data $X_i = (X_i^{(1)}, \ldots, X_i^{(K)})$ are measured in different units or have quite different domains, one can standardize them to have mean zero and integrated variance of one. If multivariate scalar predictors $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ exhibit different amounts of variation, one can standardize them to have mean zero and unit variance. The second step is to eliminate the discrepancies \textit{between} functional and scalar parts. To accomplish this aim, we choose an appropriate weight $\omega$ in the hybrid inner product \eqref{eq: hybrid inner product} that ensures functional and vector parts have comparable variance. A sensible data-driven approach to choosing an appropriate weight is to set
@@ -752,6 +760,17 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 	
 	\section{Properties of the Proposed PLS Framework}
 	\label{sec: Properties of the Proposed PLS Framework}
+			\medskip
+	\noindent \textit{Orthonormality.}~
+	The constraint $\xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1$ enforces the following modified orthonormality of the estimated PLS components ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ which now takes into account the roughness of the functions:
+	\begin{align*}
+		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
+		&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
+		&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
+		& = \mathbb{1}(l=j). 
+	\end{align*}
+	This modified orthonormality condition is one of the main geometric properties of the proposed PLS algorithm and is formally stated with proof in Section \ref{sec: Properties of the Proposed PLS Framework} (see Proposition \ref{proposition: modified orthnormality of PLS components}), along with other properties. 
+	
 	In this section, we derive some of the theoretical and geometric properties of the proposed PLS framework.
 	
 	\subsection{Tucker's Criterion}
