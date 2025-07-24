@@ -472,7 +472,7 @@ b_m(t)
 	\hat{\xi}_j(t) := 
 	\sum_{m=1}^M \hat{\gamma}_{jm} \, b_m(t),
 	$
-	and $\hat{\boldsymbol{\zeta}}$ is the scalar part. This maximizer can also be represented as a Euclidean vector
+	and $\hat{\boldsymbol{\zeta}}$ is the scalar part. This maximizer can also be represented as a concatenated Euclidean vector
 	\begin{equation}\label{def:maximizer_euclidean_form}
 		( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top
 		\in \mathbb{R}^{MK+p},
@@ -618,11 +618,12 @@ b_m(t)
 	
 	
 	\subsection{Step 2: Computing Residualized Predictors via Hybrid-on-Scalar Regression} \label{subsec: Step 2: Computing Predictors via Hybrid-on-Scalar Regression}
-The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  $\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}}$, utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. Subsequently, using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top$ is computed through the following matrix multiplication:
-\begin{equation*}
-( \hat{\boldsymbol{\rho}}^{[l]} )^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j^{[l]})^\top B \, (\Theta_j^{[l]})^\top + \boldsymbol{\zeta}^\top (\mathbf{Z}^{[l]}).
-\end{equation*}
-Using this as a scalar predictor vector, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} )$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
+The $l$-th iteration's second step involves orthogonalization. This is achieved by fitting a hybrid-on-scalar regression model, where the predictor is the PLS score for each observation. The individual PLS score is computed as  
+\begin{equation}\label{def:plsscore}
+\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}},
+\end{equation}
+ utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
+Using this as a scalar predictor observations, we fit the regression model $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration, namely $\widetilde{W}^{[l+1]}_i$. Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively, both elements of $\tilde{\mathcal{H}}$ as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} ) \in \tilde{\mathcal{H}}$, should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
 \begin{equation}\label{def:argmin_pensse}
 	\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \operatorname{PENSSE}( \delta),
 \end{equation}
@@ -640,37 +641,44 @@ where
 \end{equation}
 The following proposition shows that the solution of the problem \ref{def:argmin_pensse} can be obtained by solving linear equations.
 
- \begin{proposition}[Closed-form  orthogonalization]\label{proposition:closed_form_orthgonalization}
- 	asdasdasd
+ \begin{proposition}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
+ 	Let us denote
+ 	\begin{equation*}
+ 		 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top
+ 	\quad\text{and} \quad
+ 			\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}
+ 	\end{equation*}
+ 	The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
+ 	$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients and scalar parts given by:
+\begin{equation*}
+	\hat{\boldsymbol{\pi}}_j^{[l]}
+	=
+	\bigl(
+		\bar{\rho}^{[l]}
+  B
+	+
+	\tau
+	B^{\prime \prime}
+	\bigr)^{-1}
+	  B
+	(\Theta_j^{[l]})^\top,
+	~
+	j = 1, \ldots, K,
+	%%%%%%%%%%%%%%%%%%%%%%%%
+	\quad
+	\hat{\boldsymbol{\chi} }
+	=
+	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}.
+\end{equation*}
  \end{proposition}
  Proof of Proposition \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
+ 
+ Now we formally state the orthogonalization step.
+ 
+ 
+ 
 %Using the basis expansion coefficient notation presented in \eqref{def:truncated_zeta_and_delta} and \eqref{def:coef_vector_form}, \eqref{def:theta}, \eqref{def:B_matrix}
 \jongmin{Old writing starts here. I temporarily mixed the order of the paragraphs.}
-%As in Section \ref{subsec: Step 1: Computing Smoothed PLS components}, the hybrid response can be expanded using basis functions as $\widetilde{W}[\mathbf{t}] = \widetilde{C}^* B^*[\mathbf{t}]$. Similarly, we expand each functional regression coefficient using the basis functions as $\pi^{(k)}(t_k) =\sum_{m=1}^M d_m^{(k)} b^{(k)}_m(t_k) = \boldsymbol{\gamma}^{(k)\top} \mathbf{b}^{(k)}(t_k)$, where $\boldsymbol{\gamma}^{(k)} = (d_1^{(k)}, \ldots, d_M^{(k)})\top \in \mathbb{R}^M$ are basis coefficients. Here, a different basis system can be flexibly chosen to expand the regression coefficient, but without loss of generality we use the same system as in Section \ref{subsec: Step 1: Computing Smoothed PLS components}. With the $(MK+p)$-dimensional row vector $\boldsymbol{\gamma}^* = (\boldsymbol{\gamma}^{(1)\top}, \ldots, \boldsymbol{\gamma}^{(K)\top}, \gamma_1, \ldots, \gamma_p)$ that stacks the basis coefficients and scalar regression coefficients, we can express the linear predictor of the regression as: 
-$\widehat{\boldsymbol{\rho}} \, \boldsymbol{\delta}[\mathbf{t}]^\top = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}]$. Finally, these basis expansions of the hybrid response and the regression coefficient enable us to re-write the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model} in a finite-dimensional form:
-\begin{equation}
-	\widetilde{C}^* B^*[\mathbf{t}] = \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] + \mathbf{e}[\mathbf{t}].
-	\label{eq: rewritten hybrid on scalar regression model}
-\end{equation}
-$\mathbf{e}[\mathbf{t}]$ is an $n \times (K+p)$ matrix of errors. 
-\\
-
-	Based on the model formulation \eqref{eq: rewritten hybrid on scalar regression model}, we can now formulate the following least squares criterion whose minimizing solution gives the estimate of the regression coefficient $\boldsymbol{\delta}[\mathbf{t}]$ in the hybrid-on-scalar regression model \eqref{eq: hybrid on scalar regression model}:
-\begin{equation}
-	\begin{aligned}
-		\textnormal{SSE}(\delta) &= \int_\mathcal{T} \left\Vert \,  \widetilde{C}^* B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* B^*[\mathbf{t}] \, \right\Vert_F^2 \, d\mathbf{t}  \\
-		&= tr\left(\widetilde{C}^{*T}\widetilde{C}^*J^\ast \right) - 2\,tr \left(\boldsymbol{\gamma}^* J^\ast \widetilde{C}^{*T} \widehat{\boldsymbol{\rho}} \right) + tr\left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^* J^\ast \boldsymbol{\gamma}^{*T}\right),
-	\end{aligned}
-	\label{eq: least squares}
-\end{equation}
-where $tr$ denotes the trace of a matrix, and $\Vert \cdot \Vert_F$ is a Frobenius norm. Now taking the derivative of \eqref{eq: least squares} with respect to $\boldsymbol{\gamma}^*$ and setting the result to zero, we find that  $\boldsymbol{\gamma}^*$ satisfies the system of linear equations
-\begin{equation*}
-	\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} \, \boldsymbol{\gamma}^*  J^\ast =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast,
-\end{equation*}
-whose solutions lead to the following estimates of $\boldsymbol{\gamma}^*$ and $\boldsymbol{\delta}[\mathbf{t}]$:
-\begin{equation*}
-	\widehat{\boldsymbol{\gamma}}^*  =  \widehat{\boldsymbol{\rho}}^\top  C^* J^\ast \left(\widehat{\boldsymbol{\rho}}^\top \widehat{\boldsymbol{\rho}} J^\ast \right)^{-1} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}[\mathbf{t}] = B^*[\mathbf{t}]^\top \, \widehat{\boldsymbol{\gamma}}^{*\top}.
-\end{equation*}
 Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subsequent residualized hybrid predictor as $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$. 
 
 
@@ -1345,6 +1353,7 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 			%%%%%%%%%%%%%%%%%%%%%%%%%%
 			\\&= 
 			\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
+			\numberthis \label{pen_as_matrix}
 		\end{align*}
 		where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda$ is defined in \eqref{def:Lambda}. 
 		
@@ -1480,43 +1489,170 @@ Then, we can use $\widehat{\boldsymbol{\delta}}[\mathbf{t}]$ to obtain the subse
 	\end{proof}
 	
 	
-	\section{Proof of Proposition \ref{proposition:closed_form_orthgonalization} \ref{}}\label{section:proof:proposition:closed_form_orthgonalization}
-	 \begin{align*}
-		\operatorname{PENSSE}( \delta)
-		&=
-		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
-		\,
-		\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
-		\rangle_{\mathcal{H}}
-		+
-		\tau
-		\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
-		%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum_{i=1}^n 
-		\langle \widetilde{W}_i^{[l]},  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
-		-
-		\sum_{i=1}^n 
-		\hat{\rho}_i^{[l]} 
-		\langle \delta,  \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}
-		+
-		\bigl(
-		\sum_{i=1}^n 
-		( \hat{\rho}_i^{[l]} )^2
-		\bigr)
-		\langle \delta,  \, \delta \rangle_{\mathcal{H}}
-		+
-		\tau
-		\sum_{j=1}^K\operatorname{PEN}(\delta_j) 
-		\\&=
-		\operatorname{tr}(C^{*T} C^{*}J^{*}\Lambda) 
-		- 
-		2 \operatorname{tr}(d^{*}J^{*}C^{*T} \rho\Lambda) 
-		+
-		\rho^T \rho
-		\operatorname{tr}( d^{*}J^{*}d^{*T} \Lambda) + \tau \operatorname{tr}(\ddot{d}^{*}J^{*}\ddot{d}^{*T}) \jongmin{need to be fixed}
+\section{Proof of Proposition \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
+For notational simplicity, we omit the iteration superscript $[l]$.
+	Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
+	where
+	$\hat{\rho}_1$ is defined in \eqref{def:plsscore},
+	is computed through the following matrix multiplication:
+	\begin{equation*}
+		 \hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
+	\end{equation*}
+The criterion $\operatorname{PENSSE}( \delta)$ can be decomposed as follows:
+
+\begin{align*}
+	\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathcal{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
+	&= 
+	\underbrace{
+		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}}_{A} 
+	\underbrace{
+		-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}} 
+	}_{B_1(\boldsymbol{\delta})}
+	\underbrace{
+		+ 
+		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
+		 \langle \delta, \, \delta \rangle_{\mathcal{H}}
+	}_{B_2(\boldsymbol{\delta})}
+	\underbrace{
+		 + 
+		 \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
+	}_{B_3(\boldsymbol{\delta})}
+\end{align*}
+Here, part $A$ does not contain $\delta$, so it does not contribute to the minimization problem.
+
+Let $\boldsymbol{\delta}:= (\pi_1^\top, \ldots, \pi_K^\top, \boldsymbol{\chi}^\top )^\top$ be the $MK+p$-dimensional concatenated vector of basis coefficients and the scalar part of $\boldsymbol{\delta}$, as presented in \eqref{def:maximizer_euclidean_form}. 
+Abusing notation, we treat $\operatorname{PENSSE}$ as a function of $\boldsymbol{\delta}$.
+Next, We will now demonstrate that the combined term $
+B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta}) + B_3(\boldsymbol{\delta})
+$ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component functions:
+	\begin{align*}
+	B_1(\boldsymbol{\delta}) &= 
+	- 2\sum_{i=1}^n \hat{\rho}_i  \langle \delta, \, \widetilde{W}_i  \rangle_{\mathcal{H}} 
+	=
+	- 2\hat{\boldsymbol{\rho}}^\top 
+	\biggl(
+	\sum_{j=1}^K \Theta_j B \boldsymbol{\pi}_j
+	+\mathbf{Z} \boldsymbol{\chi}
+	\biggr),
+%%%%%%%%%%%%%%%%%%%%%%%
+\\ 
+	B_2(\boldsymbol{\delta})
+	&=
+	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
+	\langle \delta, \, \delta \rangle_{\mathcal{H}}
+	=
+	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+	\biggl(
+	\sum_{j=1}^K \pi_j^\top B \pi_j
+	+\boldsymbol{\chi}^\top \boldsymbol{\chi}
+	\biggr),
+	\\
+	B_3(\boldsymbol{\delta})
+	&=
+	\tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
+	=
+	\tau
+	\boldsymbol{\delta} B^{''} \boldsymbol{\delta},
+\end{align*}
+where the expansion of $B_3(\boldsymbol{\delta})$ leverages the computation in \eqref{pen_as_matrix}.
+Now we compute the gradients:
+	\begin{align*}
+		\nabla_{\boldsymbol{\pi}_j}
+		 B_1(\boldsymbol{\delta}) 
+		 &= -2
+		 B
+		 \Theta_j^\top
+		 \hat{\boldsymbol{\rho}}  ,~
+		  j = 1, \ldots, K,
+		  \quad
+			\nabla_{\boldsymbol{\chi}}
+	B_1(\boldsymbol{\delta}) 	  
+	= -2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}},
+%
+\\
+	\nabla_{\boldsymbol{\pi}_j}
+	B_2(\boldsymbol{\delta}) 
+	&= 
+	2
+	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+	B 	\boldsymbol{\pi}_j
+	,~
+	j = 1, \ldots, K,
+	\quad
+	\nabla_{\boldsymbol{\chi}}
+	B_2(\boldsymbol{\delta}) 
+	=
+	2\boldsymbol{\chi} ,
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\
+	\nabla_{\boldsymbol{\pi}_j}
+	B_3(\boldsymbol{\delta}) 
+	&= 
+	2 \tau
+	B^{\prime \prime }	\boldsymbol{\pi}_j
+	,~
+	j = 1, \ldots, K,
+	\quad
+	\nabla_{\boldsymbol{\chi}}
+	B_3(\boldsymbol{\delta}) 
+	=
+0.
 	\end{align*}
-	
+The Hessian of 
+$\operatorname{PENSSE}( \boldsymbol{\delta})$ is then given by 
+ $
+2 	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
++
+2
+\tau
+ B^{\prime \prime}.
+$ 
+Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$ and $B''$ are positive definite, $\operatorname{PENSSE}( \delta)$ is convex. convex. Consequently, the gradient vanishes at its unique minimizer:
+\begin{align*}
+	\nabla_{\boldsymbol{\pi}_j}	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+&	=
+	 -2
+	B
+	\Theta_j^\top
+	\hat{\boldsymbol{\rho}}
+	+
+2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+B 	\hat{\boldsymbol{\pi}}_j
+	+
+		2
+	B^{\prime \prime }	\hat{\boldsymbol{\pi}}_j
+	=
+	0,~
+	j = 1, \ldots, K,
+	\\
+	\nabla_{\boldsymbol{\chi} }	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+&=
+-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
++
+2\hat{\boldsymbol{\chi} }
+=
+0,
+\end{align*}
+providing the following closed-form solution:
+\begin{equation*}
+	\hat{\boldsymbol{\pi}}_j\\
+	=
+	\bigl\{
+	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
+	+
+	\tau
+	B^{\prime \prime}
+	\bigr\}^{-1}
+ B
+\Theta_j^\top
+~
+j = 1, \ldots, K,
+	%%%%%%%%%%%%%%%%%%%%%%%%
+	\quad
+\hat{\boldsymbol{\chi} }
+=\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
+\end{equation*}
+This completes the proof of Proposition \ref{proposition:closed_form_orthgonalization}.
 	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
 	$\mathcal{U}$ is \textit{positive} because for every $\mathbf{h} \in \mathcal{H}$,
 	\begin{equation*}

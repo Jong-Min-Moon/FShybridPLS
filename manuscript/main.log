@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  23 JUL 2025 14:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  23 JUL 2025 17:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -702,31 +702,17 @@ com-po-nent di-rec-tion $[] = ([]\OML/cmm/m/it/12 ; [] ; []; []\OT1/cmr/m/n/12
 
 [17]
 
-LaTeX Warning: Reference `eq: hybrid on scalar regression model' on page 18 und
-efined on input line 650.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 654--657
-
- []
-
-
-LaTeX Warning: Reference `eq: hybrid on scalar regression model' on page 18 und
-efined on input line 658.
-
-
-
 [18]
 
+LaTeX Warning: Reference `def:V_star' on page 19 undefined on input line 726.
+
+
+LaTeX Warning: Reference `compute_pls_score' on page 19 undefined on input line
+ 734.
+
+
+
 [19]
-
-LaTeX Warning: Reference `def:V_star' on page 20 undefined on input line 718.
-
-
-LaTeX Warning: Reference `compute_pls_score' on page 20 undefined on input line
- 726.
-
-
 
 [20]
 
@@ -737,7 +723,7 @@ LaTeX Warning: Reference `compute_pls_score' on page 20 undefined on input line
 [23]
 
 [24]
-Overfull \hbox (19.88365pt too wide) detected at line 839
+Overfull \hbox (19.88365pt too wide) detected at line 847
 [] \OML/cmm/m/it/12 p\OT1/cmr/m/n/12 (\OT1/cmr/bx/n/12 X \OMS/cmsy/m/n/12 j \OT
 1/cmr/bx/n/12 M\OML/cmm/m/it/12 ; \OT1/cmr/bx/n/12 R\OML/cmm/m/it/12 ; \OT1/cmr
 /bx/n/12 C\OT1/cmr/m/n/12 ) = \OMS/cmsy/m/n/12 ^^@[] []\OT1/cmr/m/n/12 (2\OML/c
@@ -746,36 +732,35 @@ OMS/cmsy/m/n/12 j ^^@ [] [] j\OT1/cmr/bx/n/12 R\OMS/cmsy/m/n/12 j ^^@ [][] [] \
 OML/cmm/m/it/12 :
  []
 
-<image/cor_strong.pdf, id=465, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=460, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 855.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 863.
 (pdftex.def)             Requested size: 208.02008pt x 193.88107pt.
-<image/cor_weak.pdf, id=466, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=461, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 862.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 870.
 (pdftex.def)             Requested size: 208.02008pt x 193.88107pt.
-<image/graph_strong.pdf, id=467, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=462, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 871.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 879.
 (pdftex.def)             Requested size: 208.02008pt x 208.01833pt.
-<image/graph_weak.pdf, id=468, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=463, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 878.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 886.
 (pdftex.def)             Requested size: 208.02008pt x 208.01833pt.
 
 
-[25]
+[25{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
 
-[26{c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc} <./im
-age/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> <./image/
-graph_weak.pdf>]
+[26 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
+<./image/graph_weak.pdf>]
 
 [27]
-Overfull \hbox (41.43227pt too wide) detected at line 933
+Overfull \hbox (41.43227pt too wide) detected at line 941
 \OML/cmm/m/it/12 X[]\OT1/cmr/m/n/12 (0) = 0\OML/cmm/m/it/12 ;  X[]\OT1/cmr/m/n/
 12 (\OML/cmm/m/it/12 t\OT1/cmr/m/n/12 ) = \OML/cmm/m/it/12 ^^ZX[]\OT1/cmr/m/n/1
 2 (\OML/cmm/m/it/12 t \OMS/cmsy/m/n/12 ^^@ \OT1/cmr/m/n/12 1) + \OML/cmm/m/it/1
@@ -788,43 +773,44 @@ mm/m/it/12 ; \OT1/cmr/m/n/12 2\OML/cmm/m/it/12 :
 
 
 [28]
-<image/graph.png, id=520, 447.3513pt x 447.3513pt>
+<image/graph.png, id=514, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 964.
+Package pdftex.def Info: image/graph.png  used on input line 972.
 (pdftex.def)             Requested size: 184.90517pt x 184.90329pt.
 
 
-[29]
+[29 <./image/graph.png>]
 
-[30 <./image/graph.png>]
+LaTeX Warning: Reference `table ' on page 30 undefined on input line 1003.
 
-LaTeX Warning: Reference `table ' on page 31 undefined on input line 995.
-
-<Screenshot 2025-02-25 125839.png, id=536, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=526, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
-Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 9
-98.
+Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
+006.
 (pdftex.def)             Requested size: 416.04016pt x 174.91663pt.
 
 
-[31 <./Screenshot 2025-02-25 125839.png>]
-Overfull \hbox (2.9599pt too wide) in paragraph at lines 1011--1012
+[30]
+Overfull \hbox (2.9599pt too wide) in paragraph at lines 1019--1020
 []\OT1/cmr/m/n/12 The two renogram curves, (i) and (ii), were treated as func-t
 ional pre-dic-tors and smoothed
  []
 
+
+
+[31 <./Screenshot 2025-02-25 125839.png>]
 \openout3 = `bu.aux'.
 
-(./main.bbl
+ (./main.bbl
 
-[32]
+[32])
 
-[33])
+[33]
 
 [34]
-Overfull \hbox (46.50742pt too wide) in paragraph at lines 1083--1085
+Overfull \hbox (46.50742pt too wide) in paragraph at lines 1091--1093
 \OT1/cmr/m/n/12 tional part of the PLS com-po-nent in terms of the same ba-sis 
 func-tions: $\OML/cmm/m/it/12  []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT1/cmr/
 m/n/12 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT
@@ -836,14 +822,14 @@ m/n/12 ) = [][] \OML/cmm/m/it/12 a[]b[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 t[]\OT
 [35]
 
 [36]
-
-[37]
-Overfull \hbox (2.66408pt too wide) in paragraph at lines 1307--1309
+Overfull \hbox (2.66408pt too wide) in paragraph at lines 1315--1317
 \OT1/cmr/m/n/12 Therefore, the co-vari-ance max-i-miza-tion prob-lem [] is equi
 v-a-lent to the gen-er-al-ized Raleigh
  []
 
 
+
+[37]
 
 [38]
 
@@ -851,39 +837,30 @@ v-a-lent to the gen-er-al-ized Raleigh
 
 [40]
 
-LaTeX Warning: Reference `' on page 41 undefined on input line 1483.
-
-
-Overfull \hbox (72.57301pt too wide) detected at line 1518
-[]
- []
-
-
-
 [41]
 
 [42]
-Overfull \hbox (7.42436pt too wide) detected at line 1543
-[]
- []
-
-
-Overfull \hbox (36.97052pt too wide) detected at line 1576
-[]
- []
-
-
 
 [43]
+Overfull \hbox (7.42436pt too wide) detected at line 1679
+[]
+ []
+
+
 
 [44]
-Overfull \hbox (18.96121pt too wide) detected at line 1624
+Overfull \hbox (36.97052pt too wide) detected at line 1712
 []
  []
 
 
 
 [45]
+Overfull \hbox (18.96121pt too wide) detected at line 1760
+[]
+ []
+
+
 
 [46]
 
@@ -893,7 +870,9 @@ Overfull \hbox (18.96121pt too wide) detected at line 1624
 
 [49]
 
-[50] (./main.aux (./bu.aux))
+[50]
+
+[51] (./main.aux (./bu.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -903,16 +882,16 @@ L3 programming layer <2025-03-26>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 663C89173DB699894896A89B4C62820B;6055.
+(rerunfilecheck)             Checksum: A6274D6E4C0FD66C9C519329568856C2;6045.
  ) 
 Here is how much of TeX's memory you used:
- 15029 strings out of 469626
- 239630 string characters out of 5475183
- 640842 words of memory out of 5000000
- 41424 multiletter control sequences out of 15000+600000
+ 15028 strings out of 469626
+ 239552 string characters out of 5475183
+ 640800 words of memory out of 5000000
+ 41422 multiletter control sequences out of 15000+600000
  643150 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,15n,79p,1303b,629s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,16n,79p,1303b,629s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/tex
 live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texlive/2025
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/2025/texmf-dis
@@ -933,10 +912,10 @@ ts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
 2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><c:/texlive/2025
 /texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/tex
 mf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on main.pdf (50 pages, 977805 bytes).
+Output written on main.pdf (51 pages, 981951 bytes).
 PDF statistics:
- 812 PDF objects out of 1000 (max. 8388607)
- 695 compressed objects within 7 object streams
- 175 named destinations out of 1000 (max. 500000)
+ 821 PDF objects out of 1000 (max. 8388607)
+ 702 compressed objects within 8 object streams
+ 176 named destinations out of 1000 (max. 500000)
  279 words of extra memory for PDF output out of 10000 (max. 10000000)
 
