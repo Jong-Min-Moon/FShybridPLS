@@ -611,7 +611,8 @@ The $l$-th iteration's second step involves residualization of both predictors a
 \begin{equation}\label{def:plsscore}
 	\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}},
 \end{equation}
-utilizing the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
+using the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
+Since   $\widetilde{W}_i^{[l]}$ are assumed to have a sample mean of zero, these PLS scores will also have a sample mean of zero.
 Using these PLS scores as scalar predictor observations, the $(l+1)$-th iteration's residualized response is computed as:
 \begin{equation}\label{algorithm_step:residualization_response}
 	Y_i^{[l+1]} := Y_i^{[l]} - 
@@ -623,7 +624,8 @@ Using these PLS scores as scalar predictor observations, the $(l+1)$-th iteratio
 	\widehat{\rho}_{il},
 \end{equation}
 which is equivalent to using the least squares estimate from regressing $Y_i^{[l]}$ on $\widehat{\rho}_{il}$,
-a procedure identical to that found in the naive PLS algorithm (Section \ref{sec: Naive PLS Algorithm}).
+a procedure identical to that found in the naive PLS algorithm (Section \ref{sec: Naive PLS Algorithm}). 
+Since $Y_i^{[l]}$ are assumed to have a sample mean of zero, these residuals $Y_i^{[l+1]}$   also have a sample mean of zero.
 
 For predictor residualization, we fit a hybrid-on-scalar regression model where the predictor is the PLS score for each observation. Specifically, we fit $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration.
   Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively.
@@ -667,7 +669,9 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	B^{\prime \prime}
 	\bigr)^{-1}
 	  B
-	(\Theta_j^{[l]})^\top,
+	(\Theta_j^{[l]})^\top
+	\hat{\boldsymbol{\rho}}
+	,
 	~
 	j = 1, \ldots, K,
 	%%%%%%%%%%%%%%%%%%%%%%%%
@@ -677,7 +681,7 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}.
 \end{equation*}
  \end{lemma}
- Proof of Proposition \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
+ Proof of Lemma \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
  
  The $(l+1)$-th iteration's residualized predictor is then computed as:
 \begin{equation}\label{algorithm_step:residualization_predictor}
@@ -686,7 +690,7 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	 \widetilde{W}_i^{[l]}  - \widehat{\rho}_{il}  \widehat{ {\delta}}_{l}.
 	%%%%%%%%%%%
 \end{equation}
- 
+ Since $\widetilde{W}_i^{[l]} $ are assumed to have a sample mean of zero, these residuals $\widetilde{W}_i^{[l+1]}$   also have a sample mean of zero.
 	
 	 
 	
@@ -1508,7 +1512,7 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	\end{proof}
 	
 	
-\section{Proof of Proposition \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
+\section{Proof of Lemma \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
 For notational simplicity, we omit the iteration superscript $[l]$.
 	Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
 	where
@@ -1664,6 +1668,7 @@ providing the following closed-form solution:
 	\bigr\}^{-1}
  B
 \Theta_j^\top
+\hat{\boldsymbol{\rho}}
 ~
 j = 1, \ldots, K,
 	%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1671,7 +1676,7 @@ j = 1, \ldots, K,
 \hat{\boldsymbol{\chi} }
 =\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
 \end{equation*}
-This completes the proof of Proposition \ref{proposition:closed_form_orthgonalization}.
+This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
 	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
 	$\mathcal{U}$ is \textit{positive} because for every $\mathbf{h} \in \mathcal{H}$,
 	\begin{equation*}
