@@ -491,7 +491,7 @@ We denote the estimated PLS component direction as
 	\bigr)~s.t.~\| \xi  \|_\mathcal{H} = 1.
 \end{equation}
 %
-Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair which can be expanded as:
+Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair  expanded as:
 \begin{equation*}
 	\hat{\xi}	= 
 	\bigl(
@@ -568,9 +568,6 @@ However, this approach  \citet{Rice1991} assumes that the functional predictors 
 To avoid the orthogonal basis assumption of  \citet{Rice1991}, we adopt the strategy of \citet{Silverman1996}, which replaces the standard orthonormality constraint with a weaker one based on a modified inner product that incorporates roughness. Accordingly, our estimation procedure at the $l$-th iteration, iteration index omitted and assuming the observations have been residualized in previous steps, solves the following optimization problem:
 \begin{equation}\label{def:maximizer_squared_empirical_cov_reg}
 	\hat{\xi} 
-	= 
-	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}}
-	)
 	:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
 	}~\widehat{\textnormal{Cov}}^2 
 	\bigl(
@@ -578,21 +575,38 @@ To avoid the orthogonal basis assumption of  \citet{Rice1991}, we adopt the stra
 	\bigr)~s.t.~\| \xi  \|_\mathcal{H} +  \sum \limits_{j=1}^K \lambda_j 
 	\operatorname{PEN}(\xi_K) = 1.
 \end{equation}
+Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair  expanded as:
+\begin{equation*}
+	\hat{\xi}	= 
+	\bigl(
+	\hat{\xi}_1(t), \ldots, \hat{\xi}_K(t), \hat{\boldsymbol{\zeta}}
+	\bigr)
+	=
+	\biggl(
+	\sum_{m=1}^M \hat{\gamma}_{1m} \, b_m(t),
+	\ldots, 
+	\sum_{m=1}^M \hat{\gamma}_{Km} \, b_m(t), \hat{\boldsymbol{\zeta}}
+	\biggr)
+	,
+\end{equation*}
+where  $\hat{\boldsymbol{\zeta}}$ is the scalar part.
 This formulation maximizes the squared covariance over a class of smooth functions.
-Proposition~\ref{proposition:eigen_regul} expresses this problem as a generalized Rayleigh quotient.
-
+ Obtaining these coefficients is equivalent to solving the maximization problem   \eqref{def:maximizer_squared_empirical_cov_reg}. The following proposition formulates this coefficients obtaining procedure as a generalized Rayleigh quotient:
 \begin{proposition}\label{proposition:eigen_regul}
 	Let
 	$
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
 	$
 	denote the observed data defined in \eqref{def:problem_instance}.
-	At the $l$-th iteration of the PLS algorithm, the maximizer of  the squared empirical covariance defined in \eqref{def:maximizer_squared_empirical_cov_reg}, represented as the Euclidean vector form as in \eqref{def:maximizer_euclidean_form},
-	is obtained by solving 
+	At the $l$-th iteration of the PLS algorithm, 	the coefficients of the squared covariance  maximizer defined in \eqref{def:maximizer_squared_empirical_cov_reg}, 
+	is obtained as
 	\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
-		\left(
-		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
-		\right)^\top
+	\left(
+\hat{\gamma}_{11}, \ldots, \hat{\gamma}_{1M}
+, \ldots,
+\hat{\gamma}_{K1}, \ldots, \hat{\gamma}_{KM}
+, \hat{\boldsymbol{\zeta}}^\top
+\right)^\top
 		=
 		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
 		\quad \text{s.t.} \quad 
