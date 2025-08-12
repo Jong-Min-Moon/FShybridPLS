@@ -187,7 +187,10 @@ The framework is readily applicable to dense and irregular functionaldata, and s
 
 \section{Data Objects and Model Formulation} \jongmin{still revising}
 For $k = 1, \ldots, K$, 
-we assume that the functional predictors $X_{ik}(t)$ are observed on the domain $0 \leq t \leq 1$.and belong to $L^2([0,1])$, the Hilbert space of square-integrable real-valued functions with respect to the Lebesgue measure $dt$ on $[0,1]$.
+we assume that the functional predictors $X_{ik}(t)$ are observed on the domain $0 \leq t \leq 1$, and belong to $\mathcal{F}$,
+which is defined as the space of real-valued functions on $[0,1]$
+which are square-integrable with respect to the Lebesgue measure $dt$ on $[0,1]$,
+ and possess second  derivatives.
 Additionally, let $\mathbf{Z}=(Z_1, \ldots, Z_p)^\top$
 denote a $p$-dimensional multivariate scalar data in $\mathbb{R}^p$, assumed to be a random vector with finite first two moments, equipped with the Euclidean inner product and norm.
  % i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
@@ -196,7 +199,7 @@ The hybrid random predictor and corresponding inner product is formally defined 
 	We define a  hybrid predictor  $W_i$ as an ordered pair combining the functional predictors $X_{i1}(t), \ldots, X_{iK}(t)$ and a scalar predictor $\mathbf{Z}_i$:
 \begin{equation}\label{def:hybid_predictor}
 		W_i := (X_{i1}, \ldots, X_{iK}, \mathbf{Z}_i)
-		\in \mathcal{H} :=  L^2([0,1])^{\otimes K} \times \mathbb{R}^p
+		\in \mathcal{H} :=  \mathcal{F}^{\otimes K} \times \mathbb{R}^p
 \end{equation}
 	The inner product between two hybrid predictors,
 	$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
@@ -206,7 +209,7 @@ The hybrid random predictor and corresponding inner product is formally defined 
 		\langle W_1, W_2\rangle_{\mathcal{H}}
 		:=
 		\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
-		+
+		+ 
 		\omega
 		\mathbf{Z}_1^\top \mathbf{Z}_2,
 	\end{equation}
@@ -838,8 +841,34 @@ In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{firs
 In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 
 \begin{definition}[Roughness-sensitive inner product]
-	$\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$
+		Given two hybrid predictors 	$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
+	and
+	$W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$ belonging to $\mathcal{H}$ defined in Definition \ref{def:hybid_predictor}
+	and roughness penalty matrix 	$\Lambda  = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$,
+	The inner product between two hybrid predictors, taking into the roughness peanlties,  is then defined as:
+\begin{equation}
+	\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}
+\end{equation}
+	\begin{equation}		\label{eq: hybrid inner product}
+	\langle W_1, W_2\rangle_{\mathcal{H}, \Lambda}
+	:=
+	\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
+	\sum \limits_{k=1}^K \int_0^1 X^{\prime \prime}_{1k}(t) X^{\prime \prime}_{2k}(t) \, dt
+	+ 
+	\omega
+	\mathbf{Z}_1^\top \mathbf{Z}_2,
+\end{equation}
+for $\omega > 0$.
+The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
 \end{definition}
+ 
+
+ 
+
+
+
+
+
   ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product  which now takes into account the roughness of the functions:
 \begin{align*}
 	\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
