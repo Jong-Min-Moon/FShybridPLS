@@ -702,7 +702,14 @@ Since $Y_i^{[l]}$ are assumed to have a sample mean of zero, these residuals $Y_
 For predictor residualization, we fit a hybrid-on-scalar regression model where the predictor is the PLS score for each observation. Specifically, we fit $\widetilde{W}^{[l]}_i = \hat{\rho}^{[l]}_i\, \delta^{[l]} + E_i^{[l]}$, and then take the residuals as the predictor for the next iteration.
 Here, $\delta^{[l]}$ and $E_i^{[l]}$ are the regression coefficient and error terms, respectively.
 Performing this pointwisely, as in Section \ref{sec: Naive PLS Algorithm}, is highly inefficient and potentially infeasible for dense or irregular functional data. Moreover, the results may lack smoothness, introducing instability that propagates to subsequent results and compromises the entire algorithm.
-Therefore, we employ a basis expansion approach to fit the entire hybrid object in one step. We assume both $\delta^{[l]}$ and $E_i^{[l]}$ are elements of $\tilde{\mathcal{H}}$, as defined in \eqref{def:truncated_hilbert_space}. To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} ) \in \tilde{\mathcal{H}}$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}. Consequently, $\delta^{[l]}$ is obtained by minimizing a penalized least squares criterion, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
+Therefore, we employ a basis expansion approach to fit the entire hybrid object in one step. We assume both $\delta^{[l]}$ and $E_i^{[l]}$ are elements of $\tilde{\mathcal{H}}$, as defined in \eqref{def:truncated_hilbert_space}. %To ensure the stability of the entire PLS estimation procedure, the estimated regression coefficient $\hat{\delta}^{[l]} = (\hat{\delta}^{[l]}_1, \ldots, \hat{\delta}^{[l]}_K, \hat{\boldsymbol{\chi}}^{[l]} ) \in \tilde{\mathcal{H}}$ should have smooth functional parts, consistent with Section \ref{sec: Regularization of PLS Components}.
+ Consequently, $\delta^{[l]}$ is obtained by minimizing a %penalized 
+ least squares criterion:%, where the functional part is penalized by the integrated squared second derivative defined in \eqref{def:roughness_penalty}:
+ \begin{equation}\label{def:argmin_pensse}
+ 	\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \sum_{i=1}^n 
+ 	\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathcal{H}}^2.
+ \end{equation}
+ \begin{comment}
 \begin{equation}\label{def:argmin_pensse}
 	\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \operatorname{PENSSE}( \delta),
 \end{equation}
@@ -719,6 +726,7 @@ where
 	\sum_{j=1}^K\operatorname{PEN}(\delta_j).
 \end{equation}
 where $\tau>0$ is a  smoothing parameter controlling the trade-off between fit accuracy and functional regression coefficient smoothness.
+\end{comment}
 The following proposition shows that the solution of the problem \ref{def:argmin_pensse} can be obtained by solving linear equations.
 
 \begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
@@ -732,15 +740,8 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	\begin{equation*}
 		\hat{\boldsymbol{\pi}}_j^{[l]}
 		=
-		\bigl(
-		\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2
-		B
-		+
-		\tau
-		B^{\prime \prime}
-		\bigr)^{-1}
-		B
-		(\Theta_j^{[l]})^\top
+		\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+		\Theta_j^{[l] \top}
 		\hat{\boldsymbol{\rho}}^{[l]}
 		,
 		~
@@ -750,11 +751,12 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	 \begin{equation*}
 	 	\hat{\boldsymbol{\chi} }^{[l]}
 	 	=
-	 	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}^{[l]}.
+	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+		\mathbf{Z}^{[l] \top}  \hat{\boldsymbol{\rho}}^{[l]}.
 	 \end{equation*}
 \end{lemma}
 Proof of Lemma \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
-
+\jongmin{proof needs to be revised}
 The $(l+1)$-th iteration's residualized predictor is then computed as:
 \begin{equation}\label{algorithm_step:residualization_predictor}
 	\widetilde{W}_i^{[l+1]} 
@@ -1589,7 +1591,17 @@ is computed through the following matrix multiplication:
 	\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
 \end{equation}
 The criterion $\operatorname{PENSSE}( \delta)$ can be decomposed as follows:
-
+\begin{equation}\label{def:pensse}
+	\operatorname{PENSSE}( \delta)
+	:=
+	\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
+	\,
+	\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
+	\rangle_{\mathcal{H}}
+	+
+	\tau
+	\sum_{j=1}^K\operatorname{PEN}(\delta_j).
+\end{equation}
 \begin{align*}
 	\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathcal{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
 	&= 
@@ -1672,7 +1684,7 @@ Now we compute the gradients:
 	\nabla_{\boldsymbol{\chi}}
 	B_2(\boldsymbol{\delta}) 
 	=
-	2\boldsymbol{\chi} ,
+	2(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})\boldsymbol{\chi} ,
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\\
 	\nabla_{\boldsymbol{\pi}_j}
@@ -1719,7 +1731,7 @@ Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$
 	&=
 	-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
 	+
-	2\hat{\boldsymbol{\chi} }
+	2 (\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) \hat{\boldsymbol{\chi} }
 	=
 	0,
 \end{align*}
@@ -1741,7 +1753,9 @@ providing the following closed-form solution:
 	%%%%%%%%%%%%%%%%%%%%%%%%
 	\quad
 	\hat{\boldsymbol{\chi} }
-	=\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
+	=
+	\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
+	\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
 \end{equation*}
 This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
 \section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
@@ -1940,10 +1954,11 @@ Our next task is to show that
 \mathbb{B}
 \hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n.
 \end{equation*}
-Without loss of generality, we show that the $i$th entry of $\Theta^{[l_1] }
+From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{def:gram_block}, the
+ $i$th entry of $\Theta^{[l_1] }
 \mathbb{B}
-\hat{\boldsymbol{\xi}}_{l_2}$ is 0.
-From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{def:gram_block}, the $i$-th entry is
+\hat{\boldsymbol{\xi}}_{l_2}$ 
+is
 \begin{align*}
 	(\Theta^{[l_1] }
 	\mathbb{B}
@@ -1960,48 +1975,72 @@ From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{de
 	+
 	\mathbf{Z}_{i}^{[l_1] \top } \hat{\boldsymbol{\zeta}}^{[l_2]}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\	&=
+\\	&\overset{(i)}{=}
 \langle
 \widetilde{W}_i^{[l_1]}, 
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}},
+\rangle_{\mathcal{H}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\	&\overset{(ii)}{=}
+\langle
+\widetilde{W}_i^{[l_1-1]}  , 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+-
+\widehat{{\rho}}_i^{[l_1-1]}
+\langle
+   \widehat{\delta}^{[l_1-1]}, 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&\overset{(iii)}{=}
+\langle
+\widetilde{W}_i^{[l_1-1]}  , 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+-
+\frac{\widehat{{\rho}}_i^{[l_1-1]}}{\| \widehat{\boldsymbol{\rho}}^{[l_1-1]} \|_2^2}
+\widehat{\boldsymbol{\rho}}^{[l_1-1] \top}
+(
+\sum_{k=1}^K {\Theta}_{k}^{[l_1-1]} 
+B \boldsymbol{\gamma}_k^{[l_2]}
++
+Z^{[l_1-1]} 
+\boldsymbol{\zeta}^{[l_2]}
+)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{align*}
-where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}.
- 
-We can express the $l_1$-th residualized hybrid predictor in terms of its previous $(l_1-1)$-th version:
-\begin{equation*}
+where 
+step $(i)$ uses the computation of the $i$th entry in \eqref{score_inner_product_all_n},
+step $(ii)$ uses $
 	\widetilde{W}_i^{[l_1]}= \widetilde{W}_i^{[l_1-1]} - \widehat{{\rho}}_i^{[l_1-1]} \widehat{\delta}^{[l_1-1]}
-\end{equation*}
-\end{proof}
-
-which, after applying the finite-dimensional form (9), implies that
-\begin{align*}
-	\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
-	&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
-	& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \left(\frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}] \\
-	&= \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}].
-\end{align*}
-
-
-	Let us denote
 $
-\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top.
-%\quad\text{and} \quad		\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
-$
-The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
-$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients
+ and step $(iii)$ uses 
+ the closed-form formula of $\widehat{\delta}^{[l_1-1]}$ given by Lemma \ref{proposition:closed_form_orthgonalization}.
+	Therefore, we have
 \begin{equation*}
+\Theta^{[l_1] }
+\mathbb{B}
+\hat{\boldsymbol{\xi}}_{l_2}
+=
+\langle
+\widetilde{W}^{[l_1-1]}  , 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+-
+\frac{1}{\| \widehat{\boldsymbol{\rho}}^{[l_1-1]} \|_2^2}
+\widehat{\boldsymbol{\rho}}^{[l_1-1] \top}
+\langle
+\widetilde{W}^{[l_1-1]}  , 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+\widehat{\boldsymbol{\rho}}^{[l_1-1]}
+\end{equation*}
+	\begin{equation*}
 	\hat{\boldsymbol{\pi}}_j^{[l]}
 	=
-	\bigl(
-	\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2
-	B
-	+
-	\tau
-	B^{\prime \prime}
-	\bigr)^{-1}
-	B
-	(\Theta_j^{[l]})^\top
+	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+	\Theta_j^{[l] \top}
 	\hat{\boldsymbol{\rho}}^{[l]}
 	,
 	~
@@ -2013,6 +2052,17 @@ and scalar parts given by:
 	=
 	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}^{[l]}.
 \end{equation*}
+
+\end{proof}
+
+which, after applying the finite-dimensional form (9), implies that
+\begin{align*}
+	\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
+	&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
+	& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \left(\frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}] \\
+	&= \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}].
+\end{align*}
+
 
 
 
