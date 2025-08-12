@@ -102,9 +102,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Addresses                                %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\address[A]{University of Southern California\printead[presep={,\ }]{e1}}
+\address[A]{Data Sciences and Operations Department, Marshall School of Business, University of Southern California\printead[presep={,\ }]{e1}}
 
-\address[B]{University of Texas Medical Branch\printead[presep={,\ }]{e2}}
+\address[B]{Department of Biostatistics and Data Science, University of Texas Medical Branch\printead[presep={,\ }]{e2}}
 \end{aug}
 
 \begin{abstract}
@@ -484,28 +484,28 @@ The  PLS component direction is estimated by the unit-norm direction $\xi^{[l]} 
 We denote the estimated PLS component direction as
 \begin{equation}\label{def:maximizer_squared_empirical_cov}
 	\hat{\xi} 
-	= 
-	(\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}}
-	)
 	:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
 	}~\widehat{\textnormal{Cov}}^2 
 	\bigl(
 	\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
-	\bigr)~s.t.~\| \xi  \|_\mathcal{H} = 1,
+	\bigr)~s.t.~\| \xi  \|_\mathcal{H} = 1.
 \end{equation}
 %
-where each functional part $\hat{\xi}_j $  is expanded as
-$
-\hat{\xi}_j(t) := 
-\sum_{m=1}^M \hat{\gamma}_{jm} \, b_m(t),
-$
-and $\hat{\boldsymbol{\zeta}}$ is the scalar part. This maximizer can also be represented as a concatenated Euclidean vector
-\begin{equation}\label{def:maximizer_euclidean_form}
-	( \hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top )^\top
-	\in \mathbb{R}^{MK+p},
-\end{equation}
-where the coefficient vectors $\hat{\boldsymbol{\gamma}}_1, \ldots, \hat{\boldsymbol{\gamma}}_K$ are defined as in \eqref{def:coef_vector_form}.
-Proposition \ref{proposition:eigen_noregul} reformulates  the problem \eqref{def:maximizer_squared_empirical_cov} as  a generalized Rayleigh quotient.
+Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair which can be expanded as:
+\begin{equation*}
+	\hat{\xi}	= 
+	\bigl(
+	\hat{\xi}_1(t), \ldots, \hat{\xi}_K(t), \hat{\boldsymbol{\zeta}}
+	\bigr)
+	=
+\biggl(
+	\sum_{m=1}^M \hat{\gamma}_{1m} \, b_m(t),
+		 \ldots, 
+		\sum_{m=1}^M \hat{\gamma}_{Km} \, b_m(t), \hat{\boldsymbol{\zeta}}
+	\biggr)
+	,
+\end{equation*}
+where  $\hat{\boldsymbol{\zeta}}$ is the scalar part. Obtaining these coefficients is equivalent to solving the maximization problem   \eqref{def:maximizer_squared_empirical_cov}. The following proposition formulates this coefficients obtaining procedure as a generalized Rayleigh quotient:
 %
 \begin{proposition}\label{proposition:eigen_noregul}
 	Let
@@ -513,11 +513,15 @@ Proposition \ref{proposition:eigen_noregul} reformulates  the problem \eqref{def
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
 	$
 	denote the observed data defined in \eqref{def:problem_instance}.
-	At the $l$-th iteration of the PLS algorithm, the unit-norm maximizer of  the squared empirical covariance defined in \eqref{def:maximizer_squared_empirical_cov}, represented as the Euclidean vector form as in \eqref{def:maximizer_euclidean_form},
-	is obtained by solving 
+	At the $l$-th iteration of the PLS algorithm, 
+	the coefficients of the squared covariance  maximizer defined in \eqref{def:maximizer_squared_empirical_cov}, 
+	is obtained as
 	\begin{equation}	\label{eq: Unregularized generalized rayleigh quotient equation}
 		\left(
-		\hat{\boldsymbol{\gamma}}_1^\top, \ldots, \hat{\boldsymbol{\gamma}}_K^\top, \hat{\boldsymbol{\zeta}}^\top
+		\hat{\gamma}_{11}, \ldots, \hat{\gamma}_{1M}
+		, \ldots,
+		\hat{\gamma}_{K1}, \ldots, \hat{\gamma}_{KM}
+		, \hat{\boldsymbol{\zeta}}^\top
 		\right)^\top
 		=
 		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
