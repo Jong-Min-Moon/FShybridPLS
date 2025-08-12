@@ -651,18 +651,17 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 
  \begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
  	Let us denote
- 	\begin{equation*}
- 		 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top
- 	\quad\text{and} \quad
- 			\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
- 	\end{equation*}
+ $
+ 		 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top.
+ 	%\quad\text{and} \quad		\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
+ $
  	The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
  	$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients and scalar parts given by:
 \begin{equation*}
 	\hat{\boldsymbol{\pi}}_j^{[l]}
 	=
 	\bigl(
-		\bar{\rho}^{[l]}
+		\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2
   B
 	+
 	\tau
@@ -670,15 +669,15 @@ The following proposition shows that the solution of the problem \ref{def:argmin
 	\bigr)^{-1}
 	  B
 	(\Theta_j^{[l]})^\top
-	\hat{\boldsymbol{\rho}}
+	\hat{\boldsymbol{\rho}}^{[l]}
 	,
 	~
 	j = 1, \ldots, K,
 	%%%%%%%%%%%%%%%%%%%%%%%%
 	\quad
-	\hat{\boldsymbol{\chi} }
+	\hat{\boldsymbol{\chi} }^{[l]}
 	=
-	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}.
+	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}^{[l]}.
 \end{equation*}
  \end{lemma}
  Proof of Lemma \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
