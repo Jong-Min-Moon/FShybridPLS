@@ -14,6 +14,7 @@
  \usepackage{hyperref}
  \usepackage{enumerate}
  \usepackage{xcolor}
+ \usepackage{bbm}
 % \usepackage{url} % not crucial - just used below for the URL 
 % \usepackage{bibunits}
 \usepackage{subcaption}
@@ -872,30 +873,17 @@ A fundamental property of partial least squares   is that its derived bases are 
 	\end{equation}
 \end{definition}
 Based on this inner product, the following proposition states that the PLS component directions estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal.
-\begin{proposition}\label{proposition: modified orthnormality of PLS components}\jongmin{currently revising}
-	The estimated PLS components, $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
+\begin{proposition}[Orthonormality of regularized PLS component directions]\label{proposition: modified orthnormality of PLS components}
+	The PLS component directions $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathcal{H}, \Lambda}$. That is,
 	\begin{equation*}
-		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
-		= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}
-		= \mathbb{1}(l=j). 
+		\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathcal{H}, \Lambda}
+		= \mathbbm{1}(l_1 = l_2), \quad l_1, l_2 = 1, \ldots, L.
 	\end{equation*}
 \end{proposition}
 The proof of Proposition \ref{proposition: modified orthnormality of PLS components} is provided in Appendix \ref{section:proof:proposition: modified orthnormality of PLS components}.
+
+\jongmin{revising here}
 Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. 
-
-
-
-
-
-
-($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product  which now takes into account the roughness of the functions:
-\begin{align*}
-	\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
-	&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
-	&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
-	& = \mathbb{1}(l=j). 
-\end{align*}
-
 The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
 \begin{proposition}	\label{proposition: orthnormality of PLS scores}
 	The vectors of estimated PLS scores, $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$, obtained from the proposed PLS algorithm are mutually orthogonal in the sense that
