@@ -138,14 +138,14 @@ As an illustrative example, the Emory University renal study \citep{changBayesia
 	\boldsymbol{\beta}^\top \mathbf{Z}_i
 	+ 
 	\sum 
-	\limits_{j=1}^K 
-	\int  \beta_j(t) X_{ij}(t) dt + \epsilon_i,
+	\limits_{k=1}^K 
+	\int  \beta_j(t) X_{ik}(t) dt + \epsilon_i,
 	\quad
 	i = 1, \ldots, n,
 	%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
 \end{equation}
-where $Y$ is a scalar response, $\mathbf{Z}$ is the Euclidean vector covariate and 
-$X_{i1}(t), \ldots, X_{iK}(t)$ are functional predicters.
+where $Y_i$ is a scalar response, $\mathbf{Z}_i$ is a Euclidean vector covariate, 
+$X_{i1}(t), \ldots, X_{iK}(t)$ are functional predicters, and $\epsilon_i$ is an observational noise.
 For notational convenience, we assume throughout this paper that the responses and predictors have been centered, allowing the intercept term to be ignored.
 %where $\boldsymbol{\alpha}=(\alpha_1, \ldots, \alpha_p)^\top \in \mathbb{R}^p$ and $\beta=(\beta^{(1)}, \ldots, \beta^{(K)}) \in \mathcal{F}$ are respectively the regression coefficient vector and function that characterize the effect of scalar and functional predictors on the outcome.
 
@@ -837,49 +837,24 @@ The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendi
 In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 
 
-\subsection{Geometric Properties}\label{section:sub:prop_geom}\jongmin{currently revising}
+\subsection{Geometric Properties}\label{section:sub:prop_geom}
 In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 
-\begin{definition}[Roughness-sensitive inner product]
-		Given two hybrid predictors 	$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
-	and
-	$W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$ belonging to $\mathcal{H}$ defined in Definition \ref{def:hybid_predictor}
-	and roughness penalty matrix 	$\Lambda  = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$,
-	The inner product between two hybrid predictors, taking into the roughness peanlties,  is then defined as:
-\begin{equation}
-	\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}
-\end{equation}
-	\begin{equation}		\label{eq: hybrid inner product}
-	\langle W_1, W_2\rangle_{\mathcal{H}, \Lambda}
-	:=
-	\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
-	\sum \limits_{k=1}^K \int_0^1 X^{\prime \prime}_{1k}(t) X^{\prime \prime}_{2k}(t) \, dt
-	+ 
-	\omega
-	\mathbf{Z}_1^\top \mathbf{Z}_2,
-\end{equation}
-for $\omega > 0$.
-The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
+A fundamental property of partial least squares   is that its derived bases are orthonormal. Our regularized estimates preserve this property, with respect to a modified inner product that incorporates the roughness penalty, defines as follows:
+\begin{definition}[Roughness-sensitive inner product]\label{def:hybrid_inner_product_roughness}
+	Given two hybrid predictors $W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$ and $W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, both elements of $\mathcal{H}$ as defined in Definition \ref{def:hybid_predictor}, and a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, the roughness-sensitive inner product between $W_1$ and $W_2$ is defined as:
+	\begin{equation}		\label{eq: hybrid inner product_roughness}
+		\langle W_1, W_2\rangle_{\mathcal{H}, \Lambda}
+		:=
+		\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
+		+
+		\sum \limits_{k=1}^K \lambda_k \int_0^1 X^{\prime \prime}_{1k}(t) X^{\prime \prime}_{2k}(t) \, dt
+		+
+		\mathbf{Z}_1^\top \mathbf{Z}_2.
+	\end{equation}
 \end{definition}
- 
-
- 
-
-
-
-
-
-  ($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product  which now takes into account the roughness of the functions:
-\begin{align*}
-	\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
-	&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
-	&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
-	& = \mathbb{1}(l=j). 
-\end{align*}
-This modified orthonormality condition is one of the main geometric properties of the proposed PLS algorithm and is formally stated with proof in Section \ref{section:main:properties_of_our_method} (see Proposition \ref{proposition: modified orthnormality of PLS components}), along with other properties. 
-
-The following proposition states that the PLS components estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal with respect to the modified inner product $\langle \langle \cdot \rangle \rangle$ that incorporates the roughness of the functions.
-\begin{proposition}\label{proposition: modified orthnormality of PLS components}
+Based on this inner product, the following proposition states that the PLS component directions estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal.
+\begin{proposition}\label{proposition: modified orthnormality of PLS components}\jongmin{currently revising}
 	The estimated PLS components, $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, from the proposed PLS algorithm are mutually orthonormal with respect to the modified inner product $\langle \langle h_l, h_j \rangle \rangle = \langle h_l, h_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \langle \ddot{f}_l^{(k)}, \ddot{f}_j^{(k)} \rangle_{L^2}$ in $\mathcal{H}$ that incorporates the roughness of the functions; i.e.,
 	\begin{equation*}
 		\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
@@ -888,7 +863,22 @@ The following proposition states that the PLS components estimated from Proposit
 	\end{equation*}
 \end{proposition}
 The proof of Proposition \ref{proposition: modified orthnormality of PLS components} is provided in Appendix \ref{section:proof:proposition: modified orthnormality of PLS components}.
-Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
+Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. 
+
+
+
+
+
+
+($\widehat{\xi}_1, \widehat{\xi}_2, \ldots$)  based on the modified inner product  which now takes into account the roughness of the functions:
+\begin{align*}
+	\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle 
+	&= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right \rangle_{L^2} \\
+	&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
+	& = \mathbb{1}(l=j). 
+\end{align*}
+
+The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
 \begin{proposition}	\label{proposition: orthnormality of PLS scores}
 	The vectors of estimated PLS scores, $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$, obtained from the proposed PLS algorithm are mutually orthogonal in the sense that
 	\begin{equation*}
