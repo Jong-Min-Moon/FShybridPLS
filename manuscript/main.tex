@@ -425,7 +425,11 @@ For the predictors, we stack the coefficient vectors across observations into th
 \begin{equation}\label{def:theta}
 	\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M},
 \end{equation}
-and construct the full design matrix $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$. Let us denote the response vector as $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
+and construct the full design matrix 
+\begin{equation}\label{def:full_theta}
+\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}.
+\end{equation}
+Let us denote the response vector as $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
 Let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, with entries
 \begin{equation}\label{def:B_matrix}
 	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt, \quad
@@ -1354,9 +1358,9 @@ The finite-basis approximation allows us to represent the hybrid predictor obser
 		\langle {\xi},{\xi} \rangle_{\mathcal{H}}
 		&=
 		\sum_{j=1}^K
-		\langle
-		\xi_j, \xi_j
-		\rangle
+		\int_0^1
+		\xi_j(t) \, \xi_j(t)
+		\, dt
 		+
 		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1575,13 +1579,15 @@ The finite-basis approximation allows us to represent the hybrid predictor obser
 
 \section{Proof of Lemma \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
 For notational simplicity, we omit the iteration superscript $[l]$.
+ Recall from  \eqref{def:plsscore} that
+$\hat{\rho}_i
+=
+\langle \widetilde{W}_i, \, \hat{\xi} \rangle_{\mathcal{H}}$.
 Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
-where
-$\hat{\rho}_1$ is defined in \eqref{def:plsscore},
 is computed through the following matrix multiplication:
-\begin{equation*}
+\begin{equation}\label{score_inner_product_all_n}
 	\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
-\end{equation*}
+\end{equation}
 The criterion $\operatorname{PENSSE}( \delta)$ can be decomposed as follows:
 
 \begin{align*}
@@ -1835,20 +1841,139 @@ with maximum attained at $\mathbf{h}=f_{11}$, which is an eigenfunction of  $\ma
 \section{Proof of Proposition \ref{proposition: modified orthnormality of PLS components}}
 \label{section:proof:proposition: modified orthnormality of PLS components}
 
-Firstly, it is obvious by the unit-norm constraint enforced in Proposition \ref{proposition: eigenanalysis} that:
-\begin{align*}
-	\langle \langle \hat{\xi}_l,  \hat{\xi}_l \rangle \rangle &= \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle_{\mathcal{H}} + \sum_{k=1}^K \lambda_k \left\langle \ddot{\widehat{\psi}}_l^{(k)}, \ddot{\widehat{\psi}}_j^{(k)} \right\rangle_{L^2}  \\
-	&= \sum \limits_{k=1}^K \int_0^1 \widehat{\psi}_l^{(k)}(t_k) \widehat{\psi}_j^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p \widehat{\theta}_{lr} \widehat{\theta}_{jr} + \sum_{k=1}^K \lambda_k \int_0^1 \ddot{\widehat{\psi}}_l^{(k)}(t_k) \ddot{\widehat{\psi}}_j^{(k)}(t_k) dt_k \\
-	&= \sum \limits_{k=1}^K \int_0^1 \hat{\mathbf{a}}^{(k) \top}_l \mathbf{b}^{(k)}(t_k) \mathbf{b}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k + \boldsymbol{\theta}_l^\top \boldsymbol{\theta}_l + \sum \limits_{k=1}^K \lambda_k \int_0^1 \hat{\mathbf{a}}^{(k) \top}_l \ddot{\mathbf{b}}^{(k)}(t_k) \ddot{\mathbf{b}}^{(k) \top}(t_k) \hat{\mathbf{a}}^{(k)}_l  dt_k \\
-	& = \sum \limits_{k=1}^K \hat{\mathbf{a}}_l^{(k) \top} J^{(k)} \hat{\mathbf{a}}_l^{(k)} + \boldsymbol{\theta}_l^\top \boldsymbol{\theta}_l +  \sum \limits_{k=1}^K \lambda_k \hat{\mathbf{a}}^{(k) \top}_l \ddot{J}^{(k)} \hat{\mathbf{a}}^{(k)}_l \\
-	& = \hat{\xi}_l^{*\top} J^\ast \hat{\xi}_l^* + \hat{\xi}_l^{*\top} \Lambda \ddot{J}^\ast \hat{\xi}_l^* = \hat{\xi}_l^{*\top} (J^\ast +\Lambda \ddot{J}^\ast) \hat{\xi}_l^* = 1
-\end{align*}
-where $\ddot{\mathbf{b}}^{(k)}(t_k) = (\ddot{b}_1^{(k)}(t_k), \ldots, \ddot{b}_M^{(k)}(t_k))^\top$
+\begin{proof}
+	The unit norm condition is trivially met by the constraint 
+	$1 =  	\hat{\boldsymbol{\xi}}_l^\top 
+	\hspace{-.2em}
+	(\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \hat{\boldsymbol{\xi}}_l$
+	enforced in \eqref{eq: Regularized generalized rayleigh quotient equation}, because we have:
+	\begin{align*}
+  	\hat{\boldsymbol{\xi}}_l^\top 
+\hspace{-.2em}
+(\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \hat{\boldsymbol{\xi}}_l
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&= \hat{\boldsymbol{\xi}}^\top_l 
+\hspace{-.2em}
+\mathbb{B}
+ \hat{ \boldsymbol{\xi} }_l
+ +
+ \hat{ \boldsymbol{\xi} }_l^\top 
+ \hspace{-.2em}
+ \Lambda \mathbb{B}^{\prime \prime} \hat{ \boldsymbol{\xi} }_l
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \\&\overset{(i)}{=}
+ \sum_{j=1}^K
+ \int_0^1
+ \hat{\xi}_l(t) \, \hat{\xi}_l(t)
+ \, dt
+ +
+ \hat{\boldsymbol{\zeta}}^\top  \hat{\boldsymbol{\zeta}}
+ +
+  \hat{\boldsymbol{\xi}}^\top 
+ \hspace{-.2em}
+ \Lambda \mathbb{B}^{\prime \prime} \hat{\boldsymbol{\xi}}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \\&\overset{(ii)}{=}
+ \sum_{j=1}^K
+ \int_0^1
+ \hat{\xi}_l(t) \, \hat{\xi}_l(t)
+ \, dt
+ +
+ \hat{\boldsymbol{\zeta}}^\top \hat{\boldsymbol{\zeta}}
+ +
+ \sum \limits_{j=1}^K 
+ \lambda_l
+ \int_0^1 \bigl\{ \hat{\xi}_l^{\prime\prime}(t) \bigr\}^2 dt
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \\&=
+ \langle \widehat{\xi}_{l}, \widehat{\xi}_{l} \rangle_{\mathcal{H}, \Lambda},
+\numberthis \label{rough_norm_matrix_form}
+	\end{align*}
+where step $(i)$ uses \eqref{unit_norm_as_quadform}
+and
+step $(ii)$ uses \eqref{pen_as_matrix}.
 
-Now to prove the orthogonality, we first express the $l$-th residualized hybrid predictor in terms of its previous $(l-1)$-th version:
+Now to switch our gears toward the the orthogonality. For  $l_1 > l_2 $, we have
+\begin{align*}
+	\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathcal{H}, \Lambda}
+	& \overset{(i)}{=}
+	\hat{\boldsymbol{\xi}}_{l_1}^\top 
+	\hspace{-.2em}
+	(\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \hat{\boldsymbol{\xi}}_{l_2}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\	& \overset{(ii)}{=} \frac{1}{\kappa_{l_1}} (V^{[l_1]} \widehat{\boldsymbol{\xi}}_{l_1})^\top \hat{\boldsymbol{\xi}}_{l_2}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\	& = \frac{1}{\kappa_{l_1}}
+	\widehat{\boldsymbol{\xi}}_{l_1}^\top
+	V^{[l_1]} \hat{\boldsymbol{\xi}}_{l_2} 
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\	& \overset{(iii)}{=} \frac{1}{ n^2 \kappa_{l_1}}
+	\widehat{\boldsymbol{\xi}}_{l_1}^\top
+	(\mathbb{B} \Theta^{[l_1]\top} \mathbf{y})(\mathbb{B} \Theta^{[l_1]\top} \mathbf{y})^\top
+	\hat{\boldsymbol{\xi}}_{l_2}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\	& = \frac{1}{ n^2 \kappa_{l_1}}
+	\widehat{\boldsymbol{\xi}}_{l_1}^\top
+	(\mathbb{B} \Theta^{[l_1]\top} \mathbf{y})
+	\mathbf{y}^\top
+	\Theta^{[l_1] } 
+	\mathbb{B}
+	\hat{\boldsymbol{\xi}}_{l_2}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\	& = c
+	\mathbf{y}^\top
+	(
+	\Theta^{[l_1] }
+	\mathbb{B}
+	\hat{\boldsymbol{\xi}}_{l_2}
+	),
+\end{align*}
+where
+step $(i)$ uses \eqref{rough_norm_matrix_form},
+step $(ii)$ uses the fact that $\hat{\boldsymbol{\xi}}_{l_1}$ is a generalized eigenvector ($\kappa_{l_1}$ denotes the corresponding generalized eigenvalue), as presented in Proposition \ref{proposition:eigen_regul},
+and step $(iii)$ uses the definition of $V$ matrix given in \eqref{def:V_matrix},
+and $c$ represents a scalar.
+
+Our next task is to show that 
 \begin{equation*}
-	\widetilde{W}^{[l]}[\mathbf{t}] = \widetilde{W}^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\delta}}_l[\mathbf{t}]^\top 
+\Theta^{[l_1] }
+\mathbb{B}
+\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n.
 \end{equation*}
+Without loss of generality, we show that the $i$th entry of $\Theta^{[l_1] }
+\mathbb{B}
+\hat{\boldsymbol{\xi}}_{l_2}$ is 0.
+From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{def:gram_block}, the $i$-th entry is
+\begin{align*}
+	(\Theta^{[l_1] }
+	\mathbb{B}
+	\hat{\boldsymbol{\xi}}_{l_2})_i
+	&=
+	(\theta_{i11}^{[l_1]}, \ldots, \theta_{i1M}^{[l_1]}, \ldots, \theta_{iK1}^{[l_1]}, \ldots, \theta_{iKM}^{[l_1]}, Z_{i1}^{[l_1]}, \ldots, Z_{ip}^{[l_1]})
+	\mathbb{B}
+	\hat{\boldsymbol{\xi}}_{l_2}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\\&=
+	\sum_{k=1}^K
+	\boldsymbol{\theta}_{ik}^{[l_1]} B
+	\hat{\boldsymbol{\gamma}}_k^{[l_2]}
+	+
+	\mathbf{Z}_{i}^{[l_1] \top } \hat{\boldsymbol{\zeta}}^{[l_2]}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\	&=
+\langle
+\widetilde{W}_i^{[l_1]}, 
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}},
+\end{align*}
+where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}.
+ 
+We can express the $l_1$-th residualized hybrid predictor in terms of its previous $(l_1-1)$-th version:
+\begin{equation*}
+	\widetilde{W}_i^{[l_1]}= \widetilde{W}_i^{[l_1-1]} - \widehat{{\rho}}_i^{[l_1-1]} \widehat{\delta}^{[l_1-1]}
+\end{equation*}
+\end{proof}
+
 which, after applying the finite-dimensional form (9), implies that
 \begin{align*}
 	\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
@@ -1856,6 +1981,42 @@ which, after applying the finite-dimensional form (9), implies that
 	& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \left(\frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}] \\
 	&= \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{C}^{*[l-1]} B^*[\mathbf{t}].
 \end{align*}
+
+
+	Let us denote
+$
+\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top.
+%\quad\text{and} \quad		\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
+$
+The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
+$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients
+\begin{equation*}
+	\hat{\boldsymbol{\pi}}_j^{[l]}
+	=
+	\bigl(
+	\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2
+	B
+	+
+	\tau
+	B^{\prime \prime}
+	\bigr)^{-1}
+	B
+	(\Theta_j^{[l]})^\top
+	\hat{\boldsymbol{\rho}}^{[l]}
+	,
+	~
+	j = 1, \ldots, K,
+\end{equation*}
+and scalar parts given by:
+\begin{equation*}
+	\hat{\boldsymbol{\chi} }^{[l]}
+	=
+	(\mathbf{Z}^{[l]})^\top  \hat{\boldsymbol{\rho}}^{[l]}.
+\end{equation*}
+
+
+
+
 Thus, we have
 \begin{align*}
 	\widetilde{W}^{[l]}[\mathbf{t}] &= \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \widetilde{W}^{[l-1]}[\mathbf{t}] \\
@@ -1874,10 +2035,9 @@ Then for $j < l$,
 	&= P(\widehat{\boldsymbol{\rho}}_j-\widehat{\boldsymbol{\rho}}_j) \\
 	&= \mathbf{0} \in \mathbb{R}^n, 
 \end{align*}
-noting that $\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \widehat{\boldsymbol{\rho}}_j$. Now by the generalized eigenvalue problem (i.e., generalized Rayleigh quotient problem) presented in Proposition 2, we have that for $j < l$,
+noting that $\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \widehat{\boldsymbol{\rho}}_j$. Now by the , we have that 
+
 \begin{align*}
-	\langle \langle \widehat{\xi}_l, \widehat{\xi}_j \rangle \rangle &= \widehat{\xi}_l^{*\top} (J^\ast + \Lambda \ddot{J}^\ast)\widehat{\xi}_j^{*} \\
-	& = \frac{1}{\kappa_l} (V^\ast_l \widehat{\xi}_l^{*})^\top \widehat{\xi}_j^{*} \\
 	&=  \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} V^\ast_l \widehat{\xi}_j^{*} \\
 	&= \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} \left(n^{-2} J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top} \widetilde{C}^{*[l]} J^\ast \right) \widehat{\xi}_j^{*} \\
 	&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top} \ J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \widetilde{C}^{*[l]}\left(\int_{\mathcal{T}} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top d\mathbf{t}  \right) \widehat{\xi}_j^{*} \\

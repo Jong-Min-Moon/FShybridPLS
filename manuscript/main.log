@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  11 AUG 2025 22:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  12 AUG 2025 00:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -716,7 +716,7 @@ L/cmm/m/it/10.95 ;  [][] \OT1/cmr/m/n/10.95 := (\OML/cmm/m/it/10.95 ^^Y[]; [] ;
 [6]
 
 [7]
-Overfull \hbox (8.55116pt too wide) in paragraph at lines 606--615
+Overfull \hbox (8.55116pt too wide) in paragraph at lines 610--619
 [][][]\T1/ptm/m/sc/11 Proposition \T1/ptm/m/n/11 4.2 (Reg-u-lar-ized es-ti-ma-t
 ion of PLS com-po-nent di-rec-tion)\T1/ptm/m/sc/11 . []\T1/ptm/m/it/11 Let $\OT
 1/cmr/m/n/10.95 (\U/msb/m/n/11 B\OML/cmm/m/it/10.95 ; \U/msb/m/n/11 B[]\OML/cmm
@@ -729,36 +729,36 @@ ion of PLS com-po-nent di-rec-tion)\T1/ptm/m/sc/11 . []\T1/ptm/m/it/11 Let $\OT
 [8]
 
 [9]
-Underfull \hbox (badness 896) in paragraph at lines 771--773
+Underfull \hbox (badness 896) in paragraph at lines 775--777
  \T1/ptm/m/n/11 4.4.\T1/ptm/m/it/11 Final step: es-ti-mat-ing the hy-brid re-gr
 es-sion co-ef-fi-cient.[][] \T1/ptm/m/n/11 JM: no-ta-tion not yet
  []
 
 
-LaTeX Warning: Reference `def:V_star' on page 10 undefined on input line 803.
+LaTeX Warning: Reference `def:V_star' on page 10 undefined on input line 807.
 
 
 LaTeX Warning: Reference `compute_pls_score' on page 10 undefined on input line
- 811.
+ 815.
 
 
 
 [10]
 
 [11]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 897
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 901
 .
  (c:/texlive/2025/texmf-dist/tex/latex/bbm-macros/ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
 )
 
 LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 897.
+(Font)              size <5> substituted on input line 901.
 
 
 
 [12]
-Overfull \hbox (43.52954pt too wide) detected at line 931
+Overfull \hbox (43.52954pt too wide) detected at line 935
 [] \OML/cmm/m/it/10.95 p\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 X \OMS/cmsy/m/n
 /10.95 j \OT1/cmr/bx/n/10.95 M\OML/cmm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 R\OML/c
 mm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 C\OT1/cmr/m/n/10.95 ) = \OMS/cmsy/m/n/10.95
@@ -767,28 +767,28 @@ cmsy/m/n/10.95 ^^@ [] [] j\OT1/cmr/bx/n/10.95 C\OMS/cmsy/m/n/10.95 j ^^@ [] []
 j\OT1/cmr/bx/n/10.95 R\OMS/cmsy/m/n/10.95 j ^^@ [][] [] \OML/cmm/m/it/10.95 :
  []
 
-<image/cor_strong.pdf, id=524, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=525, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 947.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 951.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/cor_weak.pdf, id=525, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=526, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 954.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 958.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/graph_strong.pdf, id=526, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=527, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 963.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 967.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
-<image/graph_weak.pdf, id=527, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=528, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 970.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 974.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 9
-97.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
+001.
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
@@ -797,7 +797,7 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 
 [14 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
-Overfull \hbox (53.07956pt too wide) detected at line 1025
+Overfull \hbox (53.07956pt too wide) detected at line 1029
 \OML/cmm/m/it/10.95 X[]\OT1/cmr/m/n/10.95 (0) = 0\OML/cmm/m/it/10.95 ;  X[]\OT1
 /cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) = \OML/cmm/m/it/10.95
  ^^ZX[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t \OMS/cmsy/m/n/10.95 ^^@ \OT1/c
@@ -808,22 +808,22 @@ r/m/n/10.95 (0\OML/cmm/m/it/10.95 ; ^^[[]\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.9
  ; \OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 :
  []
 
-<image/graph.png, id=571, 447.3513pt x 447.3513pt>
+<image/graph.png, id=572, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 1056.
+Package pdftex.def Info: image/graph.png  used on input line 1060.
 (pdftex.def)             Requested size: 162.39752pt x 162.39789pt.
 
 
 [15]
 
-LaTeX Warning: Reference `table ' on page 16 undefined on input line 1087.
+LaTeX Warning: Reference `table ' on page 16 undefined on input line 1091.
 
-<Screenshot 2025-02-25 125839.png, id=583, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=584, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
-090.
+094.
 (pdftex.def)             Requested size: 365.39752pt x 153.62358pt.
 
 
@@ -834,17 +834,17 @@ Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
 [18]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 1175.
+(hyperref)                than one, level fixed on input line 1179.
 
 
-Underfull \hbox (badness 849) in paragraph at lines 1175--1177
+Underfull \hbox (badness 849) in paragraph at lines 1179--1181
 \T1/ptm/m/n/11 tional part of the PLS com-po-nent in terms of the same ba-sis f
 unc-tions: $\OML/cmm/m/it/10.95  []\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t[]\
 OT1/cmr/m/n/10.95 ) =
  []
 
 
-Overfull \hbox (17.4029pt too wide) in paragraph at lines 1175--1177
+Overfull \hbox (17.4029pt too wide) in paragraph at lines 1179--1181
 [][] \OML/cmm/m/it/10.95 a[]b[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t[]\OT1/
 cmr/m/n/10.95 ) = \OT1/cmr/bx/n/10.95 a[]b[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/1
 0.95 t[]\OT1/cmr/m/n/10.95 )$ \T1/ptm/m/n/11 and $\OML/cmm/m/it/10.95  \OT1/cmr
@@ -862,7 +862,7 @@ n/10.95 )[] \OMS/cmsy/m/n/10.95 2
 [20]
 
 LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 21 undefined on
- input line 1442.
+ input line 1446.
 
 
 
@@ -871,24 +871,24 @@ LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 21 undefined on
 [22]
 
 LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 23 undefined on
- input line 1607.
+ input line 1613.
 
 
 
 [23]
-Overfull \hbox (30.63258pt too wide) detected at line 1764
+Overfull \hbox (30.63258pt too wide) detected at line 1770
 []
  []
 
 
-Overfull \hbox (58.38766pt too wide) detected at line 1797
+Overfull \hbox (58.38766pt too wide) detected at line 1803
 []
  []
 
 
 
 [24]
-Overfull \hbox (4.71313pt too wide) detected at line 1829
+Overfull \hbox (4.71313pt too wide) detected at line 1835
 \OMS/cmsy/m/n/10.95 kC[]k[] \OT1/cmr/m/n/10.95 = [] \OMS/cmsy/m/n/10.95 jC[]\OT
 1/cmr/bx/n/10.95 h\OMS/cmsy/m/n/10.95 j[] \OT1/cmr/m/n/10.95 = [] \OMS/cmsy/m/n
 /10.95 j\OML/cmm/m/it/10.95 E\OT1/cmr/m/n/10.95 (\OMS/cmsy/m/n/10.95 h\OT1/cmr/
@@ -900,75 +900,70 @@ OT1/cmr/bx/n/10.95 h\OMS/cmsy/m/n/10.95 i[]\OML/cmm/m/it/10.95 ; Y\OT1/cmr/m/n/
  []
 
 
-Overfull \hbox (48.66328pt too wide) detected at line 1845
-[]
- []
-
-
 
 [25]
 
 [26]
 
 [27]
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 19
-51.
+
+[28]
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 21
+11.
  (c:/texlive/2025/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 
-[28]
-
 [29]
-LaTeX Font Info:    Trying to load font information for T1+phv on input line 20
-37.
+LaTeX Font Info:    Trying to load font information for T1+phv on input line 21
+97.
  (c:/texlive/2025/texmf-dist/tex/latex/psnfss/t1phv.fd
 File: t1phv.fd 2020/03/25 scalable font definitions for T1/phv.
 )
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 9.89993pt on input line 2037.
+(Font)              scaled to size 9.89993pt on input line 2197.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/m/it' in size <5.5> not available
-(Font)              size <5> substituted on input line 2043.
+(Font)              size <5> substituted on input line 2203.
 
 
 LaTeX Font Warning: Font shape `OT1/cmss/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 2048.
+(Font)              size <5> substituted on input line 2208.
 
 
 LaTeX Font Warning: Font shape `OT1/cmtt/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 2049.
+(Font)              size <5> substituted on input line 2209.
 
-LaTeX Font Info:    Trying to load font information for U+euf on input line 205
+LaTeX Font Info:    Trying to load font information for U+euf on input line 221
 0.
 (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/ueuf.fd
 File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
 )
-LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <11> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 2078.
-LaTeX Font Info:    Font shape `T1/pcr/b/it' in size <11> not available
-(Font)              Font shape `T1/pcr/b/sl' tried instead on input line 2079.
-
 
 [30]
-Overfull \hbox (3.73936pt too wide) in paragraph at lines 2123--2125
+LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <11> not available
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 2238.
+LaTeX Font Info:    Font shape `T1/pcr/b/it' in size <11> not available
+(Font)              Font shape `T1/pcr/b/sl' tried instead on input line 2239.
+
+Overfull \hbox (3.73936pt too wide) in paragraph at lines 2283--2285
 [][]\T1/ptm/m/sc/11 Fact. []\T1/ptm/m/n/11 This is the body of the fact. Fact i
 s un-num-bered be-cause we used [][]\T1/pcr/m/n/11 \newtheorem*
  []
 
 
 LaTeX Font Warning: Font shape `T1/ptm/m/scit' undefined
-(Font)              using `T1/ptm/m/sc' instead on input line 2132.
+(Font)              using `T1/ptm/m/sc' instead on input line 2292.
 
 
 LaTeX Font Warning: Font shape `T1/ptm/m/scit' undefined
-(Font)              using `T1/ptm/m/sc' instead on input line 2157.
+(Font)              using `T1/ptm/m/sc' instead on input line 2317.
 
-<figure1.pdf, id=747, 167.45561pt x 157.00658pt>
+<figure1.pdf, id=757, 167.45561pt x 157.00658pt>
 File: figure1.pdf Graphic file (type pdf)
 <use figure1.pdf>
-Package pdftex.def Info: figure1.pdf  used on input line 2187.
+Package pdftex.def Info: figure1.pdf  used on input line 2347.
 (pdftex.def)             Requested size: 167.4552pt x 157.00618pt.
 
 
@@ -1023,6 +1018,8 @@ esianLatentClass2020}) has been already used, duplicate ignored
                    \relax 
 l.41 ...t~al., 2020]{changBayesianLatentClass2020}
                                                   
+
+[33]
 pdfTeX warning (ext4): destination with the same identifier (name{cite.delaigle
 MethodologyTheoryPartial2012}) has been already used, duplicate ignored
 <to be read again> 
@@ -1091,8 +1088,6 @@ ctiononfunctionLinearQuantile2025}) has been already used, duplicate ignored
                    \relax 
 l.106 ...utisFunctiononfunctionLinearQuantile2025}
                                                   
-
-[33]
 pdfTeX warning (ext4): destination with the same identifier (name{cite.predaPLS
 RegressionStochastic2005}) has been already used, duplicate ignored
 <to be read again> 
@@ -1166,16 +1161,16 @@ LaTeX Font Warning: Size substitutions with differences
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 6E3C6F055CF84A1597364F61CE4527A1;9351.
+(rerunfilecheck)             Checksum: 525E5A58AF29852CBCCA8B4F077676C9;9351.
  ) 
 Here is how much of TeX's memory you used:
- 14955 strings out of 469626
- 232919 string characters out of 5475183
- 630830 words of memory out of 5000000
- 41289 multiletter control sequences out of 15000+600000
+ 14961 strings out of 469626
+ 233014 string characters out of 5475183
+ 630088 words of memory out of 5000000
+ 41292 multiletter control sequences out of 15000+600000
  710518 words of font info for 161 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,20n,79p,1243b,622s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,20n,79p,1243b,605s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <c:/Users/jongmin/.texlive2025/texmf-var/fonts/pk/ljfour/public/bbm/bbm10.65
 7pk><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/t
 exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/202
@@ -1210,10 +1205,10 @@ pe1/urw/courier/ucrr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/helvetic
 /uhvr8a.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/te
 xlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texmf-d
 ist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (34 pages, 1116712 bytes).
+Output written on main.pdf (34 pages, 1119043 bytes).
 PDF statistics:
- 989 PDF objects out of 1000 (max. 8388607)
- 854 compressed objects within 9 object streams
- 215 named destinations out of 1000 (max. 500000)
+ 1006 PDF objects out of 1200 (max. 8388607)
+ 871 compressed objects within 9 object streams
+ 218 named destinations out of 1000 (max. 500000)
  468 words of extra memory for PDF output out of 10000 (max. 10000000)
 
