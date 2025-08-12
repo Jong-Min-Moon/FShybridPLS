@@ -129,10 +129,12 @@ We propose a hybrid partial least squares (PLS) regression framework that integr
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\tableofcontents
 	\section{Introduction} \label{sec: Introduction}
-%Functional data analysis (FDA) treats each observed process as a realization of a random function over a continuous domain, such as time or space. The smoothness and infinite-dimensional nature of functional data allow researchers to exploit rich structural features, including derivatives and complex covariance patterns. This enables regression analysis for predicting clinical outcomes using complex functional predictors collected with advanced recording technologies, such as medical imaging data.
+%Functional data analysis (FDA) treats each observed process as a realization of a random function over a continuous domain, such as time or space. The smoothness and infinite-dimensional nature of functional data allow researchers to exploit rich structural features, including . This enables regression analysis for predicting clinical outcomes using complex functional predictors collected with advanced recording technologies, such as medical imaging data.
 
 Modern biomedical studies frequently collect diverse data types from each subject.
-As an illustrative example, the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021}  records both multiple renogram curves (functional data) and multiple renogram variables (vector data)  for each kidney. These modalities provide distinct yet related physiological signals. To effectively analyze such heterogeneous data, we need statistical methods capable of jointly modeling functional and vector-valued covariates. This approach accounts for both shared and modality-specific variations linked to clinical outcomes. Our work focuses on developing a method to fit the following hybrid functional linear regression model:
+As an illustrative example, the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021}  records both multiple   renogram curves (functional data) and multiple renogram variables (scalar data)  for each kidney. 
+To effectively analyze such distinct yet related physiological signals, we construct a joint linear regression model incorporating both functional and scalar-valued covariates. 
+ %This approach accounts for both shared and modality-specific variations linked to clinical outcomes. Our work focuses on developing a method to fit the following hybrid functional linear regression model:
 \begin{equation}	\label{eq: functional model}
 	Y_i
 	= 
@@ -140,7 +142,7 @@ As an illustrative example, the Emory University renal study \citep{changBayesia
 	+ 
 	\sum 
 	\limits_{k=1}^K 
-	\int  \beta_j(t) X_{ik}(t) dt + \epsilon_i,
+	\int  \beta_k(t) X_{ik}(t) dt + \epsilon_i,
 	\quad
 	i = 1, \ldots, n,
 	%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
@@ -154,7 +156,11 @@ For notational convenience, we assume throughout this paper that the responses a
 %Infinite dimensional beta estimation problem (ill-posed problem)
 %Multicollinearity and high-dimensionality in scalar predictors are not handled.
 %Also, there may be high correlation between functional and scalar predictors.
-Regression with functional and scalar predictors poses several challenges. Estimating the infinite-dimensional slope function is an ill-posed problem requiring regularization or dimension reduction. Scalar predictors are often high-dimensional and multicollinear, further complicating estimation. Moreover, strong correlations between functional and scalar predictors are common but typically overlooked by separate modeling approaches. These issues call for a unified framework that addresses ill-posedness, high-dimensionality, and cross-modality correlation jointly.
+This hybrid model poses several challenges.
+Estimating the infinite-dimensional slope function $\beta_k(t) $ is an ill-posed problem requiring  dimension reduction or regularization based on structural assumption,
+such as derivatives and covariance patterns.
+ Scalar predictors are often high-dimensional and multicollinear.
+ Moreover, strong correlations between functional and scalar predictors are common but typically overlooked by separate modeling approaches. These issues call for a unified framework that addresses ill-posedness, high-dimensionality, and cross-modality correlation jointly.
 
 Many approaches have been proposed
 1. Roughness Penalty
@@ -417,17 +423,10 @@ denote the $M$-dimensional vectors of coefficients:
 \end{equation}
 For the predictors, we stack the coefficient vectors across observations into the matrix
 \begin{equation}\label{def:theta}
-	\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M}.
+	\Theta_j := (\boldsymbol{\theta}_{1j}, \ldots, \boldsymbol{\theta}_{nj})^\top  \in \mathbb{R}^{n \times M},
 \end{equation}
-The full data for the hybrid PLS problem can be represented by the tuple
-\begin{equation}\label{def:problem_instance}
-	(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta, \mathbf{y}) \in 
-	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
-	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
-	\mathbb{R}^{n \times (MK+p)} \times 
-	\mathbb{R}^n,
-\end{equation}
-where $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ are the Gram matrices of the basis functions and their second derivatives, with entries
+and construct the full design matrix $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$. Let us denote the response vector as $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
+Let $B, B^{\prime\prime} \in \mathbb{R}^{M \times M}$ denote the Gram matrices of the basis functions and their second derivatives, with entries
 \begin{equation}\label{def:B_matrix}
 	B_{m, m'} := \int_0^1 b_m(t)\, b_{m'}(t)\, dt, \quad
 	B^{\prime\prime}_{m, m'} := \int_0^1 b_m''(t)\, b_{m'}''(t)\, dt,
@@ -437,7 +436,17 @@ for $m, m' = 1, \ldots, M$. We then define the block-diagonal matrices
 	\mathbb{B} := \operatorname{blkdiag}(B, \ldots, B, I_p), \quad
 	\mathbb{B}^{\prime\prime} := \operatorname{blkdiag}(B^{\prime\prime}, \ldots, B^{\prime\prime}, I_p),
 \end{equation}
-the full design matrix $\Theta := (\Theta_1, \ldots, \Theta_K, Z) \in \mathbb{R}^{n \times (MK + p)}$, and the response vector $\mathbf{y} := (y_1, \ldots, y_n)^\top$.
+
+Then the full data for the hybrid PLS problem at the $l$-th iteration can be represented by the tuple
+\begin{equation}\label{def:problem_instance}
+	(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta, \mathbf{y}) \in 
+	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
+	\mathbb{R}^{(MK+p) \times (MK+p)} \times 
+	\mathbb{R}^{n \times (MK+p)} \times 
+	\mathbb{R}^n,
+\end{equation}
+with the index $l$ omitted for brevity.
+
 
 \begin{remark}
 	While different bases could be used for each functional predictor, we adopt a common basis for simplicity. The definitions of $\mathbb{B}$ and $\mathbb{B}^{\prime\prime}$ remain general enough to accommodate distinct bases if needed.
@@ -460,7 +469,7 @@ In practice, this weighting scheme can be implemented by formulating the hybrid 
 
 \subsection{Iterative steps}
 The iterative process presented here yields an orthonormal hybrid basis that effectively captures the predictor-response relationships. It proceeds through two intermediate steps: the estimation of the PLS component direction (Section \ref{section:sub:compute_PLS_component}) and residualization (Section \ref{section:sub:residualization}). The properties of the resulting estimates are introduced in Section \ref{section:main:properties_of_our_method}.
-\subsubsection{Iterative step 1: Regularized estimation of smoothed PLS component direction}  \label{section:sub:compute_PLS_component} 
+\subsubsection{Iterative step 1: regularized estimation of  PLS component direction}  \label{section:sub:compute_PLS_component} 
 We begin by formally introducing the core optimization problem pertinent to the PLS direction estimation, which is formulated as a generalized Rayleigh quotient (Proposition \ref{proposition:eigen_noregul}). Building upon this foundational concept, we present our regularized PLS component direction estimation step that promotes smoothness (Proposition \ref{proposition:eigen_regul}). Furthermore,  we detail an efficient computational scheme (Proposition \ref{proposition:linear_regul}).
 
 \medskip
@@ -593,14 +602,23 @@ Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair  expanded as:
 where  $\hat{\boldsymbol{\zeta}}$ is the scalar part.
 This formulation maximizes the squared covariance over a class of smooth functions.
  Obtaining these coefficients is equivalent to solving the maximization problem   \eqref{def:maximizer_squared_empirical_cov_reg}. The following proposition formulates this coefficients obtaining procedure as a generalized Rayleigh quotient:
-\begin{proposition}\label{proposition:eigen_regul}
+\begin{proposition}[Regularized estimation of PLS component direction]\label{proposition:eigen_regul}
 	Let
 	$
 	(\mathbb{B}, \mathbb{B}^{\prime \prime}, \Theta, \mathbf{y})
 	$
-	denote the observed data defined in \eqref{def:problem_instance}.
-	At the $l$-th iteration of the PLS algorithm, 	the coefficients of the squared covariance  maximizer defined in \eqref{def:maximizer_squared_empirical_cov_reg}, 
-	is obtained as
+	denote the  data given at the $l$-th iteration, as defined in \eqref{def:problem_instance}.
+	Recall from \eqref{def:V_matrix} that $
+	V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ .
+	 Let 
+	$\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ be defined as:
+	\begin{equation}\label{def:Lambda}
+		\Lambda := \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p}),
+		~\text{where}~\lambda_1, \ldots, \lambda_K \geq 0.
+	\end{equation}
+Here, $0_{p \times p}$ denotes the $p \times p$ zero matrix.
+ 	The coefficients of the squared covariance  maximizer defined in \eqref{def:maximizer_squared_empirical_cov_reg}, 
+	are obtained as
 	\begin{equation}	\label{eq: Regularized generalized rayleigh quotient equation}
 	\left(
 \hat{\gamma}_{11}, \ldots, \hat{\gamma}_{1M}
@@ -608,26 +626,25 @@ This formulation maximizes the squared covariance over a class of smooth functio
 \hat{\gamma}_{K1}, \ldots, \hat{\gamma}_{KM}
 , \hat{\boldsymbol{\zeta}}^\top
 \right)^\top
+\hspace{-.7em}
 		=
-		\arg \max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
-		\quad \text{s.t.} \quad 
+		\arg 
+		\hspace{-.6em}
+		\max_{\boldsymbol{\xi} \in \mathbb{R}^{MK+p}}   \boldsymbol{\xi}^\top V \boldsymbol{\xi}
+	~~\text{s.t.}~~
 		%
 		% constraint
-		\boldsymbol{\xi}^\top (\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \boldsymbol{\xi} = 1.
+		\boldsymbol{\xi}^\top 
+		\hspace{-.2em}
+		(\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \boldsymbol{\xi} = 1.
 	\end{equation}
-	where we recall that $
-	V = n^{-2} (\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top$ is defined in  \eqref{def:V_matrix}, and 
-	$\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$ is given by
-	\begin{equation}\label{def:Lambda}
-		\Lambda := \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p}),
-	\end{equation}
-	where $0_{p \times p}$ denotes the $p \times p$ zero matrix.
+
 \end{proposition}
 The proof of Proposition \ref{proposition:eigen_regul} is provided in Appendix  \ref{section:proof:proposition:eigen_regul}.
 %orthonormality preview
 The constraint $	\boldsymbol{\xi}^\top (\mathbb{B} + \Lambda \mathbb{B}^{\prime \prime}) \boldsymbol{\xi} = 1$
 enforces the orthonormality of the estimated PLS component directions with respect to a modified inner product (see Section \ref{section:sub:prop_geom} for details).
-The smoothing parameter $\lambda_k > 0$  balances goodness of fit and smoothness in $\hat{\xi}_j$. Smaller $\lambda_k$ yields components that better fit the data but risks overfitting; setting $\lambda_k = 0$ recovers the unregularized solution in Proposition~\ref{proposition:eigen_noregul}. Larger $\lambda_k$ enforces greater smoothness, and in the limit $\lambda_k \to \infty$, $\hat{\xi}_j(t)$ approaches a linear form $a + bt$. In practice, both $\{\lambda_k\}$ and the number of components $L$ can be selected via cross-validation using a predictive criterion such as mean squared error.
+The smoothing parameter $\lambda_k$  balances goodness of fit and smoothness in $\hat{\xi}_j$. Smaller $\lambda_k$ yields components that better fit the data but risks overfitting; setting $\lambda_k = 0$ recovers the unregularized solution in Proposition~\ref{proposition:eigen_noregul}. Larger $\lambda_k$ enforces greater smoothness, and in the limit $\lambda_k \to \infty$, $\hat{\xi}_j(t)$ approaches a linear form $a + bt$. In practice, both $\{\lambda_k\}$ and the number of components $L$ can be selected via cross-validation using a predictive criterion such as mean squared error.
 
 
 \medskip

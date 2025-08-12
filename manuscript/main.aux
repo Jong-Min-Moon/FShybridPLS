@@ -6,6 +6,8 @@
 \citation{goldsmithPenalizedFunctionalRegression2011}
 \citation{cardotSplineEstimatorsFunctional2003,caiPredictionFunctionalLinear2006}
 \citation{zhaoWaveletbasedLASSOFunctional2012}
+\citation{hallMethodologyConvergenceRates2007,reissFunctionalPrincipalComponent2007,febrero-bandeFunctionalPrincipalComponent2017}
+\citation{jangPrincipalComponentAnalysis2021}
 \gdef\hy@title{ Partial Least Squares Regression with Multiple Functional and Scalar Predictors}
 \thanksnewlabel{e1@email}{{jongmin.mun@marshall.usc.edu}{1}}
 \thanksnewlabel{e2@email}{{jejang@utmb.edu }{1}}
@@ -20,8 +22,6 @@
 \newlabel{sec: Introduction}{{1}{1}{Introduction}{section.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{eq: functional model}{{1}{1}{Introduction}{equation.1}{}}
-\citation{hallMethodologyConvergenceRates2007,reissFunctionalPrincipalComponent2007,febrero-bandeFunctionalPrincipalComponent2017}
-\citation{jangPrincipalComponentAnalysis2021}
 \citation{predaPLSRegressionStochastic2005,reissFunctionalPrincipalComponent2007,aguileraUsingBasisExpansions2010,delaigleMethodologyTheoryPartial2012,aguileraPenalizedVersionsFunctional2016,febrero-bandeFunctionalPrincipalComponent2017,beyaztasRobustFunctionalPartial2022,saricamPartialLeastsquaresEstimation2022,mutisFunctiononfunctionLinearQuantile2025}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Data Objects and Model Formulation}{2}{section.2}\protected@file@percent }
 \newlabel{def:hilbert_space}{{2.1}{2}{Hybrid predictor and inner product}{theorem.2.1}{}}
@@ -47,31 +47,31 @@
 \newlabel{def:truncated_hilbert_space}{{11}{5}{Preliminary step 1: finite-basis approximation}{equation.11}{}}
 \newlabel{def:coef_vector_form}{{12}{6}{Preliminary step 1: finite-basis approximation}{equation.12}{}}
 \newlabel{def:theta}{{13}{6}{Preliminary step 1: finite-basis approximation}{equation.13}{}}
-\newlabel{def:problem_instance}{{14}{6}{Preliminary step 1: finite-basis approximation}{equation.14}{}}
-\newlabel{def:B_matrix}{{15}{6}{Preliminary step 1: finite-basis approximation}{equation.15}{}}
-\newlabel{def:gram_block}{{16}{6}{Preliminary step 1: finite-basis approximation}{equation.16}{}}
+\newlabel{def:B_matrix}{{14}{6}{Preliminary step 1: finite-basis approximation}{equation.14}{}}
+\newlabel{def:gram_block}{{15}{6}{Preliminary step 1: finite-basis approximation}{equation.15}{}}
+\newlabel{def:problem_instance}{{16}{6}{Preliminary step 1: finite-basis approximation}{equation.16}{}}
 \newlabel{subsec: Data Preprocessing}{{4.2}{6}{Preliminary step 2 : data preprocessing}{subsection.4.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Preliminary step 2 : data preprocessing}{6}{subsection.4.2}\protected@file@percent }
 \newlabel{eq: weight}{{4.2}{6}{Preliminary step 2 : data preprocessing}{subsection.4.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Iterative steps}{7}{subsection.4.3}\protected@file@percent }
-\newlabel{section:sub:compute_PLS_component}{{4.3.1}{7}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{subsubsection.4.3.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Iterative step 1: Regularized estimation of smoothed PLS component direction}{7}{subsubsection.4.3.1}\protected@file@percent }
-\newlabel{sec: pls component computation intermediate}{{4.3.1}{7}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{subsubsection.4.3.1}{}}
-\newlabel{def:squared_empirical_cov}{{17}{7}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{equation.17}{}}
-\newlabel{def:maximizer_squared_empirical_cov}{{18}{7}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{equation.18}{}}
+\newlabel{section:sub:compute_PLS_component}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.4.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Iterative step 1: regularized estimation of PLS component direction}{7}{subsubsection.4.3.1}\protected@file@percent }
+\newlabel{sec: pls component computation intermediate}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.4.3.1}{}}
+\newlabel{def:squared_empirical_cov}{{17}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.17}{}}
+\newlabel{def:maximizer_squared_empirical_cov}{{18}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.18}{}}
 \newlabel{proposition:eigen_noregul}{{4.1}{7}{}{theorem.4.1}{}}
 \newlabel{eq: Unregularized generalized rayleigh quotient equation}{{19}{7}{}{equation.19}{}}
 \newlabel{def:V_matrix}{{20}{7}{}{equation.20}{}}
-\newlabel{sec: Regularization of PLS Components}{{4.3.1}{7}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{equation.20}{}}
+\newlabel{sec: Regularization of PLS Components}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.20}{}}
 \citation{Rice1991}
 \citation{Rice1991}
 \citation{Rice1991}
 \citation{Silverman1996}
-\newlabel{def:roughness_penalty}{{21}{8}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{equation.21}{}}
-\newlabel{def:maximizer_squared_empirical_cov_reg}{{22}{8}{Iterative step 1: Regularized estimation of smoothed PLS component direction}{equation.22}{}}
-\newlabel{proposition:eigen_regul}{{4.2}{8}{}{theorem.4.2}{}}
-\newlabel{eq: Regularized generalized rayleigh quotient equation}{{23}{8}{}{equation.23}{}}
-\newlabel{def:Lambda}{{24}{8}{}{equation.24}{}}
+\newlabel{def:roughness_penalty}{{21}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.21}{}}
+\newlabel{def:maximizer_squared_empirical_cov_reg}{{22}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.22}{}}
+\newlabel{proposition:eigen_regul}{{4.2}{8}{Regularized estimation of PLS component direction}{theorem.4.2}{}}
+\newlabel{def:Lambda}{{23}{8}{Regularized estimation of PLS component direction}{equation.23}{}}
+\newlabel{eq: Regularized generalized rayleigh quotient equation}{{24}{8}{Regularized estimation of PLS component direction}{equation.24}{}}
 \newlabel{proposition:linear_regul}{{4.3}{9}{Closed-form solution}{theorem.4.3}{}}
 \newlabel{section:sub:residualization}{{4.3.2}{9}{Iterative step 2: residualization via hybrid-on-scalar regression}{subsubsection.4.3.2}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Iterative step 2: residualization via hybrid-on-scalar regression}{9}{subsubsection.4.3.2}\protected@file@percent }
@@ -97,7 +97,7 @@
 \newlabel{def:hybrid_inner_product_roughness}{{5.3}{12}{Roughness-sensitive inner product}{theorem.5.3}{}}
 \newlabel{eq: hybrid inner product_roughness}{{31}{12}{Roughness-sensitive inner product}{equation.31}{}}
 \citation{zhuBayesianGraphicalModels2016}
-\newlabel{proposition: modified orthnormality of PLS components}{{5.4}{13}{Orthonormality of regularized PLS components}{theorem.5.4}{}}
+\newlabel{proposition: modified orthnormality of PLS components}{{5.4}{13}{Orthonormality of regularized PLS component directions}{theorem.5.4}{}}
 \newlabel{proposition: orthnormality of PLS scores}{{5.5}{13}{}{theorem.5.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Simulations}{13}{section.6}\protected@file@percent }
 \newlabel{fig:cor_strong}{{1a}{14}{Correlation Matrix - Strong Dependency}{figure.caption.1}{}}
