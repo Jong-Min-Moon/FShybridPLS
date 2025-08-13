@@ -794,7 +794,7 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	
 	\subsection{Tucker's Criterion}\jongmin{notation not yet changed}
 	We derive that the PLS components obtained from the first step of the proposed algorithm satisfy the Tucker's Criterion \citep{Tucker1938} extended to our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}. We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
-	\begin{equation*}
+	\begin{equation}\label{def:cross_covariance_yx}
 \sigma_{YX}
 =
  (\sigma_{YX, 1} , \ldots, \sigma_{YX, K} )
@@ -806,8 +806,8 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 \mathbb{E}
 [Y_1  X_{1K}]
 \bigr)   \in \mathcal{F}^{\otimes K},
-	\end{equation*}
-between the response and the scalar predictor:
+	\end{equation}
+and between the response and the scalar predictor:
 \begin{equation*}
 \sigma_{YZ} 
 = 
@@ -879,22 +879,28 @@ Define
 		(\Sigma_{YW} \otimes \Sigma_{YW}) h.
 	\end{equation*}
 		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
+		Then $\mathcal{U}$
 	 is self-adjoint and positive-semidefinite.
 \end{lemma}
 The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
- The following proposition presents several important properties of $\mathcal{U}$.
-	\begin{proposition} \label{Proposition: property of U}
-	 Furthermore, if there exist finite constants $Q_1$ and $Q_2$ such that
+To guarantee the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$, we  first demonstrate that $\mathcal{U}$ is compact.
+To this end, we begin by defining the notion of uniform continuity for the cross-covariance function defined in \eqref{def:cross_covariance_yx}:
+\begin{definition}[Uniform Continuity]\label{def:uniform_continuity}
+	For each $k \in \{1, \ldots, K\}$, the cross-covariance function $\sigma_{YX, k} \in \mathcal{F}$ is uniformly continuous if for any $\epsilon > 0$, there exists a $\delta_k > 0$ such that for all $t_1, t_2 \in [0,1]$ satisfying $|t_1 - t_2 | < \delta_k$, we have
+$
+		| \sigma_{YX, k} (t_1) - \sigma_{YX, k} (t_2) | < \epsilon.
+$
+\end{definition}
+Using this definition, the following lemma presents a condition for $\mathcal{U}$ to be a compact operator.
+	\begin{lemma}[Compactness condition] \label{Proposition: property of U}
+If there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}
-			\max \limits_{k=1, \ldots, K} \sup \limits_{t_k \in [0,1]} \sigma_{YX}^{(k)2}(t_k) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 		\end{align}
-		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous in a sense that for any $\epsilon > 0$, there exists $\delta_k > 0$ such that for every $t_k,t^*_k \in [0,1]$ with $|t_k - t_k^* | < \delta_k$, we have that
-		\begin{equation*}
-			|\sigma_{yx}^{(k)}(t_k) - \sigma_{yx}^{(k)}(t_k^*) | < \epsilon,
-		\end{equation*}
+		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
 		then $\mathcal{U}$ is a compact operator.
-	\end{proposition}
-	The proof of Proposition \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
+\end{lemma}
+The proof of Lemma \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
 	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{Hsing2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
