@@ -198,7 +198,7 @@
 	which is defined as the space of real-valued functions on $[0,1]$
 	which are square-integrable with respect to the Lebesgue measure $dt$ on $[0,1]$,
 	and possess second  derivatives.
-	Additionally, let $\mathbf{Z}=(Z_1, \ldots, Z_p)^\top$
+	Additionally, let $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$
 	denote a $p$-dimensional multivariate scalar data in $\mathbb{R}^p$, assumed to be a random vector with finite first two moments, equipped with the Euclidean inner product and norm.
 	% i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
 	The hybrid random predictor and corresponding inner product is formally defined as follows.
@@ -793,19 +793,76 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	In this section, we derive some of the theoretical and geometric properties of the proposed PLS framework.
 	
 	\subsection{Tucker's Criterion}\jongmin{notation not yet changed}
-	We derive that the PLS components obtained from the first step of the proposed algorithm satisfy the Tucker's Criterion \citep{Tucker1938} extended to our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}. We omit $l$ in the notations and first define the cross-covariance terms between the response and predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
+	We derive that the PLS components obtained from the first step of the proposed algorithm satisfy the Tucker's Criterion \citep{Tucker1938} extended to our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}. We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
 	\begin{equation*}
-		\begin{gathered}
-			\sigma_{YX} = (\sigma_{YX}^{(1)}, \ldots, \sigma_{YX}^{(K)}) = (E(YX^{(1)}),\ldots, E(YX^{(K)})) = E(YX) \in \mathcal{F} \\
-			\sigma_{YZ} = (\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top = (E(YZ_1),\ldots, E(YZ_p))^\top = E(Y\mathbf{Z}) \in \mathbb{R}^p \\
-			\Sigma_{YW}=(\sigma_{YX}, \sigma_{YZ}) =  (E(YX), E(Y\mathbf{Z}))=E(Y\mathbf{W}) \in \mathcal{H}
-		\end{gathered}
+\sigma_{YX}
+=
+ (\sigma_{YX, 1} , \ldots, \sigma_{YX, K} )
+  :=
+\bigl(
+\mathbb{E}
+[Y_1 X_{11}]
+,\ldots, 
+\mathbb{E}
+[Y_1  X_{1K}]
+\bigr)   \in \mathcal{F}^{\otimes K},
 	\end{equation*}
-	We also introduce two cross-covariance operators, $\mathcal{C}_{YW}=E(\mathbf{W} \otimes_\mathcal{H} Y): \mathcal{H} \rightarrow \mathbb{R}$ and $\mathcal{C}_{WY}=E(Y \otimes \mathbf{W}): \mathbb{R} \rightarrow \mathcal{H}$, which respectively map $h=(f, \mathbf{v}) \in \mathcal{H}$ to $\mathbb{R}$ and $d \in \mathbb{R}$ to $\mathcal{H}$ as follows:
-	\begin{align*}
-		& \mathcal{C}_{YW} \mathbf{h} = E\{\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y \} = \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)}(t_k) f^{(k)}(t_k) dt_k + E(Y \mathbf{Z}^\top) \mathbf{v} \\
-		& \mathcal{C}_{WY} d = E (\langle Y, d \rangle \mathbf{W} ) = E(Y\mathbf{W})d =  \Sigma_{YW} \, d. 
-	\end{align*}
+between the response and the scalar predictor:
+\begin{equation*}
+\sigma_{YZ} 
+= 
+(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
+:= 
+\bigl(
+\mathbb{E}[Y_1 Z_{11}]
+,\ldots,
+\mathbb{E}[Y_1 Z_{1p}]
+\bigr)^\top %= E(Y\mathbf{Z})
+\in \mathbb{R}^p.
+\end{equation*}
+Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
+\begin{equation*}
+\Sigma_{YW}=(\sigma_{YX}, \sigma_{YZ}) :=  
+\mathbb{E}
+[ Y_1 W_1 ]
+=
+\bigl(
+\sigma_{YX}, \sigma_{YZ}
+\bigr) \in \mathcal{H}.
+\end{equation*}
+Based on these definitions, we introduce two cross-covariance operators.
+First, $\mathcal{C}_{YW}= \mathbb{E}(W_1 \otimes_\mathcal{H} Y_1): \mathcal{H} \rightarrow \mathbb{R}$ 
+maps  
+  $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
+\begin{equation*}
+\mathcal{C}_{YW}
+\mathbf{h}
+:=
+\mathbb{E} 
+\bigl[ 
+\langle W_1, h \rangle_\mathcal{H} Y_1 
+\bigr] 
+= 
+\langle \Sigma_{YW}, h \rangle_\mathcal{H}
+=
+\sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt 
++ 
+\sigma_{YW}^\top \mathbf{v}.
+\end{equation*}
+Next, $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes \mathbf{W}]: \mathbb{R} \rightarrow \mathcal{H}$
+maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
+%%%%
+\begin{align*}		
+\mathcal{C}_{WY} d 
+:= 
+\mathbb{E} 
+\bigl[
+ \langle Y_1, d \rangle W_1 
+\bigr] 
+= 
+\mathbb{E}
+[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
+\end{align*}
 	
 	
 	Now define a new operator $\mathcal{U} = \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$, which performs the following mapping:
@@ -873,7 +930,7 @@ The next proposition states that the vectors of estimated PLS scores for differe
 		Recall from Lemma \ref{proposition:closed_form_orthgonalization} that   $\widehat{\boldsymbol{\rho}}^{[l]}$ denote the $n$-dimensional vector whose elements consist of the $l$-th estimated PLS scores ($l=1, \ldots, L$) of $n$ observations.
 		The vectors $\widehat{\boldsymbol{\rho}}^{[1]}, \widehat{\boldsymbol{\rho}}^{[2]}, \ldots, \widehat{\boldsymbol{\rho}}^{[L]}$  are mutually orthogonal in the sense that
 		\begin{equation*}
-			\widehat{\boldsymbol{\rho}}^{[l_1] \top}  \widehat{\boldsymbol{\rho}}^{[l_2] \top}= 0 \quad \textnormal{for} \quad \; l_1,l_2 \in \{1, \ldots, L\}, \; l_1 \ne l_2. 
+			\widehat{\boldsymbol{\rho}}^{[l_1] \top}  \widehat{\boldsymbol{\rho}}^{[l_2] }= 0 \quad \textnormal{for} \quad \; l_1,l_2 \in \{1, \ldots, L\}, \; l_1 \ne l_2. 
 		\end{equation*}
 	\end{proposition}
 	The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provided in Appendix \ref{section:proof:proposition: orthnormality of PLS scores}.
@@ -2381,7 +2438,7 @@ This completes the proof of Proposition \ref{proposition: orthnormality of PLS s
  
 	
 	
-	\section{Simulations} \label{Simulations}
+ 
 	
 	
 \end{document}
