@@ -2028,14 +2028,14 @@ where the last equality uses the computation of the $i$th entry in \eqref{score_
 	\widetilde{W}_i^{[l_1-1]}.
 \end{equation} 	
 Let us denote, with some abuse of notation:
-\begin{equation*}
+\begin{equation}\label{notation:n_predictors}
 	\widetilde{\boldsymbol{W}}^{[l_1]}  := 
 	\bigl(
 \widetilde{W}_1^{[l_1-1]}, \ldots, \widetilde{W}_n^{[l_1-1]}
 	\bigr)^\top \in \tilde{\mathcal{H}}^{\otimes n},
-\end{equation*}
+\end{equation}
 and
-\begin{equation*}
+\begin{equation}\label{notation:n_inner_products}
 	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 	\hat{\xi}^{[l_2]}
 	\rangle_{\mathcal{H}}
@@ -2052,17 +2052,19 @@ and
 	\rangle_{\mathcal{H}}
 	\biggr)^\top 
 	\in \mathbb{R}^n.
-\end{equation*}
-Recalling \eqref{thetaBzetal2i} our goal of showing $
+\end{equation}
+Recalling \eqref{thetaBzetal2i},
+to achieve our goal of showing $
 \Theta^{[l_1] }
 \mathbb{B}
-\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n.
+\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n,
 $
-is equivalent to showing  $	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+it suffices to show
+   $	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 \hat{\xi}^{[l_2]}
 \rangle_{\mathcal{H}} = \mathbf{0}$.
-Using this notation and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
-\begin{equation*}
+Using these notations and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
+\begin{equation}\label{regression_relation_with_notation_abuse}
 \widetilde{\boldsymbol{W}}^{[l_1]}  = 
 \widetilde{\boldsymbol{W}}^{[l_1-1]} - 
 \biggl(
@@ -2072,7 +2074,7 @@ Using this notation and  \eqref{algorithm_step:residualization_predictor:recall}
 	} 
 	\biggr)
 		\widetilde{\boldsymbol{W}}^{[l_1-1]},
-\end{equation*}
+\end{equation}
 and thus
 \begin{equation*}
 \langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
@@ -2180,52 +2182,203 @@ This completes the proof of Proposition
 	\ref{proposition: modified orthnormality of PLS components}.
 	\end{proof}
 	\section{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
-	
-	
-	
-	First note that $\widehat{\boldsymbol{\rho}}_l = \int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_l[\mathbf{t}] d\mathbf{t}= \widetilde{C}^{*[l]} J^\ast \widehat{\xi}^*_{l}$ for $l=1, \ldots, L$. Then, as above, we first express the $l$-th residualized hybrid predictor in terms of its previous $(l-1)$-th version:
-	\begin{equation*}
-		\widetilde{W}^{[l]}[\mathbf{t}] = \widetilde{W}^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\delta}}_l[\mathbf{t}]^\top 
-	\end{equation*}
-	which, after applying the finite-dimensional form (9), implies that
-	\begin{equation*}
-		\setlength{\jot}{10pt}
-		\begin{aligned}
-			\widetilde{C}^{*[l]}B^*[\mathbf{t}] &=\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1}\widehat{\boldsymbol{\gamma}}^*_{l-1}B^*[\mathbf{t}] \\
-			&= \widetilde{C}^{*[l-1]}B^*[\mathbf{t}] - \widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} J^\ast \left(\widehat{\boldsymbol{\rho}}_{i,l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1} J^\ast \right)^{-1} B^*[\mathbf{t}] \\
-			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widehat{\boldsymbol{\rho}}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}}  \\
-			& =\widetilde{C}^{*[l-1]}B^*[\mathbf{t}] -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]} B^*[\mathbf{t}]}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}},
-		\end{aligned}
-	\end{equation*}
-	Since the equation should hold for all argument values $\mathbf{t} \in \mathcal{T}$, we can write:
-	\begin{equation*}
-		\setlength{\jot}{10pt}
-		\begin{aligned}
-			\widetilde{C}^{*[l]} &= \widetilde{C}^{*[l-1]} -  \frac{\widetilde{C}^{*[l-1]} J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \\
-			&= \widetilde{C}^{*[l-1]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{l-1} \widehat{\boldsymbol{\rho}}_{l-1}^\top \widetilde{C}^{*[l-1]}}{\widehat{\boldsymbol{\rho}}_{l-1}^\top \widehat{\boldsymbol{\rho}}_{l-1}} \right) \\
-			&= \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P},
-		\end{aligned}
-	\end{equation*}
-	where $\widetilde{P}$ is a $(MK+p) \times (MK+p)$ matrix defined as
-	\begin{equation*}
-		\widetilde{P} = \prod \limits_{h=j+1}^{l-1} \left(I_{MK+p} - \frac{J^\ast \hat{\xi}^*_h \widehat{\boldsymbol{\rho}}_{h}^\top \widetilde{C}^{*[h]}}{\widehat{\boldsymbol{\rho}}_{h}^\top \widehat{\boldsymbol{\rho}}_{h}} \right)
-	\end{equation*}
-	Then, for $j < l$,
-	\begin{equation*}
-		\setlength{\jot}{10pt}
-		\begin{aligned}
-			\widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[l]} &=  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} \left(I_{MK+p} - \frac{J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
-			&=\left( \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} - \frac{ \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} J^\ast \widehat{\xi}^{*}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
-			&=\left( \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} - \frac{ \widehat{\boldsymbol{\rho}}_j^\top \widehat{\boldsymbol{\rho}}_j  \widehat{\boldsymbol{\rho}}_{j}^\top \widetilde{C}^{*[j]}}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right) \widetilde{P} \\
-			&= \left(  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} -  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[j]} \right) \widetilde{P} \\
-			&= \mathbf{0} \in \mathbb{R}^{1 \times (MK+p)},
-		\end{aligned}
-	\end{equation*}
-	Therefore, for $j < l$,
-	\begin{equation*}
-		\widehat{\boldsymbol{\rho}}_j^\top \widehat{\boldsymbol{\rho}}_l =  \widehat{\boldsymbol{\rho}}_j^\top \widetilde{C}^{*[l]} J^\ast \widehat{\boldsymbol{\rho}}_{l} = \mathbf{0} J^\ast \widehat{\boldsymbol{\rho}}_{l}=  0.
-	\end{equation*}
-	Thus, the proposition is proved.
+	\begin{proof}
+			For $l_1 < l_2$,
+\begin{align*}
+\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+\widehat{\boldsymbol{\rho}}^{[l_2]}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&=  
+\sum_{i=1}^n
+\widehat{ \rho }^{[l_1 ]}_i \,
+\widehat{ \rho }^{[l_2]}_i
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=  
+\sum_{i=1}^n
+\widehat{ \rho }^{[l_1 ]}_i \,
+\bigl \langle 	\widetilde{W}^{[l_2]}_i  ,
+\hat{\xi}^{[l_2]}
+\bigr \rangle_{\mathcal{H}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=  
+\big \langle
+\sum_{i=1}^n
+\widehat{ \rho }^{[l_1 ]}_i \,
+ 	\widetilde{W}^{[l_2]}_i  ,
+\hat{\xi}^{[l_2]}
+\big \rangle_{\mathcal{H}}
+\end{align*}
+Therefore,
+to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
+ it suffices to show that
+$\sum_{i=1}^n
+\widehat{ \rho }^{[l_1 ]}_i \,
+\widetilde{W}^{[l_2]}_i  = 0 \in   \mathcal{H}  $,
+where this   zero element represents an ordered pair of $K$ zero functions and a zero matrix.
+Using Lemma    \ref{proposition:closed_form_orthgonalization}, notations from 
+\eqref{notation:n_predictors} and
+\eqref{notation:n_inner_products},
+and equation \eqref{regression_relation_with_notation_abuse}, we have:
+\begin{align*}
+	\widetilde{\boldsymbol{W}}^{[l_1]}  &= 
+	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+	\biggl(
+	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+	\hat{\boldsymbol{\rho}}^{[l_1-1] }
+	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+	} 
+	\biggr)
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}
+%%%%%%%%%%%%%%%%%%%%%%
+\\&=	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+\biggl(
+\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+\langle 	
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+	\hat{\xi}^{[l_1-1]}
+\rangle_{\mathcal{H}}
+\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+} 
+\biggr)
+\widetilde{\boldsymbol{W}}^{[l_1-1]}.
+\end{align*}
+Using this relationship and
+with some abuse of notation, we have:
+\begin{align*}
+\sum_{i=1}^n
+\widehat{ \rho }^{[l_1 ]}_i \,
+\widetilde{W}^{[l_2]}_i 
+&=
+		\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1]}
+\\  &=	
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\biggl(
+	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+	\langle 	
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+	\hat{\xi}^{[l_1-1]}
+	\rangle_{\mathcal{H}}
+	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+	} 
+	\biggr)
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}
+\\	&=	
+	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+	\frac{
+		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+	\hat{\xi}^{[l_1-1]}
+	\rangle_{\mathcal{H}}
+	}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+	\bigl(
+	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+	} 
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}
+	\bigr)
+\\	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)~(\text{say}).
+\end{align*}
+Here, the function $h^{[l_1-1]}: \tilde{ \mathcal{H} } \mapsto \tilde{\mathcal{H}}$ maps the zero element of $\tilde{\mathcal{H}}$ to itself, where the zero element represents an ordered pair of $K$ zero functions and a zero matrix. Using this relationship, we have
+\begin{align*}
+	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1]}  
+%%%%%%%%%%%%%%%%
+	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)
+%%%%%%%%%%%%%%%%
+\\&=
+h^{[l_1-1]} 
+\circ 
+h^{[l_1-2]}
+\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_1-2]} \bigr)
+%%%%%%%%%%%%%%%%
+\\&=
+h^{[l_1-1]} 
+\circ 
+h^{[l_1-2]}
+\circ 
+\ldots
+\circ 
+h^{[l_2]}
+\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} \bigr).
+\end{align*}
+Therefore,
+to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
+ it suffices to show $h^{[l_2]}
+\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} \bigr) = 0$:
+%
+\begin{align*}
+h^{[l_2]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} \bigr)
+&=
+		\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\widetilde{\boldsymbol{W}}^{[l_2]} - 
+	\frac{
+		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+		\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+		\hat{\xi}^{[l_2]}
+		\rangle_{\mathcal{H}}
+	}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+	%%%%%%%%%%%%%%%%%%%%%%%%%
+	\bigl(
+	\hat{\boldsymbol{\rho}}^{[l_2] \top
+	} 
+	\widetilde{\boldsymbol{W}}^{[l_2]}
+	\bigr)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+\hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} - 
+\frac{
+		\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\langle 	 
+	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}}
+}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+% 
+\bigl(
+\hat{\boldsymbol{\rho}}^{[l_2] \top
+} 
+\widetilde{\boldsymbol{W}}^{[l_2]}
+\bigr)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+\hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} - 
+\frac{
+	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+	\hat{\boldsymbol{\rho}}^{[l_2]  } 
+}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+% 
+\bigl(
+\hat{\boldsymbol{\rho}}^{[l_2] \top
+} 
+\widetilde{\boldsymbol{W}}^{[l_2]}
+\bigr)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+\hat{\boldsymbol{\rho}}^{[l_2] \top}
+\widetilde{\boldsymbol{W}}^{[l_2]} 
+- 
+\hat{\boldsymbol{\rho}}^{[l_2] \top
+} 
+\widetilde{\boldsymbol{W}}^{[l_2]}
+\\&=0.
+\end{align*}
+This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
+	\end{proof}
+ 
 	
 	
 	\section{Simulations} \label{Simulations}
