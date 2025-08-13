@@ -836,7 +836,7 @@ maps
   $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
 \begin{equation*}
 \mathcal{C}_{YW}
-\mathbf{h}
+h
 :=
 \mathbb{E} 
 \bigl[ 
@@ -849,7 +849,7 @@ maps
 + 
 \sigma_{YW}^\top \mathbf{v}.
 \end{equation*}
-Next, $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes \mathbf{W}]: \mathbb{R} \rightarrow \mathcal{H}$
+Next, $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$
 maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
 %%%%
 \begin{align*}		
@@ -863,17 +863,28 @@ maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
 \mathbb{E}
 [ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
 \end{align*}
-	
-	
-	Now define a new operator $\mathcal{U} = \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$, which performs the following mapping:
+Based on these two operators, we define a positive   operator as follows:
+\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
+Define
+	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ as an operator which performs the following mapping:
 	\begin{equation*}
-		\mathcal{U} \mathbf{h} =  \mathcal{C}_{WY} ( \mathcal{C}_{YW} \mathbf{h}) 
-		= \mathcal{C}_{YW} (\langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H}) 
-		=  \Sigma_{YW} \, \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} = (\Sigma_{YW} \otimes \Sigma_{YW})\mathbf{h}.
+		\mathcal{U} h 
+		= 
+		\mathcal{C}_{WY} ( \mathcal{C}_{YW} h) 
+		=
+		\mathcal{C}_{YW} (\langle \Sigma_{YW}, h \rangle_\mathcal{H}) 
+		=  
+		\Sigma_{YW} \, \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
+		= 
+		(\Sigma_{YW} \otimes \Sigma_{YW}) h.
 	\end{equation*}
-	In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$. The following proposition presents several important properties of $\mathcal{U}$.
+		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
+	 is self-adjoint and positive-semidefinite.
+\end{lemma}
+The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
+ The following proposition presents several important properties of $\mathcal{U}$.
 	\begin{proposition} \label{Proposition: property of U}
-		The operator $\mathcal{U} = \mathcal{C}_{WY} \circ \mathcal{C}_{YW}= \Sigma_{YW} \otimes \Sigma_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ is positive and self-adjoint. Furthermore, if there exist finite constants $Q_1$ and $Q_2$ such that
+	 Furthermore, if there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}
 			\max \limits_{k=1, \ldots, K} \sup \limits_{t_k \in [0,1]} \sigma_{YX}^{(k)2}(t_k) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 		\end{align}
@@ -1855,19 +1866,53 @@ The next proposition states that the vectors of estimated PLS scores for differe
 		\mathbf{Z}^{[l] \top}  \hat{\boldsymbol{\rho}}^{[l]}.
 	\end{equation*}
 	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
-	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
-	$\mathcal{U}$ is \textit{positive} because for every $\mathbf{h} \in \mathcal{H}$,
-	\begin{equation*}
-		\langle \mathcal{U} \mathbf{h}, \mathbf{h} \rangle_\mathcal{H} = \langle \langle \Sigma_{YW}, \mathbf{h} \rangle_{\mathcal{H}} \, \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} = \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H}^2 \ge 0.
-	\end{equation*}
 	
-	$\mathcal{U}$ is \textit{self-adjoint} because for any $\mathbf{h}_1, \mathbf{h}_2 \in \mathcal{H}$,
-	\begin{align*}
-		\langle \mathcal{U} \mathbf{h}_1, \mathbf{h}_2 \rangle_\mathcal{H}  &= \langle \langle \mathbf{h}_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW}, \mathbf{h}_2 \rangle_\mathcal{H} \\
-		&= \langle \mathbf{h}_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, \mathbf{h}_2 \rangle_\mathcal{H} \\
-		&= \langle \mathbf{h}_1,  \langle \Sigma_{YW}, \mathbf{h}_2 \rangle_\mathcal{H} \Sigma_{YW} \rangle_\mathcal{H}\\ 
-		&= \langle \mathbf{h}_1, \mathcal{U} \mathbf{h}_2 \rangle_\mathcal{H}.
-	\end{align*}
+	
+\section{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
+\begin{proof}
+	The operator
+$\mathcal{U}$ is \textit{self-adjoint} because for any $h_1, h_2 \in \mathcal{H}$, we have
+\begin{align*}
+\langle 
+\mathcal{U} h_1, \, h_2 
+\rangle_\mathcal{H}  
+&= 
+\bigl \langle 
+	\langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW},
+	\,
+	h_2
+\bigr \rangle_\mathcal{H}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&= 
+\bigl \langle 
+h_1,
+\,
+ \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} \Sigma_{YW} 
+\bigr \rangle_\mathcal{H}
+\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathcal{H}.
+\end{align*}
+Next, 
+	$\mathcal{U}$ is \textit{positive-semidefinite} because for every $h \in \mathcal{H}$, we have
+\begin{equation*}
+\langle 
+	\mathcal{U} h,
+	\,
+	h
+\rangle_\mathcal{H}
+=
+\bigl \langle 
+	\langle 
+		\Sigma_{YW},\, h \rangle_{\mathcal{H}}  \Sigma_{YW}, \, h
+\bigr \rangle_\mathcal{H}
+	= \langle \Sigma_{YW}, \, h \rangle_\mathcal{H}^2 \ge 0.
+\end{equation*}
+This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
+\end{proof}
+
+	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
+
 	
 	Next, We will show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous, and then apply the Arzel\'{a}-Ascoli theorem to show $\mathcal{U}$ is \textit{compact}. Let $\mathcal{B}=\{\mathbf{h} \in \mathcal{H}: \Vert \mathbf{h} \Vert_\mathcal{H}^2 \le B\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < B < \infty$. Clearly, $\mathbf{h}=(f, \mathbf{v}) \in \mathcal{B}$ also implies $\Vert f \Vert_\mathcal{F}^2 \le B$ and $\Vert \mathbf{v} \Vert^2 \le B$. Define $\mathcal{I}  = \{\mathcal{U}\mathbf{h}: \mathbf{h} \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$. We will first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$. Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in \mathcal{T}$,
 	\begin{align*}
@@ -2240,7 +2285,7 @@ This completes the proof of Proposition
 	\end{proof}
 	\section{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
 	\begin{proof}
-			For $l_1 < l_2$,
+			For $l_1 < l_2$, we have
 \begin{align*}
 \widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
 \widehat{\boldsymbol{\rho}}^{[l_2]}
