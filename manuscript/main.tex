@@ -859,7 +859,7 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 		\end{equation}
 	\end{definition}
 	Based on this inner product, the following proposition states that the PLS component directions estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal.
-	\begin{proposition}[Orthonormality of regularized PLS component directions]\label{proposition: modified orthnormality of PLS components}
+	\begin{proposition}[Orthonormality of estimated PLS component directions]\label{proposition: modified orthnormality of PLS components}
 		The PLS component directions $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathcal{H}, \Lambda}$. That is,
 		\begin{equation*}
 			\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathcal{H}, \Lambda}
@@ -867,14 +867,13 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 		\end{equation*}
 	\end{proposition}
 	The proof of Proposition \ref{proposition: modified orthnormality of PLS components} is provided in Appendix \ref{section:proof:proposition: modified orthnormality of PLS components}.
-	
-	\jongmin{revising here}
-	Now let $\widehat{\boldsymbol{\rho}}_l=(\widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl})^\top$ denote the $n$-dimensional vector whose elements consist of estimated $l$-th PLS scores ($l=1, \ldots, L)$ of $n$ observations. 
-	The next proposition states that the vectors of estimated PLS scores $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$ obtained from the proposed algorithm are mutually orthogonal.
+ 
+The next proposition states that the vectors of estimated PLS scores for different iteration numbers are mutually orthogonal.
 	\begin{proposition}	\label{proposition: orthnormality of PLS scores}
-		The vectors of estimated PLS scores, $\widehat{\boldsymbol{\rho}}_1, \widehat{\boldsymbol{\rho}}_2, \ldots, \widehat{\boldsymbol{\rho}}_L$, obtained from the proposed PLS algorithm are mutually orthogonal in the sense that
+		Recall from Lemma \ref{proposition:closed_form_orthgonalization} that   $\widehat{\boldsymbol{\rho}}^{[l]}$ denote the $n$-dimensional vector whose elements consist of the $l$-th estimated PLS scores ($l=1, \ldots, L$) of $n$ observations.
+		The vectors $\widehat{\boldsymbol{\rho}}^{[1]}, \widehat{\boldsymbol{\rho}}^{[2]}, \ldots, \widehat{\boldsymbol{\rho}}^{[L]}$  are mutually orthogonal in the sense that
 		\begin{equation*}
-			\widehat{\boldsymbol{\rho}}_l^\top \widehat{\boldsymbol{\rho}}_j= 0 \quad \textnormal{for} \quad \; l,j \in \{1, \ldots, L\}, \; l \ne j. 
+			\widehat{\boldsymbol{\rho}}^{[l_1] \top}  \widehat{\boldsymbol{\rho}}^{[l_2] \top}= 0 \quad \textnormal{for} \quad \; l_1,l_2 \in \{1, \ldots, L\}, \; l_1 \ne l_2. 
 		\end{equation*}
 	\end{proposition}
 	The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provided in Appendix \ref{section:proof:proposition: orthnormality of PLS scores}.
@@ -1989,12 +1988,7 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 		and step $(iii)$ uses the definition of $V$ matrix given in \eqref{def:V_matrix}.
 Here, $c$ represents a scalar that condenses all multiplicative terms preceding $\mathbf{y}^\top$.
 		
-		Our next task is to show that 
-		$
-		\Theta^{[l_1] }
-		\mathbb{B}
-		\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n.
-		$
+Orthogonality can be demonstrated by showing that $\Theta^{[l_1] } \mathbb{B} \hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n$.
 		From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{def:gram_block}, the
 		$i$th entry of $\Theta^{[l_1] }
 		\mathbb{B}
@@ -2021,6 +2015,7 @@ Here, $c$ represents a scalar that condenses all multiplicative terms preceding 
 			\widetilde{W}_i^{[l_1]}, 
 			\hat{\xi}^{[l_2]}
 			\rangle_{\mathcal{H}},
+			\numberthis \label{thetaBzetal2i}
 		\end{align*}
 where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}. To expand the last quantity, we use a recursive relationship derived as follows. Recall from Lemma  \ref{proposition:closed_form_orthgonalization} that we have
 	\begin{equation}\label{algorithm_step:residualization_predictor:recall}
@@ -2037,9 +2032,36 @@ Let us denote, with some abuse of notation:
 	\widetilde{\boldsymbol{W}}^{[l_1]}  := 
 	\bigl(
 \widetilde{W}_1^{[l_1-1]}, \ldots, \widetilde{W}_n^{[l_1-1]}
-	\bigr)^\top \in \tilde{\mathcal{H}}^{\otimes n}.
+	\bigr)^\top \in \tilde{\mathcal{H}}^{\otimes n},
 \end{equation*}
-Then using \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
+and
+\begin{equation*}
+	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}}
+	:= 
+	\biggl(
+	\langle 
+	\widetilde{W}_1^{[l_1-1]}, 
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}},
+	\ldots, 
+	\langle 
+	\widetilde{W}_n^{[l_1-1]},  
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}}
+	\biggr)^\top 
+	\in \mathbb{R}^n.
+\end{equation*}
+Recalling \eqref{thetaBzetal2i} our goal of showing $
+\Theta^{[l_1] }
+\mathbb{B}
+\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n.
+$
+is equivalent to showing  $	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}} = \mathbf{0}$.
+Using this notation and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
 \begin{equation*}
 \widetilde{\boldsymbol{W}}^{[l_1]}  = 
 \widetilde{\boldsymbol{W}}^{[l_1-1]} - 
@@ -2051,41 +2073,111 @@ Then using \eqref{algorithm_step:residualization_predictor:recall}, we have, wit
 	\biggr)
 		\widetilde{\boldsymbol{W}}^{[l_1-1]},
 \end{equation*}
-Clearly, the right-hand side represents a linear operator from $\tilde{\mathcal{H}}^{\otimes n}$ to $\tilde{\mathcal{H}}^{\otimes n}$, which we denote as $P^{[l_1-1]}$.
+and thus
+\begin{equation*}
+\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}}
+  = 
+\langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}} 
+- 
+	\biggl(
+	\frac{1
+	}{
+	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+	}
+		\hat{\boldsymbol{\rho}}^{[l_1-1]}
+	\hat{\boldsymbol{\rho}}^{[l_1-1] \top}
+	\biggr)
+	\bigl \langle 
+	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+	\hat{\xi}^{[l_2]}
+	\bigr \rangle_{\mathcal{H}}.
+\end{equation*}
+Clearly, the right-hand side represents a linear operator from $\mathbb{R}^n$ to $\mathbb{R}^n$, which we denote as $P^{[l_1-1]}$.
 	Thus, 
-	we have $\widetilde{\boldsymbol{W}}^{[l_1]}  = 
-	P^{[l_1-1]} \widetilde{\boldsymbol{W}}^{[l_1-1]}$.
-Using this relationship, we have
+	we have $\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}}  = 
+	P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}}$.
+Repeatedly using this relationship, we have
 	\begin{align*}
-		\widetilde{\boldsymbol{W}}^{[l_1]} &=P^{[l_1-1]} \widetilde{\boldsymbol{W}}^{[l_1-1]} \\
+	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+	\hat{\xi}^{[l_2]}
+	\rangle_{\mathcal{H}} 
+	&=
+P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}} 
+	\\
 		&=
-		P^{[l_1-1]} P^{[l_1-2]} \widetilde{\boldsymbol{W}}^{[l_1-2]}
+		P^{[l_1-1]} P^{[l_1-2]}   \langle 	\widetilde{\boldsymbol{W}}^{[l_1-2]}  ,
+		\hat{\xi}^{[l_2]}
+		\rangle_{\mathcal{H}}
 		  \\
-		&= P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]}  P^{[l_2]} \widetilde{\boldsymbol{W}}^{[l_2]}
+		&= \underbrace{ P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]}}_{:=P}  P^{[l_2]} \langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+		\hat{\xi}^{[l_2]}
+		\rangle_{\mathcal{H}}
 		  \\
-&=P P^{[l_2]} \widetilde{\boldsymbol{W}}^{[l_2]},		
+&= P \,\biggl\{
+\langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+\hat{\xi}^{[l_2]}
+\rangle_{\mathcal{H}} 
+- 
+\biggl(
+\frac{1
+}{
+	\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2
+}
+\hat{\boldsymbol{\rho}}^{[l_2]}
+\hat{\boldsymbol{\rho}}^{[l_2] \top}
+\biggr)
+\bigl \langle 
+\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+\hat{\xi}^{[l_2]}
+\bigr \rangle_{\mathcal{H}}
+\biggr\}
+		  \\
+&= P \,\biggl\{
+\hat{\boldsymbol{\rho}}^{[l_2]}
+- 
+\biggl(
+\frac{1
+}{
+	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+}
+\hat{\boldsymbol{\rho}}^{[l_2]}
+\hat{\boldsymbol{\rho}}^{[l_2] \top}
+\biggr)
+ \hat{\boldsymbol{\rho}}^{[l_2]}
+\biggr\}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&= P \,\biggl\{
+\hat{\boldsymbol{\rho}}^{[l_2]}
+- 
+\biggl(
+\frac{\hat{\boldsymbol{\rho}}^{[l_2] \top} \hat{\boldsymbol{\rho}}^{[l_2]}
+}{
+	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+}
+\biggr)
+\hat{\boldsymbol{\rho}}^{[l_2]}
+\biggr\}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&= P \,\biggl\{
+\hat{\boldsymbol{\rho}}^{[l_2]}
+- 
+\hat{\boldsymbol{\rho}}^{[l_2]}
+\biggr\}
+=
+P \mathbf{0} = \mathbf{0}.
 	\end{align*}
-	where $P = P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]} $ is a linear operator from  $\tilde{\mathcal{H}}^{\otimes n}$.
-	Then for $j < l$,
-	\begin{align*}
-		\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} &= \int_{\mathcal{T}} P   \left(I_n - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \right)\widetilde{W}^{[j]}[\mathbf{t}]  \widehat{\xi}_k[\mathbf{t}] d\mathbf{t}  \\
-		&= P \left\{\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} \right\} \\ 
-		&=P \left( \widehat{\boldsymbol{\rho}}_j - \frac{\widehat{\boldsymbol{\rho}}_{j} \widehat{\boldsymbol{\rho}}_{j}^\top}{\widehat{\boldsymbol{\rho}}_{j}^\top \widehat{\boldsymbol{\rho}}_{j}} \widehat{\boldsymbol{\rho}}_j \right) \\
-		&= P(\widehat{\boldsymbol{\rho}}_j-\widehat{\boldsymbol{\rho}}_j) \\
-		&= \mathbf{0} \in \mathbb{R}^n, 
-	\end{align*}
-	noting that $\int_{\mathcal{T}} \widetilde{W}^{[j]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \widehat{\boldsymbol{\rho}}_j$. Now by the , we have that 
-	
-	\begin{align*}
-		&=  \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} V^\ast_l \widehat{\xi}_j^{*} \\
-		&= \frac{1}{\kappa_l}\widehat{\xi}_l^{* \top} \left(n^{-2} J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top} \widetilde{C}^{*[l]} J^\ast \right) \widehat{\xi}_j^{*} \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top} \ J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \widetilde{C}^{*[l]}\left(\int_{\mathcal{T}} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top d\mathbf{t}  \right) \widehat{\xi}_j^{*} \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{C}^{*[l]} B^*[\mathbf{t}] B^*[\mathbf{t}]^\top \widehat{\xi}_j^{*} d\mathbf{t}  \right)   \\
-		&= \frac{1}{n^2\kappa_l}\widehat{\xi}_l^{* \top}  J^\ast \widetilde{C}^{*[l]\top} \widetilde{\mathbf{y}}^{[l]}\widetilde{\mathbf{y}}^{[l]\top}  \left(\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t}  \right)   \\
-		&=0, 
-	\end{align*}
-	where the last equality follows from the above result that $\int_{\mathcal{T}} \widetilde{W}^{[l]}[\mathbf{t}] \widehat{\xi}_j[\mathbf{t}] d\mathbf{t} = \mathbf{0}$.
-	
+This completes the proof of Proposition 
+	\ref{proposition: modified orthnormality of PLS components}.
 	\end{proof}
 	\section{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
 	
