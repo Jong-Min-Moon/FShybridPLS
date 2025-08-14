@@ -892,8 +892,8 @@ $
 		| \sigma_{YX, k} (t_1) - \sigma_{YX, k} (t_2) | < \epsilon.
 $
 \end{definition}
-Using this definition, the following lemma presents a condition for $\mathcal{U}$ to be a compact operator.
-	\begin{lemma}[Compactness condition] \label{Proposition: property of U}
+Using this definition, the following lemma states that $\mathcal{U}$ is a compact operator under a mild condition.
+	\begin{lemma}[Compactness condition] \label{lemma:compact_operator}
 If there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}\label{condition_for_compact}
 			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
@@ -901,15 +901,16 @@ If there exist finite constants $Q_1$ and $Q_2$ such that
 		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
 		then $\mathcal{U}$ is a compact operator.
 \end{lemma}
-The proof of Lemma \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+The proof of Lemma \ref{lemma:compact_operator} is provided in Appendix \ref{section:proof:lemma:compact_operator}.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{lemma:compact_operator} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
 	\begin{proposition}\label{proposition: eigenanalysis}
+		Under the condition of 
 		\begin{equation*}
-			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle \mathbf{W}, \xi \rangle_\mathcal{H}, Y \right)
+			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle  W , \,  \xi \rangle_\mathcal{H}, Y \right)
 		\end{equation*}
 		is achieved when $\xi$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
 	\end{proposition}
@@ -1918,7 +1919,7 @@ Next,
 This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
 \end{proof}
 
-	\section{Proof of Lemma \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
+	\section{Proof of Lemma \ref{lemma:compact_operator}}\label{section:proof:lemma:compact_operator}
 \begin{proof}
 	The brief strategy of the proof is as follows.
 		We   show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
@@ -2109,7 +2110,10 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 	
 	
 	
-	\section{Proof of Proposition \ref{proposition: eigenanalysis}}\label{section:proof:proposition: eigenanalysis}
+\section{Proof of Proposition \ref{proposition: eigenanalysis}}\label{section:proof:proposition: eigenanalysis}
+\begin{proof}
+	content...
+\end{proof}
 	Before we prove Proposition \ref{proposition: eigenanalysis}, we state and prove the following lemma:
 	\begin{lemma}
 		$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^*$.

@@ -23,65 +23,65 @@ Warning--string name "feb" is undefined
 Warning--string name "jan" is undefined
 --line 111 of file bibliography.bib
 Warning--string name "oct" is undefined
---line 224 of file bibliography.bib
+--line 218 of file bibliography.bib
 Warning--string name "dec" is undefined
---line 237 of file bibliography.bib
+--line 231 of file bibliography.bib
 Warning--string name "jul" is undefined
---line 251 of file bibliography.bib
+--line 245 of file bibliography.bib
 Warning--string name "feb" is undefined
---line 263 of file bibliography.bib
+--line 257 of file bibliography.bib
 Warning--string name "sep" is undefined
---line 275 of file bibliography.bib
+--line 269 of file bibliography.bib
 Warning--string name "dec" is undefined
---line 301 of file bibliography.bib
+--line 295 of file bibliography.bib
 Warning--string name "mar" is undefined
---line 333 of file bibliography.bib
+--line 327 of file bibliography.bib
 Warning--string name "may" is undefined
---line 345 of file bibliography.bib
+--line 339 of file bibliography.bib
 Warning--string name "may" is undefined
---line 356 of file bibliography.bib
+--line 350 of file bibliography.bib
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 29 entries,
+You've used 28 entries,
             5204 wiz_defined-function locations,
-            1055 strings with 11476 characters,
-and the built_in function-call counts, 140198 in all, are:
-= -- 23531
-> -- 442
-< -- 56
-+ -- 9230
-- -- 175
-* -- 7165
-:= -- 22312
-add.period$ -- 87
-call.type$ -- 29
-change.case$ -- 174
+            1051 strings with 11409 characters,
+and the built_in function-call counts, 136234 in all, are:
+= -- 22840
+> -- 428
+< -- 54
++ -- 8911
+- -- 169
+* -- 6998
+:= -- 21663
+add.period$ -- 84
+call.type$ -- 28
+change.case$ -- 168
 chr.to.int$ -- 27
-cite$ -- 29
-duplicate$ -- 943
-empty$ -- 5721
-format.name$ -- 595
-if$ -- 34454
-int.to.chr$ -- 3
+cite$ -- 28
+duplicate$ -- 913
+empty$ -- 5586
+format.name$ -- 576
+if$ -- 33447
+int.to.chr$ -- 2
 int.to.str$ -- 1
 missing$ -- 0
-newline$ -- 320
-num.names$ -- 132
-pop$ -- 647
+newline$ -- 311
+num.names$ -- 127
+pop$ -- 623
 preamble$ -- 1
-purify$ -- 114
+purify$ -- 110
 quote$ -- 0
-skip$ -- 13828
+skip$ -- 13421
 stack$ -- 0
-substring$ -- 17789
-swap$ -- 334
-text.length$ -- 261
+substring$ -- 17399
+swap$ -- 324
+text.length$ -- 252
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 730
+type$ -- 710
 warning$ -- 0
-while$ -- 401
+while$ -- 387
 width$ -- 0
-write$ -- 667
+write$ -- 646
 (There were 14 warnings)
