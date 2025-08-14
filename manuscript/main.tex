@@ -831,14 +831,14 @@ Based on these definitions, we define the cross-covariance term between the resp
 \sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
 \bigr) \in \mathcal{H}.
 \end{equation*}
-Based on these definitions, we introduce two cross-covariance operators.
+Based on these definitions, we introduce two cross-covariance operators and their properties.
 \begin{lemma}\label{lemma:cross_cov_functional}
 Define the operator $
 \mathcal{C}_{YW}
 =
 \mathbb{E}(W_1 \otimes_\mathcal{H} Y_1)
 : \mathcal{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathcal{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
-If there exist finite constants $Q_1$ and $Q_2$ such that
+\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact}If there exist finite constants $Q_1$ and $Q_2$ such that
 \begin{align}\label{condition_for_compact}
 	\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 \end{align}
@@ -847,25 +847,7 @@ the operator $\mathcal{C}_{YW}$ is a compact operator.
 Proof of Lemma \ref{lemma:cross_cov_functional}
 is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
 \begin{lemma}\label{lemma:cross_cov_operator}
-Define $\mathcal{C}_{YW}= : \mathcal{H} \rightarrow \mathbb{R}$,
-which	maps  
-	$h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
-	\begin{equation*}
-		\mathcal{C}_{YW}
-		h
-		:=
-		\mathbb{E} 
-		\bigl[ 
-		\langle W_1, h \rangle_\mathcal{H} Y_1 
-		\bigr] 
-		= 
-		\langle \Sigma_{YW}, h \rangle_\mathcal{H}
-		=
-		\sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt 
-		+ 
-		\sigma_{YW}^\top \mathbf{v}.
-	\end{equation*}
-	Next, define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
+Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
 which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
 	%%%%
 	\begin{align*}		
@@ -885,6 +867,7 @@ Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $
  
 
 The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
+
 Based on these two operators, we define a positive   operator as follows:
 \begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
 Define
@@ -902,7 +885,7 @@ Define
 	\end{equation*}
 		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
 		Then $\mathcal{U}$
-	 is self-adjoint and positive-semidefinite.
+	 is a self-adjoint, positive-semidefinite, and compact operator.
 \end{lemma}
 The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
 
@@ -1955,21 +1938,24 @@ Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{
 	
 	
 \section{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
-\begin{proof}
-	The operator
-$\mathcal{U}$ is \textit{self-adjoint} because for any $h_1, h_2 \in \mathcal{H}$, we have
+\begin{proof}We show that $\mathcal{U}$ is self-adjoint, positive-semidefinite, and compact, in turn.
+
+\medskip
+\noindent
+\textit{Self-adjoint.}~
+For any $h_1, h_2 \in \mathcal{H}$, we have
 \begin{align*}
 \langle 
 \mathcal{U} h_1, \, h_2 
 \rangle_\mathcal{H}  
-&= 
+= 
 \bigl \langle 
 	\langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW},
 	\,
 	h_2
 \bigr \rangle_\mathcal{H}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
+&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \\&= 
 \bigl \langle 
@@ -1979,8 +1965,11 @@ h_1,
 \bigr \rangle_\mathcal{H}
 \\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathcal{H}.
 \end{align*}
-Next, 
-	$\mathcal{U}$ is \textit{positive-semidefinite} because for every $h \in \mathcal{H}$, we have
+
+\medskip
+\noindent
+\textit{Positive-semidefinite.}~
+For every $h \in \mathcal{H}$, we have
 \begin{equation*}
 \langle 
 	\mathcal{U} h,
@@ -1994,6 +1983,14 @@ Next,
 \bigr \rangle_\mathcal{H}
 	= \langle \Sigma_{YW}, \, h \rangle_\mathcal{H}^2 \ge 0.
 \end{equation*}
+
+\medskip
+\noindent
+\textit{Compact.}~
+	By Lemma \ref{lemma:cross_cov_functional}, $\mathcal{C}_{YW}$ is a compact operator.
+	By  Theorem 4.1.3 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+	the composition of two operators is compact if either operator is compact. Therefore
+	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}$ is a compact operator.
 This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
 \end{proof}
 
