@@ -892,28 +892,27 @@ $
 		| \sigma_{YX, k} (t_1) - \sigma_{YX, k} (t_2) | < \epsilon.
 $
 \end{definition}
-Using this definition, the following lemma states that $\mathcal{U}$ is a compact operator under a mild condition.
-	\begin{lemma}[Compactness condition] \label{lemma:compact_operator}
+Using this definition, the following proposition states that $\mathcal{U}$ is a compact operator under a mild condition.
+	\begin{proposition}[Compactness condition] \label{proposition:compact_operator}
 If there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}\label{condition_for_compact}
 			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 		\end{align}
 		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
 		then $\mathcal{U}$ is a compact operator.
-\end{lemma}
-The proof of Lemma \ref{lemma:compact_operator} is provided in Appendix \ref{section:proof:lemma:compact_operator}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{lemma:compact_operator} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+\end{proposition}
+The proof of Proposition \ref{proposition:compact_operator} is provided in Appendix \ref{section:proof:proposition:compact_operator}.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{proposition:compact_operator} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
-	\begin{proposition}\label{proposition: eigenanalysis}
-		Under the condition of 
-		\begin{equation*}
-			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \textnormal{Cov}^2 \left(\langle  W , \,  \xi \rangle_\mathcal{H}, Y \right)
-		\end{equation*}
-		is achieved when $\xi$ is an eigenfunction associated with the largest eigenvalue of $\mathcal{U}$.	
-	\end{proposition}
+\begin{proposition}[Existence of Maximizer for Covariance]\label{proposition: eigenanalysis} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
+	\begin{equation*} 
+		\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
+		\end{equation*} 
+	is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
+\end{proposition}
 	The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendix \ref{section:proof:proposition: eigenanalysis}.
 	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
@@ -1919,7 +1918,7 @@ Next,
 This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
 \end{proof}
 
-	\section{Proof of Lemma \ref{lemma:compact_operator}}\label{section:proof:lemma:compact_operator}
+	\section{Proof of Proposition \ref{proposition:compact_operator}}\label{section:proof:proposition:compact_operator}
 \begin{proof}
 	The brief strategy of the proof is as follows.
 		We   show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
