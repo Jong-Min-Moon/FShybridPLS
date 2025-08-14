@@ -830,38 +830,42 @@ Based on these definitions, we define the cross-covariance term between the resp
 \bigr) \in \mathcal{H}.
 \end{equation*}
 Based on these definitions, we introduce two cross-covariance operators.
-First, $\mathcal{C}_{YW}= \mathbb{E}(W_1 \otimes_\mathcal{H} Y_1): \mathcal{H} \rightarrow \mathbb{R}$ 
-maps  
-  $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
-\begin{equation*}
-\mathcal{C}_{YW}
-h
-:=
-\mathbb{E} 
-\bigl[ 
-\langle W_1, h \rangle_\mathcal{H} Y_1 
-\bigr] 
-= 
-\langle \Sigma_{YW}, h \rangle_\mathcal{H}
-=
-\sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt 
-+ 
-\sigma_{YW}^\top \mathbf{v}.
-\end{equation*}
-Next, $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$
-maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
-%%%%
-\begin{align*}		
-\mathcal{C}_{WY} d 
-:= 
-\mathbb{E} 
-\bigl[
- \langle Y_1, d \rangle W_1 
-\bigr] 
-= 
-\mathbb{E}
-[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
-\end{align*}
+\begin{lemma}\label{lemma:cross_cov_operator}
+Define $\mathcal{C}_{YW}= \mathbb{E}(W_1 \otimes_\mathcal{H} Y_1): \mathcal{H} \rightarrow \mathbb{R}$,
+which	maps  
+	$h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
+	\begin{equation*}
+		\mathcal{C}_{YW}
+		h
+		:=
+		\mathbb{E} 
+		\bigl[ 
+		\langle W_1, h \rangle_\mathcal{H} Y_1 
+		\bigr] 
+		= 
+		\langle \Sigma_{YW}, h \rangle_\mathcal{H}
+		=
+		\sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt 
+		+ 
+		\sigma_{YW}^\top \mathbf{v}.
+	\end{equation*}
+	Next, define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
+which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
+	%%%%
+	\begin{align*}		
+		\mathcal{C}_{WY} d 
+		:= 
+		\mathbb{E} 
+		\bigl[
+		\langle Y_1, d \rangle W_1 
+		\bigr] 
+		= 
+		\mathbb{E}
+		[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
+	\end{align*}
+Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+\end{lemma}
+The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
 Based on these two operators, we define a positive   operator as follows:
 \begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
 Define
@@ -907,12 +911,12 @@ The proof of Proposition \ref{proposition:compact_operator} is provided in Appen
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
-\begin{proposition}[Existence of Maximizer for Covariance]\label{proposition: eigenanalysis} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
+\begin{theorem}[Population PLS]\label{proposition: eigenanalysis} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
 	\begin{equation*} 
 		\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
 		\end{equation*} 
 	is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
-\end{proposition}
+\end{theorem}
 	The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendix \ref{section:proof:proposition: eigenanalysis}.
 	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
@@ -1295,8 +1299,30 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	%
 	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
+	\section{Proof of}
 	
-	
+	\subsection{Proof of Lemma \ref{lemma:cross_cov_operator}}\label{section:proof:lemma:cross_cov_operator}
+ \begin{proof}
+For $h \in \mathcal{H}$ and $d \in \mathbb{R}$, we have:
+\begin{equation*}
+\langle
+	\mathcal{C}_{YW} h, d \rangle 
+	= 
+\mathbb{E}
+	[
+		 \langle W_1, h \rangle_\mathcal{H} Y_1  
+	] 	 \,  d
+%%%%%%%%%%%%%%%%%%
+=
+\mathbb{E} \langle   Y_1 W_1 d , \, h\rangle_{\mathcal{H}} 
+%%%%%%%%%%%%%%%%%%%%%%%%
+ = \langle h, \, \mathbb{E}[Y_1 W_1 d   ]\rangle_{\mathcal{H}}
+ =
+ \langle h, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}
+\end{equation*}
+Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+	This completes the proof of Lemma \ref{lemma:cross_cov_operator}.
+ \end{proof}
 	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
 		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
@@ -2110,24 +2136,7 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 	
 	
 \section{Proof of Proposition \ref{proposition: eigenanalysis}}\label{section:proof:proposition: eigenanalysis}
-\begin{proof}
-	content...
-\end{proof}
-	Before we prove Proposition \ref{proposition: eigenanalysis}, we state and prove the following lemma:
-	\begin{lemma}
-		$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^*$.
-	\end{lemma}
-	Proof. 
-	
-	\noindent First, we have:
-	\begin{equation*}
-		\langle \mathcal{C}_{YW} \mathbf{h}, d \rangle = E\{ \langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y \} d
-	\end{equation*}
-	Also, we have:
-	\begin{equation*}
-		\langle \mathbf{h}, \mathcal{C}_{WY} d \rangle_{\mathcal{H}} = \langle \mathbf{h}, E(Y\mathbf{W})d \rangle_{\mathcal{H}} = E \langle \mathbf{h}, Y \mathbf{W} d \rangle_{\mathcal{H}}  = E\{ \langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y \} d.
-	\end{equation*}
-	Thus, $\langle \mathcal{C}_{YW} \mathbf{h}, d \rangle =  \langle \mathbf{h}, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}$, and this implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^*$.
+ 
 	
 	\noindent Now we prove Proposition \ref{proposition: eigenanalysis}. The singular value decomposition of $\mathcal{C}_{YW}$ is given by
 	\begin{equation*}
