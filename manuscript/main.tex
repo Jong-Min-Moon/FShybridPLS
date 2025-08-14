@@ -796,7 +796,9 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	\begin{equation}\label{def:cross_covariance_yx}
 \sigma_{YX}
 =
- (\sigma_{YX, 1} , \ldots, \sigma_{YX, K} )
+ \bigl(
+ \sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
+ \bigr)
   :=
 \bigl(
 \mathbb{E}
@@ -830,8 +832,22 @@ Based on these definitions, we define the cross-covariance term between the resp
 \bigr) \in \mathcal{H}.
 \end{equation*}
 Based on these definitions, we introduce two cross-covariance operators.
+\begin{lemma}\label{lemma:cross_cov_functional}
+Define the operator $
+\mathcal{C}_{YW}
+=
+\mathbb{E}(W_1 \otimes_\mathcal{H} Y_1)
+: \mathcal{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathcal{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
+If there exist finite constants $Q_1$ and $Q_2$ such that
+\begin{align}\label{condition_for_compact}
+	\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+\end{align}
+the operator $\mathcal{C}_{YW}$ is a compact operator.
+\end{lemma}
+Proof of Lemma \ref{lemma:cross_cov_functional}
+is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
 \begin{lemma}\label{lemma:cross_cov_operator}
-Define $\mathcal{C}_{YW}= \mathbb{E}(W_1 \otimes_\mathcal{H} Y_1): \mathcal{H} \rightarrow \mathbb{R}$,
+Define $\mathcal{C}_{YW}= : \mathcal{H} \rightarrow \mathbb{R}$,
 which	maps  
 	$h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ to a real number:
 	\begin{equation*}
@@ -865,6 +881,9 @@ which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
 	\end{align*}
 Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
 \end{lemma}
+
+ 
+
 The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
 Based on these two operators, we define a positive   operator as follows:
 \begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
@@ -886,11 +905,10 @@ Define
 	 is self-adjoint and positive-semidefinite.
 \end{lemma}
 The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
-To guarantee the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$, we  first demonstrate that $\mathcal{U}$ is  a compact operator,
-that is,
-images of a bounded sequence contains a convergent subsequence (for a formal definition, see Definition 4.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}).
+
+The fundamental property of classical scalar PLS is that the first eigenvector of the squared covariance matrix corresponds to the first PLS component direction. To derive an analogous result in the hybrid regression setting, we first demonstrate that $\mathcal{U}$ is a compact operator. This means that the image of any bounded sequence under $\mathcal{U}$ contains a convergent subsequence (for a formal definition, see Definition 4.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}). The compactness of $\mathcal{U}$ is crucial as it guarantees the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$.
 To this end, we begin by defining the notion of uniform continuity for the cross-covariance function defined in \eqref{def:cross_covariance_yx}:
-\begin{definition}[Uniform Continuity]\label{def:uniform_continuity}
+\begin{definition}[Uniform continuity]\label{def:uniform_continuity}
 	For each $k \in \{1, \ldots, K\}$, the cross-covariance function $\sigma_{YX, k} \in \mathcal{F}$ is uniformly continuous if for any $\epsilon > 0$, there exists a $\delta_k > 0$ such that for all $t_1, t_2 \in [0,1]$ satisfying $|t_1 - t_2 | < \delta_k$, we have
 $
 		| \sigma_{YX, k} (t_1) - \sigma_{YX, k} (t_2) | < \epsilon.
@@ -898,10 +916,7 @@ $
 \end{definition}
 Using this definition, the following proposition states that $\mathcal{U}$ is a compact operator under a mild condition.
 	\begin{proposition}[Compactness condition] \label{proposition:compact_operator}
-If there exist finite constants $Q_1$ and $Q_2$ such that
-		\begin{align}\label{condition_for_compact}
-			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
-		\end{align}
+
 		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
 		then $\mathcal{U}$ is a compact operator.
 \end{proposition}
@@ -911,13 +926,13 @@ The proof of Proposition \ref{proposition:compact_operator} is provided in Appen
 	
 	
 	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
-\begin{theorem}[Population PLS]\label{proposition: eigenanalysis} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
+\begin{theorem}[Population PLS]\label{theorem:population_PLS} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
 	\begin{equation*} 
 		\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
 		\end{equation*} 
 	is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
 \end{theorem}
-	The proof of Proposition \ref{proposition: eigenanalysis} is provided in Appendix \ref{section:proof:proposition: eigenanalysis}.
+	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
 	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
 	
 	
@@ -1301,6 +1316,44 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	
 	\section{Proof of}
 	
+	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
+	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
+	\begin{proof} 
+	Any bounded linear functional from a Hilbert space to  $\mathbb{R}$  is a compact operator.
+	This is because the image of any bounded set under such a functional is a bounded set in $\mathbb{R}$,
+	and by Bolzano-Weierstrass Theorem, every bounded sequence of real numbers has a convergent subsequence.
+Therefore,  to show that $\mathcal{C}_{YW}$ is a compact operator, it suffices to show that 
+ $\mathcal{C}_{YW}$ is a bounded linear functional.
+
+\medskip
+\noindent
+\textit{Linearity.}~	  
+ The operator $\mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathbb{R}$ is defined as 
+ $\mathcal{C}_{YW} h = \langle \Sigma_{YW}, h \rangle_\mathcal{H}$.
+ For any $h_1, h_2 \in \mathcal{H}$ and scalar $c \in \mathbb{R}$, the linearity of the inner product implies: \begin{align*} \mathcal{C}_{YW}(h_1 + h_2) &= \langle \Sigma_{YW}, h_1 + h_2 \rangle_\mathcal{H} = \langle \Sigma_{YW}, h_1 \rangle_\mathcal{H} + \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} = \mathcal{C}_{YW} h_1 + \mathcal{C}_{YW} h_2,
+ 	 \\ 
+ 	 \mathcal{C}_{YW}(c h) &= \langle \Sigma_{YW}, c h \rangle_\mathcal{H} = c \langle \Sigma_{YW}, h \rangle_\mathcal{H} = c \, \mathcal{C}_{YW} h. \end{align*}
+ Thus, $\mathcal{C}_{YW}$ is a linear functional. 
+ 
+\medskip
+\noindent
+\textit{Boundedness.}~ 
+To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathcal{H}$ for all $h \in \mathcal{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
+	|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathcal{H}| \leq \|\Sigma_{YW}\|_\mathcal{H} \|h\|_\mathcal{H}. 
+	\end{equation*}
+Now, we must verify that $\|\Sigma_{YW}\|_\mathcal{H}$ is finite. 
+Recall that 
+$$\Sigma_{YW} = (\sigma_{YX,1}(t), \ldots, \sigma_{YX,K}(t), \sigma_{YZ,1}, \ldots, \sigma_{YZ,p}).$$
+  Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$.
+The norm of $\Sigma_{YW}$ in $\mathcal{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathcal{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
+	<
+	K T Q_1 + p  Q_2 < \infty,
+ \end{equation*} 
+ where the last inequality uses the condition \eqref{condition_for_compact}.
+ Let $M = \sqrt{K T Q_1 + p  Q_2 }$. Thus, we have shown that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathcal{H}$ for a finite constant $M$.
+ This completes the proof of Lemma \ref{lemma:cross_cov_functional}.
+ 
+   \end{proof}
 	\subsection{Proof of Lemma \ref{lemma:cross_cov_operator}}\label{section:proof:lemma:cross_cov_operator}
  \begin{proof}
 For $h \in \mathcal{H}$ and $d \in \mathbb{R}$, we have:
@@ -2135,10 +2188,12 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 	
 	
 	
-\section{Proof of Proposition \ref{proposition: eigenanalysis}}\label{section:proof:proposition: eigenanalysis}
- 
-	
-	\noindent Now we prove Proposition \ref{proposition: eigenanalysis}. The singular value decomposition of $\mathcal{C}_{YW}$ is given by
+\section{Proof of Theorem \ref{theorem:population_PLS}}\label{section:proof:theorem:population_PLS}
+ \begin{proof}
+Since Proposition \ref{proposition:compact_operator} implies that $\mathcal{U}$ is compact,
+by Theorem 4.3.1 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+\end{proof}
+  The singular value decomposition of $\mathcal{C}_{YW}$ is given by
 	\begin{equation*}
 		\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
 	\end{equation*}
