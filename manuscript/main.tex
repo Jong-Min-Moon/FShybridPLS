@@ -156,11 +156,10 @@
 	%Infinite dimensional beta estimation problem (ill-posed problem)
 	%Multicollinearity and high-dimensionality in scalar predictors are not handled.
 	%Also, there may be high correlation between functional and scalar predictors.
-	This hybrid model poses several challenges.
-	Estimating the infinite-dimensional slope function $\beta_k(t) $ is an ill-posed problem requiring  dimension reduction or regularization based on structural assumption,
+	This hybrid model poses two-fold challenges.
+	First, estimating the infinite-dimensional slope function $\beta_k(t) $ is an ill-posed problem requiring  dimension reduction or regularization based on structural assumption,
 	such as derivatives and covariance patterns.
-	Scalar predictors are often high-dimensional and multicollinear.
-	Moreover, strong correlations between functional and scalar predictors are common but typically overlooked by separate modeling approaches. These issues call for a unified framework that addresses ill-posedness, high-dimensionality, and cross-modality correlation jointly.
+	Second, strong correlations between functional and scalar predictors are common but typically overlooked by separate modeling approaches. These issues call for a unified framework that addresses ill-posedness, high-dimensionality, and cross-modality correlation jointly.
 	
 	Many approaches have been proposed
 	1. Roughness Penalty
@@ -232,7 +231,7 @@
 	
 	%Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2([0,1])$---a cartesian product of individual $L^2([0,1])$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times [0,1]$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
 	%The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
-	%An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
+	%An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}(\mathbf{t}) = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
 	
 	Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. Then the functional regression model \eqref{eq: functional model} with multiple functional and scalar predictors can be re-expressed in terms of the scalar-on-hybrid regression model as follows
 	\begin{equation}
@@ -244,7 +243,7 @@
 	
 	The basic idea of partial least squares (PLS) is to simultaneously decompose the hybrid predictor $\mathbf{W}$ and the real outcome $Y$ in terms of zero mean uncorrelated PLS scores $(\rho_l)_{l \in \mathbb{N}}$ with maximum predictive performance as follows
 	\begin{equation}
-		\mathbf{W}[\mathbf{t}] = \sum \limits_{l=1}^{\infty} \rho_{l} \boldsymbol{\delta}_l[\mathbf{t}] \quad \textnormal{and} \quad Y = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon,
+		\mathbf{W}(\mathbf{t}) = \sum \limits_{l=1}^{\infty} \rho_{l} \boldsymbol{\delta}_l(\mathbf{t}) \quad \textnormal{and} \quad Y = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon,
 		\label{eq: decomposition}
 	\end{equation}
 	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases. The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \xi_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\xi_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \xi_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\xi_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \xi_l, \xi_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
@@ -293,9 +292,9 @@
 			\For{ $\mathbf{t} = \mathbf{t}_1 , \ldots  \mathbf{t}_m$} \Comment{Compute PLS loading}
 			\State 
 			$
-			\widehat{\xi}_{l}[\mathbf{t}] 
+			\widehat{\xi}_{l}(\mathbf{t}) 
 			\leftarrow 
-			\dfrac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}[\mathbf{t}]}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}
+			\dfrac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}
 			$
 			\Comment{\eqref{def:pls_loading_ptws}}
 			\EndFor
@@ -310,11 +309,11 @@
 			\Statex{\quad  \textbf{Orthogonalization step:}}
 			\For{ $\mathbf{t} = \mathbf{t}_1 , \ldots  \mathbf{t}_m$} 
 			\State 	$
-			\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \leftarrow \dfrac{\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
+			\widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \leftarrow \dfrac{\sum_{i=1}^n \mathbf{W}_i^{[l]}(\mathbf{t}) \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
 			$
 			\EndFor
 			\State
-			$\mathbf{W}_i^{[l+1]}[\mathbf{t}] \leftarrow \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$
+			$\mathbf{W}_i^{[l+1]}(\mathbf{t}) \leftarrow \mathbf{W}_i^{[l]}(\mathbf{t}) - \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \widehat{\rho}_{il}$
 			\State 	$
 			\widehat{\nu}_l \leftarrow \dfrac{\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}
 			$
@@ -333,18 +332,18 @@
 		\end{equation}
 		where the $l$-th PLS loading $\widehat{\xi}_{l} = (\widehat{\psi}_{l}, \widehat{\boldsymbol{\theta}}_{l}) \in \mathcal{H}$ maximizes $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}_{i}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}}, Y_i^{[l]})=\widehat{\textnormal{Cov}}^2(\widehat{\rho_{il}}, Y_i^{[l]})$. Specifically, we define the $l$-th PLS loadings pointwise as follows:
 		\begin{equation}\label{def:pls_loading_ptws}
-			\widehat{\xi}_{l}[\mathbf{t}] = \frac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}[\mathbf{t}]}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} = \left[ \frac{\sum_{i=1}^n Y_i^{[l]} X_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}, \frac{\sum_{i=1}^n Y_i^{[l]}\mathbf{Z}_i^{[l]}}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} \right]^\top,
+			\widehat{\xi}_{l}(\mathbf{t}) = \frac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} = \left[ \frac{\sum_{i=1}^n Y_i^{[l]} X_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}, \frac{\sum_{i=1}^n Y_i^{[l]}\mathbf{Z}_i^{[l]}}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} \right]^\top,
 		\end{equation}
 		where the normalizing factor  is computed as
 		\begin{equation}
 			\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}} = [\sum_{i=1}^n \sum_{j=1}^n Y_i^{[l]} Y_j^{[l]} \{\langle X_i^{[l]},X_j^{[l]} \rangle_\mathcal{F} + \langle \mathbf{Z}_i^{[l]}, \mathbf{Z}_j^{[l]} \rangle \}]^{1/2}.  
 		\end{equation}
 		
-		\item Obtain the subsequent residualized outcomes and predictors as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_{l} \widehat{\rho}_{il}$ and $\mathbf{W}_i^{[l+1]}[\mathbf{t}] = \mathbf{W}_i^{[l]}[\mathbf{t}] - \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] \widehat{\rho}_{il}$, where 
+		\item Obtain the subsequent residualized outcomes and predictors as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_{l} \widehat{\rho}_{il}$ and $\mathbf{W}_i^{[l+1]}(\mathbf{t}) = \mathbf{W}_i^{[l]}(\mathbf{t}) - \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \widehat{\rho}_{il}$, where 
 		\begin{equation*}
-			\widehat{\nu}_l = \frac{\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}] = \frac{\sum_{i=1}^n \mathbf{W}_i^{[l]}[\mathbf{t}] \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
+			\widehat{\nu}_l = \frac{\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) = \frac{\sum_{i=1}^n \mathbf{W}_i^{[l]}(\mathbf{t}) \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
 		\end{equation*}
-		Note, $\widehat{\nu}_l$ is the least squares estimate from linear regression of $Y_i^{[l]}$ on $\widehat{\rho}_{il}$, and  $\widehat{\boldsymbol{\delta}}_{l}[\mathbf{t}]$ is the least squares estimate from a linear regression of $\mathbf{W}_i^{[l]}[\mathbf{t}]$ on $\widehat{\rho}_{il}$.
+		Note, $\widehat{\nu}_l$ is the least squares estimate from linear regression of $Y_i^{[l]}$ on $\widehat{\rho}_{il}$, and  $\widehat{\boldsymbol{\delta}}_{l}(\mathbf{t})$ is the least squares estimate from a linear regression of $\mathbf{W}_i^{[l]}(\mathbf{t})$ on $\widehat{\rho}_{il}$.
 		
 		\item Let $l=l+1$ and back to Step 1.
 	\end{enumerate}
@@ -822,12 +821,12 @@ and between the response and the scalar predictor:
 \end{equation*}
 Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
 \begin{equation*}
-\Sigma_{YW}=(\sigma_{YX}, \sigma_{YZ}) :=  
+\Sigma_{YW} :=  
 \mathbb{E}
 [ Y_1 W_1 ]
 =
 \bigl(
-\sigma_{YX}, \sigma_{YZ}
+\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
 \bigr) \in \mathcal{H}.
 \end{equation*}
 Based on these definitions, we introduce two cross-covariance operators.
@@ -883,7 +882,9 @@ Define
 	 is self-adjoint and positive-semidefinite.
 \end{lemma}
 The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
-To guarantee the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$, we  first demonstrate that $\mathcal{U}$ is compact.
+To guarantee the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$, we  first demonstrate that $\mathcal{U}$ is  a compact operator,
+that is,
+images of a bounded sequence contains a convergent subsequence (for a formal definition, see Definition 4.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}).
 To this end, we begin by defining the notion of uniform continuity for the cross-covariance function defined in \eqref{def:cross_covariance_yx}:
 \begin{definition}[Uniform Continuity]\label{def:uniform_continuity}
 	For each $k \in \{1, \ldots, K\}$, the cross-covariance function $\sigma_{YX, k} \in \mathcal{F}$ is uniformly continuous if for any $\epsilon > 0$, there exists a $\delta_k > 0$ such that for all $t_1, t_2 \in [0,1]$ satisfying $|t_1 - t_2 | < \delta_k$, we have
@@ -894,14 +895,14 @@ $
 Using this definition, the following lemma presents a condition for $\mathcal{U}$ to be a compact operator.
 	\begin{lemma}[Compactness condition] \label{Proposition: property of U}
 If there exist finite constants $Q_1$ and $Q_2$ such that
-		\begin{align}
+		\begin{align}\label{condition_for_compact}
 			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
 		\end{align}
 		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
 		then $\mathcal{U}$ is a compact operator.
 \end{lemma}
 The proof of Lemma \ref{Proposition: property of U} is provided in Appendix \ref{section:proof:Proposition: property of U}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{Hsing2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{Proposition: property of U} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
 	
 	
@@ -1261,19 +1262,19 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	
 	Furthermore, let $
 	\mathbf{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n]^\top \in \mathbb{R}^{n \times p}
-	$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}[\mathbf{t}]=[\widetilde{X}(\mathbf{t}), \mathbf{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\mathbf{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
+	$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}(\mathbf{t})=[\widetilde{X}(\mathbf{t}), \mathbf{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\mathbf{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
 	\begin{equation}\label{eq: basis approximation of W}
-		\widetilde{W}[\mathbf{t}] 
+		\widetilde{W}(\mathbf{t}) 
 		=  
-		\widetilde{ \mathbf{C} }^\ast B^*[\mathbf{t}], \quad t \in \mathcal{T}.
+		\widetilde{ \mathbf{C} }^\ast B^*(\mathbf{t}), \quad t \in \mathcal{T}.
 	\end{equation}
-	where  $B^*[\mathbf{t}] = \mathrm{blkdiag}(B(\mathbf{t}), \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \mathbf{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
+	where  $B^*(\mathbf{t}) = \mathrm{blkdiag}(B(\mathbf{t}), \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \mathbf{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
 	
 	
 	
 	
 	\paragraph{Basis approximation of the PLS component.}
-	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\xi[\mathbf{t}] = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
+	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\xi(\mathbf{t}) = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
 	%
 	
 	Using this definition, we construct the following block-diagonal matrices:
@@ -1917,53 +1918,194 @@ Next,
 This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
 \end{proof}
 
-	\section{Proof of Proposition \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
+	\section{Proof of Lemma \ref{Proposition: property of U}}\label{section:proof:Proposition: property of U}
+\begin{proof}
+	The brief strategy of the proof is as follows.
+		We   show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
+		Then we apply the Arzel\'{a}-Ascoli theorem to show that $\mathcal{U}$ is \textit{compact}.
 
-	
-	Next, We will show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous, and then apply the Arzel\'{a}-Ascoli theorem to show $\mathcal{U}$ is \textit{compact}. Let $\mathcal{B}=\{\mathbf{h} \in \mathcal{H}: \Vert \mathbf{h} \Vert_\mathcal{H}^2 \le B\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < B < \infty$. Clearly, $\mathbf{h}=(f, \mathbf{v}) \in \mathcal{B}$ also implies $\Vert f \Vert_\mathcal{F}^2 \le B$ and $\Vert \mathbf{v} \Vert^2 \le B$. Define $\mathcal{I}  = \{\mathcal{U}\mathbf{h}: \mathbf{h} \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$. We will first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$. Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in \mathcal{T}$,
-	\begin{align*}
-		\Vert g[\mathbf{t}] \Vert^2 &= \Vert (\mathcal{U}\mathbf{h})[\mathbf{t}] \Vert^2 \\
-		&= \Vert \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} \, \Sigma_{YW}[\mathbf{t}] \Vert^2 \\
-		&= \left( \langle \sigma_{YX}, f \rangle_\mathcal{F} + \langle \sigma_{YZ}, \mathbf{v} \rangle \right)^2 \Vert [\sigma_{YX}^\top(\mathbf{t}), \sigma_{YZ}^\top]^\top \Vert^2 \\
-		&\le \left( \langle \sigma_{YX}, \sigma_{YX} \rangle_\mathcal{F}^{1/2} \langle f, f \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2} \right)^2 \Vert [\sigma_{YX}^\top(\mathbf{t}), \sigma_{YZ}^\top]^\top \Vert^2 \quad (\because \textnormal{CSI})\\
-		&= \left[ \left\{ \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \left(\sum \limits_{k=1}^K \sigma_{YX}^{(k)2}(t_k) + \sum \limits_{r=1}^p \sigma^2_{YZ,r} \right) \\
-		& \le \left\{ \left(\sum \limits_{k=1}^K \int_0^1 Q_1 dt_k \right)^{\frac{1}{2}} B^{\frac{1}{2}} + \left(\sum \limits_{r=1}^p Q_2 \right)^{\frac{1}{2}} B^{\frac{1}{2}} \right\}^2 \left( \sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 \right) \\
-		&= B \left\{(KTQ_1)^{\frac{1}{2}} + (PQ_2)^\frac{1}{2} \right\}^2 (KQ_1 +pQ_2) < \infty.
-	\end{align*}
-	We now show that $\mathcal{I}$ is equicontinuous. For $\epsilon > 0$, define 
-	\begin{equation*}
-		\tilde{\epsilon} = \frac{\epsilon}{(KB)^{1/2} \{(KTQ_1)^{1/2} + (PQ_2)^{1/2}\}}
-	\end{equation*}
-	By the continuity assumption of $\sigma_{YX}^{(k)}$, there exists $\delta_k > 0$ such that
-	\begin{equation*}
-		|t_k - t_k^*| < \delta_k \implies |\sigma^{(k)}(t_k) - \sigma^{(k)}(t_k^*)|< \tilde{\epsilon},
-	\end{equation*}
-	for all $k=1, \ldots, K$.
-	Set $\delta = \min_{k=1, \ldots, K} \delta_k$, and let $\Vert \mathbf{t} - \mathbf{t}^* \Vert < \delta$, with $\mathbf{t}=(t_1, \ldots, t_K)$ and $\mathbf{t}^*=(t_1^*, \ldots, t_K^*)$. Clearly, $|t_k - t^*_k| < \delta$ for all $k=1, \ldots, K$, so for $g \in \mathcal{I}$, we can establish that
-	\begin{align*}
-		\Vert g[\mathbf{t}] - g[\mathbf{t}^*] \vert^2 &= \Vert (\mathbf{U}\mathbf{h})[\mathbf{t}] - (\mathbf{U}\mathbf{h})[\mathbf{t}^*] \Vert^2 \\
-		&= \Vert \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} \Sigma_{YW}[\mathbf{t}] - \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H} \Sigma_{YW}[\mathbf{t}^*] \Vert^2 \\
-		&= \langle \Sigma_{YW}, \mathbf{h} \rangle_\mathcal{H}^2 \Vert \Sigma_{YW}[\mathbf{t}]- \Sigma_{YW}[\mathbf{t}^*] \Vert^2 \\
-		&= \left( \langle \sigma_{YX}, f \rangle_\mathcal{F} + \langle \sigma_{YZ}, \mathbf{v} \rangle \right)^2 \left\Vert 
-		\begin{bmatrix}
-			\sigma_{YX}(\mathbf{t}) \\
-			\sigma_{YZ}
-		\end{bmatrix} -
-		\begin{bmatrix}
-			\sigma_{YX}(\mathbf{t}^*) \\
-			\sigma_{YZ}
-		\end{bmatrix}
-		\right\Vert^2  \\
-		&\stackrel{CSI}{\le} \left( \langle \sigma_{YX}, \sigma_{YX} \rangle_\mathcal{F}^{1/2} \langle f, f \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2} \right)^2 \left\Vert 
-		\begin{bmatrix}
-			\sigma_{YX}(\mathbf{t})-\sigma_{YX}(\mathbf{t}^*) \\
-			\mathbf{0}
-		\end{bmatrix}
-		\right\Vert^2 \\
-		&= \left[ \left\{ \sum \limits_{k=1}^K \int_0^1 \sigma_{YX}^{(k)2}(t_k) dt_k \right\}^{\frac{1}{2}} \Vert f \Vert_\mathcal{F} + \left(\sum \limits_{r=1}^p \sigma_{YZ, r}^2 \right)^{\frac{1}{2}} \Vert \mathbf{v} \Vert \right]^2 \sum \limits_{k=1}^K  \left\{\sigma_{YX}^{(k)}(t_k) -\sigma_{YX}^{(k)}(t_k^*) \right\}^2 \\
-		&\le B \left\{(KTQ_1)^{\frac{1}{2}} + (PQ_2)^\frac{1}{2} \right\} K\tilde{\epsilon}^2 = \epsilon^2.
-	\end{align*}
-	Now we can apply the Arzel\'{a}-Ascoli theorem to conflude that for any bounded sequence $\{\mathbf{h}_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}\mathbf{h}_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a convergent subsequence. Therefore, $\mathcal{U}$ is a compact operator.
+Let $\mathcal{B}=\{h \in \mathcal{H}: \Vert h \Vert_\mathcal{H}^2 \le M\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < M < \infty$.
+Clearly, $h=(f, \mathbf{v}) \in \mathcal{B}$ also implies 
+\begin{equation}\label{individual_norm_bound}
+\Vert f_k \Vert_\mathcal{F}^2 \le M,
+~k=1,\ldots,K, \quad\text{and}\quad
+\Vert \mathbf{v} \Vert^2 \le M.
+\end{equation}
+Define $\mathcal{I}  = \{\mathcal{U}h: h \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$.
+
+\medskip
+\noindent
+\textit{Uniform boundedness of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ and an evaluation point $\mathbf{t}= (t_1, \ldots, t_k) \in [0,1]^K$, we denote the $\ell_2$ norm of the evaluated object $\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ as follows:
+$\bigl(
+f_1(t_1), \ldots, f_k(t_k), \mathbf{v}
+\bigr)$
+   as follows:
+\begin{equation*}
+	\| h (\mathbf{t}) \|_2^2 := \sum_{k=1}^K f^2_k(t_k) + \| \mathbf{v} \|_2^2.
+\end{equation*}
+ %We first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$.
+  Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in [0,1]^K$, 
+  by Lemma \ref{lemma:composite_cross_cov}, we have:
+  \begin{equation}\label{gtsq_expansion}
+\Vert g (\mathbf{t}) \Vert^2_2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ = \Vert (\mathcal{U}h)(\mathbf{t}) \Vert^2_2 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \overset{(i)}{=} 
+\Vert \langle \Sigma_{YW}, h \rangle_\mathcal{H} \, \Sigma_{YW}(\mathbf{t}) \Vert^2_2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  =
+\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2
+\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2.
+  \end{equation}
+  We will show that $\Vert g (\mathbf{t}) \Vert^2_2 < \infty$ by  showing $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 < \infty$ and $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2 < \infty$ in turn. First, to bound 
+   $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2$, it suffices to bound $\langle \Sigma_{YW}, h \rangle_\mathcal{H}$:
+\begin{align*}
+\langle \Sigma_{YW}, h \rangle_\mathcal{H}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&=
+\sum_{k=1}^K \langle \sigma_{YX, k}, \, f_k \rangle_\mathcal{F}  
++ 
+\langle \sigma_{YZ}, \, \mathbf{v} \rangle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&\overset{(i)}{\le}
+\sum_{k=1}^K 
+\langle \sigma_{YX, k}, \sigma_{YX, k} \rangle_\mathcal{F}^{1/2} 
+\langle f_k, f_k \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+  \sum \limits_{k=1}^K
+  \biggl(
+  	\int_0^1
+  	\sigma_{YX, k}^{2}(t)\, dt
+  	\biggr)^{1/2} 
+  	\Vert f_k \Vert_\mathcal{F} 
+  	+
+\biggl(
+\sum \limits_{r=1}^p \sigma_{YZ, r}^2
+\biggr)^{1/2}
+\Vert \mathbf{v} \Vert_2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&\overset{(ii)}{<}
+ \sqrt{M}
+ \biggl\{
+\sum \limits_{k=1}^K 
+ \biggl(
+ \int_0^1 Q_1 dt
+ \biggr)^{1/2}
+ +
+ \biggl(
+ \sum \limits_{r=1}^p Q_2 
+ \biggr)^{\frac{1}{2}} 
+ \biggr\}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\ & = K\sqrt{M TQ_1}   + \sqrt{MpQ_2} < \infty.
+\numberthis \label{squared_ip_bound}
+\end{align*}
+where
+step $(i)$ uses Cauchy-Schwarz inequality,
+and
+step $(ii)$ uses the conditions \eqref{condition_for_compact} 
+and \eqref{individual_norm_bound}.
+
+Next, we bound $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  $:
+\begin{align*}
+\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+= %%%%%%%%%%%%%%%%%
+\sum \limits_{k=1}^K
+\sigma_{YX, k}^{2}(t_k)
++
+\sum \limits_{r=1}^p \sigma^2_{YZ,r}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<
+\sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 
+=  KQ_1 +pQ_2 < \infty.
+\end{align*}
+Therefore, we have
+\begin{equation*}
+	\Vert g (\mathbf{t}) \Vert^2_2 < 
+	 2K^2 M TQ_1   + 2MpQ_2 + KQ_1 +pQ_2< \infty.
+\end{equation*}
+Since this bound does not depend on the evaluation point, we conclude that across all $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I}$, their functional components $s_1(t), \ldots, s_K(t)$ are uniformly bounded.
+
+\medskip
+\noindent
+\textit{Equicontinuity of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ and 
+two evaluation points
+ $\mathbf{t}=(t_1, \ldots, t_K) \in [0,1]^K$
+ and
+ $\mathbf{t}^\ast=(t_1^\ast, \ldots, t_K^\ast) \in [0,1]^K$,
+we denote the $\ell_2$ distance between   two evaluations
+$\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ 
+and
+$\bigl( f_1(t^\ast_1), \ldots, f_k(t^\ast_k), \mathbf{v} \bigr)$
+as follows:
+\begin{equation*}
+	\| h (\mathbf{t}) - h (\mathbf{t}^\ast)\|_2^2 
+	:= 
+	\sum_{k=1}^K 
+	\bigl(
+	f_k(t_k) - f_k(t_k^\ast)
+	\bigr)^2 .
+\end{equation*}
+For any $g \in \mathcal{I}$, via similar computation as in \eqref{gtsq_expansion}, we have
+\begin{align*}
+	\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 
+	%%%%%%%%%%%%%%%%%
+	= %%%%%%%%%%%%%%%%%%
+	\Vert 
+	(\mathcal{U}h)(\mathbf{t}) - (\mathcal{U}h)( \mathbf{t}^\ast ) 
+	\Vert_2^2
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&= %%%%%%%%%%%%%%%
+	\Vert \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
+	\,
+	\Sigma_{YW}(\mathbf{t}) - \langle \Sigma_{YW}, h \rangle_\mathcal{H} \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\&=
+\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2.
+\end{align*}
+We have already shown in \eqref{squared_ip_bound} that  $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 \leq  2K^2 M TQ_1   + 2MpQ_2$.
+Next we bound $\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2$, which do not depend on $h$.
+\begin{align*}
+\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2	
+=%%%%%%%%%%%%%
+   \sum \limits_{k=1}^K  
+   \bigl\{
+   \sigma_{YX, k }(t_k) -\sigma_{YX, k}(t_k^\ast ) 
+   \bigr\}^2 
+& \leq%%%%%%%%%%%%%
+\sum \limits_{k=1}^K  
+\bigl\{
+2\sigma^2_{YX, k }(t_k) + 2\sigma^2_{YX, k}(t_k^\ast ) 
+\bigr\}
+%%%%%%%%%%%%%%%%%%%%%%
+\\& \le 
+4KQ_1.
+\end{align*}
+Therefore we have
+\begin{equation}\label{bound_elltwo_dist}
+	\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 \leq 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1.
+\end{equation}
+Given $\epsilon > 0$, define 
+\begin{equation*}
+	\tilde{\epsilon}: = \frac{\epsilon}{  ( 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1 )^{1/2}}
+\end{equation*}
+By the uniform continuity assumption of $\sigma_{YX, k}$'s, there exists $\delta_k > 0$ such that
+\begin{equation*}
+	|t_k - t_k^\ast| < \delta_k \implies |\sigma_{YX, k}(t_k) - \sigma_{YX, k}(t_k^\ast)|< \tilde{\epsilon},~\text{for all}~k=1, \ldots, K.
+\end{equation*}
+Set $\delta := \min_{k=1, \ldots, K} \delta_k$.Then  by \eqref{bound_elltwo_dist},  
+across  $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I},$ for all $k=1, \ldots, K$, 
+$|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
+
+\medskip
+\noindent
+\textit{Conclusion.}~ For any bounded sequence $\{h_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}h_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a subsequence that converges in its first functional component, by the Arzel\'{a}-Ascoli theorem. We then apply the theorem again to that subsequence to extract a sub-subsequence that also converges in the second functional component. By repeating this process, we ultimately obtain a subsequence of $\{\mathbf{g}_n\}$ that converges in all its components. Therefore, $\mathcal{U}$ is a compact operator.
+\end{proof}
+ 
+ 
 	
 	
 	
@@ -1988,7 +2130,7 @@ This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
 	\begin{equation*}
 		\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
 	\end{equation*}
-	Let $\Vert \cdot \Vert_{op}$ denote an operator norm. Then, applying Theorem 4.3.4 in \citet{Hsing2015}, we can show that
+	Let $\Vert \cdot \Vert_{op}$ denote an operator norm. Then, applying Theorem 4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we can show that
 	\begin{equation*}
 		\Vert \mathcal{C}_{YW} \Vert_{op} = \sup_{\substack{\mathbf{h} \in \mathcal{H} \\ \Vert \mathbf{h} \Vert_\mathcal{H}=1}} | \mathcal{C}_{YW} \mathbf{h} |^2 
 		= \sup_{\substack{\mathbf{h} \in \mathcal{H} \\ \Vert \mathbf{h} \Vert_\mathcal{H}=1}} | E(\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y)|^2 

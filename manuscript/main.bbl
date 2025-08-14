@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{29}
 % BibTex style file: imsart-nameyear.bst, 2017-11-03
 % Default style options (sort=1,type=nameyear).
 % Used options (sort=1,type=nameyear).
@@ -213,11 +213,24 @@
 \end{barticle}
 \endbibitem
 
-\bibitem[\protect\citeauthoryear{Hsing and Eubank}{2015}]{Hsing2015}
+\bibitem[\protect\citeauthoryear{Hsing and
+  Eubank}{2015a}]{hsingTheoreticalFoundationsFunctional2015}
+\begin{bbook}[author]
+\bauthor{\bsnm{Hsing},~\bfnm{Tailen}\binits{T.}} \AND
+  \bauthor{\bsnm{Eubank},~\bfnm{Randall}\binits{R.}}
+(\byear{2015}a).
+\btitle{Theoretical Foundations of Functional Data Analysis, with an
+  Introduction to Linear Operators},
+\bedition{1st edition} ed.
+\bpublisher{Wiley}.
+\end{bbook}
+\endbibitem
+
+\bibitem[\protect\citeauthoryear{Hsing and Eubank}{2015b}]{Hsing2015}
 \begin{bbook}[author]
 \bauthor{\bsnm{Hsing},~\bfnm{T}\binits{T.}} \AND
   \bauthor{\bsnm{Eubank},~\bfnm{R}\binits{R.}}
-(\byear{2015}).
+(\byear{2015}b).
 \btitle{Theoretical Foundations of Functional Data Analysis, with an
   Introduction to Linear Operators}.
 \bpublisher{Wiley}, \baddress{Chichester, West Sussex, UK}.

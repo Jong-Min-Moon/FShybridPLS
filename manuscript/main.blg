@@ -13,6 +13,8 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: bibliography.bib
 Warning--string name "apr" is undefined
+--line 19 of file bibliography.bib
+Warning--string name "apr" is undefined
 --line 42 of file bibliography.bib
 Warning--string name "jan" is undefined
 --line 51 of file bibliography.bib
@@ -41,45 +43,45 @@ Warning--string name "may" is undefined
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 28 entries,
+You've used 29 entries,
             5204 wiz_defined-function locations,
-            1052 strings with 11361 characters,
-and the built_in function-call counts, 135819 in all, are:
-= -- 22782
-> -- 428
-< -- 54
-+ -- 8911
-- -- 169
-* -- 6965
-:= -- 21606
-add.period$ -- 85
-call.type$ -- 28
-change.case$ -- 167
+            1055 strings with 11476 characters,
+and the built_in function-call counts, 140198 in all, are:
+= -- 23531
+> -- 442
+< -- 56
++ -- 9230
+- -- 175
+* -- 7165
+:= -- 22312
+add.period$ -- 87
+call.type$ -- 29
+change.case$ -- 174
 chr.to.int$ -- 27
-cite$ -- 28
-duplicate$ -- 913
-empty$ -- 5554
-format.name$ -- 576
-if$ -- 33357
-int.to.chr$ -- 2
+cite$ -- 29
+duplicate$ -- 943
+empty$ -- 5721
+format.name$ -- 595
+if$ -- 34454
+int.to.chr$ -- 3
 int.to.str$ -- 1
 missing$ -- 0
-newline$ -- 310
-num.names$ -- 127
-pop$ -- 625
+newline$ -- 320
+num.names$ -- 132
+pop$ -- 647
 preamble$ -- 1
-purify$ -- 110
+purify$ -- 114
 quote$ -- 0
-skip$ -- 13386
+skip$ -- 13828
 stack$ -- 0
-substring$ -- 17289
-swap$ -- 324
-text.length$ -- 252
+substring$ -- 17789
+swap$ -- 334
+text.length$ -- 261
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 710
+type$ -- 730
 warning$ -- 0
-while$ -- 387
+while$ -- 401
 width$ -- 0
-write$ -- 645
-(There were 13 warnings)
+write$ -- 667
+(There were 14 warnings)
