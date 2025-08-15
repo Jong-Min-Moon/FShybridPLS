@@ -214,31 +214,40 @@
 		\begin{equation}		\label{eq: hybrid inner product}
 			\langle W_1, W_2\rangle_{\mathcal{H}}
 			:=
-			\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
+			\sum \limits_{k=1}^K 
 			+ 
 			\omega
 			\mathbf{Z}_1^\top \mathbf{Z}_2,
+			~\text{where}~\int_0^1 X_{1k}(t) X_{2k}(t) \, dt
 		\end{equation}
 		for $\omega > 0$.
 		The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
 	\end{definition}
 	In \eqref{eq: hybrid inner product}, 
 	$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
-	
+		Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
 	\begin{remark}
 		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
 	\end{remark} 
-	
 	%Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2([0,1])$---a cartesian product of individual $L^2([0,1])$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times [0,1]$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
 	%The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
 	%An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}(\mathbf{t}) = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
-	
-	Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. Then the functional regression model \eqref{eq: functional model} with multiple functional and scalar predictors can be re-expressed in terms of the scalar-on-hybrid regression model as follows
-	\begin{equation}
-		Y = \langle \boldsymbol{\eta}, \mathbf{W} \rangle_{\mathcal{H}} + \epsilon,
-		\label{eq: Hybrid functional model}
+Then the joint regression model \eqref{eq: functional model}  can be concisely written as
+	\begin{equation}		\label{eq: Hybrid functional model}
+		Y_i = \langle \beta, W_i \rangle_{\mathcal{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathcal{H}.
 	\end{equation}
-	where $\boldsymbol{\eta} = (\beta, \boldsymbol{\alpha}) \in \mathcal{H}$ is a hybrid regression coefficient characterizing the association between the hybrid predictor $\mathbf{W}$ and the outcome $Y$.
+ 
+	
+	
+	
+	
+
+	
+	
+	
+	
+		
+	\section{Population PLS and Tucker's Criterion in hybrid regression setting}\label{section:main:tucker}\jongmin{Previously, was in theoretical property section, now procedes the method section, to motivate the estimation procedure}
 	
 	
 	The basic idea of partial least squares (PLS) is to simultaneously decompose the hybrid predictor $\mathbf{W}$ and the real outcome $Y$ in terms of zero mean uncorrelated PLS scores $(\rho_l)_{l \in \mathbb{N}}$ with maximum predictive performance as follows
@@ -259,10 +268,120 @@
 		\item Existing partial least squares (PLS) methods can only accommodate (i) univariate or multivariate functional predictors without any scalar predictors \citep{predaPLSRegressionStochastic2005, delaigleMethodologyTheoryPartial2012, Febrero2017, Beyaztas2020}; or (2) a univariate functional predictor with other scalar predictors \citep{Wang2018}.
 	\end{enumerate}
 	
+	The fundamental property of classical scalar PLS is that the PLS component direction  corresponds to the first eigenvector of the squared covariance matrix, satisfying  the Tucker's Criterion \citep{Tucker1938}.
+Under a mild assumption,
+	We derive an analogous result  in our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}.
+	 This justifies our estimation procedure introduced in Section \ref{section:main:our_algorithm}.
+	We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
+	\begin{equation}\label{def:cross_covariance_yx}
+		\sigma_{YX}
+		=
+		\bigl(
+		\sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
+		\bigr)
+		:=
+		\bigl(
+		\mathbb{E}
+		[Y_1 X_{11}]
+		,\ldots, 
+		\mathbb{E}
+		[Y_1  X_{1K}]
+		\bigr)   \in \mathcal{F}^{\otimes K},
+	\end{equation}
+	and between the response and the scalar predictor:
+	\begin{equation*}
+		\sigma_{YZ} 
+		= 
+		(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
+		:= 
+		\bigl(
+		\mathbb{E}[Y_1 Z_{11}]
+		,\ldots,
+		\mathbb{E}[Y_1 Z_{1p}]
+		\bigr)^\top %= E(Y\mathbf{Z})
+		\in \mathbb{R}^p.
+	\end{equation*}
+	Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
+	\begin{equation*}
+		\Sigma_{YW} :=  
+		\mathbb{E}
+		[ Y_1 W_1 ]
+		=
+		\bigl(
+		\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
+		\bigr) \in \mathcal{H}.
+	\end{equation*}
+	Based on these definitions, we introduce two cross-covariance operators and their properties.
+	\begin{lemma}\label{lemma:cross_cov_functional}
+		Define the operator $
+		\mathcal{C}_{YW}
+		=
+		\mathbb{E}(W_1 \otimes_\mathcal{H} Y_1)
+		: \mathcal{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathcal{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
+		\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact. This way, we don't need uniform continuiity of $\sigma_{YX}$.}If there exist finite constants $Q_1$ and $Q_2$ such that
+		\begin{align}\label{condition_for_compact}
+			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+		\end{align}
+		the operator $\mathcal{C}_{YW}$ is a compact operator.
+	\end{lemma}
+	Proof of Lemma \ref{lemma:cross_cov_functional}
+	is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
+	\begin{lemma}\label{lemma:cross_cov_operator}
+		Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
+		which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
+		%%%%
+		\begin{align*}		
+			\mathcal{C}_{WY} d 
+			:= 
+			\mathbb{E} 
+			\bigl[
+			\langle Y_1, d \rangle W_1 
+			\bigr] 
+			= 
+			\mathbb{E}
+			[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
+		\end{align*}
+		Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+	\end{lemma}
 	
 	
 	
-	\section{Naive PLS Algorithm} \label{sec: Naive PLS Algorithm}
+	The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
+	
+	Based on these two operators, we define a positive   operator as follows:
+	\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
+		Define
+		$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ as an operator which performs the following mapping:
+		\begin{equation*}
+			\mathcal{U} h 
+			= 
+			\mathcal{C}_{WY} ( \mathcal{C}_{YW} h) 
+			=
+			\mathcal{C}_{YW} (\langle \Sigma_{YW}, h \rangle_\mathcal{H}) 
+			=  
+			\Sigma_{YW} \, \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
+			= 
+			(\Sigma_{YW} \otimes \Sigma_{YW}) h.
+		\end{equation*}
+		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
+		Then $\mathcal{U}$
+		is a self-adjoint and positive-semidefinite operator.
+		Under the conditions of Lemma \ref{lemma:cross_cov_functional}, $\mathcal{U}$ is a compact operator.
+	\end{lemma}
+	The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Lemma \ref{lemma:composite_cross_cov} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+	
+	The following theorem introduces the population-level PLS and Tucker's Criterion, adapted to our scalar-on-hybrid regression model setting, based on the aforementioned operators defined in the hybrid space.
+	\begin{theorem}[Population PLS and Tucker's criterion]\label{theorem:population_PLS} Under the conditions of Lemma \ref{lemma:cross_cov_functional}, the constrained maximum
+		\begin{equation*} 
+			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
+		\end{equation*} 
+		is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
+	\end{theorem}
+	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
+	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]}  W^{[l]})$.
+	
+		\section{Naive PLS Algorithm} \label{sec: Naive PLS Algorithm}
 	This section introduces a naive pointwise hybrid PLS algorithm and highlights its limitations. The algorithm treats each functional predictor as a long vector of discretized points, derives PLS components independently at each observed time point $\mathbf{t}$, and aggregates them into a functional object to compute the PLS score.
 	Since the regression coefficient computation follows directly from the PLS components and scores, our discussion here focuses on the latter and omits the former.
 	Denote $\{(Y_1, \mathbf{W}_1),  \ldots, (Y_n, \mathbf{W}_n)\}$ as $n$ independent data pairs (observed sample) distributed as $(Y, \mathbf{W})$. The goal of the PLS algorithm is to decompose the predictor $\mathbf{W}_i$ $(i=1, \ldots, n)$ and the real response $Y_i$ in terms of zero mean uncorrelated PLS scores  $(\rho_{il})_{l \in \mathbb{N}}$ with maximum predictive performance. Here and below, a superscript in square brackets denotes the iteration index of the algorithm. We begin by denoting the centered data as
@@ -351,11 +470,7 @@
 	This naive pointwise PLS algorithm, however, can be computationally expensive for multiple dense functional data and is not feasible for irregular functional data. Moreover, the pointwise estimates only use information from data on the particular argument value, and thus can show substantial variability across the domain, resulting in overfitting and unstable predictions. 
 	
 	
-	
-	
-	
-	
-	\section{Proposed PLS Algorithm} \label{sec: Proposed PLS Algorithm}
+	\section{Proposed PLS Algorithm} \label{section:main:our_algorithm}
 	To address the limitations outlined in Section \ref{sec: Naive PLS Algorithm}, we propose  novel strategies for implementing the steps of the hybrid PLS algorithm. Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{section:sub:compute_PLS_component} and~\ref{section:sub:residualization}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{section:sub:regression_coeff}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
@@ -787,139 +902,6 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	
 	\section{Properties of the Proposed PLS Framework}
 	\label{section:main:properties_of_our_method}
-	\jongmin{notation not yet changed}
-	
-	In this section, we derive some of the theoretical and geometric properties of the proposed PLS framework.
-	
-	\subsection{Tucker's Criterion}\jongmin{notation not yet changed}
-	We derive that the PLS components obtained from the first step of the proposed algorithm satisfy the Tucker's Criterion \citep{Tucker1938} extended to our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}. We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
-	\begin{equation}\label{def:cross_covariance_yx}
-\sigma_{YX}
-=
- \bigl(
- \sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
- \bigr)
-  :=
-\bigl(
-\mathbb{E}
-[Y_1 X_{11}]
-,\ldots, 
-\mathbb{E}
-[Y_1  X_{1K}]
-\bigr)   \in \mathcal{F}^{\otimes K},
-	\end{equation}
-and between the response and the scalar predictor:
-\begin{equation*}
-\sigma_{YZ} 
-= 
-(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
-:= 
-\bigl(
-\mathbb{E}[Y_1 Z_{11}]
-,\ldots,
-\mathbb{E}[Y_1 Z_{1p}]
-\bigr)^\top %= E(Y\mathbf{Z})
-\in \mathbb{R}^p.
-\end{equation*}
-Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
-\begin{equation*}
-\Sigma_{YW} :=  
-\mathbb{E}
-[ Y_1 W_1 ]
-=
-\bigl(
-\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
-\bigr) \in \mathcal{H}.
-\end{equation*}
-Based on these definitions, we introduce two cross-covariance operators and their properties.
-\begin{lemma}\label{lemma:cross_cov_functional}
-Define the operator $
-\mathcal{C}_{YW}
-=
-\mathbb{E}(W_1 \otimes_\mathcal{H} Y_1)
-: \mathcal{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathcal{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
-\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact}If there exist finite constants $Q_1$ and $Q_2$ such that
-\begin{align}\label{condition_for_compact}
-	\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
-\end{align}
-the operator $\mathcal{C}_{YW}$ is a compact operator.
-\end{lemma}
-Proof of Lemma \ref{lemma:cross_cov_functional}
-is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
-\begin{lemma}\label{lemma:cross_cov_operator}
-Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
-which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
-	%%%%
-	\begin{align*}		
-		\mathcal{C}_{WY} d 
-		:= 
-		\mathbb{E} 
-		\bigl[
-		\langle Y_1, d \rangle W_1 
-		\bigr] 
-		= 
-		\mathbb{E}
-		[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
-	\end{align*}
-Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
-\end{lemma}
-
- 
-
-The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
-
-Based on these two operators, we define a positive   operator as follows:
-\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
-Define
-	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ as an operator which performs the following mapping:
-	\begin{equation*}
-		\mathcal{U} h 
-		= 
-		\mathcal{C}_{WY} ( \mathcal{C}_{YW} h) 
-		=
-		\mathcal{C}_{YW} (\langle \Sigma_{YW}, h \rangle_\mathcal{H}) 
-		=  
-		\Sigma_{YW} \, \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
-		= 
-		(\Sigma_{YW} \otimes \Sigma_{YW}) h.
-	\end{equation*}
-		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
-		Then $\mathcal{U}$
-	 is a self-adjoint, positive-semidefinite, and compact operator.
-\end{lemma}
-The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
-
-The fundamental property of classical scalar PLS is that the first eigenvector of the squared covariance matrix corresponds to the first PLS component direction. To derive an analogous result in the hybrid regression setting, we first demonstrate that $\mathcal{U}$ is a compact operator. This means that the image of any bounded sequence under $\mathcal{U}$ contains a convergent subsequence (for a formal definition, see Definition 4.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}). The compactness of $\mathcal{U}$ is crucial as it guarantees the existence of a complete orthonormal system of eigenfunctions for $\mathcal{U}$ in $\mathcal{H}$.
-To this end, we begin by defining the notion of uniform continuity for the cross-covariance function defined in \eqref{def:cross_covariance_yx}:
-\begin{definition}[Uniform continuity]\label{def:uniform_continuity}
-	For each $k \in \{1, \ldots, K\}$, the cross-covariance function $\sigma_{YX, k} \in \mathcal{F}$ is uniformly continuous if for any $\epsilon > 0$, there exists a $\delta_k > 0$ such that for all $t_1, t_2 \in [0,1]$ satisfying $|t_1 - t_2 | < \delta_k$, we have
-$
-		| \sigma_{YX, k} (t_1) - \sigma_{YX, k} (t_2) | < \epsilon.
-$
-\end{definition}
-Using this definition, the following proposition states that $\mathcal{U}$ is a compact operator under a mild condition.
-	\begin{proposition}[Compactness condition] \label{proposition:compact_operator}
-
-		and if each $\sigma_{YX}^{(k)}$ ($k=1, \ldots, K)$ is uniformly continuous,
-		then $\mathcal{U}$ is a compact operator.
-\end{proposition}
-The proof of Proposition \ref{proposition:compact_operator} is provided in Appendix \ref{section:proof:proposition:compact_operator}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Proposition \ref{proposition:compact_operator} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
-	
-	
-	
-	The following proposition introduces the Tucker's Criterion adapted to our scalar-on-hybrid regression model setting based on the aformentioned operators defined in the hybrid space.
-\begin{theorem}[Population PLS]\label{theorem:population_PLS} Under the conditions of Proposition \ref{proposition:compact_operator}, the constrained maximum
-	\begin{equation*} 
-		\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
-		\end{equation*} 
-	is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
-\end{theorem}
-	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
-	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]} \mathbf{W}^{[l]})$.
-	
-	
-	\subsection{Geometric Properties}\label{section:sub:prop_geom}
 	In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 	
 	A fundamental property of partial least squares   is that its derived bases are orthonormal. Our regularized estimates preserve this property, with respect to a modified inner product that incorporates the roughness penalty, defines as follows:
@@ -1297,7 +1279,7 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	%
 	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
-	\section{Proof of}
+	\section{Proof of Section \ref{section:main:tucker}}
 	
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
 	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
@@ -1359,6 +1341,89 @@ For $h \in \mathcal{H}$ and $d \in \mathbb{R}$, we have:
 Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
 	This completes the proof of Lemma \ref{lemma:cross_cov_operator}.
  \end{proof}
+ 
+\subsection{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
+\begin{proof}We show that $\mathcal{U}$ is self-adjoint, positive-semidefinite, and compact, in turn.
+	
+	\medskip
+	\noindent
+	\textit{Self-adjoint.}~
+	For any $h_1, h_2 \in \mathcal{H}$, we have
+	\begin{align*}
+		\langle 
+		\mathcal{U} h_1, \, h_2 
+		\rangle_\mathcal{H}  
+		= 
+		\bigl \langle 
+		\langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW},
+		\,
+		h_2
+		\bigr \rangle_\mathcal{H}
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\\&= 
+		\bigl \langle 
+		h_1,
+		\,
+		\langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} \Sigma_{YW} 
+		\bigr \rangle_\mathcal{H}
+		\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathcal{H}.
+	\end{align*}
+	
+	\medskip
+	\noindent
+	\textit{Positive-semidefinite.}~
+	For every $h \in \mathcal{H}$, we have
+	\begin{equation*}
+		\langle 
+		\mathcal{U} h,
+		\,
+		h
+		\rangle_\mathcal{H}
+		=
+		\bigl \langle 
+		\langle 
+		\Sigma_{YW},\, h \rangle_{\mathcal{H}}  \Sigma_{YW}, \, h
+		\bigr \rangle_\mathcal{H}
+		= \langle \Sigma_{YW}, \, h \rangle_\mathcal{H}^2 \ge 0.
+	\end{equation*}
+	
+	\medskip
+	\noindent
+	\textit{Compact.}~
+	By Lemma \ref{lemma:cross_cov_functional}, $\mathcal{C}_{YW}$ is a compact operator.
+	By  Theorem 4.1.3 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+	the composition of two operators is compact if either operator is compact. Therefore
+	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}$ is a compact operator.
+	This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
+\end{proof}
+
+	
+\subsection{Proof of Theorem \ref{theorem:population_PLS}}\label{section:proof:theorem:population_PLS}
+\begin{proof}
+	by Theorem 4.3.1 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+	since $\mathcal{C}_{YW}$ is compact by Lemma \ref{lemma:cross_cov_functional}, it 
+	has the singular value decomposition of $\mathcal{C}_{YW}$, given by:
+\begin{equation*}
+	\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
+\end{equation*}
+Let $\Vert \cdot \Vert_{\mathrm{op}}$ denote an operator norm. By  4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we have
+\begin{equation*}
+	\Vert \mathcal{C}_{YW} \Vert_{\mathrm{op}} = \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} | \mathcal{C}_{YW} h |^2 
+	= \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} | E(\langle W, h \rangle_\mathcal{H} Y)|^2 
+	= \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} \textnormal{Cov}^2(\langle W, h \rangle_\mathcal{H}, Y) 
+	= \kappa_1^2,
+\end{equation*}
+with maximum attained at $h=f_{11}$, which is an eigenfunction of  $\mathcal{C}_{YW}^* \, \circ \, \mathcal{C}_{YW} = \mathcal{C}_{WY} \, \circ \, \mathcal{C}_{YW} = \mathcal{U}$ corresponding to the largest eigenvalue $\kappa_1^2.$
+This completes the proof of Theorem \ref{theorem:population_PLS}.
+\end{proof}
+
+
+
+
+
+
 	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
 		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
@@ -1937,63 +2002,9 @@ Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{
 	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
 	
 	
-\section{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
-\begin{proof}We show that $\mathcal{U}$ is self-adjoint, positive-semidefinite, and compact, in turn.
 
-\medskip
-\noindent
-\textit{Self-adjoint.}~
-For any $h_1, h_2 \in \mathcal{H}$, we have
-\begin{align*}
-\langle 
-\mathcal{U} h_1, \, h_2 
-\rangle_\mathcal{H}  
-= 
-\bigl \langle 
-	\langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW},
-	\,
-	h_2
-\bigr \rangle_\mathcal{H}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&= 
-\bigl \langle 
-h_1,
-\,
- \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} \Sigma_{YW} 
-\bigr \rangle_\mathcal{H}
-\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathcal{H}.
-\end{align*}
 
-\medskip
-\noindent
-\textit{Positive-semidefinite.}~
-For every $h \in \mathcal{H}$, we have
-\begin{equation*}
-\langle 
-	\mathcal{U} h,
-	\,
-	h
-\rangle_\mathcal{H}
-=
-\bigl \langle 
-	\langle 
-		\Sigma_{YW},\, h \rangle_{\mathcal{H}}  \Sigma_{YW}, \, h
-\bigr \rangle_\mathcal{H}
-	= \langle \Sigma_{YW}, \, h \rangle_\mathcal{H}^2 \ge 0.
-\end{equation*}
-
-\medskip
-\noindent
-\textit{Compact.}~
-	By Lemma \ref{lemma:cross_cov_functional}, $\mathcal{C}_{YW}$ is a compact operator.
-	By  Theorem 4.1.3 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
-	the composition of two operators is compact if either operator is compact. Therefore
-	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}$ is a compact operator.
-This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
-\end{proof}
-
+\begin{comment}
 	\section{Proof of Proposition \ref{proposition:compact_operator}}\label{section:proof:proposition:compact_operator}
 \begin{proof}
 	The brief strategy of the proof is as follows.
@@ -2180,28 +2191,11 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 \noindent
 \textit{Conclusion.}~ For any bounded sequence $\{h_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}h_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a subsequence that converges in its first functional component, by the Arzel\'{a}-Ascoli theorem. We then apply the theorem again to that subsequence to extract a sub-subsequence that also converges in the second functional component. By repeating this process, we ultimately obtain a subsequence of $\{\mathbf{g}_n\}$ that converges in all its components. Therefore, $\mathcal{U}$ is a compact operator.
 \end{proof}
+\end{comment}
  
- 
 	
 	
-	
-\section{Proof of Theorem \ref{theorem:population_PLS}}\label{section:proof:theorem:population_PLS}
- \begin{proof}
-Since Proposition \ref{proposition:compact_operator} implies that $\mathcal{U}$ is compact,
-by Theorem 4.3.1 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
-\end{proof}
-  The singular value decomposition of $\mathcal{C}_{YW}$ is given by
-	\begin{equation*}
-		\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
-	\end{equation*}
-	Let $\Vert \cdot \Vert_{op}$ denote an operator norm. Then, applying Theorem 4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we can show that
-	\begin{equation*}
-		\Vert \mathcal{C}_{YW} \Vert_{op} = \sup_{\substack{\mathbf{h} \in \mathcal{H} \\ \Vert \mathbf{h} \Vert_\mathcal{H}=1}} | \mathcal{C}_{YW} \mathbf{h} |^2 
-		= \sup_{\substack{\mathbf{h} \in \mathcal{H} \\ \Vert \mathbf{h} \Vert_\mathcal{H}=1}} | E(\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H} Y)|^2 
-		= \sup_{\substack{\mathbf{h} \in \mathcal{H} \\ \Vert \mathbf{h} \Vert_\mathcal{H}=1}} \textnormal{Cov}^2(\langle \mathbf{W}, \mathbf{h} \rangle_\mathcal{H}, Y) 
-		= \kappa_1^2,
-	\end{equation*}
-	with maximum attained at $\mathbf{h}=f_{11}$, which is an eigenfunction of  $\mathcal{C}_{YW}^* \, \circ \, \mathcal{C}_{YW} = \mathcal{C}_{WY} \, \circ \, \mathcal{C}_{YW} = \mathcal{U}$ corresponding to the largest eigenvalue $\kappa_1^2.$
+
 	
 	
 	

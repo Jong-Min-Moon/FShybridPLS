@@ -29,83 +29,80 @@
 \newlabel{eq: hybrid inner product}{{3}{2}{Hybrid predictor and inner product}{equation.3}{}}
 \citation{predaPLSRegressionStochastic2005,delaigleMethodologyTheoryPartial2012,Febrero2017,Beyaztas2020}
 \citation{Wang2018}
+\citation{Tucker1938}
 \newlabel{eq: Hybrid functional model}{{4}{3}{Data Objects and Model Formulation}{equation.4}{}}
-\newlabel{eq: decomposition}{{5}{3}{Data Objects and Model Formulation}{equation.5}{}}
-\newlabel{sec: Naive PLS Algorithm}{{3}{3}{Naive PLS Algorithm}{section.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Naive PLS Algorithm}{3}{section.3}\protected@file@percent }
-\newlabel{def:centering_naive}{{6}{3}{Naive PLS Algorithm}{equation.6}{}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Naive Hybrid PLS (regression coefficient omitted)}}{4}{algorithm.1}\protected@file@percent }
+\newlabel{section:main:tucker}{{3}{3}{Population PLS and Tucker's Criterion in hybrid regression setting}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Population PLS and Tucker's Criterion in hybrid regression setting}{3}{section.3}\protected@file@percent }
+\newlabel{eq: decomposition}{{5}{3}{Population PLS and Tucker's Criterion in hybrid regression setting}{equation.5}{}}
+\newlabel{def:cross_covariance_yx}{{6}{3}{Population PLS and Tucker's Criterion in hybrid regression setting}{equation.6}{}}
+\citation{hsingTheoreticalFoundationsFunctional2015}
+\newlabel{lemma:cross_cov_functional}{{3.1}{4}{}{theorem.3.1}{}}
+\newlabel{condition_for_compact}{{7}{4}{}{equation.7}{}}
+\newlabel{lemma:cross_cov_operator}{{3.2}{4}{}{theorem.3.2}{}}
+\newlabel{lemma:composite_cross_cov}{{3.3}{4}{Composite cross-covariance operator}{theorem.3.3}{}}
+\newlabel{theorem:population_PLS}{{3.4}{5}{Population PLS and Tucker's criterion}{theorem.3.4}{}}
+\newlabel{sec: Naive PLS Algorithm}{{4}{5}{Naive PLS Algorithm}{section.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Naive PLS Algorithm}{5}{section.4}\protected@file@percent }
+\newlabel{def:centering_naive}{{8}{5}{Naive PLS Algorithm}{equation.8}{}}
+\newlabel{def:pls_score_naive}{{9}{5}{Naive PLS Algorithm}{equation.9}{}}
+\newlabel{def:pls_loading_ptws}{{10}{5}{Naive PLS Algorithm}{equation.10}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Naive Hybrid PLS (regression coefficient omitted)}}{6}{algorithm.1}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{alg:naive}{{1}{4}{Naive Hybrid PLS (regression coefficient omitted)}{algorithm.1}{}}
-\newlabel{def:pls_score_naive}{{7}{4}{Naive PLS Algorithm}{equation.7}{}}
-\newlabel{def:pls_loading_ptws}{{8}{4}{Naive PLS Algorithm}{equation.8}{}}
-\newlabel{sec: Proposed PLS Algorithm}{{4}{5}{Proposed PLS Algorithm}{section.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Proposed PLS Algorithm}{5}{section.4}\protected@file@percent }
-\newlabel{sec: finite basis approximation}{{4.1}{5}{Preliminary step 1: finite-basis approximation}{subsection.4.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Preliminary step 1: finite-basis approximation}{5}{subsection.4.1}\protected@file@percent }
-\newlabel{def:truncated_zeta_and_delta}{{10}{5}{Preliminary step 1: finite-basis approximation}{equation.10}{}}
-\newlabel{def:truncated_hilbert_space}{{11}{5}{Preliminary step 1: finite-basis approximation}{equation.11}{}}
-\newlabel{def:coef_vector_form}{{12}{6}{Preliminary step 1: finite-basis approximation}{equation.12}{}}
-\newlabel{def:theta}{{13}{6}{Preliminary step 1: finite-basis approximation}{equation.13}{}}
-\newlabel{def:full_theta}{{14}{6}{Preliminary step 1: finite-basis approximation}{equation.14}{}}
-\newlabel{def:B_matrix}{{15}{6}{Preliminary step 1: finite-basis approximation}{equation.15}{}}
-\newlabel{def:gram_block}{{16}{6}{Preliminary step 1: finite-basis approximation}{equation.16}{}}
-\newlabel{def:problem_instance}{{17}{6}{Preliminary step 1: finite-basis approximation}{equation.17}{}}
-\newlabel{subsec: Data Preprocessing}{{4.2}{6}{Preliminary step 2 : data preprocessing}{subsection.4.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Preliminary step 2 : data preprocessing}{6}{subsection.4.2}\protected@file@percent }
-\newlabel{eq: weight}{{4.2}{6}{Preliminary step 2 : data preprocessing}{subsection.4.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Iterative steps}{7}{subsection.4.3}\protected@file@percent }
-\newlabel{section:sub:compute_PLS_component}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.4.3.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Iterative step 1: regularized estimation of PLS component direction}{7}{subsubsection.4.3.1}\protected@file@percent }
-\newlabel{sec: pls component computation intermediate}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.4.3.1}{}}
-\newlabel{def:squared_empirical_cov}{{18}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.18}{}}
-\newlabel{def:maximizer_squared_empirical_cov}{{19}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.19}{}}
-\newlabel{proposition:eigen_noregul}{{4.1}{7}{}{theorem.4.1}{}}
-\newlabel{eq: Unregularized generalized rayleigh quotient equation}{{20}{7}{}{equation.20}{}}
-\newlabel{def:V_matrix}{{21}{7}{}{equation.21}{}}
-\newlabel{sec: Regularization of PLS Components}{{4.3.1}{7}{Iterative step 1: regularized estimation of PLS component direction}{equation.21}{}}
+\newlabel{alg:naive}{{1}{6}{Naive Hybrid PLS (regression coefficient omitted)}{algorithm.1}{}}
+\newlabel{section:main:our_algorithm}{{5}{6}{Proposed PLS Algorithm}{section.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Proposed PLS Algorithm}{6}{section.5}\protected@file@percent }
+\newlabel{sec: finite basis approximation}{{5.1}{6}{Preliminary step 1: finite-basis approximation}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Preliminary step 1: finite-basis approximation}{6}{subsection.5.1}\protected@file@percent }
+\newlabel{def:truncated_zeta_and_delta}{{12}{7}{Preliminary step 1: finite-basis approximation}{equation.12}{}}
+\newlabel{def:truncated_hilbert_space}{{13}{7}{Preliminary step 1: finite-basis approximation}{equation.13}{}}
+\newlabel{def:coef_vector_form}{{14}{7}{Preliminary step 1: finite-basis approximation}{equation.14}{}}
+\newlabel{def:theta}{{15}{7}{Preliminary step 1: finite-basis approximation}{equation.15}{}}
+\newlabel{def:full_theta}{{16}{7}{Preliminary step 1: finite-basis approximation}{equation.16}{}}
+\newlabel{def:B_matrix}{{17}{7}{Preliminary step 1: finite-basis approximation}{equation.17}{}}
+\newlabel{def:gram_block}{{18}{7}{Preliminary step 1: finite-basis approximation}{equation.18}{}}
+\newlabel{def:problem_instance}{{19}{7}{Preliminary step 1: finite-basis approximation}{equation.19}{}}
+\newlabel{subsec: Data Preprocessing}{{5.2}{8}{Preliminary step 2 : data preprocessing}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Preliminary step 2 : data preprocessing}{8}{subsection.5.2}\protected@file@percent }
+\newlabel{eq: weight}{{5.2}{8}{Preliminary step 2 : data preprocessing}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Iterative steps}{8}{subsection.5.3}\protected@file@percent }
+\newlabel{section:sub:compute_PLS_component}{{5.3.1}{8}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.5.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Iterative step 1: regularized estimation of PLS component direction}{8}{subsubsection.5.3.1}\protected@file@percent }
+\newlabel{sec: pls component computation intermediate}{{5.3.1}{8}{Iterative step 1: regularized estimation of PLS component direction}{subsubsection.5.3.1}{}}
+\newlabel{def:squared_empirical_cov}{{20}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.20}{}}
+\newlabel{def:maximizer_squared_empirical_cov}{{21}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.21}{}}
 \citation{Rice1991}
 \citation{Rice1991}
 \citation{Rice1991}
 \citation{Silverman1996}
-\newlabel{def:roughness_penalty}{{22}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.22}{}}
-\newlabel{def:maximizer_squared_empirical_cov_reg}{{23}{8}{Iterative step 1: regularized estimation of PLS component direction}{equation.23}{}}
-\newlabel{proposition:eigen_regul}{{4.2}{8}{Regularized estimation of PLS component direction}{theorem.4.2}{}}
-\newlabel{def:Lambda}{{24}{8}{Regularized estimation of PLS component direction}{equation.24}{}}
-\newlabel{eq: Regularized generalized rayleigh quotient equation}{{25}{8}{Regularized estimation of PLS component direction}{equation.25}{}}
-\newlabel{proposition:linear_regul}{{4.3}{9}{Closed-form solution}{theorem.4.3}{}}
-\newlabel{section:sub:residualization}{{4.3.2}{9}{Iterative step 2: residualization via hybrid-on-scalar regression}{subsubsection.4.3.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Iterative step 2: residualization via hybrid-on-scalar regression}{9}{subsubsection.4.3.2}\protected@file@percent }
-\newlabel{def:plsscore}{{26}{9}{Iterative step 2: residualization via hybrid-on-scalar regression}{equation.26}{}}
-\citation{Tucker1938}
-\newlabel{def:argmin_pensse}{{27}{10}{Iterative step 2: residualization via hybrid-on-scalar regression}{equation.27}{}}
-\newlabel{proposition:closed_form_orthgonalization}{{4.4}{10}{Closed-form solution}{theorem.4.4}{}}
-\newlabel{algorithm_step:residualization_predictor}{{28}{10}{Closed-form solution}{equation.28}{}}
-\newlabel{section:sub:regression_coeff}{{4.4}{10}{Final step: estimating the hybrid regression coefficient}{subsection.4.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Final step: estimating the hybrid regression coefficient}{10}{subsection.4.4}\protected@file@percent }
-\newlabel{section:main:properties_of_our_method}{{5}{10}{Properties of the Proposed PLS Framework}{section.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Properties of the Proposed PLS Framework}{10}{section.5}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Hybrid PLS (under construction)}}{10}{algorithm.2}\protected@file@percent }
-\newlabel{alg:main}{{2}{10}{Hybrid PLS (under construction)}{algorithm.2}{}}
-\citation{hsingTheoreticalFoundationsFunctional2015}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Tucker's Criterion}{11}{subsection.5.1}\protected@file@percent }
-\newlabel{def:cross_covariance_yx}{{29}{11}{Tucker's Criterion}{equation.29}{}}
-\newlabel{lemma:cross_cov_functional}{{5.1}{11}{}{theorem.5.1}{}}
-\newlabel{condition_for_compact}{{30}{11}{}{equation.30}{}}
-\newlabel{lemma:cross_cov_operator}{{5.2}{11}{}{theorem.5.2}{}}
-\newlabel{lemma:composite_cross_cov}{{5.3}{11}{Composite cross-covariance operator}{theorem.5.3}{}}
-\citation{hsingTheoreticalFoundationsFunctional2015}
-\newlabel{def:uniform_continuity}{{5.4}{12}{Uniform continuity}{theorem.5.4}{}}
-\newlabel{proposition:compact_operator}{{5.5}{12}{Compactness condition}{theorem.5.5}{}}
-\newlabel{theorem:population_PLS}{{5.6}{12}{Population PLS}{theorem.5.6}{}}
-\newlabel{section:sub:prop_geom}{{5.2}{12}{Geometric Properties}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Geometric Properties}{12}{subsection.5.2}\protected@file@percent }
-\newlabel{def:hybrid_inner_product_roughness}{{5.7}{12}{Roughness-sensitive inner product}{theorem.5.7}{}}
+\newlabel{proposition:eigen_noregul}{{5.1}{9}{}{theorem.5.1}{}}
+\newlabel{eq: Unregularized generalized rayleigh quotient equation}{{22}{9}{}{equation.22}{}}
+\newlabel{def:V_matrix}{{23}{9}{}{equation.23}{}}
+\newlabel{sec: Regularization of PLS Components}{{5.3.1}{9}{Iterative step 1: regularized estimation of PLS component direction}{equation.23}{}}
+\newlabel{def:roughness_penalty}{{24}{9}{Iterative step 1: regularized estimation of PLS component direction}{equation.24}{}}
+\newlabel{def:maximizer_squared_empirical_cov_reg}{{25}{9}{Iterative step 1: regularized estimation of PLS component direction}{equation.25}{}}
+\newlabel{proposition:eigen_regul}{{5.2}{10}{Regularized estimation of PLS component direction}{theorem.5.2}{}}
+\newlabel{def:Lambda}{{26}{10}{Regularized estimation of PLS component direction}{equation.26}{}}
+\newlabel{eq: Regularized generalized rayleigh quotient equation}{{27}{10}{Regularized estimation of PLS component direction}{equation.27}{}}
+\newlabel{proposition:linear_regul}{{5.3}{10}{Closed-form solution}{theorem.5.3}{}}
+\newlabel{section:sub:residualization}{{5.3.2}{11}{Iterative step 2: residualization via hybrid-on-scalar regression}{subsubsection.5.3.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}Iterative step 2: residualization via hybrid-on-scalar regression}{11}{subsubsection.5.3.2}\protected@file@percent }
+\newlabel{def:plsscore}{{28}{11}{Iterative step 2: residualization via hybrid-on-scalar regression}{equation.28}{}}
+\newlabel{def:argmin_pensse}{{29}{11}{Iterative step 2: residualization via hybrid-on-scalar regression}{equation.29}{}}
+\newlabel{proposition:closed_form_orthgonalization}{{5.4}{11}{Closed-form solution}{theorem.5.4}{}}
+\newlabel{algorithm_step:residualization_predictor}{{30}{11}{Closed-form solution}{equation.30}{}}
+\newlabel{section:sub:regression_coeff}{{5.4}{11}{Final step: estimating the hybrid regression coefficient}{subsection.5.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Final step: estimating the hybrid regression coefficient}{11}{subsection.5.4}\protected@file@percent }
+\newlabel{section:main:properties_of_our_method}{{6}{12}{Properties of the Proposed PLS Framework}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Properties of the Proposed PLS Framework}{12}{section.6}\protected@file@percent }
+\newlabel{def:hybrid_inner_product_roughness}{{6.1}{12}{Roughness-sensitive inner product}{theorem.6.1}{}}
+\newlabel{eq: hybrid inner product_roughness}{{31}{12}{Roughness-sensitive inner product}{equation.31}{}}
+\newlabel{proposition: modified orthnormality of PLS components}{{6.2}{12}{Orthonormality of estimated PLS component directions}{theorem.6.2}{}}
+\newlabel{proposition: orthnormality of PLS scores}{{6.3}{12}{}{theorem.6.3}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Hybrid PLS (under construction)}}{12}{algorithm.2}\protected@file@percent }
+\newlabel{alg:main}{{2}{12}{Hybrid PLS (under construction)}{algorithm.2}{}}
 \citation{zhuBayesianGraphicalModels2016}
-\newlabel{eq: hybrid inner product_roughness}{{31}{13}{Roughness-sensitive inner product}{equation.31}{}}
-\newlabel{proposition: modified orthnormality of PLS components}{{5.8}{13}{Orthonormality of estimated PLS component directions}{theorem.5.8}{}}
-\newlabel{proposition: orthnormality of PLS scores}{{5.9}{13}{}{theorem.5.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Simulations}{13}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Simulations}{13}{section.7}\protected@file@percent }
+\citation{kolar_graph_2014}
 \newlabel{fig:cor_strong}{{1a}{14}{Correlation Matrix - Strong Dependency}{figure.caption.1}{}}
 \newlabel{sub@fig:cor_strong}{{a}{14}{Correlation Matrix - Strong Dependency}{figure.caption.1}{}}
 \newlabel{fig:cor_weak}{{1b}{14}{Correlation Matrix - Weak Dependency}{figure.caption.1}{}}
@@ -116,18 +113,13 @@
 \newlabel{sub@fig:graph_weak}{{d}{14}{Graph Structure - Weak Dependency}{figure.caption.1}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparison of Correlation Matrices and Graph Structures under Strong and Weak Dependencies.}}{14}{figure.caption.1}\protected@file@percent }
 \newlabel{fig:correlation_graph_comparison}{{1}{14}{Comparison of Correlation Matrices and Graph Structures under Strong and Weak Dependencies}{figure.caption.1}{}}
-\citation{kolar_graph_2014}
-\newlabel{simul:meeting_feb}{{6.1}{15}{Simulation shown in february 2025 meeting}{subsection.6.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Simulation shown in february 2025 meeting}{15}{subsection.6.1}\protected@file@percent }
+\newlabel{simul:meeting_feb}{{7.1}{14}{Simulation shown in february 2025 meeting}{subsection.7.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Simulation shown in february 2025 meeting}{14}{subsection.7.1}\protected@file@percent }
 \citation{goldsmithPenalizedFunctionalRegression2011}
 \citation{happ_multivariate_2018}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \relax }}{16}{figure.caption.2}\protected@file@percent }
 \newlabel{fig:graph}{{2}{16}{\relax }{figure.caption.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Enter Caption}}{17}{figure.caption.3}\protected@file@percent }
-\newlabel{fig:enter-label}{{3}{17}{Enter Caption}{figure.caption.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Data Application}{17}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}}{17}{subsection.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Acknowledgments}{17}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Data Application}{16}{section.8}\protected@file@percent }
 \bibstyle{imsart-nameyear}
 \bibdata{bibliography.bib}
 \bibcite{aguileraPenalizedVersionsFunctional2016}{{1}{2016}{{Aguilera, {Aguilera-Morillo} and Preda}}{{}}}
@@ -138,6 +130,13 @@
 \bibcite{caiPredictionFunctionalLinear2006}{{6}{2006}{{Cai and Hall}}{{}}}
 \bibcite{cardotSplineEstimatorsFunctional2003}{{7}{2003}{{Cardot, Ferraty and Sarda}}{{}}}
 \bibcite{changBayesianLatentClass2020}{{8}{2020}{{Chang et~al.}}{{}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Enter Caption}}{17}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:enter-label}{{3}{17}{Enter Caption}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}}{17}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Acknowledgments}{17}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Funding}{17}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Supplementary Material}{17}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{17}{section*.11}\protected@file@percent }
 \bibcite{delaigleMethodologyTheoryPartial2012}{{9}{2012}{{Delaigle and Hall}}{{}}}
 \bibcite{febrero-bandeFunctionalPrincipalComponent2017}{{10}{2017a}{{{Febrero-Bande}, Galeano and {Gonz{\'a}lez-Manteiga}}}{{}}}
 \bibcite{Febrero2017}{{11}{2017b}{{Febrero-Bande, Galeano and Gonz\'{a}lez-Manteiga}}{{}}}
@@ -153,33 +152,37 @@
 \bibcite{reissFunctionalPrincipalComponent2007}{{21}{2007}{{Reiss and Ogden}}{{}}}
 \bibcite{Rice1991}{{22}{1991}{{Rice and Silverman}}{{}}}
 \bibcite{saricamPartialLeastsquaresEstimation2022}{{23}{2022}{{Saricam et~al.}}{{}}}
-\@writefile{toc}{\contentsline {section}{Funding}{18}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Supplementary Material}{18}{section*.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{18}{section*.11}\protected@file@percent }
 \bibcite{Silverman1996}{{24}{1996}{{Silverman}}{{}}}
 \bibcite{Tucker1938}{{25}{1938}{{Tucker}}{{}}}
 \bibcite{Wang2018}{{26}{2018}{{Wang}}{{}}}
 \bibcite{zhaoWaveletbasedLASSOFunctional2012}{{27}{2012}{{Zhao, Ogden and Reiss}}{{}}}
 \bibcite{zhuBayesianGraphicalModels2016}{{28}{2016}{{Zhu, Strawn and Dunson}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Overview of Appendix}{19}{appendix.A}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {B}Notations}{19}{appendix.B}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {C}Technical lemmas}{19}{appendix.C}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}old notations}{19}{subsection.C.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Overview of Appendix}{18}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Notations}{18}{appendix.B}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C}Technical lemmas}{18}{appendix.C}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}old notations}{18}{subsection.C.1}\protected@file@percent }
 \newlabel{eq: basis approximation of X}{{32}{19}{old notations}{equation.32}{}}
 \newlabel{eq: basis approximation of W}{{33}{19}{old notations}{equation.33}{}}
 \@writefile{toc}{\contentsline {paragraph}{\numberline {C.1.0.1}Basis approximation of the PLS component.}{19}{paragraph.C.1.0.1}\protected@file@percent }
 \newlabel{def:J_and_J_star}{{34}{19}{Basis approximation of the PLS component}{equation.34}{}}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {C.1.0.2}Regularization based on second-order derivatives.}{20}{paragraph.C.1.0.2}\protected@file@percent }
-\newlabel{def:dodot_J_k}{{35}{20}{Regularization based on second-order derivatives}{equation.35}{}}
-\newlabel{def:J_dotdot_ast}{{36}{20}{Regularization based on second-order derivatives}{equation.36}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {D}Proof of}{20}{appendix.D}\protected@file@percent }
-\newlabel{section:proof:lemma:cross_cov_functional}{{D.1}{20}{Proof of Lemma \ref {lemma:cross_cov_functional}}{subsection.D.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {D.1}Proof of Lemma \ref {lemma:cross_cov_functional} }{20}{subsection.D.1}\protected@file@percent }
-\newlabel{section:proof:lemma:cross_cov_operator}{{D.2}{21}{Proof of Lemma \ref {lemma:cross_cov_operator}}{subsection.D.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {D.2}Proof of Lemma \ref {lemma:cross_cov_operator}}{21}{subsection.D.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {C.1.0.2}Regularization based on second-order derivatives.}{19}{paragraph.C.1.0.2}\protected@file@percent }
+\newlabel{def:dodot_J_k}{{35}{19}{Regularization based on second-order derivatives}{equation.35}{}}
+\newlabel{def:J_dotdot_ast}{{36}{19}{Regularization based on second-order derivatives}{equation.36}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Proof of Section \ref {section:main:tucker}}{19}{appendix.D}\protected@file@percent }
+\newlabel{section:proof:lemma:cross_cov_functional}{{D.1}{19}{Proof of Lemma \ref {lemma:cross_cov_functional}}{subsection.D.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.1}Proof of Lemma \ref {lemma:cross_cov_functional} }{19}{subsection.D.1}\protected@file@percent }
+\citation{hsingTheoreticalFoundationsFunctional2015}
+\citation{hsingTheoreticalFoundationsFunctional2015}
+\newlabel{section:proof:lemma:cross_cov_operator}{{D.2}{20}{Proof of Lemma \ref {lemma:cross_cov_operator}}{subsection.D.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.2}Proof of Lemma \ref {lemma:cross_cov_operator}}{20}{subsection.D.2}\protected@file@percent }
+\newlabel{section:proof:lemma:composite_cross_cov}{{D.3}{20}{Proof of Lemma \ref {lemma:composite_cross_cov}}{subsection.D.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.3}Proof of Lemma \ref {lemma:composite_cross_cov}}{20}{subsection.D.3}\protected@file@percent }
+\citation{hsingTheoreticalFoundationsFunctional2015}
+\newlabel{section:proof:theorem:population_PLS}{{D.4}{21}{Proof of Theorem \ref {theorem:population_PLS}}{subsection.D.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {D.4}Proof of Theorem \ref {theorem:population_PLS}}{21}{subsection.D.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {E}Proof of Propositions \ref {proposition:eigen_noregul} and \ref {proposition:eigen_regul} }{21}{appendix.E}\protected@file@percent }
 \newlabel{section:proof:proposition:linear_regul_system_unregularized}{{E}{21}{Proof of Propositions \ref {proposition:eigen_noregul} and \ref {proposition:eigen_regul}}{appendix.E}{}}
-\newlabel{covariance_squares_as_quadratic_form}{{{37}}{21}{Proof of Propositions \ref {proposition:eigen_noregul} and \ref {proposition:eigen_regul}}{AMS.13}{}}
+\newlabel{covariance_squares_as_quadratic_form}{{{37}}{22}{Proof of Propositions \ref {proposition:eigen_noregul} and \ref {proposition:eigen_regul}}{AMS.13}{}}
 \newlabel{unit_norm_as_quadform}{{{38}}{22}{Proof of Propositions \ref {proposition:eigen_noregul} and \ref {proposition:eigen_regul}}{AMS.15}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {F}Proof of Proposition \ref {proposition:eigen_regul} }{22}{appendix.F}\protected@file@percent }
 \newlabel{section:proof:proposition:eigen_regul}{{F}{22}{Proof of Proposition \ref {proposition:eigen_regul}}{appendix.F}{}}
@@ -195,27 +198,14 @@
 \newlabel{section:proof:proposition:closed_form_orthgonalization}{{H}{24}{Proof of Lemma \ref {proposition:closed_form_orthgonalization}}{appendix.H}{}}
 \newlabel{score_inner_product_all_n}{{42}{24}{Proof of Lemma \ref {proposition:closed_form_orthgonalization}}{equation.42}{}}
 \newlabel{def:pensse}{{43}{24}{Proof of Lemma \ref {proposition:closed_form_orthgonalization}}{equation.43}{}}
-\citation{hsingTheoreticalFoundationsFunctional2015}
-\@writefile{toc}{\contentsline {section}{\numberline {I}Proof of Lemma \ref {lemma:composite_cross_cov}}{25}{appendix.I}\protected@file@percent }
-\newlabel{section:proof:lemma:composite_cross_cov}{{I}{25}{Proof of Lemma \ref {lemma:composite_cross_cov}}{appendix.I}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {J}Proof of Proposition \ref {proposition:compact_operator}}{26}{appendix.J}\protected@file@percent }
-\newlabel{section:proof:proposition:compact_operator}{{J}{26}{Proof of Proposition \ref {proposition:compact_operator}}{appendix.J}{}}
-\newlabel{individual_norm_bound}{{44}{26}{Proof of Proposition \ref {proposition:compact_operator}}{equation.44}{}}
-\newlabel{gtsq_expansion}{{45}{26}{Proof of Proposition \ref {proposition:compact_operator}}{equation.45}{}}
-\newlabel{squared_ip_bound}{{{46}}{26}{Proof of Proposition \ref {proposition:compact_operator}}{AMS.19}{}}
-\citation{hsingTheoreticalFoundationsFunctional2015}
-\newlabel{bound_elltwo_dist}{{47}{27}{Proof of Proposition \ref {proposition:compact_operator}}{equation.47}{}}
-\citation{hsingTheoreticalFoundationsFunctional2015}
-\@writefile{toc}{\contentsline {section}{\numberline {K}Proof of Theorem \ref {theorem:population_PLS}}{28}{appendix.K}\protected@file@percent }
-\newlabel{section:proof:theorem:population_PLS}{{K}{28}{Proof of Theorem \ref {theorem:population_PLS}}{appendix.K}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {L}Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{28}{appendix.L}\protected@file@percent }
-\newlabel{section:proof:proposition: modified orthnormality of PLS components}{{L}{28}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{appendix.L}{}}
-\newlabel{rough_norm_matrix_form}{{{48}}{28}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{AMS.21}{}}
-\newlabel{thetaBzetal2i}{{{49}}{29}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{AMS.23}{}}
-\newlabel{algorithm_step:residualization_predictor:recall}{{50}{29}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.50}{}}
-\newlabel{notation:n_predictors}{{51}{29}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.51}{}}
-\newlabel{notation:n_inner_products}{{52}{29}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.52}{}}
-\newlabel{regression_relation_with_notation_abuse}{{53}{29}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.53}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {M}Proof of Proposition \ref {proposition: orthnormality of PLS scores}}{30}{appendix.M}\protected@file@percent }
-\newlabel{section:proof:proposition: orthnormality of PLS scores}{{M}{30}{Proof of Proposition \ref {proposition: orthnormality of PLS scores}}{appendix.M}{}}
-\gdef \@abspage@last{31}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{26}{appendix.I}\protected@file@percent }
+\newlabel{section:proof:proposition: modified orthnormality of PLS components}{{I}{26}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{appendix.I}{}}
+\newlabel{rough_norm_matrix_form}{{{44}}{26}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{AMS.19}{}}
+\newlabel{thetaBzetal2i}{{{45}}{26}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{AMS.21}{}}
+\newlabel{algorithm_step:residualization_predictor:recall}{{46}{26}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.46}{}}
+\newlabel{notation:n_predictors}{{47}{27}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.47}{}}
+\newlabel{notation:n_inner_products}{{48}{27}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.48}{}}
+\newlabel{regression_relation_with_notation_abuse}{{49}{27}{Proof of Proposition \ref {proposition: modified orthnormality of PLS components}}{equation.49}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {J}Proof of Proposition \ref {proposition: orthnormality of PLS scores}}{27}{appendix.J}\protected@file@percent }
+\newlabel{section:proof:proposition: orthnormality of PLS scores}{{J}{27}{Proof of Proposition \ref {proposition: orthnormality of PLS scores}}{appendix.J}{}}
+\gdef \@abspage@last{28}
