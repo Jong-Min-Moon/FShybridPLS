@@ -147,11 +147,15 @@
 		i = 1, \ldots, n,
 		%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
 	\end{equation}
-	where $Y_i$ is a scalar response, $\mathbf{Z}_i$ is a Euclidean vector covariate, 
-	$X_{i1}(t), \ldots, X_{iK}(t)$ are functional predicters, and $\epsilon_i$ is an observational noise.
+where $Y_i$ is a scalar response, $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate, $X_{i1}(t), \ldots, X_{iK}(t)$ are functional predictors that belong to $L^2[0,1]$, and $\epsilon_i$ is observational noise.
+In other words, this is a scalar-on-hybrid regression where the hybrid covariates belong to $L^2[0,1]^{\otimes K} \times \mathbb{R}^p$.
 	For notational convenience, we assume throughout this paper that the responses and predictors have been centered, allowing the intercept term to be ignored.
 	%where $\boldsymbol{\alpha}=(\alpha_1, \ldots, \alpha_p)^\top \in \mathbb{R}^p$ and $\beta=(\beta^{(1)}, \ldots, \beta^{(K)}) \in \mathcal{F}$ are respectively the regression coefficient vector and function that characterize the effect of scalar and functional predictors on the outcome.
-	
+		%which is defined as the space of real-valued functions on $[0,1]$
+	%	which are square-integrable with respect to the Lebesgue measure $dt$ on $[0,1]$, 
+%	and possess second  derivatives.
+ 
+	%denote a $p$-dimensional multivariate scalar data in $\mathbb{R}^p$, assumed to be a random vector with finite first two moments, equipped with the Euclidean inner product and norm.
 	
 	%Infinite dimensional beta estimation problem (ill-posed problem)
 	%Multicollinearity and high-dimensionality in scalar predictors are not handled.
@@ -191,71 +195,112 @@
 	
 	
 	
-	\section{Data Objects and Model Formulation} \jongmin{still revising}
-	For $k = 1, \ldots, K$, 
-	we assume that the functional predictors $X_{ik}(t)$ are observed on the domain $0 \leq t \leq 1$, and belong to $\mathcal{F}$,
-	which is defined as the space of real-valued functions on $[0,1]$
-	which are square-integrable with respect to the Lebesgue measure $dt$ on $[0,1]$,
-	and possess second  derivatives.
-	Additionally, let $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$
-	denote a $p$-dimensional multivariate scalar data in $\mathbb{R}^p$, assumed to be a random vector with finite first two moments, equipped with the Euclidean inner product and norm.
-	% i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
-	The hybrid random predictor and corresponding inner product is formally defined as follows.
-	\begin{definition}[Hybrid predictor and inner product]\label{def:hilbert_space}
-		We define a  hybrid predictor  $W_i$ as an ordered pair combining the functional predictors $X_{i1}(t), \ldots, X_{iK}(t)$ and a scalar predictor $\mathbf{Z}_i$:
-		\begin{equation}\label{def:hybid_predictor}
-			W_i := (X_{i1}, \ldots, X_{iK}, \mathbf{Z}_i)
-			\in \mathcal{H} :=  \mathcal{F}^{\otimes K} \times \mathbb{R}^p
-		\end{equation}
-		The inner product between two hybrid predictors,
-		$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
-		and
-		$W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, is then defined as:
-		\begin{equation}		\label{eq: hybrid inner product}
-			\langle W_1, W_2\rangle_{\mathcal{H}}
-			:=
-			\sum \limits_{k=1}^K 
-			+ 
-			\omega
-			\mathbf{Z}_1^\top \mathbf{Z}_2,
-			~\text{where}~\int_0^1 X_{1k}(t) X_{2k}(t) \, dt
-		\end{equation}
-		for $\omega > 0$.
-		The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
-	\end{definition}
-	In \eqref{eq: hybrid inner product}, 
-	$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
-		Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
-	\begin{remark}
-		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
-	\end{remark} 
+	\section{Background on partial least squares and its extension to hybrid predictors} \jongmin{still revising}
+For intuition, let us return to the high-dimensional Euclidean predictor setting $
+Y_i =  \boldsymbol{\beta}^\top \mathbf{Z}_i + \epsilon_i$.
+A common way to address ill-posedness and correlation is to approximate the high-dimensional vector $\mathbf{Z}_i$ using a low-dimensional vector $
+\bigr(
+\widehat{\rho}_1^{[1]}, \ldots,   \widehat{\rho}_1^{[L]}  
+\bigr)^\top.
+$ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsymbol{\xi}}_l$ solves:
+\begin{equation*}
+\max_{ \boldsymbol{ \alpha } } 
+\widehat{\operatorname{Cov}}^2
+\bigl(
+\{
+\langle 
+\boldsymbol{\alpha}, \mathbf{Z}_i
+\rangle
+, Y_i
+\}_{i=1}^n
+\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1,~\boldsymbol{\alpha}^\top  \widehat{\operatorname{Cov}}^2
+\bigl(
+\{
+  \mathbf{Z}_i
+ \}_{i=1}^n
+ \bigr) \hat{\boldsymbol{\xi}}_j = 0, \quad j = 1, \ldots, l-1,
+\end{equation*}
+ where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{scalar_pls}.
+ \begin{algorithm} 
+ 	\caption{Scalar partial least squares }\label{scalar_pls}
+ 	\begin{algorithmic}[1]
+ 		\State Standardize each $\mathbf{Z}_1, \ldots, \mathbf{Z}_n$ so that each feature have mean zero and variance one. Standardize $Y_1, \ldots, Y_n$.
+ 		\For{$l = 1, 2, \ldots, L$}
+ 		\\
+ 		\textbf{PLS direction and score estimation:}
+ 		\State $\widehat{\boldsymbol{\xi}}_l \leftarrow
+ 		\arg \max_{  \boldsymbol{\alpha}   } 
+ 		\widehat{\operatorname{Cov}}^2
+ 		\bigl(
+ 		\{
+ 		\langle 
+ 		\boldsymbol{\alpha}, \mathbf{Z}^{[l]}_i
+ 		\rangle
+ 		, Y^{[l]}_i
+ 		\}_{i=1}^n
+ 		\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1
+ 		$
+ 		\Comment{PLS direction}\label{possible?}
+ 		\State 
+ 		$
+ 		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\boldsymbol{\xi}}_l,   \mathbf{Z}_i \rangle, 
+ 		~i=1,  \ldots, n
+ 		$ \Comment{PLS score}
+  		\\
+ \textbf{Residualization:}
+ 		\State $\nu^{[l]} 
+ 		\leftarrow
+ 		 \frac{
+ 		 	\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
+ 		 	\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
+ 		 	}$
+ 		%
+ 		\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
+ 		%
+ 		\State $ \widehat{\boldsymbol{\delta}}^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\mathbf{Z}_i^{[l]}.
+ 	$
+\State $\mathbf{Z}_i^{[l+1]}  \leftarrow \mathbf{Z}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{\boldsymbol{\delta}}^{[l]} $
+ 		\EndFor
+\textbf{Regression coefficient recovery:}
+\State
+$\widehat{\boldsymbol{\zeta}}^{[1]} \leftarrow \widehat{\boldsymbol{\xi}}^{[1]}$
+	\For{$l =  2, \ldots, L$}
+  \State $\widehat{\boldsymbol{\zeta}}^{[l]} \leftarrow \widehat{ \boldsymbol{\xi} }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}^{[u]}, \widehat{\boldsymbol{\xi}}^{[l]} \rangle  \widehat{\boldsymbol{\zeta}}^{[u]}$  
+ 		\EndFor
+$	\widehat{\boldsymbol{\beta}} \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{\boldsymbol{\zeta}}^{[l]}$
+ 		\State \textbf{Output:} the  regression coefficient estimate
+
+ 	\end{algorithmic}
+ \end{algorithm}
+% $, 
 	%Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2([0,1])$---a cartesian product of individual $L^2([0,1])$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times [0,1]$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
 	%The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
 	%An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}(\mathbf{t}) = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
-Then the joint regression model \eqref{eq: functional model}  can be concisely written as
-	\begin{equation}		\label{eq: Hybrid functional model}
-		Y_i = \langle \beta, W_i \rangle_{\mathcal{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathcal{H}.
-	\end{equation}
- 
-	
-	
-	
-	
+\eqref{possible?}
 
+We can express the predictor
+ $W_i$ 
+ and the regression coefficient $\beta$ using an orthonormal basis 
+ $\psi_1, \psi_2, \ldots$ of $\mathcal{H}$, 
+so that
+$W_i = \sum_j \langle W_i, \psi_j \rangle_{\mathcal{H}}\, \psi_j $	
+ and
+  $\beta = \sum_j \langle \beta, \psi_j \rangle_{\mathcal{H}}\, \psi_j $.
+To make the problem tractable, we truncate these expansions to the first  $L$ terms. 
+However, if the basis is chosen without considering the data, the most important regression information may not be captured within these first $L$ terms.
+The  core idea of partial least squares (PLS) is simultaneously learn a data-driven, regression-aware orthonormal basis while also performing the regression.
+This results in a  simultaneous  decomposition of the predictor and outcome in terms of uncorrelated PLS scores 
+\begin{equation}	\label{eq: decomposition}
+	W_i = \sum \limits_{l=1}^{\infty} \rho_{l}  \delta_l  \quad \textnormal{and} \quad Y_i = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon_i,
+	\end{equation}
+	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases.
 	
-	
-	
-	
+ 
 		
 	\section{Population PLS and Tucker's Criterion in hybrid regression setting}\label{section:main:tucker}\jongmin{Previously, was in theoretical property section, now procedes the method section, to motivate the estimation procedure}
 	
 	
-	The basic idea of partial least squares (PLS) is to simultaneously decompose the hybrid predictor $\mathbf{W}$ and the real outcome $Y$ in terms of zero mean uncorrelated PLS scores $(\rho_l)_{l \in \mathbb{N}}$ with maximum predictive performance as follows
-	\begin{equation}
-		\mathbf{W}(\mathbf{t}) = \sum \limits_{l=1}^{\infty} \rho_{l} \boldsymbol{\delta}_l(\mathbf{t}) \quad \textnormal{and} \quad Y = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon,
-		\label{eq: decomposition}
-	\end{equation}
-	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases. The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \xi_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\xi_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \xi_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\xi_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \xi_l, \xi_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
+	 The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \xi_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\xi_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \xi_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\xi_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \xi_l, \xi_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
 	
 	
 	
@@ -390,58 +435,8 @@ Under a mild assumption,
 	\end{equation}
 	We describe the $l$-th step of the algorithm for $l = 1, 2, \ldots, L$, which consists of the following substeps. The complete procedure is summarized in Algorithm~\ref{alg:naive}.
 	%
-	\begin{algorithm}[t!]
-		\caption{Naive Hybrid PLS (regression coefficient omitted)}
-		\label{alg:naive}
-		\begin{algorithmic}[1]
-			\Require 
-			Hybrid predictors $\{ \mathbf{W}_1,  \ldots, \mathbf{W}_n\} = \{(X_1, Z_1),  \ldots, (X_n, Z_n)\}$,
-			responses $\{Y_1,   \ldots, Y_n\}$,
-			functional predictor evaluation points $\mathbf{t}_1, \ldots, \mathbf{t}_m \in [0,1]^K$
-			%%%%%%%%%%%%%%%%%%%%%
-			\For{ i = 1, 2, \ldots  $n$} \Comment{Centering \eqref{def:centering_naive}}
-			\State $\{ (Y_i^{[1]}, X_i^{[1]},Z_i^{[1]}) \} 
-			\leftarrow 
-			\{
-			(Y_i - \bar{Y}, X_i - \bar{X},  Z_i - \bar{Z})
-			\}$
-			\EndFor
-			\For{ l = 1, 2, \ldots  $L$}
-			\Statex{\quad \textbf{PLS component computation step:}}
-			\For{ $\mathbf{t} = \mathbf{t}_1 , \ldots  \mathbf{t}_m$} \Comment{Compute PLS loading}
-			\State 
-			$
-			\widehat{\xi}_{l}(\mathbf{t}) 
-			\leftarrow 
-			\dfrac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}
-			$
-			\Comment{\eqref{def:pls_loading_ptws}}
-			\EndFor
-			\State $  \{ \widehat{\rho}_{1l}, \ldots, \widehat{\rho}_{nl} \} \leftarrow
-			\bigl\{
-			\langle \mathbf{W}_{1}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}},
-			\ldots,
-			\langle \mathbf{W}_{n}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}}
-			\bigr\}
-			$
-			\Comment{Compute PLS scores \eqref{def:pls_score_naive}}
-			\Statex{\quad  \textbf{Orthogonalization step:}}
-			\For{ $\mathbf{t} = \mathbf{t}_1 , \ldots  \mathbf{t}_m$} 
-			\State 	$
-			\widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \leftarrow \dfrac{\sum_{i=1}^n \mathbf{W}_i^{[l]}(\mathbf{t}) \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
-			$
-			\EndFor
-			\State
-			$\mathbf{W}_i^{[l+1]}(\mathbf{t}) \leftarrow \mathbf{W}_i^{[l]}(\mathbf{t}) - \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \widehat{\rho}_{il}$
-			\State 	$
-			\widehat{\nu}_l \leftarrow \dfrac{\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}
-			$
-			\State
-			$Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \widehat{\nu}_{l} \widehat{\rho}_{il}$ 
-			\EndFor
-			\State Output PLS scores $\bigl\{ \widehat{\rho}_{il} \bigr\}_{i \in [n], l \in [L]}$
-		\end{algorithmic}
-	\end{algorithm}
+
+
 	%
 	\begin{enumerate}[Step 1.]
 		\item
@@ -471,6 +466,40 @@ Under a mild assumption,
 	
 	
 	\section{Proposed PLS Algorithm} \label{section:main:our_algorithm}
+		% i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
+	The hybrid random predictor and corresponding inner product is formally defined as follows.
+	\begin{definition}[Hybrid predictor and inner product]\label{def:hilbert_space}
+		We define a  hybrid predictor  $W_i$ as an ordered pair combining the functional predictors $X_{i1}(t), \ldots, X_{iK}(t)$ and a scalar predictor $\mathbf{Z}_i$:
+		\begin{equation}\label{def:hybid_predictor}
+			W_i := (X_{i1}, \ldots, X_{iK}, \mathbf{Z}_i)
+			\in \mathcal{H} :=  \mathcal{F}^{\otimes K} \times \mathbb{R}^p
+		\end{equation}
+		The inner product between two hybrid predictors,
+		$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
+		and
+		$W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, is then defined as:
+		\begin{equation}		\label{eq: hybrid inner product}
+			\langle W_1, W_2\rangle_{\mathcal{H}}
+			:=
+			\sum \limits_{k=1}^K 
+			+ 
+			\omega
+			\mathbf{Z}_1^\top \mathbf{Z}_2,
+			~\text{where}~\int_0^1 X_{1k}(t) X_{2k}(t) \, dt
+		\end{equation}
+		for $\omega > 0$.
+		The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
+	\end{definition}
+	In \eqref{eq: hybrid inner product}, 
+	$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
+	Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
+	\begin{remark}
+		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
+	\end{remark}  
+	Then the joint regression model \eqref{eq: functional model}  can be concisely written as
+	\begin{equation}		\label{eq: Hybrid functional model}
+		Y_i = \langle \beta, W_i \rangle_{\mathcal{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathcal{H}.
+	\end{equation}
 	To address the limitations outlined in Section \ref{sec: Naive PLS Algorithm}, we propose  novel strategies for implementing the steps of the hybrid PLS algorithm. Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{section:sub:compute_PLS_component} and~\ref{section:sub:residualization}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{section:sub:regression_coeff}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
 	
