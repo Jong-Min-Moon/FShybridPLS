@@ -135,7 +135,7 @@
 	As an illustrative example, the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021}  records both multiple   renogram curves (functional data) and multiple renogram variables (scalar data)  for each kidney. 
 	To effectively analyze such distinct yet related physiological signals, we construct a joint linear regression model incorporating both functional and scalar-valued covariates. 
 	%This approach accounts for both shared and modality-specific variations linked to clinical outcomes. Our work focuses on developing a method to fit the following hybrid functional linear regression model:
-	\begin{equation}	\label{eq: functional model}
+	\begin{equation}	\label{eq:hybrid_regression_model}
 		Y_i
 		= 
 		\boldsymbol{\beta}^\top \mathbf{Z}_i
@@ -147,8 +147,8 @@
 		i = 1, \ldots, n,
 		%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
 	\end{equation}
-where $Y_i$ is a scalar response, $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate, $X_{i1}(t), \ldots, X_{iK}(t)$ are functional predictors that belong to $L^2[0,1]$, and $\epsilon_i$ is observational noise.
-In other words, this is a scalar-on-hybrid regression where the hybrid covariates belong to $L^2[0,1]^{\otimes K} \times \mathbb{R}^p$.
+where $Y_i$ is a scalar response, $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate, $X_{i1}(t), \ldots, X_{iK}(t)$ are functional predictors that belong to $\mathbb{L}^2[0,1]$, and $\epsilon_i$ is observational noise.
+In other words, this is a scalar-on-hybrid regression where the hybrid covariates belong to $\bigl( \mathbb{L}^2[0,1] \bigr)^{  K} \times \mathbb{R}^p$.
 	For notational convenience, we assume throughout this paper that the responses and predictors have been centered, allowing the intercept term to be ignored.
 	%where $\boldsymbol{\alpha}=(\alpha_1, \ldots, \alpha_p)^\top \in \mathbb{R}^p$ and $\beta=(\beta^{(1)}, \ldots, \beta^{(K)}) \in \mathcal{F}$ are respectively the regression coefficient vector and function that characterize the effect of scalar and functional predictors on the outcome.
 		%which is defined as the space of real-valued functions on $[0,1]$
@@ -192,16 +192,15 @@ In other words, this is a scalar-on-hybrid regression where the hybrid covariate
 	
 	
 	
-	
-	
-	
-	\section{Background on partial least squares and its extension to hybrid predictors} \jongmin{still revising}
+
+	\section{Background on partial least squares and its extension to hybrid predictors}  
+	\jongmin{I replaced the formal presentation of the naive algorithm with an   the scalar version and a brief outline of the pointwise hybrid  extension strategy. The main reason for this revision is that the hybrid inner product is introduced specifically to address the extension challenge, so it is more natural to present it after listing the challenges. Previously, the naive algorithm section relied on the hybrid inner product for normalization.}
 For intuition, let us return to the high-dimensional Euclidean predictor setting $
 Y_i =  \boldsymbol{\beta}^\top \mathbf{Z}_i + \epsilon_i$.
 A common way to address ill-posedness and correlation is to approximate the high-dimensional vector $\mathbf{Z}_i$ using a low-dimensional vector $
 \bigr(
 \widehat{\rho}_1^{[1]}, \ldots,   \widehat{\rho}_1^{[L]}  
-\bigr)^\top.
+\bigr)^\top \in \mathbb{R}^L.
 $ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsymbol{\xi}}_l$ solves:
 \begin{equation*}
 \max_{ \boldsymbol{ \alpha } } 
@@ -220,15 +219,15 @@ $ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsym
  \}_{i=1}^n
  \bigr) \hat{\boldsymbol{\xi}}_j = 0, \quad j = 1, \ldots, l-1,
 \end{equation*}
- where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{scalar_pls}.
+ where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{alg:scalar_pls}.
  \begin{algorithm} 
- 	\caption{Scalar partial least squares }\label{scalar_pls}
+ 	\caption{Scalar partial least squares }\label{alg:scalar_pls}
  	\begin{algorithmic}[1]
  		\State Standardize each $\mathbf{Z}_1, \ldots, \mathbf{Z}_n$ so that each feature have mean zero and variance one. Standardize $Y_1, \ldots, Y_n$.
  		\For{$l = 1, 2, \ldots, L$}
  		\\
  		\textbf{PLS direction and score estimation:}
- 		\State $\widehat{\boldsymbol{\xi}}_l \leftarrow
+ 		\State $\widehat{\boldsymbol{\xi}}^{[l]} \leftarrow
  		\arg \max_{  \boldsymbol{\alpha}   } 
  		\widehat{\operatorname{Cov}}^2
  		\bigl(
@@ -240,10 +239,10 @@ $ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsym
  		\}_{i=1}^n
  		\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1
  		$
- 		\Comment{PLS direction}\label{possible?}
+ 		\Comment{PLS direction}\label{alg:step:scalar_pls_direction}
  		\State 
  		$
- 		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\boldsymbol{\xi}}_l,   \mathbf{Z}_i \rangle, 
+ 		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\boldsymbol{\xi}}^{[l]},   \mathbf{Z}^{[l]}_i \rangle, 
  		~i=1,  \ldots, n
  		$ \Comment{PLS score}
   		\\
@@ -253,12 +252,12 @@ $ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsym
  		 \frac{
  		 	\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
  		 	\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
- 		 	}$
+ 		 	}$ \Comment{Least squares estimate} 
  		%
  		\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
  		%
- 		\State $ \widehat{\boldsymbol{\delta}}^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\mathbf{Z}_i^{[l]}.
- 	$
+ 		\State $ \widehat{\boldsymbol{\delta}}^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\mathbf{Z}_i^{[l]} $ \Comment{Least squares estimate} 
+ \label{alg:step:scalar_pls_residualization}
 \State $\mathbf{Z}_i^{[l+1]}  \leftarrow \mathbf{Z}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{\boldsymbol{\delta}}^{[l]} $
  		\EndFor
 \textbf{Regression coefficient recovery:}
@@ -267,244 +266,80 @@ $\widehat{\boldsymbol{\zeta}}^{[1]} \leftarrow \widehat{\boldsymbol{\xi}}^{[1]}$
 	\For{$l =  2, \ldots, L$}
   \State $\widehat{\boldsymbol{\zeta}}^{[l]} \leftarrow \widehat{ \boldsymbol{\xi} }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}^{[u]}, \widehat{\boldsymbol{\xi}}^{[l]} \rangle  \widehat{\boldsymbol{\zeta}}^{[u]}$  
  		\EndFor
-$	\widehat{\boldsymbol{\beta}} \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{\boldsymbol{\zeta}}^{[l]}$
+$	\widehat{\boldsymbol{\beta}} \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{\boldsymbol{\zeta}}^{[l]}$ \Comment{regression coefficient estimate}
  		\State \textbf{Output:} the  regression coefficient estimate
-
  	\end{algorithmic}
  \end{algorithm}
-% $, 
-	%Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2([0,1])$---a cartesian product of individual $L^2([0,1])$ spaces. Note that if $K=1$, $X$ reduces to a univariate functional object. We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times [0,1]$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
-	%The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)}) $ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as $\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k$ with norm $\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_0^1 f_1^{(k)}(t_k)^2 dt_k\}^{1/2}$.  
-	%An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}(\mathbf{t}) = (X(\mathbf{t}), \mathbf{Z})^\top$, with $ X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $ \mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$. 
-\eqref{possible?}
 
-We can express the predictor
- $W_i$ 
- and the regression coefficient $\beta$ using an orthonormal basis 
- $\psi_1, \psi_2, \ldots$ of $\mathcal{H}$, 
-so that
-$W_i = \sum_j \langle W_i, \psi_j \rangle_{\mathcal{H}}\, \psi_j $	
- and
-  $\beta = \sum_j \langle \beta, \psi_j \rangle_{\mathcal{H}}\, \psi_j $.
-To make the problem tractable, we truncate these expansions to the first  $L$ terms. 
-However, if the basis is chosen without considering the data, the most important regression information may not be captured within these first $L$ terms.
-The  core idea of partial least squares (PLS) is simultaneously learn a data-driven, regression-aware orthonormal basis while also performing the regression.
-This results in a  simultaneous  decomposition of the predictor and outcome in terms of uncorrelated PLS scores 
-\begin{equation}	\label{eq: decomposition}
-	W_i = \sum \limits_{l=1}^{\infty} \rho_{l}  \delta_l  \quad \textnormal{and} \quad Y_i = \sum \limits_{l=1}^{\infty}\rho_{l} \nu_l + \epsilon_i,
-	\end{equation}
-	where $(\boldsymbol{\delta}_l)_{l \in \mathbb{N}} \in \mathcal{H}$ and $(\nu_l)_{l \in \mathbb{N}} \in \mathbb{R}$ are appropriate bases.
+To extend Algorithm \ref{alg:scalar_pls} to the hybrid regression model \eqref{eq:hybrid_regression_model}, we must compute hybrid objects in both the PLS direction estimation and predictor residualization steps (lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}). These computations cannot be separated into functional and scalar parts, as their correlation must be addressed.  
+A naive approach is to add loops over the observed evaluation points $t$ to lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, treating  
+\[
+\bigl( X_{i1}(t), \ldots, X_{iK}(t), Z_{i1}, \ldots, Z_{ip} \bigr) \in \mathbb{R}^{K+P}
+\]  
+as a Euclidean predictor, applying steps \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, and aggregating the results. This pointwise method, however, is computationally prohibitive for densely observed functional predictors, infeasible for irregular data, and prone to variability across the domain, resulting in overfitting and unstable predictions.  
+The main challenge of extension to the hybrid setting lies in the following points. First, 
+ independent variables consist of multiple highly structured images and scalar predictors. 
+Second, our sample size is small compared to the dimension and number of functional and scalar predictors.
+Third,  existing partial least squares (PLS) methods can only accommodate (i) univariate or multivariate functional predictors without any scalar predictors \citep{predaPLSRegressionStochastic2005, delaigleMethodologyTheoryPartial2012, Febrero2017, Beyaztas2020}; or (ii) a univariate functional predictor with other scalar predictors \citep{Wang2018}.
+The next section proposes a new extension framework that addresses these issues.
+ 
+	
 	
  
-		
-	\section{Population PLS and Tucker's Criterion in hybrid regression setting}\label{section:main:tucker}\jongmin{Previously, was in theoretical property section, now procedes the method section, to motivate the estimation procedure}
-	
-	
-	 The PLS scores are obtained as $\rho_l =  \langle \mathbf{W}^{[l]}, \xi_l \rangle_{\mathcal{H}}$, where $\mathbf{W}^{[l]}$ denotes the residualized predictor sequentially derived as the residual of the regression of $\mathbf{W}^{[l-1]}$ on $\rho_{l-1}$ with $\mathbf{W}^{[1]} = \mathbf{W}$, and $\xi_l=(\psi_l, \boldsymbol{\theta}_l) \in \mathcal{H}$ is the hybrid PLS component, with $\psi_l = (\psi^{(1)}_l, \ldots, \psi_l^{(K)}) \in \mathcal{F}$ and $\boldsymbol{\theta}_l=(\theta_{l1}, \ldots, \theta_{lp})^\top \in \mathbb{R}^p$, sequentially chosen to maximize the squared covariance between $\rho_l$ and the residualized outcome $Y^{[l]}$---i.e., $\textnormal{Cov}^2(\rho_l, Y^{[l]}) = \textnormal{Cov}^2(\langle \mathbf{W}^{[l]}, \xi_l \rangle_\mathcal{H}, Y^{[l]})$. Here, $Y^{[l]}$ is also sequentially obtained as the residual of the regression of $Y^{[l-1]}$ on $\rho_{l-1}$ with $Y^{[1]} = Y$. The sequentially derived hybrid PLS components \{$\xi_l\}_{l=1}^\infty$, are orthonormal in a sense that $\langle \xi_l, \xi_j \rangle_\mathcal{H} = \mathbb{1}(l=j)$.
-	
-	
-	
-	\underline{Challenges}
-	% The pointwise algorithm is highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel framework for fitting a regression with a hybrid response and scalar predictor. The framework is readily applicable to dense and irregular functional data, and supports regularization techniques to prevent overfitting and reduce variance.
-	
-	\begin{enumerate}
-		\item Independent variables consist of multiple highly structured images and scalar predictors.
-		\item Our sample size is small compared to the dimension and number of functional and scalar predictors.
-		\item Existing partial least squares (PLS) methods can only accommodate (i) univariate or multivariate functional predictors without any scalar predictors \citep{predaPLSRegressionStochastic2005, delaigleMethodologyTheoryPartial2012, Febrero2017, Beyaztas2020}; or (2) a univariate functional predictor with other scalar predictors \citep{Wang2018}.
-	\end{enumerate}
-	
-	The fundamental property of classical scalar PLS is that the PLS component direction  corresponds to the first eigenvector of the squared covariance matrix, satisfying  the Tucker's Criterion \citep{Tucker1938}.
-Under a mild assumption,
-	We derive an analogous result  in our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}.
-	 This justifies our estimation procedure introduced in Section \ref{section:main:our_algorithm}.
-	We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
-	\begin{equation}\label{def:cross_covariance_yx}
-		\sigma_{YX}
-		=
-		\bigl(
-		\sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
-		\bigr)
-		:=
-		\bigl(
-		\mathbb{E}
-		[Y_1 X_{11}]
-		,\ldots, 
-		\mathbb{E}
-		[Y_1  X_{1K}]
-		\bigr)   \in \mathcal{F}^{\otimes K},
-	\end{equation}
-	and between the response and the scalar predictor:
-	\begin{equation*}
-		\sigma_{YZ} 
-		= 
-		(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
-		:= 
-		\bigl(
-		\mathbb{E}[Y_1 Z_{11}]
-		,\ldots,
-		\mathbb{E}[Y_1 Z_{1p}]
-		\bigr)^\top %= E(Y\mathbf{Z})
-		\in \mathbb{R}^p.
-	\end{equation*}
-	Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
-	\begin{equation*}
-		\Sigma_{YW} :=  
-		\mathbb{E}
-		[ Y_1 W_1 ]
-		=
-		\bigl(
-		\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
-		\bigr) \in \mathcal{H}.
-	\end{equation*}
-	Based on these definitions, we introduce two cross-covariance operators and their properties.
-	\begin{lemma}\label{lemma:cross_cov_functional}
-		Define the operator $
-		\mathcal{C}_{YW}
-		=
-		\mathbb{E}(W_1 \otimes_\mathcal{H} Y_1)
-		: \mathcal{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathcal{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathcal{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
-		\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact. This way, we don't need uniform continuiity of $\sigma_{YX}$.}If there exist finite constants $Q_1$ and $Q_2$ such that
-		\begin{align}\label{condition_for_compact}
-			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
-		\end{align}
-		the operator $\mathcal{C}_{YW}$ is a compact operator.
-	\end{lemma}
-	Proof of Lemma \ref{lemma:cross_cov_functional}
-	is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
-	\begin{lemma}\label{lemma:cross_cov_operator}
-		Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathcal{H}$,
-		which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathcal{H}$ as follows:
-		%%%%
-		\begin{align*}		
-			\mathcal{C}_{WY} d 
-			:= 
-			\mathbb{E} 
-			\bigl[
-			\langle Y_1, d \rangle W_1 
-			\bigr] 
-			= 
-			\mathbb{E}
-			[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
-		\end{align*}
-		Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
-	\end{lemma}
-	
-	
-	
-	The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
-	
-	Based on these two operators, we define a positive   operator as follows:
-	\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
-		Define
-		$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathcal{H}$ as an operator which performs the following mapping:
-		\begin{equation*}
-			\mathcal{U} h 
-			= 
-			\mathcal{C}_{WY} ( \mathcal{C}_{YW} h) 
-			=
-			\mathcal{C}_{YW} (\langle \Sigma_{YW}, h \rangle_\mathcal{H}) 
-			=  
-			\Sigma_{YW} \, \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
-			= 
-			(\Sigma_{YW} \otimes \Sigma_{YW}) h.
-		\end{equation*}
-		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
-		Then $\mathcal{U}$
-		is a self-adjoint and positive-semidefinite operator.
-		Under the conditions of Lemma \ref{lemma:cross_cov_functional}, $\mathcal{U}$ is a compact operator.
-	\end{lemma}
-	The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
-	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Lemma \ref{lemma:composite_cross_cov} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathcal{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
-	
-	The following theorem introduces the population-level PLS and Tucker's Criterion, adapted to our scalar-on-hybrid regression model setting, based on the aforementioned operators defined in the hybrid space.
-	\begin{theorem}[Population PLS and Tucker's criterion]\label{theorem:population_PLS} Under the conditions of Lemma \ref{lemma:cross_cov_functional}, the constrained maximum
-		\begin{equation*} 
-			\max \limits_{\substack{\xi \in \mathcal{H} \\ \Vert \xi \Vert_\mathcal{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathcal{H}, Y \right)
-		\end{equation*} 
-		is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
-	\end{theorem}
-	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
-	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]}  W^{[l]})$.
-	
-		\section{Naive PLS Algorithm} \label{sec: Naive PLS Algorithm}
-	This section introduces a naive pointwise hybrid PLS algorithm and highlights its limitations. The algorithm treats each functional predictor as a long vector of discretized points, derives PLS components independently at each observed time point $\mathbf{t}$, and aggregates them into a functional object to compute the PLS score.
-	Since the regression coefficient computation follows directly from the PLS components and scores, our discussion here focuses on the latter and omits the former.
-	Denote $\{(Y_1, \mathbf{W}_1),  \ldots, (Y_n, \mathbf{W}_n)\}$ as $n$ independent data pairs (observed sample) distributed as $(Y, \mathbf{W})$. The goal of the PLS algorithm is to decompose the predictor $\mathbf{W}_i$ $(i=1, \ldots, n)$ and the real response $Y_i$ in terms of zero mean uncorrelated PLS scores  $(\rho_{il})_{l \in \mathbb{N}}$ with maximum predictive performance. Here and below, a superscript in square brackets denotes the iteration index of the algorithm. We begin by denoting the centered data as
-	\begin{equation}\label{def:centering_naive}
-		Y_i^{[1]} = Y_i - \bar{Y}~\text{and}~\mathbf{W}_i^{[1]}=(X_i^{[1]}, \mathbf{Z}_i^{[1]})=(X_i - \bar{X}, \mathbf{Z}_i - \bar{\mathbf{Z}}) = \mathbf{W}_i - \bar{\mathbf{W}}. 
-	\end{equation}
-	We describe the $l$-th step of the algorithm for $l = 1, 2, \ldots, L$, which consists of the following substeps. The complete procedure is summarized in Algorithm~\ref{alg:naive}.
-	%
 
-
-	%
-	\begin{enumerate}[Step 1.]
-		\item
-		We compute the $l$th PLS score of the $i$th subject as
-		\begin{equation}\label{def:pls_score_naive}
-			\widehat{\rho}_{il} = \langle \mathbf{W}_{i}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}} = \langle X_i^{[l]}, \widehat{\psi}_{l} \rangle_{\mathcal{F}} + \langle \mathbf{Z}_i^{[l]}, \widehat{\boldsymbol{\theta}}_{l} \rangle, 
-		\end{equation}
-		where the $l$-th PLS loading $\widehat{\xi}_{l} = (\widehat{\psi}_{l}, \widehat{\boldsymbol{\theta}}_{l}) \in \mathcal{H}$ maximizes $\widehat{\textnormal{Cov}}^2(\langle \mathbf{W}_{i}^{[l]}, \widehat{\xi}_{l} \rangle_{\mathcal{H}}, Y_i^{[l]})=\widehat{\textnormal{Cov}}^2(\widehat{\rho_{il}}, Y_i^{[l]})$. Specifically, we define the $l$-th PLS loadings pointwise as follows:
-		\begin{equation}\label{def:pls_loading_ptws}
-			\widehat{\xi}_{l}(\mathbf{t}) = \frac{\sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} = \left[ \frac{\sum_{i=1}^n Y_i^{[l]} X_i^{[l]}(\mathbf{t})}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}}, \frac{\sum_{i=1}^n Y_i^{[l]}\mathbf{Z}_i^{[l]}}{\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}}} \right]^\top,
-		\end{equation}
-		where the normalizing factor  is computed as
-		\begin{equation}
-			\Vert \sum_{i=1}^n Y_i^{[l]} \mathbf{W}_i^{[l]} \Vert_{\mathcal{H}} = [\sum_{i=1}^n \sum_{j=1}^n Y_i^{[l]} Y_j^{[l]} \{\langle X_i^{[l]},X_j^{[l]} \rangle_\mathcal{F} + \langle \mathbf{Z}_i^{[l]}, \mathbf{Z}_j^{[l]} \rangle \}]^{1/2}.  
-		\end{equation}
-		
-		\item Obtain the subsequent residualized outcomes and predictors as $Y_i^{[l+1]} = Y_i^{[l]} - \widehat{\nu}_{l} \widehat{\rho}_{il}$ and $\mathbf{W}_i^{[l+1]}(\mathbf{t}) = \mathbf{W}_i^{[l]}(\mathbf{t}) - \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) \widehat{\rho}_{il}$, where 
-		\begin{equation*}
-			\widehat{\nu}_l = \frac{\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2} \quad \textnormal{and} \quad \widehat{\boldsymbol{\delta}}_{l}(\mathbf{t}) = \frac{\sum_{i=1}^n \mathbf{W}_i^{[l]}(\mathbf{t}) \widehat{\rho}_{il}}{\sum_{i=1}^n \widehat{\rho}_{il}^2}.
-		\end{equation*}
-		Note, $\widehat{\nu}_l$ is the least squares estimate from linear regression of $Y_i^{[l]}$ on $\widehat{\rho}_{il}$, and  $\widehat{\boldsymbol{\delta}}_{l}(\mathbf{t})$ is the least squares estimate from a linear regression of $\mathbf{W}_i^{[l]}(\mathbf{t})$ on $\widehat{\rho}_{il}$.
-		
-		\item Let $l=l+1$ and back to Step 1.
-	\end{enumerate}
-	
-	This naive pointwise PLS algorithm, however, can be computationally expensive for multiple dense functional data and is not feasible for irregular functional data. Moreover, the pointwise estimates only use information from data on the particular argument value, and thus can show substantial variability across the domain, resulting in overfitting and unstable predictions. 
 	
 	
 	\section{Proposed PLS Algorithm} \label{section:main:our_algorithm}
-		% i.e., for $\mathbf{v_1}=(v_{11}, \ldots, v_{1p})^\top$ and $\mathbf{v_2}=(v_{21}, \ldots, v_{2p})^\top$ in $\mathbb{R}^p$, $\langle \mathbf{v_1}, \mathbf{v_2} \rangle = \mathbf{v_1}^\top \mathbf{v_2} = \sum_{r=1}^p v_{1r}v_{2r}$, and $\Vert \mathbf{v}_1 \Vert = \langle \mathbf{v}_1, \mathbf{v}_1 \rangle^{1/2} = (\sum_{r=1}^p v_{1r}^2)^{1/2}$.
-	The hybrid random predictor and corresponding inner product is formally defined as follows.
-	\begin{definition}[Hybrid predictor and inner product]\label{def:hilbert_space}
-		We define a  hybrid predictor  $W_i$ as an ordered pair combining the functional predictors $X_{i1}(t), \ldots, X_{iK}(t)$ and a scalar predictor $\mathbf{Z}_i$:
-		\begin{equation}\label{def:hybid_predictor}
-			W_i := (X_{i1}, \ldots, X_{iK}, \mathbf{Z}_i)
-			\in \mathcal{H} :=  \mathcal{F}^{\otimes K} \times \mathbb{R}^p
-		\end{equation}
-		The inner product between two hybrid predictors,
-		$W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$
-		and
-		$W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, is then defined as:
-		\begin{equation}		\label{eq: hybrid inner product}
-			\langle W_1, W_2\rangle_{\mathcal{H}}
-			:=
-			\sum \limits_{k=1}^K 
-			+ 
-			\omega
-			\mathbf{Z}_1^\top \mathbf{Z}_2,
-			~\text{where}~\int_0^1 X_{1k}(t) X_{2k}(t) \, dt
-		\end{equation}
-		for $\omega > 0$.
-		The corresponding norm $\Vert \cdot \Vert_\mathcal{H}$ is derived from this inner product as $\langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$.
-	\end{definition}
+Our new framework builds on the fact that all computations in Algorithm \ref{alg:scalar_pls} are arithmetic operations in an inner product space. We therefore formally define the Hilbert space of hybrid random predictors along with its corresponding complete inner product, and leverage them to extend Algorithm \ref{alg:scalar_pls}.
+\jongmin{I split the definition into three parts, adding completeness, separability, and the sigma-field.}
+\begin{definition}[Hybrid space]\label{def:hilbert_space}
+	Let $\mathbb{H}$ be a product space defined as the Cartesian product of $K$ copies of the space of square-integrable functions on $[0,1]$ and the $p$-dimensional Euclidean space:
+	$$
+	\mathbb{H} := (\mathbb{L}^2[0,1])^K \times \mathbb{R}^p.
+	$$
+	An element $h \in \mathbb{H}$ is an ordered tuple $h = (f_1, \dots, f_K, \mathbf{u})$, where $f_k \in \mathbb{L}^2[0,1]$ for $k=1, \dots, K$ and $\mathbf{u} \in \mathbb{R}^p$. This space is equipped with element-wise vector addition and scalar multiplication.
+	We define an inner product on $\mathbb{H}$ for any two elements $h_1 = (f_1, \dots, f_K, \mathbf{u})$ and $h_2 = (g_1, \dots, g_K, \mathbf{v})$ as:
+	\begin{equation}\label{eq: hybrid inner product}
+		\langle h_1, h_2 \rangle_{\mathbb{H}} := \sum_{k=1}^K \int_0^1 f_k(t) g_k(t) \, dt + \omega \mathbf{u}^\top \mathbf{v},
+	\end{equation}
+	where $\omega$ is a positive constant ($\omega > 0$).
+	The inner product induces a norm $\Vert \cdot \Vert_{\mathbb{H}}$ on the space, defined as $\Vert h \Vert_{\mathbb{H}} := \langle h, h \rangle_{\mathbb{H}}^{1/2}$, and a corresponding metric $d(h_1, h_2) = \Vert h_1 - h_2 \Vert_{\mathbb{H}}$.
+\end{definition}
 	In \eqref{eq: hybrid inner product}, 
-	$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
-	Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
+$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
+Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
+\begin{lemma}[Hybrid Hilbert space]\label{lemma:hybrid_hilbert_space}
+	The hybrid space $\mathbb{H}$ is a separable Hilbert space.
+\end{lemma} 
+Proof of Lemma \ref{lemma:hybrid_hilbert_space} is provided in Appendix \ref{section:proof:lemma:hybrid_hilbert_space}.
+
+\begin{definition}[Hybrid Predictor]
+	For the Hilbert space  $\mathbb{H}$ 
+	defined in Definition \ref{def:hilbert_space},
+	 The Borel $\sigma$-field on $\mathbb{H}$, denoted $\mathfrak{B}(\mathbb{H})$, is the smallest $\sigma$-field containing the class $\mathfrak{M}$ of all sets of the form
+	$
+	\{q \in \mathbb{H} \mid \langle q, h \rangle \in O\},
+	$
+	for any $h \in \mathbb{H}$ and any open subset $O \subseteq \mathbb{R}$ (details can be found in Theorem 7.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}).
+	A hybrid predictor $ W_i = (X_{i1}(t), \ldots, X_{iK}(t), \mathbf{Z}_i)$ is a measurable mapping from a probability space $(\Omega, \mathfrak{F}, P)$ into   $
+\bigl(
+	\mathbb{H}, \mathfrak{B}(\mathbb{H})
+\bigr)
+$. 
+\end{definition}
+ 	Then the joint regression model \eqref{eq:hybrid_regression_model}  can be concisely written as
+ \begin{equation}		\label{eq: Hybrid functional model}
+ 	Y_i = \langle \beta, W_i \rangle_{\mathbb{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathbb{H}.
+ \end{equation}
 	\begin{remark}
 		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
 	\end{remark}  
-	Then the joint regression model \eqref{eq: functional model}  can be concisely written as
-	\begin{equation}		\label{eq: Hybrid functional model}
-		Y_i = \langle \beta, W_i \rangle_{\mathcal{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathcal{H}.
-	\end{equation}
-	To address the limitations outlined in Section \ref{sec: Naive PLS Algorithm}, we propose  novel strategies for implementing the steps of the hybrid PLS algorithm. Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
-	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{section:sub:compute_PLS_component} and~\ref{section:sub:residualization}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{section:sub:regression_coeff}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:main}.
+
+ Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
+	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{section:sub:compute_PLS_component} and~\ref{section:sub:residualization}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{section:sub:regression_coeff}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:hybrid_pls}.
 	
 	\subsection{Preliminary step 1: finite-basis approximation}\label{sec: finite basis approximation}	
-	Let ${b_m(t)}$ be a twice-differentiable basis of $L^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, 
+	Let ${b_m(t)}$ be a twice-differentiable basis of $\mathbb{L}^2([0,1])$ whose second derivatives are also linearly independent, for example, cubic B-splines, the Fourier basis, or an orthonormal polynomial basis of degree greater than three. Using this basis, 
 	the $j$th functional predictor, 
 	regression coefficient, PLS component direction, and orthogonalization regression coefficient (with iteration indices suppressed) are represented as follows:
 	\begin{equation*}
@@ -523,10 +358,7 @@ Under a mild assumption,
 		\pi_{jm}
 		b_m(t)		
 	\end{equation*}	
-	In practice, the full set of coefficients can not be obtained  with finite sample size, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms and define the truncated basis space
-	$
-	\mathcal{B} := \operatorname{span}\bigl(b_1(t), \ldots, b_M(t)\bigr).
-	$
+	In practice, the full set of coefficients can not be obtained  with finite sample size, as functional data are measured on a finite grid. Thus, we truncate the expansion at $M$ terms.
 	We choose a moderately large $M$ (e.g., 15 or 20) to capture functional variation without fine-tuning, as smoothness is handled via penalization (see Section~\ref{sec: Regularization of PLS Components}).
 	The truncated expansions of the predictor and coefficient are denoted as
 	\begin{equation*}
@@ -545,9 +377,9 @@ Under a mild assumption,
 	\end{equation}
 	This implies that all computations in this paper are carried out entirely within the subspace
 	\begin{equation}\label{def:truncated_hilbert_space}
-		\widetilde{ \mathcal{H} } := \mathcal{B}^K \times \mathbb{R}^p \subset \mathcal{H}.
+		\widetilde{ \mathbb{H} } := \operatorname{span}\bigl(b_1(t), \ldots, b_M(t)\bigr)^K \times \mathbb{R}^p \subset \mathbb{H}.
 	\end{equation}
-	The $i$th hybrid predictor, projected on $\widetilde{ \mathcal{H} }$, is represented by the tuple
+	The $i$th hybrid predictor, projected on $\widetilde{ \mathbb{H} }$, is represented by the tuple
 	\begin{equation*}
 		\widetilde{W}_i := 
 		(
@@ -624,31 +456,31 @@ Under a mild assumption,
 	\textit{Core optimization problem.}\label{sec: pls component computation intermediate}~
 	We   present the core optimization problem that directly estimates the hybrid PLS component direction. It fully leverages the continuous nature of the functional components and the function-scalar hybrid structure.
 	We describe the strategy at the $l$-th iteration. %For simplicity, we omit the iteration index and assume the observations have been residualized from previous steps (see Section~\ref{section:sub:residualization} for details). 
-	The  PLS component direction is estimated by the unit-norm direction $\xi^{[l]} \in \widetilde{\mathcal{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathcal{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathcal{H}}$ and the responses $y_1, \ldots, y_n$, defined as
+	The  PLS component direction is estimated by the unit-norm direction $\xi^{[l]} \in \widetilde{\mathbb{H}}$ that maximizes the squared empirical covariance, which quantifies the linear dependence between the PLS scores $\langle \widetilde{W}_1, \xi \rangle_{\mathbb{H}}, \ldots, \langle \widetilde{W}_n, \xi \rangle_{\mathbb{H}}$ and the responses $y_1, \ldots, y_n$, defined as
 	
 	\begin{equation}\label{def:squared_empirical_cov}
 		\widehat{\textnormal{Cov}} 
 		( \langle 
 		\widetilde{W},
-		\xi \rangle_{\mathcal{H}}, Y )
+		\xi \rangle_{\mathbb{H}}, Y )
 		:=
 		\frac{1}{n} 
 		\sum_{i=1}^n
 		y_i
-		\langle \widetilde{W}_i, \xi \rangle_{\mathcal{H}}
+		\langle \widetilde{W}_i, \xi \rangle_{\mathbb{H}}
 		.
 	\end{equation}
 	We denote the estimated PLS component direction as
 	\begin{equation}\label{def:maximizer_squared_empirical_cov}
 		\hat{\xi} 
-		:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
+		:= \arg \max_{\xi \in \widetilde{\mathbb{H}}
 		}~\widehat{\textnormal{Cov}}^2 
 		\bigl(
-		\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
-		\bigr)~s.t.~\| \xi  \|_\mathcal{H} = 1.
+		\langle \widetilde{W}, \xi \rangle_{\mathbb{H}}, Y 
+		\bigr)~s.t.~\| \xi  \|_\mathbb{H} = 1.
 	\end{equation}
 	%
-	Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair  expanded as:
+	Here, $\hat{\xi} \in \widetilde{\mathbb{H}}$ is an ordered pair  expanded as:
 	\begin{equation*}
 		\hat{\xi}	= 
 		\bigl(
@@ -704,7 +536,7 @@ Under a mild assumption,
 	Instead of solely maximizing the squared empirical covariance
 	$\widehat{\textnormal{Cov}}^2 
 	\bigl(
-	\langle \widetilde{W}, \xi \rangle_\mathcal{H}, Y 
+	\langle \widetilde{W}, \xi \rangle_\mathbb{H}, Y 
 	\bigr)
 	$, 
 	we incorporate this roughness penalty to simultaneously control the complexity of the estimated functional components.
@@ -712,27 +544,27 @@ Under a mild assumption,
 	\begin{equation*}
 		\widehat{\textnormal{Cov}}^2 
 		\bigl(
-		\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
+		\langle \widetilde{W}, \xi \rangle_{\mathbb{H}}, Y 
 		\bigr)
 		- \sum \limits_{j=1}^K \lambda_j 
 		\operatorname{PEN}({\xi}_j)
 		,
 	\end{equation*}
 	where the smoothing parameters $\{\lambda_j\}_{j=1}^K$ control the trade-off between maximizing covariance and penalizing roughness. 
-	However, this approach  \citet{Rice1991} assumes that the functional predictors admit an orthogonal expansion in the $L^2$ sense.
+	However, this approach  \citet{Rice1991} assumes that the functional predictors admit an orthogonal expansion in the $\mathbb{L}^2$ sense.
 	
 	
 	To avoid the orthogonal basis assumption of  \citet{Rice1991}, we adopt the strategy of \citet{Silverman1996}, which replaces the standard orthonormality constraint with a weaker one based on a modified inner product that incorporates roughness. Accordingly, our estimation procedure at the $l$-th iteration, iteration index omitted and assuming the observations have been residualized in previous steps, solves the following optimization problem:
 	\begin{equation}\label{def:maximizer_squared_empirical_cov_reg}
 		\hat{\xi} 
-		:= \arg \max_{\xi \in \widetilde{\mathcal{H}}
+		:= \arg \max_{\xi \in \widetilde{\mathbb{H}}
 		}~\widehat{\textnormal{Cov}}^2 
 		\bigl(
-		\langle \widetilde{W}, \xi \rangle_{\mathcal{H}}, Y 
-		\bigr)~s.t.~\| \xi  \|_\mathcal{H} +  \sum \limits_{j=1}^K \lambda_j 
+		\langle \widetilde{W}, \xi \rangle_{\mathbb{H}}, Y 
+		\bigr)~s.t.~\| \xi  \|_\mathbb{H} +  \sum \limits_{j=1}^K \lambda_j 
 		\operatorname{PEN}(\xi_K) = 1.
 	\end{equation}
-	Here, $\hat{\xi} \in \widetilde{\mathcal{H}}$ is an ordered pair  expanded as:
+	Here, $\hat{\xi} \in \widetilde{\mathbb{H}}$ is an ordered pair  expanded as:
 	\begin{equation*}
 		\hat{\xi}	= 
 		\bigl(
@@ -824,7 +656,7 @@ Under a mild assumption,
 	\subsubsection{Iterative step 2: residualization via hybrid-on-scalar regression} \label{section:sub:residualization}
 	The $l$-th iteration's second step involves residualization of both predictors and responses. We first compute the individual PLS score:  
 	\begin{equation}\label{def:plsscore}
-		\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathcal{H}},
+		\hat{\rho}^{[l]}_i := \langle \widetilde{W}_i^{[l]}, \, \hat{\xi}^{[l]} \rangle_{\mathbb{H}},
 	\end{equation}
 	using the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
 	Since   $\widetilde{W}_i^{[l]}$ are assumed to have a sample mean of zero, these PLS scores will also have a sample mean of zero.
@@ -835,12 +667,12 @@ the $(l+1)$-th predictor is computed as a hybrid-on-scalar linear regression res
 In the same spirit as the PLS component direction estimation step,
 rather than treating the hybrid object as a long vector of concatenated function evaluations at time points and scalar vectors,
 we employ a basis expansion approach to fit the entire hybrid object in one step.
-Therefore, our method is computationally efficient, applicable for dense or irregular functional data, and keeps the residual smooth, as it enforces the regression coefficient, $\delta^{[l]}$, as an element of $\tilde{\mathcal{H}}$ as defined in Equation \eqref{def:truncated_hilbert_space}.
+Therefore, our method is computationally efficient, applicable for dense or irregular functional data, and keeps the residual smooth, as it enforces the regression coefficient, $\delta^{[l]}$, as an element of $\tilde{\mathbb{H}}$ as defined in Equation \eqref{def:truncated_hilbert_space}.
 	Consequently, $\delta^{[l]}$ is obtained by minimizing a  
 	least squares criterion:
 	\begin{equation}\label{def:argmin_pensse}
-		\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathcal{H}}} \sum_{i=1}^n 
-		\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathcal{H}}^2.
+		\hat{\delta}^{[l]} := \arg \min_{\delta \in \tilde{\mathbb{H}}} \sum_{i=1}^n 
+		\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathbb{H}}^2.
 	\end{equation}
   On the other hand, the $(l+1)$-th response   is computed as a scalar-on-scalar linear regression residual. 
  The following proposition demonstrates that this residualization step can be performed simply, analogous to scalar PLS.
@@ -881,9 +713,9 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	\subsection{Final step: estimating  the hybrid regression coefficient}
 	\label{section:sub:regression_coeff}
 	\jongmin{notation not yet changed}
-	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathcal{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathcal{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
+	The regression coefficient $\boldsymbol{\eta}$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS components and scores. First, note that we can show $\widehat{\rho}_{il} = \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathbb{H} = \langle \mathbf{W}_i, \widehat{\boldsymbol{\zeta}}_l \rangle_\mathbb{H}$, where $\widehat{\boldsymbol{\zeta}}_l = \widehat{\xi}_l - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}_u, \widehat{\xi}_l \rangle_{\mathbb{H}} \widehat{\boldsymbol{\zeta}}_u$ for $l \ge 2$, with $\widehat{\boldsymbol{\zeta}}_1 = \widehat{\xi}_1$. Then, the decomposition of $Y_i$ in \eqref{eq: decomposition} leads to
 	\begin{equation*}
-		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathcal{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathcal{H}+\epsilon_i,
+		Y_i = \sum \limits_{l=1}^L \widehat{\nu}_l \langle \mathbf{W}_i^{[l]}, \widehat{\xi}_l \rangle_\mathbb{H} +\epsilon_i = \left\langle \mathbf{W}_i, \sum \limits_{l=1}^L\widehat{\nu}_l \widehat{\boldsymbol{\zeta}}_l \right\rangle_\mathbb{H}+\epsilon_i,
 	\end{equation*}
 	which, given the uniqueness of $\boldsymbol{\eta}$, leads to
 	\begin{equation*}
@@ -891,41 +723,63 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	\end{equation*}
 	Here, the number of PLS components $L$ to be estimated can be chosen by cross-validation.
 	
-	\begin{algorithm}[b!]
-		\caption{Hybrid PLS (under construction)}
-		\label{alg:main}
-		\begin{algorithmic}[1]
-			\Require 
-			Response $\mathbf{y} \in \mathbb{R}^n$,
-			%functional predictor evalulation points $\mathbf{t}_1, \ldots, \mathbf{t}_m \in [0,1]^K,$
-			hybrid predictors approximation coefficient
-			$\widetilde{C}^* \ \in \mathbb{R}^{n \times (MK+p)} $ \eqref{eq: basis approximation of W},
-			Gram matrix with respect to basis functions
-			$J^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)} $
-			\eqref{def:J_and_J_star},
-			Gram matrix with respect to second derivatives of the basis functions 
-			$\ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$
-			\eqref{def:J_dotdot_ast},
-			regularization matrix $\Lambda  \in \mathbb{R}^{(MK+p) \times (MK+p)}$ \eqref{def:Lambda}
-			%%%%%%%%%%%%%%%%%%%%%
-			\State
-			$\widetilde{C}^{*[1]} \leftarrow \widetilde{C}^*$
-			\For{ l = 1, 2, \ldots  $T$}
-			\State $\mathbf{V}^\ast \leftarrow n^{-2} J^\ast \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^\ast$
-			\Comment{ \eqref{def:V_star}}
-			\State 	$\widehat{\xi}_l^\ast \leftarrow \arg \max_{\xi^* \in \mathbb{R}^{MK+p}} \;  \xi^{*\top} \mathbf{V}^\ast \xi^* \quad \textnormal{subject to}  \quad \xi^{*\top} (J^\ast+\Lambda \ddot{J}^\ast) \xi^*=1
-			$
-			\Comment{ \eqref{eq: Regularized generalized rayleigh quotient equation}} 
-			\State $\widehat{\boldsymbol{\rho}}_l
-			\leftarrow 
-			\widetilde{C}^* J^\ast  \widehat{\xi}_l^\ast
-			$
-			\Comment{$\in \mathbb{R}^n$; \eqref{compute_pls_score}}
-			\EndFor
-			\State Output a
-		\end{algorithmic}
-	\end{algorithm}
+ \begin{algorithm} 
+	\caption{Hybrid partial least squares regression}\label{alg:hybrid_pls}
+	\begin{algorithmic}[1]
+		\State 	\textbf{Initialize:} $(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta^{[1]}, \mathbf{y}^{[1]})$ as the data objects after basis expansion, following Section \ref{sec: finite basis approximation}.
+		
+		\State Standardize  $\widetilde{W}_1^{[1]}, \ldots, \widetilde{W}_n^{[1]}$ and $Y_1^{[1]}, \ldots, Y_n^{[1]}$, following Section \ref{subsec: Data Preprocessing}
+		\For{$l = 1, 2, \ldots, L$}
+		\\
+		\textbf{PLS direction and score estimation  (Proposition \ref{proposition:linear_regul}): }
+		\State $\mathbf{u}_j^{[l]} \leftarrow B \Theta_j^{[l]\top} \mathbf{y}^{[l]}, ~j = 1, \ldots, K$
+		\State $\mathbf{v}^{[l]} \leftarrow \mathbf{Z}^{[l]\top} \mathbf{y}^{[l]} $
+		\State $	q^{[l]}  \leftarrow \sum_{j=1}^K \mathbf{u}_j^{[l]\top} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} + \mathbf{v}^{[l]\top} \mathbf{v}^{[l]}$
+		\State $( \hat{\gamma}_{j1}^{[l]} , \ldots, \hat{\gamma}_{jM}^{[l]} )^\top  \leftarrow \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} , ~j = 1, \ldots, K$
+		\State $\hat{\boldsymbol{\zeta}}^{[l]}  \leftarrow \frac{1}{\sqrt{q}} \mathbf{v}^{[l]} $
+		\State $	\hat{\xi}^{[l]}	\leftarrow 
+		\biggl(
+		\sum_{m=1}^M \hat{\gamma}_{1m}^{[l]} \, b_m(t),
+		\ldots, 
+		\sum_{m=1}^M \hat{\gamma}_{Km}^{[l]} \, b_m(t), \hat{\boldsymbol{\zeta}}^{[l]}
+		\biggr)
+		$
+		\Comment{PLS direction} 
+		\State 
+		$
+		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\xi}^{[l]},   \tilde{W}^{[l]}_i \rangle, 
+		~i=1,  \ldots, n
+		$ \Comment{PLS score}
+		\\
+		\textbf{Residualization (Proposition \ref{proposition:closed_form_orthgonalization}):}
+		\State $\nu^{[l]} 
+		\leftarrow
+		\frac{
+			\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
+			\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
+		}$ \Comment{Least squares estimate} 
+		%
+		\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
+		%
+		\State $ \widehat{ \delta }^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\widetilde{W}_i^{[l]} $ \Comment{Least squares estimate} 
+		\label{alg:step:scalar_pls_residualization}
+		\State $\widetilde{W}_i^{[l+1]}  \leftarrow \widetilde{W}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{ \delta}^{[l]} $
+		\EndFor
+		\textbf{Regression coefficient recovery (Section \ref{section:sub:regression_coeff}):}
+		\State
+		$\widehat{ \zeta }^{[1]} \leftarrow \widehat{ \xi }^{[1]}$
+		\For{$l =  2, \ldots, L$}
+		\State $\widehat{ \zeta }^{[l]} \leftarrow \widehat{  \xi }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta }^{[u]}, \widehat{ \xi }^{[l]} \rangle  \widehat{ \zeta }^{[u]}$  
+		\EndFor
+		$	\widehat{ \beta } \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \zeta}^{[l]}$ \Comment{regression coefficient estimate}
+		\State \textbf{Output:} the  regression coefficient estimate $	\widehat{ \beta }$
+	\end{algorithmic}
+\end{algorithm}
+		Consider the optimization problem described in Proposition~\ref{proposition:eigen_regul}. Define the following quantities, which depend on the observed data but are not decision variables:  
+  
 	
+	Then the unique (up to sign) solution to the regularized maximization problem is given in closed form by  
+ 
 	
 	
 	
@@ -933,11 +787,136 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	\label{section:main:properties_of_our_method}
 	In this section, we derive several geometric properties of the PLS components and and scores obtained from the proposed algorithm.
 	
+	
+	
+	\subsection{ Tucker's Criterion  }\label{section:main:tucker}\jongmin{Previously, was in theoretical property section, now procedes the method section, to motivate the estimation procedure}
+	
+	 
+	
+	
+	
+ 
+	% The pointwise algorithm is highly inefficient and may not be even feasible for multiple dense and/or irregular functional data. Moreover, the pointwise least squares estimator can show substantial variability across the domain, which becomes problematic for the entire algorithm as its instability passes on to subsequent residualized outcomes and PLS components. Therefore, in this section, we introduce a novel framework for fitting a regression with a hybrid response and scalar predictor. The framework is readily applicable to dense and irregular functional data, and supports regularization techniques to prevent overfitting and reduce variance.
+	
+	
+	
+	The fundamental property of classical scalar PLS is that the PLS component direction  corresponds to the first eigenvector of the squared covariance matrix, satisfying  the Tucker's Criterion \citep{Tucker1938}.
+	Under a mild assumption,
+	We derive an analogous result  in our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}.
+	This justifies our estimation procedure introduced in Section \ref{section:main:our_algorithm}.
+	We omit $l$ in the notations and first define the cross-covariance term between the response and the functional predictors (observed versions if $l=1$ and residualized versions if $l \ge 2$): 
+	\begin{equation}\label{def:cross_covariance_yx}
+		\sigma_{YX}
+		=
+		\bigl(
+		\sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
+		\bigr)
+		:=
+		\bigl(
+		\mathbb{E}
+		[Y_1 X_{11}]
+		,\ldots, 
+		\mathbb{E}
+		[Y_1  X_{1K}]
+		\bigr)   \in \mathcal{F}^{\otimes K},
+	\end{equation}
+	and between the response and the scalar predictor:
+	\begin{equation*}
+		\sigma_{YZ} 
+		= 
+		(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
+		:= 
+		\bigl(
+		\mathbb{E}[Y_1 Z_{11}]
+		,\ldots,
+		\mathbb{E}[Y_1 Z_{1p}]
+		\bigr)^\top %= E(Y\mathbf{Z})
+		\in \mathbb{R}^p.
+	\end{equation*}
+	Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
+	\begin{equation*}
+		\Sigma_{YW} :=  
+		\mathbb{E}
+		[ Y_1 W_1 ]
+		=
+		\bigl(
+		\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
+		\bigr) \in \mathbb{H}.
+	\end{equation*}
+	Based on these definitions, we introduce two cross-covariance operators and their properties.
+	\begin{lemma}\label{lemma:cross_cov_functional}
+		Define the operator $
+		\mathcal{C}_{YW}
+		=
+		\mathbb{E}(W_1 \otimes_\mathbb{H} Y_1)
+		: \mathbb{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathbb{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathbb{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
+		\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact. This way, we don't need uniform continuiity of $\sigma_{YX}$.}If there exist finite constants $Q_1$ and $Q_2$ such that
+		\begin{align}\label{condition_for_compact}
+			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+		\end{align}
+		the operator $\mathcal{C}_{YW}$ is a compact operator.
+	\end{lemma}
+	Proof of Lemma \ref{lemma:cross_cov_functional}
+	is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
+	\begin{lemma}\label{lemma:cross_cov_operator}
+		Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathbb{H}$,
+		which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathbb{H}$ as follows:
+		%%%%
+		\begin{align*}		
+			\mathcal{C}_{WY} d 
+			:= 
+			\mathbb{E} 
+			\bigl[
+			\langle Y_1, d \rangle W_1 
+			\bigr] 
+			= 
+			\mathbb{E}
+			[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
+		\end{align*}
+		Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+	\end{lemma}
+	
+	
+	
+	The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
+	
+	Based on these two operators, we define a positive   operator as follows:
+	\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
+		Define
+		$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathbb{H} \rightarrow \mathbb{H}$ as an operator which performs the following mapping:
+		\begin{equation*}
+			\mathcal{U} h 
+			= 
+			\mathcal{C}_{WY} ( \mathcal{C}_{YW} h) 
+			=
+			\mathcal{C}_{YW} (\langle \Sigma_{YW}, h \rangle_\mathbb{H}) 
+			=  
+			\Sigma_{YW} \, \langle \Sigma_{YW}, h \rangle_\mathbb{H} 
+			= 
+			(\Sigma_{YW} \otimes \Sigma_{YW}) h.
+		\end{equation*}
+		In other words, $\mathcal{U} = \Sigma_{YW} \otimes \Sigma_{YW}$.
+		Then $\mathcal{U}$
+		is a self-adjoint and positive-semidefinite operator.
+		Under the conditions of Lemma \ref{lemma:cross_cov_functional}, $\mathcal{U}$ is a compact operator.
+	\end{lemma}
+	The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
+	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Lemma \ref{lemma:composite_cross_cov} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathbb{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
+	
+	The following theorem introduces the population-level PLS and Tucker's Criterion, adapted to our scalar-on-hybrid regression model setting, based on the aforementioned operators defined in the hybrid space.
+	\begin{theorem}[Population PLS and Tucker's criterion]\label{theorem:population_PLS} Under the conditions of Lemma \ref{lemma:cross_cov_functional}, the constrained maximum
+		\begin{equation*} 
+			\max \limits_{\substack{\xi \in \mathbb{H} \\ \Vert \xi \Vert_\mathbb{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathbb{H}, Y \right)
+		\end{equation*} 
+		is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
+	\end{theorem}
+	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
+	In other words, $l$-th PLS component $\xi_l$ can be obtained as the \textit{first} eigenfunction of $\mathcal{U}^{[l]} = \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$ whose components are formulated using the $l$-th residualized response and predictors: $\Sigma_{YW}^{[l]} = E(Y^{[l]}  W^{[l]})$.
 	A fundamental property of partial least squares   is that its derived bases are orthonormal. Our regularized estimates preserve this property, with respect to a modified inner product that incorporates the roughness penalty, defines as follows:
 	\begin{definition}[Roughness-sensitive inner product]\label{def:hybrid_inner_product_roughness}
-		Given two hybrid predictors $W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$ and $W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, both elements of $\mathcal{H}$ as defined in Definition \ref{def:hybid_predictor}, and a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, the roughness-sensitive inner product between $W_1$ and $W_2$ is defined as:
+		Given two hybrid predictors $W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$ and $W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, both elements of $\mathbb{H}$ as defined in Definition \ref{def:hybid_predictor}, and a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, the roughness-sensitive inner product between $W_1$ and $W_2$ is defined as:
 		\begin{equation}		\label{eq: hybrid inner product_roughness}
-			\langle W_1, W_2\rangle_{\mathcal{H}, \Lambda}
+			\langle W_1, W_2\rangle_{\mathbb{H}, \Lambda}
 			:=
 			\sum \limits_{k=1}^K \int_0^1 X_{1k}(t) X_{2k}(t) \, dt
 			+
@@ -948,9 +927,9 @@ Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean 
 	\end{definition}
 	Based on this inner product, the following proposition states that the PLS component directions estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal.
 	\begin{proposition}[Orthonormality of estimated PLS component directions]\label{proposition: modified orthnormality of PLS components}
-		The PLS component directions $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathcal{H}, \Lambda}$. That is,
+		The PLS component directions $\widehat{\xi}_1, \widehat{\xi}_2, \ldots, \widehat{\xi}_L$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathbb{H}, \Lambda}$. That is,
 		\begin{equation*}
-			\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathcal{H}, \Lambda}
+			\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathbb{H}, \Lambda}
 			= \mathbbm{1}(l_1 = l_2), \quad l_1, l_2 = 1, \ldots, L.
 		\end{equation*}
 	\end{proposition}
@@ -1308,6 +1287,13 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	%
 	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
 	
+	\section{Proof of Section \ref{section:main:our_algorithm}}
+	\subsection{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
+	\begin{proof}
+Both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are Hilbert spaces, with their inner products, norms, and metrics corresponding to the terms defined in equation \eqref{eq: hybrid inner product}. A finite Cartesian product of Hilbert spaces, equipped with an $\ell_2$ norm of the component metrics (which is our metric), is also a Hilbert space.
+Next, both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are separable. For  example,  the set of all polynomials with rational coefficients is a countable and dense subset of  $\mathbb{L}^2[0,1]$, and  the set of all vectors with rational components forms a countable and dense subset of $\mathbb{R}^p$.
+The finite Cartesian product of separable spaces is also separable. This completes the proof of Lemma \ref{lemma:hybrid_hilbert_space}.
+	\end{proof}
 	\section{Proof of Section \ref{section:main:tucker}}
 	
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
@@ -1322,52 +1308,52 @@ Therefore,  to show that $\mathcal{C}_{YW}$ is a compact operator, it suffices t
 \medskip
 \noindent
 \textit{Linearity.}~	  
- The operator $\mathcal{C}_{YW}: \mathcal{H} \rightarrow \mathbb{R}$ is defined as 
- $\mathcal{C}_{YW} h = \langle \Sigma_{YW}, h \rangle_\mathcal{H}$.
- For any $h_1, h_2 \in \mathcal{H}$ and scalar $c \in \mathbb{R}$, the linearity of the inner product implies: \begin{align*} \mathcal{C}_{YW}(h_1 + h_2) &= \langle \Sigma_{YW}, h_1 + h_2 \rangle_\mathcal{H} = \langle \Sigma_{YW}, h_1 \rangle_\mathcal{H} + \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} = \mathcal{C}_{YW} h_1 + \mathcal{C}_{YW} h_2,
+ The operator $\mathcal{C}_{YW}: \mathbb{H} \rightarrow \mathbb{R}$ is defined as 
+ $\mathcal{C}_{YW} h = \langle \Sigma_{YW}, h \rangle_\mathbb{H}$.
+ For any $h_1, h_2 \in \mathbb{H}$ and scalar $c \in \mathbb{R}$, the linearity of the inner product implies: \begin{align*} \mathcal{C}_{YW}(h_1 + h_2) &= \langle \Sigma_{YW}, h_1 + h_2 \rangle_\mathbb{H} = \langle \Sigma_{YW}, h_1 \rangle_\mathbb{H} + \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} = \mathcal{C}_{YW} h_1 + \mathcal{C}_{YW} h_2,
  	 \\ 
- 	 \mathcal{C}_{YW}(c h) &= \langle \Sigma_{YW}, c h \rangle_\mathcal{H} = c \langle \Sigma_{YW}, h \rangle_\mathcal{H} = c \, \mathcal{C}_{YW} h. \end{align*}
+ 	 \mathcal{C}_{YW}(c h) &= \langle \Sigma_{YW}, c h \rangle_\mathbb{H} = c \langle \Sigma_{YW}, h \rangle_\mathbb{H} = c \, \mathcal{C}_{YW} h. \end{align*}
  Thus, $\mathcal{C}_{YW}$ is a linear functional. 
  
 \medskip
 \noindent
 \textit{Boundedness.}~ 
-To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathcal{H}$ for all $h \in \mathcal{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
-	|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathcal{H}| \leq \|\Sigma_{YW}\|_\mathcal{H} \|h\|_\mathcal{H}. 
+To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for all $h \in \mathbb{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
+	|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathbb{H}| \leq \|\Sigma_{YW}\|_\mathbb{H} \|h\|_\mathbb{H}. 
 	\end{equation*}
-Now, we must verify that $\|\Sigma_{YW}\|_\mathcal{H}$ is finite. 
+Now, we must verify that $\|\Sigma_{YW}\|_\mathbb{H}$ is finite. 
 Recall that 
 $$\Sigma_{YW} = (\sigma_{YX,1}(t), \ldots, \sigma_{YX,K}(t), \sigma_{YZ,1}, \ldots, \sigma_{YZ,p}).$$
   Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$.
-The norm of $\Sigma_{YW}$ in $\mathcal{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathcal{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
+The norm of $\Sigma_{YW}$ in $\mathbb{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathbb{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
 	<
 	K T Q_1 + p  Q_2 < \infty,
  \end{equation*} 
  where the last inequality uses the condition \eqref{condition_for_compact}.
- Let $M = \sqrt{K T Q_1 + p  Q_2 }$. Thus, we have shown that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathcal{H}$ for a finite constant $M$.
+ Let $M = \sqrt{K T Q_1 + p  Q_2 }$. Thus, we have shown that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for a finite constant $M$.
  This completes the proof of Lemma \ref{lemma:cross_cov_functional}.
  
    \end{proof}
 	\subsection{Proof of Lemma \ref{lemma:cross_cov_operator}}\label{section:proof:lemma:cross_cov_operator}
  \begin{proof}
-For $h \in \mathcal{H}$ and $d \in \mathbb{R}$, we have:
+For $h \in \mathbb{H}$ and $d \in \mathbb{R}$, we have:
 \begin{equation*}
 \langle
 	\mathcal{C}_{YW} h, d \rangle 
 	= 
 \mathbb{E}
 	[
-		 \langle W_1, h \rangle_\mathcal{H} Y_1  
+		 \langle W_1, h \rangle_\mathbb{H} Y_1  
 	] 	 \,  d
 %%%%%%%%%%%%%%%%%%
 =
-\mathbb{E} \langle   Y_1 W_1 d , \, h\rangle_{\mathcal{H}} 
+\mathbb{E} \langle   Y_1 W_1 d , \, h\rangle_{\mathbb{H}} 
 %%%%%%%%%%%%%%%%%%%%%%%%
- = \langle h, \, \mathbb{E}[Y_1 W_1 d   ]\rangle_{\mathcal{H}}
+ = \langle h, \, \mathbb{E}[Y_1 W_1 d   ]\rangle_{\mathbb{H}}
  =
- \langle h, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}
+ \langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}
 \end{equation*}
-Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathcal{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
 	This completes the proof of Lemma \ref{lemma:cross_cov_operator}.
  \end{proof}
  
@@ -1377,45 +1363,45 @@ Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{
 	\medskip
 	\noindent
 	\textit{Self-adjoint.}~
-	For any $h_1, h_2 \in \mathcal{H}$, we have
+	For any $h_1, h_2 \in \mathbb{H}$, we have
 	\begin{align*}
 		\langle 
 		\mathcal{U} h_1, \, h_2 
-		\rangle_\mathcal{H}  
+		\rangle_\mathbb{H}  
 		= 
 		\bigl \langle 
-		\langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \Sigma_{YW},
+		\langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \Sigma_{YW},
 		\,
 		h_2
-		\bigr \rangle_\mathcal{H}
+		\bigr \rangle_\mathbb{H}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		&= \langle h_1, \Sigma_{YW} \rangle_\mathcal{H} \langle \Sigma_{YW}, h_2 \rangle_\mathcal{H}
+		&= \langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H}
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		\\&= 
 		\bigl \langle 
 		h_1,
 		\,
-		\langle \Sigma_{YW}, h_2 \rangle_\mathcal{H} \Sigma_{YW} 
-		\bigr \rangle_\mathcal{H}
-		\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathcal{H}.
+		\langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} \Sigma_{YW} 
+		\bigr \rangle_\mathbb{H}
+		\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathbb{H}.
 	\end{align*}
 	
 	\medskip
 	\noindent
 	\textit{Positive-semidefinite.}~
-	For every $h \in \mathcal{H}$, we have
+	For every $h \in \mathbb{H}$, we have
 	\begin{equation*}
 		\langle 
 		\mathcal{U} h,
 		\,
 		h
-		\rangle_\mathcal{H}
+		\rangle_\mathbb{H}
 		=
 		\bigl \langle 
 		\langle 
-		\Sigma_{YW},\, h \rangle_{\mathcal{H}}  \Sigma_{YW}, \, h
-		\bigr \rangle_\mathcal{H}
-		= \langle \Sigma_{YW}, \, h \rangle_\mathcal{H}^2 \ge 0.
+		\Sigma_{YW},\, h \rangle_{\mathbb{H}}  \Sigma_{YW}, \, h
+		\bigr \rangle_\mathbb{H}
+		= \langle \Sigma_{YW}, \, h \rangle_\mathbb{H}^2 \ge 0.
 	\end{equation*}
 	
 	\medskip
@@ -1439,9 +1425,9 @@ Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{
 \end{equation*}
 Let $\Vert \cdot \Vert_{\mathrm{op}}$ denote an operator norm. By  4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we have
 \begin{equation*}
-	\Vert \mathcal{C}_{YW} \Vert_{\mathrm{op}} = \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} | \mathcal{C}_{YW} h |^2 
-	= \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} | E(\langle W, h \rangle_\mathcal{H} Y)|^2 
-	= \sup_{\substack{h \in \mathcal{H} \\ \Vert h \Vert_\mathcal{H}=1}} \textnormal{Cov}^2(\langle W, h \rangle_\mathcal{H}, Y) 
+	\Vert \mathcal{C}_{YW} \Vert_{\mathrm{op}} = \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | \mathcal{C}_{YW} h |^2 
+	= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | E(\langle W, h \rangle_\mathbb{H} Y)|^2 
+	= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} \textnormal{Cov}^2(\langle W, h \rangle_\mathbb{H}, Y) 
 	= \kappa_1^2,
 \end{equation*}
 with maximum attained at $h=f_{11}$, which is an eigenfunction of  $\mathcal{C}_{YW}^* \, \circ \, \mathcal{C}_{YW} = \mathcal{C}_{WY} \, \circ \, \mathcal{C}_{YW} = \mathcal{U}$ corresponding to the largest eigenvalue $\kappa_1^2.$
@@ -1455,7 +1441,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 
 	\section{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
-		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathcal{H}$. Assume that each functional component $\xi_j \in L^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
+		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 		\begin{equation*}
 			\xi_j(t) := 
 			\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
@@ -1466,14 +1452,14 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		computed as follows:
 		\begin{align*}
 			\widehat{\textnormal{Cov}} (
-			\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
+			\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
 			) 
 			&=  %1
 			\frac{1}{n} 
 			\sum 
 			\limits_{i=1}^n 
 			y_i
-			\langle \widetilde{W}_i, \xi \rangle_\mathcal{H} \\
+			\langle \widetilde{W}_i, \xi \rangle_\mathbb{H} \\
 			&= %2
 			\frac{1}{n} 
 			\sum \limits_{i=1}^n
@@ -1570,7 +1556,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		%	The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, takin
 		\begin{align*}
 			\widehat{\textnormal{Cov}}^2 (
-			\langle \widetilde{W}, \xi  \rangle_{\mathcal{H}}, Y 
+			\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
 			)  
 			&= 
 			\frac{1}{n^2}
@@ -1605,11 +1591,11 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 			\boldsymbol{\xi}.
 			\numberthis \label{covariance_squares_as_quadratic_form}
 		\end{align*}
-		The squared norm of $\xi$ in the hybrid Hilbert space $\mathcal{H}$ 
+		The squared norm of $\xi$ in the hybrid Hilbert space $\mathbb{H}$ 
 		%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
 		is computed as follows:
 		\begin{align*}
-			\langle {\xi},{\xi} \rangle_{\mathcal{H}}
+			\langle {\xi},{\xi} \rangle_{\mathbb{H}}
 			&=
 			\sum_{j=1}^K
 			\int_0^1
@@ -1702,7 +1688,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		Combining this with \eqref{unit_norm_as_quadform}, 
 		we can compute
 		\begin{equation*}
-			\| \xi  \|_\mathcal{H} +  \sum \limits_{j=1}^K \lambda_j 
+			\| \xi  \|_\mathbb{H} +  \sum \limits_{j=1}^K \lambda_j 
 			\operatorname{PEN}(\xi_K) 
 			= 
 			\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
@@ -1836,7 +1822,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 	Recall from  \eqref{def:plsscore} that
 	$\hat{\rho}_i
 	=
-	\langle \widetilde{W}_i, \, \hat{\xi} \rangle_{\mathcal{H}}$.
+	\langle \widetilde{W}_i, \, \hat{\xi} \rangle_{\mathbb{H}}$.
 	Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
 	is computed through the following matrix multiplication:
 	\begin{equation}\label{score_inner_product_all_n}
@@ -1849,23 +1835,23 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
 		\,
 		\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
-		\rangle_{\mathcal{H}}
+		\rangle_{\mathbb{H}}
 		+
 		\tau
 		\sum_{j=1}^K\operatorname{PEN}(\delta_j).
 	\end{equation}
 	\begin{align*}
-		\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathcal{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
+		\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
 		&= 
 		\underbrace{
-			\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}}}_{A} 
+			\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
 		\underbrace{
-			-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathcal{H}} 
+			-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
 		}_{B_1(\boldsymbol{\delta})}
 		\underbrace{
 			+ 
 			(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
-			\langle \delta, \, \delta \rangle_{\mathcal{H}}
+			\langle \delta, \, \delta \rangle_{\mathbb{H}}
 		}_{B_2(\boldsymbol{\delta})}
 		\underbrace{
 			+ 
@@ -1881,7 +1867,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 	$ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component functions:
 	\begin{align*}
 		B_1(\boldsymbol{\delta}) &= 
-		- 2\sum_{i=1}^n \hat{\rho}_i  \langle \delta, \, \widetilde{W}_i  \rangle_{\mathcal{H}} 
+		- 2\sum_{i=1}^n \hat{\rho}_i  \langle \delta, \, \widetilde{W}_i  \rangle_{\mathbb{H}} 
 		=
 		- 2\hat{\boldsymbol{\rho}}^\top 
 		\biggl(
@@ -1893,7 +1879,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		B_2(\boldsymbol{\delta})
 		&=
 		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
-		\langle \delta, \, \delta \rangle_{\mathcal{H}}
+		\langle \delta, \, \delta \rangle_{\mathbb{H}}
 		=
 		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
 		\biggl(
@@ -2010,7 +1996,7 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 		\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
 	\end{equation*}
 		The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
-	$\hat{\delta}^{[l]}   \in \tilde{\mathcal{H}}$, has basis coefficients
+	$\hat{\delta}^{[l]}   \in \tilde{\mathbb{H}}$, has basis coefficients
 	\begin{equation*}
 		\hat{\boldsymbol{\pi}}_j^{[l]}
 		=
@@ -2037,10 +2023,10 @@ This completes the proof of Theorem \ref{theorem:population_PLS}.
 	\section{Proof of Proposition \ref{proposition:compact_operator}}\label{section:proof:proposition:compact_operator}
 \begin{proof}
 	The brief strategy of the proof is as follows.
-		We   show that an image of a bounded family in $\mathcal{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
+		We   show that an image of a bounded family in $\mathbb{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
 		Then we apply the Arzel\'{a}-Ascoli theorem to show that $\mathcal{U}$ is \textit{compact}.
 
-Let $\mathcal{B}=\{h \in \mathcal{H}: \Vert h \Vert_\mathcal{H}^2 \le M\}$ denote a bounded family in $\mathcal{H}$ for some constant $0 < M < \infty$.
+Let $\mathcal{B}=\{h \in \mathbb{H}: \Vert h \Vert_\mathbb{H}^2 \le M\}$ denote a bounded family in $\mathbb{H}$ for some constant $0 < M < \infty$.
 Clearly, $h=(f, \mathbf{v}) \in \mathcal{B}$ also implies 
 \begin{equation}\label{individual_norm_bound}
 \Vert f_k \Vert_\mathcal{F}^2 \le M,
@@ -2051,7 +2037,7 @@ Define $\mathcal{I}  = \{\mathcal{U}h: h \in \mathcal{B}\}$ as the image of  $\m
 
 \medskip
 \noindent
-\textit{Uniform boundedness of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ and an evaluation point $\mathbf{t}= (t_1, \ldots, t_k) \in [0,1]^K$, we denote the $\ell_2$ norm of the evaluated object $\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ as follows:
+\textit{Uniform boundedness of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and an evaluation point $\mathbf{t}= (t_1, \ldots, t_k) \in [0,1]^K$, we denote the $\ell_2$ norm of the evaluated object $\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ as follows:
 $\bigl(
 f_1(t_1), \ldots, f_k(t_k), \mathbf{v}
 \bigr)$
@@ -2068,16 +2054,16 @@ f_1(t_1), \ldots, f_k(t_k), \mathbf{v}
  = \Vert (\mathcal{U}h)(\mathbf{t}) \Vert^2_2 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  \overset{(i)}{=} 
-\Vert \langle \Sigma_{YW}, h \rangle_\mathcal{H} \, \Sigma_{YW}(\mathbf{t}) \Vert^2_2
+\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} \, \Sigma_{YW}(\mathbf{t}) \Vert^2_2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   =
-\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2
+\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2
 \Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2.
   \end{equation}
-  We will show that $\Vert g (\mathbf{t}) \Vert^2_2 < \infty$ by  showing $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 < \infty$ and $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2 < \infty$ in turn. First, to bound 
-   $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2$, it suffices to bound $\langle \Sigma_{YW}, h \rangle_\mathcal{H}$:
+  We will show that $\Vert g (\mathbf{t}) \Vert^2_2 < \infty$ by  showing $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 < \infty$ and $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2 < \infty$ in turn. First, to bound 
+   $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2$, it suffices to bound $\langle \Sigma_{YW}, h \rangle_\mathbb{H}$:
 \begin{align*}
-\langle \Sigma_{YW}, h \rangle_\mathcal{H}
+\langle \Sigma_{YW}, h \rangle_\mathbb{H}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &=
 \sum_{k=1}^K \langle \sigma_{YX, k}, \, f_k \rangle_\mathcal{F}  
@@ -2147,7 +2133,7 @@ Since this bound does not depend on the evaluation point, we conclude that acros
 
 \medskip
 \noindent
-\textit{Equicontinuity of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathcal{H}$ and 
+\textit{Equicontinuity of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and 
 two evaluation points
  $\mathbf{t}=(t_1, \ldots, t_K) \in [0,1]^K$
  and
@@ -2175,14 +2161,14 @@ For any $g \in \mathcal{I}$, via similar computation as in \eqref{gtsq_expansion
 	\Vert_2^2
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &= %%%%%%%%%%%%%%%
-	\Vert \langle \Sigma_{YW}, h \rangle_\mathcal{H} 
+	\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} 
 	\,
-	\Sigma_{YW}(\mathbf{t}) - \langle \Sigma_{YW}, h \rangle_\mathcal{H} \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2
+	\Sigma_{YW}(\mathbf{t}) - \langle \Sigma_{YW}, h \rangle_\mathbb{H} \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \\&=
-\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2.
+\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2.
 \end{align*}
-We have already shown in \eqref{squared_ip_bound} that  $\langle \Sigma_{YW}, h \rangle_\mathcal{H}^2 \leq  2K^2 M TQ_1   + 2MpQ_2$.
+We have already shown in \eqref{squared_ip_bound} that  $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \leq  2K^2 M TQ_1   + 2MpQ_2$.
 Next we bound $\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2$, which do not depend on $h$.
 \begin{align*}
 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2	
@@ -2277,7 +2263,7 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 			\int_0^1 \bigl\{ \hat{\xi}_l^{\prime\prime}(t) \bigr\}^2 dt
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			\\&=
-			\langle \widehat{\xi}_{l}, \widehat{\xi}_{l} \rangle_{\mathcal{H}, \Lambda},
+			\langle \widehat{\xi}_{l}, \widehat{\xi}_{l} \rangle_{\mathbb{H}, \Lambda},
 			\numberthis \label{rough_norm_matrix_form}
 		\end{align*}
 		where step $(i)$ uses \eqref{unit_norm_as_quadform}
@@ -2286,7 +2272,7 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 		
 		Now to switch our gears toward the the orthogonality. For  $l_1 > l_2 $, we have
 		\begin{align*}
-			\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathcal{H}, \Lambda}
+			\langle \widehat{\xi}_{l_1}, \widehat{\xi}_{l_2} \rangle_{\mathbb{H}, \Lambda}
 			& \overset{(i)}{=}
 			\hat{\boldsymbol{\xi}}_{l_1}^\top 
 			\hspace{-.2em}
@@ -2351,7 +2337,7 @@ Orthogonality can be demonstrated by showing that $\Theta^{[l_1] } \mathbb{B} \h
 			\langle
 			\widetilde{W}_i^{[l_1]}, 
 			\hat{\xi}^{[l_2]}
-			\rangle_{\mathcal{H}},
+			\rangle_{\mathbb{H}},
 			\numberthis \label{thetaBzetal2i}
 		\end{align*}
 where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}. To expand the last quantity, we use a recursive relationship derived as follows. Recall from Lemma  \ref{proposition:closed_form_orthgonalization} that we have
@@ -2369,24 +2355,24 @@ Let us denote, with some abuse of notation:
 	\widetilde{\boldsymbol{W}}^{[l_1]}  := 
 	\bigl(
 \widetilde{W}_1^{[l_1-1]}, \ldots, \widetilde{W}_n^{[l_1-1]}
-	\bigr)^\top \in \tilde{\mathcal{H}}^{\otimes n},
+	\bigr)^\top \in \tilde{\mathbb{H}}^{\otimes n},
 \end{equation}
 and
 \begin{equation}\label{notation:n_inner_products}
 	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}}
+	\rangle_{\mathbb{H}}
 	:= 
 	\biggl(
 	\langle 
 	\widetilde{W}_1^{[l_1-1]}, 
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}},
+	\rangle_{\mathbb{H}},
 	\ldots, 
 	\langle 
 	\widetilde{W}_n^{[l_1-1]},  
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}}
+	\rangle_{\mathbb{H}}
 	\biggr)^\top 
 	\in \mathbb{R}^n.
 \end{equation}
@@ -2399,7 +2385,7 @@ $
 it suffices to show
    $	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}} = \mathbf{0}$.
+\rangle_{\mathbb{H}} = \mathbf{0}$.
 Using these notations and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
 \begin{equation}\label{regression_relation_with_notation_abuse}
 \widetilde{\boldsymbol{W}}^{[l_1]}  = 
@@ -2416,11 +2402,11 @@ and thus
 \begin{equation*}
 \langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}}
+\rangle_{\mathbb{H}}
   = 
 \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}} 
+\rangle_{\mathbb{H}} 
 - 
 	\biggl(
 	\frac{1
@@ -2433,39 +2419,39 @@ and thus
 	\bigl \langle 
 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 	\hat{\xi}^{[l_2]}
-	\bigr \rangle_{\mathcal{H}}.
+	\bigr \rangle_{\mathbb{H}}.
 \end{equation*}
 Clearly, the right-hand side represents a linear operator from $\mathbb{R}^n$ to $\mathbb{R}^n$, which we denote as $P^{[l_1-1]}$.
 	Thus, 
 	we have $\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}}  = 
+	\rangle_{\mathbb{H}}  = 
 	P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}}$.
+	\rangle_{\mathbb{H}}$.
 Repeatedly using this relationship, we have
 	\begin{align*}
 	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}} 
+	\rangle_{\mathbb{H}} 
 	&=
 P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}} 
+\rangle_{\mathbb{H}} 
 	\\
 		&=
 		P^{[l_1-1]} P^{[l_1-2]}   \langle 	\widetilde{\boldsymbol{W}}^{[l_1-2]}  ,
 		\hat{\xi}^{[l_2]}
-		\rangle_{\mathcal{H}}
+		\rangle_{\mathbb{H}}
 		  \\
 		&= \underbrace{ P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]}}_{:=P}  P^{[l_2]} \langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
 		\hat{\xi}^{[l_2]}
-		\rangle_{\mathcal{H}}
+		\rangle_{\mathbb{H}}
 		  \\
 &= P \,\biggl\{
 \langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
 \hat{\xi}^{[l_2]}
-\rangle_{\mathcal{H}} 
+\rangle_{\mathbb{H}} 
 - 
 \biggl(
 \frac{1
@@ -2478,7 +2464,7 @@ P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 \bigl \langle 
 \widetilde{\boldsymbol{W}}^{[l_2]}  ,
 \hat{\xi}^{[l_2]}
-\bigr \rangle_{\mathcal{H}}
+\bigr \rangle_{\mathbb{H}}
 \biggr\}
 		  \\
 &= P \,\biggl\{
@@ -2535,7 +2521,7 @@ This completes the proof of Proposition
 \widehat{ \rho }^{[l_1 ]}_i \,
 \bigl \langle 	\widetilde{W}^{[l_2]}_i  ,
 \hat{\xi}^{[l_2]}
-\bigr \rangle_{\mathcal{H}}
+\bigr \rangle_{\mathbb{H}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \\&=  
 \big \langle
@@ -2543,7 +2529,7 @@ This completes the proof of Proposition
 \widehat{ \rho }^{[l_1 ]}_i \,
  	\widetilde{W}^{[l_2]}_i  ,
 \hat{\xi}^{[l_2]}
-\big \rangle_{\mathcal{H}}
+\big \rangle_{\mathbb{H}}
 \end{align*}
 Therefore,
 to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
@@ -2551,7 +2537,7 @@ to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
  it suffices to show that
 $\sum_{i=1}^n
 \widehat{ \rho }^{[l_1 ]}_i \,
-\widetilde{W}^{[l_2]}_i  = 0 \in   \mathcal{H}  $,
+\widetilde{W}^{[l_2]}_i  = 0 \in   \mathbb{H}  $,
 where this   zero element represents an ordered pair of $K$ zero functions and a zero matrix.
 Using Lemma    \ref{proposition:closed_form_orthgonalization}, notations from 
 \eqref{notation:n_predictors} and
@@ -2574,7 +2560,7 @@ and equation \eqref{regression_relation_with_notation_abuse}, we have:
 \langle 	
 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 	\hat{\xi}^{[l_1-1]}
-\rangle_{\mathcal{H}}
+\rangle_{\mathbb{H}}
 \hat{\boldsymbol{\rho}}^{[l_1-1] \top
 } 
 \biggr)
@@ -2598,7 +2584,7 @@ with some abuse of notation, we have:
 	\langle 	
 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 	\hat{\xi}^{[l_1-1]}
-	\rangle_{\mathcal{H}}
+	\rangle_{\mathbb{H}}
 	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
 	} 
 	\biggr)
@@ -2610,7 +2596,7 @@ with some abuse of notation, we have:
 		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
 	\hat{\xi}^{[l_1-1]}
-	\rangle_{\mathcal{H}}
+	\rangle_{\mathbb{H}}
 	}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 	\bigl(
@@ -2621,7 +2607,7 @@ with some abuse of notation, we have:
 \\	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
 \widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)~(\text{say}).
 \end{align*}
-Here, the function $h^{[l_1-1]}: \tilde{ \mathcal{H} } \mapsto \tilde{\mathcal{H}}$ maps the zero element of $\tilde{\mathcal{H}}$ to itself, where the zero element represents an ordered pair of $K$ zero functions and a zero matrix. Using this relationship, we have
+Here, the function $h^{[l_1-1]}: \tilde{ \mathbb{H} } \mapsto \tilde{\mathbb{H}}$ maps the zero element of $\tilde{\mathbb{H}}$ to itself, where the zero element represents an ordered pair of $K$ zero functions and a zero matrix. Using this relationship, we have
 \begin{align*}
 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
 	\widetilde{\boldsymbol{W}}^{[l_1]}  
@@ -2664,7 +2650,7 @@ h^{[l_2]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
 		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
 		\widetilde{\boldsymbol{W}}^{[l_2]}  ,
 		\hat{\xi}^{[l_2]}
-		\rangle_{\mathcal{H}}
+		\rangle_{\mathbb{H}}
 	}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
 	%%%%%%%%%%%%%%%%%%%%%%%%%
 	\bigl(
@@ -2681,7 +2667,7 @@ h^{[l_2]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
 	\langle 	 
 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
 	\hat{\xi}^{[l_2]}
-	\rangle_{\mathcal{H}}
+	\rangle_{\mathbb{H}}
 }{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
 % 
 \bigl(
