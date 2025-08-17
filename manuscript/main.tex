@@ -109,8 +109,8 @@
 		\end{aug}
 		
 		\begin{abstract}
-			Modern biomedical studies increasingly collect both functional and vector-valued predictors for each subject, introducing challenges due to infinite-dimensionality and cross-modality correlations. Existing methods often model these components separately, failing to capture their joint predictive structure.
-			We propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space. By iteratively maximizing empirical covariance with the response, our method identifies low-dimensional directions that capture both within- and between-modality variation. The procedure is computationally efficient, requiring only to solve linear systems at each step. We provide theoretical guarantees and demonstrate the effectiveness of our approach through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
+		Modern biomedical studies are increasingly collecting both functional and vector-valued predictors for each subject, introducing the new challenge of cross-modality correlations. To address this, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space.
+		We then extend the classical nonlinear iterative PLS (NIPALS) algorithm to this hybrid Hilbert space by iteratively maximizing the empirical cross-covariance with the response. As a result, our method identifies low-dimensional directions that capture both within- and between-modality variation, as well as the response-predictor correlation. The procedure is computationally efficient, requiring only the solution of linear systems at each step. We provide theoretical properties to justify our algorithm and demonstrate its effectiveness through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 		\end{abstract}
 		
 		\begin{keyword}
@@ -159,37 +159,29 @@ In other words, this is a scalar-on-hybrid regression where the hybrid covariate
 	%Infinite dimensional beta estimation problem (ill-posed problem)
 	%Multicollinearity and high-dimensionality in scalar predictors are not handled.
 	%Also, there may be high correlation between functional and scalar predictors.
-	This hybrid model poses two-fold challenges.
-	First, estimating the infinite-dimensional slope function $\beta_k(t) $ is an ill-posed problem requiring  dimension reduction or regularization based on structural assumption,
-	such as derivatives and covariance patterns.
-	Second, strong correlations between functional and scalar predictors are common but typically overlooked by separate modeling approaches. These issues call for a unified framework that addresses ill-posedness, high-dimensionality, and cross-modality correlation jointly.
-	
-	Many approaches have been proposed
-	1. Roughness Penalty
-	2. basis approach (power-series, B-splines, wavelets)
-	- Power Series splines \citep{goldsmithPenalizedFunctionalRegression2011}
-	- B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}
-	- Wavelet\citep{zhaoWaveletbasedLASSOFunctional2012}
-	
-	%3. FPCA approach
-	One possible approach is to apply principal component analysis, FPCA or MFPCA for the functional predictors and standard PCA for the scalar predictors, followed by classical multivariate regression on the resulting scores. 
-	This PCA regression strategy has been well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}, but it overlooks potentially strong correlations between functional and scalar components, leading to multicollinearity and suboptimal predictive performance. Outside the regression context, \citet{jangPrincipalComponentAnalysis2021} proposed a joint PCA method that accounts for correlation between functional and scalar data. However, the resulting components are not informed by the response and may fail to capture directions of maximal correlation with the outcome.
-	
-	%4. FPLS Approach
-	Partial least squares (PLS) regression offers a powerful alternative by explicitly seeking low-dimensional projections of the predictors that maximize their covariance with the outcome. While PLS has been extensively studied in the context of functional data, both for single and multiple functional predictors \citep{predaPLSRegressionStochastic2005, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}, a unified framework capable of simultaneously handling mixed modalities of functional and scalar covariates remains underdeveloped.
-	
-	In this paper, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and vector predictors in a principled and coherent manner. To extract predictive structure from jointly observed and potentially correlated data types, we define a Hilbert space that treats functional and vector components as a single hybrid object, equipped with a suitable inner product. The hybrid PLS direction is then obtained by iteratively maximizing the empirical covariance with the response, subject to a unit-norm constraint in this Hilbert space.
-	
-	
-	
-	
-	
-	The framework is readily applicable to dense and irregular functionaldata, and supports regularization techniques to prevent overfitting and reduce variance.
-	
-	
-	
-	
-	
+This hybrid model poses several challenges. 
+First, estimating the infinite-dimensional slope function $\beta_k(t)$ from a finite number of data
+is an ill-posed problem.% that requires dimension reduction or regularization based on structural assumptions, such as derivatives and covariance patterns.
+Second, we face the high-dimensionality of the predictors with $K+p$ dimensions.
+Third, strong correlations between functional and scalar predictors are common but often overlooked by separate modeling approaches.
+
+To address the ill-posedness stemming from the infinite-dimensionality of the functional components, common remedies include basis expansion,
+using power-series  \citep{goldsmithPenalizedFunctionalRegression2011},
+B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}, or 
+wavelets \citep{zhaoWaveletbasedLASSOFunctional2012},
+and structure-aware regularization, such as roughness penalties \jongmin{let's add citations here}.
+For the high-dimensionality challenge, a major solution is regression with derived inputs,
+such as Principal Component Analysis (PCA) regression.
+This involves applying (multivariate) functional PCA (FPCA)  to the functional predictors, possibly with standard PCA to the scalar predictors,
+followed by a classical multivariate regression on the resulting scores.
+This PCA regression strategy is well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
+However, this approach has a major drawback: the derived inputs are not informed by the response variable. Consequently, they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
+Partial Least Squares (PLS) regression offers a powerful alternative by explicitly seeking low-dimensional projections of the predictors that maximize their covariance with the outcome. PLS has been extensively studied in the context of functional data, both for single and multiple functional predictors \citep{predaPLSRegressionStochastic2005, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}.
+However, all of these existing PCA or PLS approaches overlook the potentially strong correlations between functional and scalar components. This can lead to multicollinearity and suboptimal predictive performance.
+To address the third challenge, \citet{jangPrincipalComponentAnalysis2021}  proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response, so they may fail to capture the directions of maximal correlation with the outcome.
+
+To bridge this gap, we unify the remedies proposed for these three issues: basis expansion, partial least squares, and a hybrid approach that accounts for the correlation between functional and scalar parts.
+We propose a hybrid PLS regression framework that integrates functional and vector predictors in a principled and coherent manner. To extract predictive structure from these jointly observed and potentially correlated data types, we define a Hilbert space that treats the tuple of functional and vector components as a single hybrid object, equipped with a suitable inner product. The hybrid PLS direction is then obtained by iteratively maximizing the empirical covariance with the response, subject to a unit-norm constraint in this Hilbert space. Our framework is readily applicable to dense and irregular functional data and supports regularization techniques to prevent overfitting and reduce variance. We also provide the mathematical properties that justify our algorithm.
 	
 
 	\section{Background on partial least squares and its extension to hybrid predictors}  
@@ -676,9 +668,9 @@ where $\hat{\delta}^{[l]} \in \widetilde{\mathbb{H}}$ is the regression coeffici
 In the same spirit as the PLS component direction estimation step,
 rather than treating the hybrid object as a long vector of concatenated function evaluations at time points and scalar vectors,
 we employ a basis expansion approach to fit the entire hybrid object in one step.
-Therefore, our method is computationally efficient, applicable for dense or irregular functional data, and keeps the residual smooth, as it enforces  $\hat{\delta}^{[l]}$  as an element of $\widetilde{\mathbb{H}}$ as defined in Equation \eqref{def:truncated_hilbert_space}.
+Therefore, our method is computationally efficient, and applicable for dense or irregular functional data.
 	Consequently, $\delta^{[l]}$ is obtained by minimizing a  
-	least squares criterion:
+	least squares criterion: \jongmin{I removed the penalization because it makes proving the orthonormality of the PLS components in Proposition \ref{proposition: modified orthnormality of PLS components} impossible.}
 	\begin{equation}\label{def:argmin_pensse}
 		\hat{\delta}^{[l]} := \arg \min_{\delta \in \widetilde{\mathbb{H}}} \sum_{i=1}^n 
 		\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathbb{H}}^2.
@@ -968,7 +960,7 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	\end{proposition}
 	The proof of Proposition \ref{proposition: orthnormality of PLS scores} is provided in Appendix \ref{section:proof:proposition: orthnormality of PLS scores}.
 	
-	\section{Simulations}
+	\section{Simulation studies}\jongmin{08/16/2025: re-starting. the writing here is not completed.}
 	To evaluate the superiority of our method under complex dependency structures
 	{\textemdash}
 	specifically, dependencies among functional predictors,
@@ -1151,7 +1143,7 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	\end{figure}
 	
 	
-	\section{Data Application}
+	\section{Data Application} \jongmin{08/16/2025: re-starting. the writing here is not completed.}
 	
 	\medskip
 	\noindent
@@ -1252,75 +1244,10 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	\begin{itemize}
 		\item aaa
 	\end{itemize}
-	\section{Technical lemmas}
-	
-	
-	
-	\subsection{old notations}
-	
-	
-	Then we can approximate the functional predictor observations as
-	\begin{equation*}
-		X_i^{(k)}(t_k) = \sum_{m=1}^M c_{im}^{(k)} b^{(k)}_{m}(t_k)=\mathbf{c}_i^{(k)T}\mathbf{b}^{(k)}(t_k), \;\; t_k \in [0,1], \;\; k=1, \ldots, K, \;\; i=1, \ldots, n,
-	\end{equation*}
-	This basis approximation can be expressed collectively across $n$ observations as: $\widetilde{\mathbf{X}^{(k)}}(t_k) = \widetilde{\mathbf{C}}^{(k)} \mathbf{b}^{(k)}(t_k)$, where $\widetilde{\mathbf{X}}^{(k)}(t_k)=(X_1^{(k)}(t_k), \ldots, X_n^{(k)}(t_k))^\top \in \mathbb{R}^n$, 
-	This notation can be further extended to simultaneously express the basis expansions of $K$ functional predictors as 
-	\begin{equation}
-		\widetilde{X}(\mathbf{t}) = \widetilde{C}B(\mathbf{t}), \quad t \in \mathcal{T},
-		\label{eq: basis approximation of X}
-	\end{equation}
-	where $\widetilde{X}(\mathbf{t}) = [\widetilde{\mathbf{X}}^{(1)}(t_1), \cdots, \widetilde{\mathbf{X}}^{(K)}(t_K)] \in \mathbb{R}^{n \times K}$, $\widetilde{C} = [\widetilde{C}^{(1)}, \cdots, \widetilde{\mathbf{C}}^{(k)}] \in \mathbb{R}^{n \times MK}$, and 
-	$B(\mathbf{t}) = \mathrm{blkdiag}[\mathbf{b}^{(1)}(t_1), \cdots, \mathbf{b}^{(K)}(t_K)] \in \mathbb{R}^{MK \times K}$.
-	
-	
-	
-	
-	Furthermore, let $
-	\mathbf{Z} = [\mathbf{Z}_1, \cdots, \mathbf{Z}_n]^\top \in \mathbb{R}^{n \times p}
-	$ denote $n \times p$ matrix of the scalar predictors (observed version when $l=1$, or residualized version when $l \ge 2$), and let $\widetilde{W}(\mathbf{t})=[\widetilde{X}(\mathbf{t}), \mathbf{Z}]$ denote $n \times (K+p)$ hybrid predictor matrix that stacks $\widetilde{X}(\mathbf{t})$ and $\mathbf{Z}$ as columns. Then we can also write the hybrid predictor, whose functional part is approximated using the basis functions, as a form of linear transformation similar to \eqref{eq: basis approximation of X}:
-	\begin{equation}\label{eq: basis approximation of W}
-		\widetilde{W}(\mathbf{t}) 
-		=  
-		\widetilde{ \mathbf{C} }^\ast B^*(\mathbf{t}), \quad t \in \mathcal{T}.
-	\end{equation}
-	where  $B^*(\mathbf{t}) = \mathrm{blkdiag}(B(\mathbf{t}), \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (K+p)}$ and $\widetilde{ \mathbf{C} }^\ast=[\widetilde{C}, \mathbf{Z}] \in \mathbb{R}^{n \times (MK+p)}$.
-	
-	
-	
-	
-	\paragraph{Basis approximation of the PLS component.}
-	We can also approximate the functional part of the PLS component in terms of the same basis functions: $\psi^{(k)}(t_k) = \sum_{m=1}^M a^{(k)}_{m} b^{(k)}_m(t_k) = \mathbf{a}^{(k)\top} \mathbf{b}^{(k)}(t_k)$ and $\psi(\mathbf{t}) = B(\mathbf{t})^\top \mathbf{a} \in \mathbb{R}^K$, where $\mathbf{a}^{(k)} = (a^{(k)}_{1}, \ldots, a^{(k)}_{M})^\top \in \mathbb{R}^M$, and $\mathbf{a}=(\mathbf{a}^{(1)\top}, \ldots, \mathbf{a}^{(K)\top})^\top \in \mathbb{R}^{MK}$, so that $\xi(\mathbf{t}) = (\psi(\mathbf{t})^\top, \boldsymbol{\theta}^\top)^\top = (\mathbf{a}^\top B(\mathbf{t}), \boldsymbol{\theta}^\top)^\top \in \mathbb{R}^{K+p}$. 
-	%
-	
-	Using this definition, we construct the following block-diagonal matrices:
-	\begin{equation}\label{def:J_and_J_star}
-		\mathbf{J} = \mathrm{blkdiag}(\mathbf{J}^{(1)}, \cdots, \boldsymbol{\Phi}^{(k)}) \in \mathbb{R}^{MK \times MK}~\text{and}~\mathbf{J}^\ast=\mathrm{blkdiag}(\mathbf{J}, \mathbf{I}_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}.
-	\end{equation}
-	
-	\paragraph{Regularization based on second-order derivatives.}
-	Our proposed strategy for computing PLS component, detailed in Section \ref{sec: Regularization of PLS Components}, incorporates regularization based on second-order derivatives. To this end, let $\ddot{J}^{(k)}$ denote the $M \times M$ Gram matrix formed by the second derivatives of the basis functions,  defined as
-	\begin{equation}\label{def:dodot_J_k}
-		\ddot{J}^{(k)} = \left[ \int_0^1 \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
-	\end{equation}
-	and define a block-diagonal matrix 
-	$ \ddot{J}^\ast \in \mathbb{R}^{(MK+p) \times (MK+p)}$ as
-	\begin{equation}\label{def:J_dotdot_ast}
-		\ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}).
-	\end{equation}
-	%
-	The finite-basis approximation allows us to represent the hybrid predictor observations using the coefficient matrix $\widetilde{ \mathbf{C} }^\ast$, enabling all associated computations to be carried out via matrix operations involving $\widetilde{ \mathbf{C} }^\ast$, $J^\ast$, and $\ddot{J}^\ast$.
-	
-	\section{Proof of Section \ref{section:main:our_algorithm}}
-	\subsection{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
-	\begin{proof}
-Both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are Hilbert spaces, with their inner products, norms, and metrics corresponding to the terms defined in equation \eqref{eq: hybrid inner product}. A finite Cartesian product of Hilbert spaces, equipped with an $\ell_2$ norm of the component metrics (which is our metric), is also a Hilbert space.
-Next, both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are separable. For  example,  the set of all polynomials with rational coefficients is a countable and dense subset of  $\mathbb{L}^2[0,1]$, and  the set of all vectors with rational components forms a countable and dense subset of $\mathbb{R}^p$.
-The finite Cartesian product of separable spaces is also separable. This completes the proof of Lemma \ref{lemma:hybrid_hilbert_space}.
-	\end{proof}
-	
+ 
 
 
-\subsection{Proof of Propositions \ref{proposition:eigen_noregul} and \ref{proposition:eigen_regul} }\label{section:proof:proposition:linear_regul_system_unregularized}
+\subsection{Proof of Proposition \ref{proposition:eigen_noregul}  }\label{section:proof:proposition:linear_regul_system_unregularized}
 \begin{proof}
 	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
 	\begin{equation*}
@@ -1709,18 +1636,22 @@ is computed through the following matrix multiplication:
 \begin{equation}\label{score_inner_product_all_n}
 	\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
 \end{equation}
-The criterion $\operatorname{PENSSE}( \delta)$ can be decomposed as follows:
-\begin{equation}\label{def:pensse}
-	\operatorname{PENSSE}( \delta)
-	:=
-	\sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta,
-	\,
-	\widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta
-	\rangle_{\mathbb{H}}
-	+
-	\tau
-	\sum_{j=1}^K\operatorname{PEN}(\delta_j).
-\end{equation}
+The least square criterion   can be decomposed as follows:
+\begin{align*}
+	\operatorname{SSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} \\
+	&= 
+	\underbrace{
+		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
+	\underbrace{
+		-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
+	}_{B_1(\boldsymbol{\delta})}
+	\underbrace{
+		+ 
+		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
+		\langle \delta, \, \delta \rangle_{\mathbb{H}}
+	}_{B_2(\boldsymbol{\delta})}
+\end{align*}
+\begin{comment}
 \begin{align*}
 	\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
 	&= 
@@ -1739,12 +1670,15 @@ The criterion $\operatorname{PENSSE}( \delta)$ can be decomposed as follows:
 		\tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
 	}_{B_3(\boldsymbol{\delta})}
 \end{align*}
+\end{comment}
 Here, part $A$ does not contain $\delta$, so it does not contribute to the minimization problem.
 
-Let $\boldsymbol{\delta}:= (\pi_1^\top, \ldots, \pi_K^\top, \boldsymbol{\chi}^\top )^\top$ be the $MK+p$-dimensional concatenated vector of basis coefficients and the scalar part of $\boldsymbol{\delta}$, as presented in \eqref{def:maximizer_euclidean_form}. 
-Abusing notation, we treat $\operatorname{PENSSE}$ as a function of $\boldsymbol{\delta}$.
+Let $\boldsymbol{\delta}:= (\pi_1^\top, \ldots, \pi_K^\top, \boldsymbol{\chi}^\top )^\top$ be the $MK+p$-dimensional concatenated vector of basis coefficients and the scalar part of $\boldsymbol{\delta}$. 
+%Abusing notation, we treat $\operatorname{PENSSE}$ as a function of $\boldsymbol{\delta}$.
+Abusing notation, we treat $\operatorname{SSE}$ as a function of $\boldsymbol{\delta}$.
 Next, We will now demonstrate that the combined term $
-B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta}) + B_3(\boldsymbol{\delta})
+%B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta}) + B_3(\boldsymbol{\delta})
+B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta})
 $ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component functions:
 \begin{align*}
 	B_1(\boldsymbol{\delta}) &= 
@@ -1768,14 +1702,9 @@ $ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component f
 	+\boldsymbol{\chi}^\top \boldsymbol{\chi}
 	\biggr),
 	\\
-	B_3(\boldsymbol{\delta})
-	&=
-	\tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
-	=
-	\tau
-	\boldsymbol{\delta} B^{''} \boldsymbol{\delta},
+%	B_3(\boldsymbol{\delta}) &= \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) = \tau \boldsymbol{\delta} B^{''} \boldsymbol{\delta},
 \end{align*}
-where the expansion of $B_3(\boldsymbol{\delta})$ leverages the computation in \eqref{pen_as_matrix}.
+%where the expansion of $B_3(\boldsymbol{\delta})$ leverages the computation in \eqref{pen_as_matrix}.
 Now we compute the gradients:
 \begin{align*}
 	\nabla_{\boldsymbol{\pi}_j}
@@ -1805,20 +1734,14 @@ Now we compute the gradients:
 	=
 	2(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})\boldsymbol{\chi} ,
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\\
-	\nabla_{\boldsymbol{\pi}_j}
-	B_3(\boldsymbol{\delta}) 
-	&= 
-	2 \tau
-	B^{\prime \prime }	\boldsymbol{\pi}_j
-	,~
-	j = 1, \ldots, K,
-	\quad
-	\nabla_{\boldsymbol{\chi}}
-	B_3(\boldsymbol{\delta}) 
-	=
-	0.
+	%\\ \nabla_{\boldsymbol{\pi}_j} B_3(\boldsymbol{\delta})  &=  2 \tau B^{\prime \prime }	\boldsymbol{\pi}_j ,~ j = 1, \ldots, K, \quad \nabla_{\boldsymbol{\chi}} B_3(\boldsymbol{\delta})  =0.
 \end{align*}
+	The Hessian of 
+	$\operatorname{SSE}( \boldsymbol{\delta})$ is then given by 
+	$
+	2 	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B.
+	$
+\begin{comment}
 The Hessian of 
 $\operatorname{PENSSE}( \boldsymbol{\delta})$ is then given by 
 $
@@ -1827,10 +1750,12 @@ $
 2
 \tau
 B^{\prime \prime}.
-$ 
-Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$ and $B''$ are positive definite, $\operatorname{PENSSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
+$
+\end{comment}
+%Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$ and $B''$ are positive definite, $\operatorname{PENSSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
+Since   $B$ and is positive definite, $\operatorname{SSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
 \begin{align*}
-	\nabla_{\boldsymbol{\pi}_j}	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+	\nabla_{\boldsymbol{\pi}_j}	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
 	&	=
 	-2
 	B
@@ -1839,14 +1764,11 @@ Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$
 	+
 	2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
 	B 	\hat{\boldsymbol{\pi}}_j
-	+
-	2
-	B^{\prime \prime }	\hat{\boldsymbol{\pi}}_j
 	=
 	0,~
 	j = 1, \ldots, K,
 	\\
-	\nabla_{\boldsymbol{\chi} }	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+	\nabla_{\boldsymbol{\chi} }	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
 	&=
 	-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
 	+
@@ -1854,7 +1776,35 @@ Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$
 	=
 	0,
 \end{align*}
+\begin{comment}
+	\begin{align*}
+		\nabla_{\boldsymbol{\pi}_j}	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+		&	=
+		-2
+		B
+		\Theta_j^\top
+		\hat{\boldsymbol{\rho}}
+		+
+		2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+		B 	\hat{\boldsymbol{\pi}}_j
+		+
+		2
+		B^{\prime \prime }	\hat{\boldsymbol{\pi}}_j
+		=
+		0,~
+		j = 1, \ldots, K,
+		\\
+		\nabla_{\boldsymbol{\chi} }	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+		&=
+		-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
+		+
+		2 (\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) \hat{\boldsymbol{\chi} }
+		=
+		0,
+	\end{align*}
+\end{comment}
 providing the following closed-form solution:
+\begin{comment}
 \begin{equation*}
 	\hat{\boldsymbol{\pi}}_j\\
 	=
@@ -1876,6 +1826,29 @@ providing the following closed-form solution:
 	\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
 	\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
 \end{equation*}
+\end{comment}
+\begin{equation*}
+	\hat{\boldsymbol{\pi}}_j\\
+	=
+	\bigl\{
+	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
+	\bigr\}^{-1}
+	B
+	\Theta_j^\top
+	\hat{\boldsymbol{\rho}}
+	=
+	\frac{1}{\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}} \Theta_j^\top
+	\hat{\boldsymbol{\rho}}
+	~
+	j = 1, \ldots, K,
+	%%%%%%%%%%%%%%%%%%%%%%%%
+	\quad
+	\hat{\boldsymbol{\chi} }
+	=
+	\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
+	\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
+\end{equation*}
+\begin{comment}
 The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
 $\hat{\delta}^{[l]}   \in \widetilde{\mathbb{H}}$, has basis coefficients
 \begin{equation*}
@@ -1895,8 +1868,25 @@ and scalar parts given by:
 	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
 	\mathbf{Z}^{[l] \top}  \hat{\boldsymbol{\rho}}^{[l]}.
 \end{equation*}
+\end{comment}
+Expanding with respect to these coefficients, we obtain
+\begin{equation*}
+	\delta^{[l]}
+	= 
+	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+	\sum_{i=1}^n 
+	\widehat{\rho}_i^{[l]}
+	\widetilde{W}_i^{[l]}.
+\end{equation*}
+On the other hand since $\mathbf{y}^{[l]}$ and  
+	$\hat{\boldsymbol{\rho}}^{[l]}$ are zero-mean,
+	it is well known that the least square estimate of linear regression coefficient is compuated as $\hat{\nu}^{[l]} =  
+\frac{
+	\mathbf{y}^{[l] \top }  \hat{\boldsymbol{\rho}}^{[l]}
+}{
+	\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
 This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
-	\section{Proof of Section \ref{section:main:tucker}}
+	\section{Proof of Section \ref{section:main:properties_of_our_method}}
 	
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
 	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
