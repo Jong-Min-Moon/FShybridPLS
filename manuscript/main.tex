@@ -109,7 +109,7 @@
 		\end{aug}
 		
 		\begin{abstract}
-			Modern biomedical studies increasingly collect both functional and vector-valued predictors for each subject, introducing challenges due to high dimensionality and cross-modality correlations. Existing methods often model these components separately, failing to capture their joint predictive structure.
+			Modern biomedical studies increasingly collect both functional and vector-valued predictors for each subject, introducing challenges due to infinite-dimensionality and cross-modality correlations. Existing methods often model these components separately, failing to capture their joint predictive structure.
 			We propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space. By iteratively maximizing empirical covariance with the response, our method identifies low-dimensional directions that capture both within- and between-modality variation. The procedure is computationally efficient, requiring only to solve linear systems at each step. We provide theoretical guarantees and demonstrate the effectiveness of our approach through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 		\end{abstract}
 		
@@ -439,12 +439,16 @@ $.
 	\jongmin{notation not changed yet}
 	Functional and scalar elements of the hybrid predictors often have incompatible units and/or exhibit different amounts of variation. This can be problematic for our PLS framework which is not scale invariant as: i) each predictor has different chance of contributing to the predictor/response structure; and ii) a predictor with high correlation to $Y$ but relatively low variance may be overlooked. 
 	
-	To obtain PLS components that have a meaningful interpretation, we standardize the predictor data via the following steps. The first step is to account for discrepancies \textit{within} respective functional and scalar parts, if needed. If elements of multivariate functional data $X_i = (X_i^{(1)}, \ldots, X_i^{(K)})$ are measured in different units or have quite different domains, one can standardize them to have mean zero and integrated variance of one. If multivariate scalar predictors $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ exhibit different amounts of variation, one can standardize them to have mean zero and unit variance. The second step is to eliminate the discrepancies \textit{between} functional and scalar parts. To accomplish this aim, we choose an appropriate weight $\omega$ in the hybrid inner product \eqref{eq: hybrid inner product} that ensures functional and vector parts have comparable variance. A sensible data-driven approach to choosing an appropriate weight is to set
+	To obtain PLS components that have a meaningful interpretation, we standardize the predictor data via the following steps. The first step is to account for discrepancies \textit{within} respective functional and scalar parts, if needed. If the functional parts $\widetilde{X}_{i1}(t), \ldots, \widetilde{X}_{iK}(t)$ are measured in different units or have quite different domains, one can standardize them to have mean zero and integrated variance of one. If multivariate scalar predictors $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ exhibit different amounts of variation, one can standardize them to have mean zero and unit variance. The second step is to eliminate the discrepancies \textit{between} functional and scalar parts. To accomplish this aim, we choose an appropriate weight $\omega$ in the hybrid inner product \eqref{eq: hybrid inner product} that ensures functional and vector parts have comparable variance. A sensible data-driven approach to choosing an appropriate weight is to set
 	\begin{equation*}
-		\omega = \frac{\sum_{i=1}^n \Vert X_i \Vert_\mathcal{F}^2}{\sum_{i=1}^n \Vert \mathbf{Z}_i \Vert^2},
+		\omega = \frac{\sum_{i=1}^n \sum_{k=1}^K \Vert \widetilde{X}_i \Vert^2_{\mathbb{L}^2[0,1]}}{\sum_{i=1}^n \Vert \mathbf{Z}_i \Vert^2},
 		\label{eq: weight}
 	\end{equation*}
-	In practice, this weighting scheme can be implemented by formulating the hybrid object as $\mathbf{W} = (X, \omega^{1/2} \mathbf{Z})$, whose vector part has been scaled by a factor of $\omega^{1/2}$.
+	In practice, 
+	instead of using inner product weighted by $\omega^{1/2}$, one can implement 
+	this weighting scheme   by formulating the hybrid object as $\widetilde{W}_i = \bigl(
+	\widetilde{X}_{i1}(t), \ldots, \widetilde{X}_{iK}(t),  \omega^{1/2} \mathbf{Z}_i
+	\bigr)$, whose vector part has been scaled by a factor of $\omega^{1/2}$.
 	
 	\subsection{Iterative steps}
 	The iterative process presented here yields an orthonormal hybrid basis that effectively captures the predictor-response relationships. It proceeds through two intermediate steps: the estimation of the PLS component direction (Section \ref{section:sub:compute_PLS_component}) and residualization (Section \ref{section:sub:residualization}). The properties of the resulting estimates are introduced in Section \ref{section:main:properties_of_our_method}.
