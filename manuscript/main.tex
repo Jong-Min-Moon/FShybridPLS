@@ -109,8 +109,8 @@
 		\end{aug}
 		
 		\begin{abstract}
-		Modern biomedical studies are increasingly collecting both functional and vector-valued predictors for each subject, introducing the new challenge of cross-modality correlations. To address this, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space.
-		We then extend the classical nonlinear iterative PLS (NIPALS) algorithm to this hybrid Hilbert space by iteratively maximizing the empirical cross-covariance with the response. As a result, our method identifies low-dimensional directions that capture both within- and between-modality variation, as well as the response-predictor correlation. The procedure is computationally efficient, requiring only the solution of linear systems at each step. We provide theoretical properties to justify our algorithm and demonstrate its effectiveness through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
+			Modern biomedical studies are increasingly collecting both functional and vector-valued predictors for each subject, introducing the new challenge of cross-modality correlations. To address this, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space.
+			We then extend the classical nonlinear iterative PLS (NIPALS) algorithm to this hybrid Hilbert space by iteratively maximizing the empirical cross-covariance between the hybrid predictor and the response. As a result, our method identifies low-dimensional representations that capture both within- and between-modality variation, as well as the response-predictor correlation. The procedure is computationally efficient, requiring only the solution of linear systems at each step. We provide theoretical properties to justify our algorithm and demonstrate its effectiveness through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 		\end{abstract}
 		
 		\begin{keyword}
@@ -146,188 +146,188 @@
 		i = 1, \ldots, n,
 		%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
 	\end{equation}
-where $Y_i$ is a scalar response, $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate, $X_{i1}(t), \ldots, X_{iK}(t)$ are functional predictors that belong to $\mathbb{L}^2[0,1]$, and $\epsilon_i$ is observational noise.
-In other words, this is a scalar-on-hybrid regression where the hybrid covariates belong to $\bigl( \mathbb{L}^2[0,1] \bigr)^{  K} \times \mathbb{R}^p$.
+	where $Y_i$ is a scalar response, $\mathbf{Z}_i=(Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate, $X_{i1}(t), \ldots, X_{iK}(t)$ are functional predictors that belong to $\mathbb{L}^2[0,1]$, and $\epsilon_i$ is observational noise.
+	In other words, this is a scalar-on-hybrid regression where the hybrid covariates belong to $\bigl( \mathbb{L}^2[0,1] \bigr)^{  K} \times \mathbb{R}^p$.
 	For notational convenience, we assume throughout this paper that the responses and predictors have been centered, allowing the intercept term to be ignored.
 	%where $\boldsymbol{\alpha}=(\alpha_1, \ldots, \alpha_p)^\top \in \mathbb{R}^p$ and $\beta=(\beta^{(1)}, \ldots, \beta^{(K)}) \in \mathcal{F}$ are respectively the regression coefficient vector and function that characterize the effect of scalar and functional predictors on the outcome.
-		%which is defined as the space of real-valued functions on $[0,1]$
+	%which is defined as the space of real-valued functions on $[0,1]$
 	%	which are square-integrable with respect to the Lebesgue measure $dt$ on $[0,1]$, 
-%	and possess second  derivatives.
- 
+	%	and possess second  derivatives.
+	
 	%denote a $p$-dimensional multivariate scalar data in $\mathbb{R}^p$, assumed to be a random vector with finite first two moments, equipped with the Euclidean inner product and norm.
 	
 	%Infinite dimensional beta estimation problem (ill-posed problem)
 	%Multicollinearity and high-dimensionality in scalar predictors are not handled.
 	%Also, there may be high correlation between functional and scalar predictors.
-This hybrid model poses several challenges. 
-First, estimating the infinite-dimensional slope function $\beta_k(t)$ from a finite number of data
-is an ill-posed problem.% that requires dimension reduction or regularization based on structural assumptions, such as derivatives and covariance patterns.
-Second, we face the high-dimensionality of the predictors with $K+p$ dimensions.
-Third, strong correlations between functional and scalar predictors are common but often overlooked by separate modeling approaches.
-
-To address the ill-posedness stemming from the infinite-dimensionality of the functional components, common remedies include basis expansion,
-using power-series  \citep{goldsmithPenalizedFunctionalRegression2011},
-B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}, or 
-wavelets \citep{zhaoWaveletbasedLASSOFunctional2012},
-and structure-aware regularization, such as roughness penalties \jongmin{let's add citations here}.
-For the high-dimensionality challenge, a major solution is regression with derived inputs,
-such as Principal Component Analysis (PCA) regression.
-This involves applying (multivariate) functional PCA (FPCA)  to the functional predictors, possibly with standard PCA to the scalar predictors,
-followed by a classical multivariate regression on the resulting scores.
-This PCA regression strategy is well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
-However, this approach has a major drawback: the derived inputs are not informed by the response variable. Consequently, they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
-Partial Least Squares (PLS) regression offers a powerful alternative by explicitly seeking low-dimensional projections of the predictors that maximize their covariance with the outcome. PLS has been extensively studied in the context of functional data, both for single and multiple functional predictors \citep{predaPLSRegressionStochastic2005, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}.
-However, all of these existing PCA or PLS approaches overlook the potentially strong correlations between functional and scalar components. This can lead to multicollinearity and suboptimal predictive performance.
-To address the third challenge, \citet{jangPrincipalComponentAnalysis2021}  proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response, so they may fail to capture the directions of maximal correlation with the outcome.
-
-To bridge this gap, we unify the remedies proposed for these three issues: basis expansion, partial least squares, and a hybrid approach that accounts for the correlation between functional and scalar parts.
-We propose a hybrid PLS regression framework that integrates functional and vector predictors in a principled and coherent manner. To extract predictive structure from these jointly observed and potentially correlated data types, we define a Hilbert space that treats the tuple of functional and vector components as a single hybrid object, equipped with a suitable inner product. The hybrid PLS direction is then obtained by iteratively maximizing the empirical covariance with the response, subject to a unit-norm constraint in this Hilbert space. Our framework is readily applicable to dense and irregular functional data and supports regularization techniques to prevent overfitting and reduce variance. We also provide the mathematical properties that justify our algorithm.
+	This hybrid model poses several challenges. 
+	First, estimating the infinite-dimensional slope function $\beta_k(t)$ from a finite number of data
+	is an ill-posed problem.% that requires dimension reduction or regularization based on structural assumptions, such as derivatives and covariance patterns.
+	Second, we face the high-dimensionality of the predictors with $K+p$ dimensions.
+	Third, strong correlations between functional and scalar predictors are common but often overlooked by separate modeling approaches.
 	
-
+	To address the ill-posedness stemming from the infinite-dimensionality of the functional components, common remedies include basis expansion,
+	using power-series  \citep{goldsmithPenalizedFunctionalRegression2011},
+	B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}, or 
+	wavelets \citep{zhaoWaveletbasedLASSOFunctional2012},
+	and structure-aware regularization, such as roughness penalties \jongmin{let's add citations here}.
+	For the high-dimensionality challenge, a major solution is regression with derived inputs,
+	such as Principal Component Analysis (PCA) regression.
+	This involves applying (multivariate) functional PCA (FPCA)  to the functional predictors, possibly with standard PCA to the scalar predictors,
+	followed by a classical multivariate regression on the resulting scores.
+	This PCA regression strategy is well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
+	However, this approach has a major drawback: the derived inputs are not informed by the response variable. Consequently, they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
+	Partial Least Squares (PLS) regression offers a powerful alternative by explicitly seeking low-dimensional projections of the predictors that maximize their covariance with the outcome. PLS has been extensively studied in the context of functional data, both for single and multiple functional predictors \citep{predaPLSRegressionStochastic2005, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}.
+	However, all of these existing PCA or PLS approaches overlook the potentially strong correlations between functional and scalar components. This can lead to multicollinearity and suboptimal predictive performance.
+	To address the third challenge, \citet{jangPrincipalComponentAnalysis2021}  proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response, so they may fail to capture the directions of maximal correlation with the outcome.
+	
+	To bridge this gap, we unify the remedies proposed for these three issues: basis expansion, partial least squares, and a hybrid approach that accounts for the correlation between functional and scalar parts.
+	We propose a hybrid PLS regression framework that integrates functional and vector predictors in a principled and coherent manner. To extract predictive structure from these jointly observed and potentially correlated data types, we define a Hilbert space that treats the tuple of functional and vector components as a single hybrid object, equipped with a suitable inner product. The hybrid PLS direction is then obtained by iteratively maximizing the empirical covariance with the response, subject to a unit-norm constraint in this Hilbert space. Our framework is readily applicable to dense and irregular functional data and supports regularization techniques to prevent overfitting and reduce variance. We also provide the mathematical properties that justify our algorithm.
+	
+	
 	\section{Background on partial least squares and its extension to hybrid predictors}  
 	\jongmin{I replaced the formal presentation of the naive algorithm with an   the scalar version and a brief outline of the pointwise hybrid  extension strategy. The main reason for this revision is that the hybrid inner product is introduced specifically to address the extension challenge, so it is more natural to present it after listing the challenges. Previously, the naive algorithm section relied on the hybrid inner product for normalization.}
-For intuition, let us return to the high-dimensional Euclidean predictor setting $
-Y_i =  \boldsymbol{\beta}^\top \mathbf{Z}_i + \epsilon_i$.
-A common way to address ill-posedness and correlation is to approximate the high-dimensional vector $\mathbf{Z}_i$ using a low-dimensional vector $
-\bigr(
-\widehat{\rho}_1^{[1]}, \ldots,   \widehat{\rho}_1^{[L]}  
-\bigr)^\top \in \mathbb{R}^L.
-$ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsymbol{\xi}}_l$ solves:
-\begin{equation*}
-\max_{ \boldsymbol{ \alpha } } 
-\widehat{\operatorname{Cov}}^2
-\bigl(
-\{
-\langle 
-\boldsymbol{\alpha}, \mathbf{Z}_i
-\rangle
-, Y_i
-\}_{i=1}^n
-\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1,~\boldsymbol{\alpha}^\top  \widehat{\operatorname{Cov}}^2
-\bigl(
-\{
-  \mathbf{Z}_i
- \}_{i=1}^n
- \bigr) \hat{\boldsymbol{\xi}}_j = 0, \quad j = 1, \ldots, l-1,
-\end{equation*}
- where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{alg:scalar_pls}.
- \begin{algorithm} 
- 	\caption{Scalar partial least squares regression}\label{alg:scalar_pls}
- 	\begin{algorithmic}[1]
- 		\State Standardize each $\mathbf{Z}_1, \ldots, \mathbf{Z}_n$ so that each feature have mean zero and variance one. Standardize $Y_1, \ldots, Y_n$.
- 		\For{$l = 1, 2, \ldots, L$}
- 		\\
- 		\textbf{PLS direction and score estimation:}
- 		\State $\widehat{\boldsymbol{\xi}}^{[l]} \leftarrow
- 		\arg \max_{  \boldsymbol{\alpha}   } 
- 		\widehat{\operatorname{Cov}}^2
- 		\bigl(
- 		\{
- 		\langle 
- 		\boldsymbol{\alpha}, \mathbf{Z}^{[l]}_i
- 		\rangle
- 		, Y^{[l]}_i
- 		\}_{i=1}^n
- 		\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1
- 		$
- 		\Comment{PLS direction}\label{alg:step:scalar_pls_direction}
- 		\State 
- 		$
- 		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\boldsymbol{\xi}}^{[l]},   \mathbf{Z}^{[l]}_i \rangle, 
- 		~i=1,  \ldots, n
- 		$ \Comment{PLS score}
-  		\\
- \textbf{Residualization:}
- 		\State $\nu^{[l]} 
- 		\leftarrow
- 		 \frac{
- 		 	\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
- 		 	\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
- 		 	}$ \Comment{Least squares estimate} 
- 		%
- 		\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
- 		%
- 		\State $ \widehat{\boldsymbol{\delta}}^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\mathbf{Z}_i^{[l]} $ \Comment{Least squares estimate} 
- \label{alg:step:scalar_pls_residualization}
-\State $\mathbf{Z}_i^{[l+1]}  \leftarrow \mathbf{Z}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{\boldsymbol{\delta}}^{[l]} $
- 		\EndFor
-\textbf{Regression coefficient estimation:}
-\State
-$\widehat{\boldsymbol{\iota}}^{[1]} \leftarrow \widehat{\boldsymbol{\xi}}^{[1]}$
-	\For{$l =  2, \ldots, L$}
-  \State $\widehat{\boldsymbol{\iota}}^{[l]} \leftarrow \widehat{ \boldsymbol{\xi} }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}^{[u]}, \widehat{\boldsymbol{\xi}}^{[l]} \rangle 
-   \widehat{\boldsymbol{\iota}}^{[u]}$  
- 		\EndFor
-$	\widehat{\boldsymbol{\beta}} \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{\boldsymbol{\iota}}^{[l]}$ \Comment{regression coefficient estimate}
- 		\State \textbf{Output:} the  regression coefficient estimate
- 	\end{algorithmic}
- \end{algorithm}
-
-To extend Algorithm \ref{alg:scalar_pls} to the hybrid regression model \eqref{eq:hybrid_regression_model}, we must compute hybrid objects in both the PLS direction estimation and predictor residualization steps (lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}). These computations cannot be separated into functional and scalar parts, as their correlation must be addressed.  
-A naive approach is to add loops over the observed evaluation points $t$ to lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, treating  
-\[
-\bigl( X_{i1}(t), \ldots, X_{iK}(t), Z_{i1}, \ldots, Z_{ip} \bigr) \in \mathbb{R}^{K+P}
-\]  
-as a Euclidean predictor, applying steps \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, and aggregating the results. This pointwise method, however, is computationally prohibitive for densely observed functional predictors, infeasible for irregular data, and prone to variability across the domain, resulting in overfitting and unstable predictions.  
-The main challenge of extension to the hybrid setting lies in the following points. First, 
- independent variables consist of multiple highly structured images and scalar predictors. 
-Second, our sample size is small compared to the dimension and number of functional and scalar predictors.
-Third,  existing partial least squares (PLS) methods can only accommodate (i) univariate or multivariate functional predictors without any scalar predictors \citep{predaPLSRegressionStochastic2005, delaigleMethodologyTheoryPartial2012, Febrero2017, Beyaztas2020}; or (ii) a univariate functional predictor with other scalar predictors \citep{Wang2018}.
-The next section proposes a new extension framework that addresses these issues.
- 
+	For intuition, let us return to the high-dimensional Euclidean predictor setting $
+	Y_i =  \boldsymbol{\beta}^\top \mathbf{Z}_i + \epsilon_i$.
+	A common way to address ill-posedness and correlation is to approximate the high-dimensional vector $\mathbf{Z}_i$ using a low-dimensional vector $
+	\bigr(
+	\widehat{\rho}_1^{[1]}, \ldots,   \widehat{\rho}_1^{[L]}  
+	\bigr)^\top \in \mathbb{R}^L.
+	$ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsymbol{\xi}}_l$ solves:
+	\begin{equation*}
+		\max_{ \boldsymbol{ \alpha } } 
+		\widehat{\operatorname{Cov}}^2
+		\bigl(
+		\{
+		\langle 
+		\boldsymbol{\alpha}, \mathbf{Z}_i
+		\rangle
+		, Y_i
+		\}_{i=1}^n
+		\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1,~\boldsymbol{\alpha}^\top  \widehat{\operatorname{Cov}}^2
+		\bigl(
+		\{
+		\mathbf{Z}_i
+		\}_{i=1}^n
+		\bigr) \hat{\boldsymbol{\xi}}_j = 0, \quad j = 1, \ldots, l-1,
+	\end{equation*}
+	where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{alg:scalar_pls}.
+	\begin{algorithm} 
+		\caption{Scalar partial least squares regression}\label{alg:scalar_pls}
+		\begin{algorithmic}[1]
+			\State Standardize each $\mathbf{Z}_1, \ldots, \mathbf{Z}_n$ so that each feature have mean zero and variance one. Standardize $Y_1, \ldots, Y_n$.
+			\For{$l = 1, 2, \ldots, L$}
+			\\
+			\textbf{PLS direction and score estimation:}
+			\State $\widehat{\boldsymbol{\xi}}^{[l]} \leftarrow
+			\arg \max_{  \boldsymbol{\alpha}   } 
+			\widehat{\operatorname{Cov}}^2
+			\bigl(
+			\{
+			\langle 
+			\boldsymbol{\alpha}, \mathbf{Z}^{[l]}_i
+			\rangle
+			, Y^{[l]}_i
+			\}_{i=1}^n
+			\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1
+			$
+			\Comment{PLS direction}\label{alg:step:scalar_pls_direction}
+			\State 
+			$
+			\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\boldsymbol{\xi}}^{[l]},   \mathbf{Z}^{[l]}_i \rangle, 
+			~i=1,  \ldots, n
+			$ \Comment{PLS score}
+			\\
+			\textbf{Residualization:}
+			\State $\nu^{[l]} 
+			\leftarrow
+			\frac{
+				\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
+				\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
+			}$ \Comment{Least squares estimate} 
+			%
+			\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
+			%
+			\State $ \widehat{\boldsymbol{\delta}}^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\mathbf{Z}_i^{[l]} $ \Comment{Least squares estimate} 
+			\label{alg:step:scalar_pls_residualization}
+			\State $\mathbf{Z}_i^{[l+1]}  \leftarrow \mathbf{Z}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{\boldsymbol{\delta}}^{[l]} $
+			\EndFor
+			\textbf{Regression coefficient estimation:}
+			\State
+			$\widehat{\boldsymbol{\iota}}^{[1]} \leftarrow \widehat{\boldsymbol{\xi}}^{[1]}$
+			\For{$l =  2, \ldots, L$}
+			\State $\widehat{\boldsymbol{\iota}}^{[l]} \leftarrow \widehat{ \boldsymbol{\xi} }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{\boldsymbol{\delta}}^{[u]}, \widehat{\boldsymbol{\xi}}^{[l]} \rangle 
+			\widehat{\boldsymbol{\iota}}^{[u]}$  
+			\EndFor
+			$	\widehat{\boldsymbol{\beta}} \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{\boldsymbol{\iota}}^{[l]}$ \Comment{regression coefficient estimate}
+			\State \textbf{Output:} the  regression coefficient estimate
+		\end{algorithmic}
+	\end{algorithm}
+	
+	To extend Algorithm \ref{alg:scalar_pls} to the hybrid regression model \eqref{eq:hybrid_regression_model}, we must compute hybrid objects in both the PLS direction estimation and predictor residualization steps (lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}). These computations cannot be separated into functional and scalar parts, as their correlation must be addressed.  
+	A naive approach is to add loops over the observed evaluation points $t$ to lines \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, treating  
+	\[
+	\bigl( X_{i1}(t), \ldots, X_{iK}(t), Z_{i1}, \ldots, Z_{ip} \bigr) \in \mathbb{R}^{K+P}
+	\]  
+	as a Euclidean predictor, applying steps \ref{alg:step:scalar_pls_direction} and \ref{alg:step:scalar_pls_residualization}, and aggregating the results. This pointwise method, however, is computationally prohibitive for densely observed functional predictors, infeasible for irregular data, and prone to variability across the domain, resulting in overfitting and unstable predictions.  
+	The main challenge of extension to the hybrid setting lies in the following points. First, 
+	independent variables consist of multiple highly structured images and scalar predictors. 
+	Second, our sample size is small compared to the dimension and number of functional and scalar predictors.
+	Third,  existing partial least squares (PLS) methods can only accommodate (i) univariate or multivariate functional predictors without any scalar predictors \citep{predaPLSRegressionStochastic2005, delaigleMethodologyTheoryPartial2012, Febrero2017, Beyaztas2020}; or (ii) a univariate functional predictor with other scalar predictors \citep{Wang2018}.
+	The next section proposes a new extension framework that addresses these issues.
 	
 	
- 
-
+	
+	
+	
 	
 	
 	\section{Proposed PLS Algorithm} \label{section:main:our_algorithm}
-Our new framework builds on the fact that all computations in Algorithm \ref{alg:scalar_pls} are arithmetic operations in an inner product space. We therefore formally define the Hilbert space of hybrid random predictors along with its corresponding complete inner product, and leverage them to extend Algorithm \ref{alg:scalar_pls}.
-\jongmin{I split the definition into three parts, adding completeness, separability, and the sigma-field.}
-\begin{definition}[Hybrid space]\label{def:hilbert_space}
-	Let $\mathbb{H}$ be a product space defined as the Cartesian product of $K$ copies of the space of square-integrable functions on $[0,1]$ and the $p$-dimensional Euclidean space:
-	$$
-	\mathbb{H} := (\mathbb{L}^2[0,1])^K \times \mathbb{R}^p.
-	$$
-	An element $h \in \mathbb{H}$ is an ordered tuple $h = (f_1, \dots, f_K, \mathbf{u})$, where $f_k \in \mathbb{L}^2[0,1]$ for $k=1, \dots, K$ and $\mathbf{u} \in \mathbb{R}^p$. This space is equipped with element-wise vector addition and scalar multiplication.
-	We define an inner product on $\mathbb{H}$ for any two elements $h_1 = (f_1, \dots, f_K, \mathbf{u})$ and $h_2 = (g_1, \dots, g_K, \mathbf{v})$ as:
-	\begin{equation}\label{eq: hybrid inner product}
-		\langle h_1, h_2 \rangle_{\mathbb{H}} := \sum_{k=1}^K \int_0^1 f_k(t) g_k(t) \, dt + \omega \mathbf{u}^\top \mathbf{v},
-	\end{equation}
-	where $\omega$ is a positive constant ($\omega > 0$).
-	The inner product induces a norm $\Vert \cdot \Vert_{\mathbb{H}}$ on the space, defined as $\Vert h \Vert_{\mathbb{H}} := \langle h, h \rangle_{\mathbb{H}}^{1/2}$, and a corresponding metric $d(h_1, h_2) = \Vert h_1 - h_2 \Vert_{\mathbb{H}}$.
-\end{definition}
+	Our new framework builds on the fact that all computations in Algorithm \ref{alg:scalar_pls} are arithmetic operations in an inner product space. We therefore formally define the Hilbert space of hybrid random predictors along with its corresponding complete inner product, and leverage them to extend Algorithm \ref{alg:scalar_pls}.
+	\jongmin{I split the definition into three parts, adding completeness, separability, and the sigma-field.}
+	\begin{definition}[Hybrid space]\label{def:hilbert_space}
+		Let $\mathbb{H}$ be a product space defined as the Cartesian product of $K$ copies of the space of square-integrable functions on $[0,1]$ and the $p$-dimensional Euclidean space:
+		$$
+		\mathbb{H} := (\mathbb{L}^2[0,1])^K \times \mathbb{R}^p.
+		$$
+		An element $h \in \mathbb{H}$ is an ordered tuple $h = (f_1, \dots, f_K, \mathbf{u})$, where $f_k \in \mathbb{L}^2[0,1]$ for $k=1, \dots, K$ and $\mathbf{u} \in \mathbb{R}^p$. This space is equipped with element-wise vector addition and scalar multiplication.
+		We define an inner product on $\mathbb{H}$ for any two elements $h_1 = (f_1, \dots, f_K, \mathbf{u})$ and $h_2 = (g_1, \dots, g_K, \mathbf{v})$ as:
+		\begin{equation}\label{eq: hybrid inner product}
+			\langle h_1, h_2 \rangle_{\mathbb{H}} := \sum_{k=1}^K \int_0^1 f_k(t) g_k(t) \, dt + \omega \mathbf{u}^\top \mathbf{v},
+		\end{equation}
+		where $\omega$ is a positive constant ($\omega > 0$).
+		The inner product induces a norm $\Vert \cdot \Vert_{\mathbb{H}}$ on the space, defined as $\Vert h \Vert_{\mathbb{H}} := \langle h, h \rangle_{\mathbb{H}}^{1/2}$, and a corresponding metric $d(h_1, h_2) = \Vert h_1 - h_2 \Vert_{\mathbb{H}}$.
+	\end{definition}
 	In \eqref{eq: hybrid inner product}, 
-$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
-Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
-\begin{lemma}[Hybrid Hilbert space]\label{lemma:hybrid_hilbert_space}
-	The hybrid space $\mathbb{H}$ is a separable Hilbert space.
-\end{lemma} 
-Proof of Lemma \ref{lemma:hybrid_hilbert_space} is provided in Appendix \ref{section:proof:lemma:hybrid_hilbert_space}.
-
-\begin{definition}[Hybrid Predictor]\label{def:hybrid_predictor}
-	For the Hilbert space  $\mathbb{H}$ 
-	defined in Definition \ref{def:hilbert_space},
-	 The Borel $\sigma$-field on $\mathbb{H}$, denoted $\mathfrak{B}(\mathbb{H})$, is the smallest $\sigma$-field containing the class $\mathfrak{M}$ of all sets of the form
-	$
-	\{q \in \mathbb{H} \mid \langle q, h \rangle \in O\},
-	$
-	for any $h \in \mathbb{H}$ and any open subset $O \subseteq \mathbb{R}$ (details can be found in Theorem 7.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}).
-	A hybrid predictor $ W_i = (X_{i1}(t), \ldots, X_{iK}(t), \mathbf{Z}_i)$ is a measurable mapping from a probability space $(\Omega, \mathfrak{F}, P)$ into   $
-\bigl(
-	\mathbb{H}, \mathfrak{B}(\mathbb{H})
-\bigr)
-$. 
-\end{definition}
- 	Then the joint regression model \eqref{eq:hybrid_regression_model}  can be concisely written as
- \begin{equation}		\label{eq: Hybrid functional model}
- 	Y_i = \langle \beta, W_i \rangle_{\mathbb{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathbb{H}.
- \end{equation}
+	$\omega$ is a positive weight that needs to be pre-specified or estimated. It is mainly used to take into account heterogeneity between functional and scalar parts in terms of measurement scale and/or amount of variation (see Section \ref{subsec: Data Preprocessing}).
+	Without loss of generality and for the clarity of illustration, all the following theoretical results will be derived for $\omega=1$. The results remain valid for any positive weights. 
+	\begin{lemma}[Hybrid Hilbert space]\label{lemma:hybrid_hilbert_space}
+		The hybrid space $\mathbb{H}$ is a separable Hilbert space.
+	\end{lemma} 
+	Proof of Lemma \ref{lemma:hybrid_hilbert_space} is provided in Appendix \ref{section:proof:lemma:hybrid_hilbert_space}.
+	
+	\begin{definition}[Hybrid Predictor]\label{def:hybrid_predictor}
+		For the Hilbert space  $\mathbb{H}$ 
+		defined in Definition \ref{def:hilbert_space},
+		The Borel $\sigma$-field on $\mathbb{H}$, denoted $\mathfrak{B}(\mathbb{H})$, is the smallest $\sigma$-field containing the class $\mathfrak{M}$ of all sets of the form
+		$
+		\{q \in \mathbb{H} \mid \langle q, h \rangle \in O\},
+		$
+		for any $h \in \mathbb{H}$ and any open subset $O \subseteq \mathbb{R}$ (details can be found in Theorem 7.1.1 of \citealt{hsingTheoreticalFoundationsFunctional2015}).
+		A hybrid predictor $ W_i = (X_{i1}(t), \ldots, X_{iK}(t), \mathbf{Z}_i)$ is a measurable mapping from a probability space $(\Omega, \mathfrak{F}, P)$ into   $
+		\bigl(
+		\mathbb{H}, \mathfrak{B}(\mathbb{H})
+		\bigr)
+		$. 
+	\end{definition}
+	Then the joint regression model \eqref{eq:hybrid_regression_model}  can be concisely written as
+	\begin{equation}		\label{eq: Hybrid functional model}
+		Y_i = \langle \beta, W_i \rangle_{\mathbb{H}} + \epsilon_i,~\text{where}~\beta := \bigl( \beta_1(t), \ldots, \beta_K(t), \boldsymbol{\beta} \bigr)\in \mathbb{H}.
+	\end{equation}
 	\begin{remark}
 		Our method is applicable to settings where each functional predictor belongs to a different Hilbert space, possibly defined over a distinct compact domain in $\mathbb{R}^d$, for arbitrary $d$, and observed at different time points. However, for notational simplicity, our discussion assumes a common Hilbert space over domain $[0,1]$ for all functional predictors.
 	\end{remark}  
-
- Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
+	
+	Our approach provides an efficient and robust means of producing PLS components and scores in the presence of multiple dense and/or irregular functional predictors and scalar predictors. It also incorporates a regularization scheme that enables the algorithm to borrow strength and exploit structural relationships within and between the functions to avoid overfitting of the PLS components and to improve the generalizability and interpretability of the predictive model.
 	Each iteration of our approach consists of two subroutines: regularized estimation of smoothed PLS components and orthogonalization, detailed in Sections~\ref{section:sub:compute_PLS_component} and~\ref{section:sub:residualization}, respectively. After a suitable number of iterations, the hybrid regression coefficient is estimated, as described in Section~\ref{section:sub:regression_coeff}. For notational simplicity, we omit the iteration index $l$ in the following discussion, with the understanding that the subroutines apply to any iteration. The complete algorithm is summarized in Algorithm~\ref{alg:hybrid_pls}.
 	
 	\subsection{Preliminary step 1: finite-basis approximation}\label{sec: finite basis approximation}	
@@ -656,88 +656,88 @@ $.
 	using the estimated PLS component direction $\widehat{\xi}^{[l]}$ obtained from Propositions \ref{proposition:eigen_regul} and \ref{proposition:linear_regul}. 
 	Since   $\widetilde{W}_i^{[l]}$ are assumed to have a sample mean of zero, these PLS scores will also have a sample mean of zero.
 	To obtain the $(l+1)$-th  iteration's responses and hybrid predictors, we regress the $(l)$-th iteration's responses and hybrid predictors on  
- these PLS scores by least squares and then residualize. 
+	these PLS scores by least squares and then residualize. 
 	Specifically,
-the $(l+1)$-th predictor is computed as a residual of hybrid-on-scalar linear regression model:
-\begin{equation*}
-	\widetilde{W}_i^{[l]}  =
-	\widehat{\rho}_i^{[l]}
- 	\hat{\delta}^{[l]} + \epsilon_i,
-\end{equation*}
-where $\hat{\delta}^{[l]} \in \widetilde{\mathbb{H}}$ is the regression coefficient.
-In the same spirit as the PLS component direction estimation step,
-rather than treating the hybrid object as a long vector of concatenated function evaluations at time points and scalar vectors,
-we employ a basis expansion approach to fit the entire hybrid object in one step.
-Therefore, our method is computationally efficient, and applicable for dense or irregular functional data.
+	the $(l+1)$-th predictor is computed as a residual of hybrid-on-scalar linear regression model:
+	\begin{equation*}
+		\widetilde{W}_i^{[l]}  =
+		\widehat{\rho}_i^{[l]}
+		\hat{\delta}^{[l]} + \epsilon_i,
+	\end{equation*}
+	where $\hat{\delta}^{[l]} \in \widetilde{\mathbb{H}}$ is the regression coefficient.
+	In the same spirit as the PLS component direction estimation step,
+	rather than treating the hybrid object as a long vector of concatenated function evaluations at time points and scalar vectors,
+	we employ a basis expansion approach to fit the entire hybrid object in one step.
+	Therefore, our method is computationally efficient, and applicable for dense or irregular functional data.
 	Consequently, $\delta^{[l]}$ is obtained by minimizing a  
 	least squares criterion: \jongmin{I removed the penalization because it makes proving the orthonormality of the PLS components in Proposition \ref{proposition: modified orthnormality of PLS components} impossible.}
 	\begin{equation}\label{def:argmin_pensse}
 		\hat{\delta}^{[l]} := \arg \min_{\delta \in \widetilde{\mathbb{H}}} \sum_{i=1}^n 
 		\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathbb{H}}^2.
 	\end{equation}
-  On the other hand, the $(l+1)$-th response   is computed as a residual of a scalar-on-scalar linear regression model:
-  \begin{equation*}
-  	Y_i^{[l]}  =
-  	\hat{\nu}^{[l]}   	\widehat{\rho}_i^{[l]} + \epsilon_i.
-  	\end{equation*}
- The following proposition demonstrates that this residualization step can be performed simply, analogous to scalar PLS.
+	On the other hand, the $(l+1)$-th response   is computed as a residual of a scalar-on-scalar linear regression model:
+	\begin{equation*}
+		Y_i^{[l]}  =
+		\hat{\nu}^{[l]}   	\widehat{\rho}_i^{[l]} + \epsilon_i.
+	\end{equation*}
+	The following proposition demonstrates that this residualization step can be performed simply, analogous to scalar PLS.
 	\begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
 		Let us denote
 		$
 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top.
 		%\quad\text{and} \quad		\bar{\rho}^{[l]} := (\hat{\boldsymbol{\rho}}^{[l]})^\top \hat{\boldsymbol{\rho}}^{[l]}.
 		$
-	The $(l+1)$-th iteration's  predictors and responses are computed as
-\begin{equation*}
-		\widetilde{W}_i^{[l+1]} 
-	:= 	\widetilde{W}_i^{[l]}  - 
-	\widehat{\rho}_i^{[l]}
-	\hat{\delta}^{[l]},~\text{where}~
-\delta^{[l]}
-	:= 
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
-	\sum_{i=1}^n 
-	\widehat{\rho}_i^{[l]}
-	\widetilde{W}_i^{[l]},
-	%%%%%%%%%%% 
-,
-\end{equation*} 	
-and
-\begin{equation}\label{algorithm_step:residualization_predictor}
-	Y_i^{[l+1]} = Y_i^{[l]} - 
-\hat{\nu}^{[l]} 
-\widehat{\rho}_i^{[l]},~\text{where}~\hat{\nu}^{[l]} :=  
-\frac{
-	\mathbf{y}^{[l] \top }  \hat{\boldsymbol{\rho}}^{[l]}
-}{
-	\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2
-}.
-\end{equation}
+		The $(l+1)$-th iteration's  predictors and responses are computed as
+		\begin{equation*}
+			\widetilde{W}_i^{[l+1]} 
+			:= 	\widetilde{W}_i^{[l]}  - 
+			\widehat{\rho}_i^{[l]}
+			\hat{\delta}^{[l]},~\text{where}~
+			\delta^{[l]}
+			:= 
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+			\sum_{i=1}^n 
+			\widehat{\rho}_i^{[l]}
+			\widetilde{W}_i^{[l]},
+			%%%%%%%%%%% 
+			,
+		\end{equation*} 	
+		and
+		\begin{equation}\label{algorithm_step:residualization_predictor}
+			Y_i^{[l+1]} = Y_i^{[l]} - 
+			\hat{\nu}^{[l]} 
+			\widehat{\rho}_i^{[l]},~\text{where}~\hat{\nu}^{[l]} :=  
+			\frac{
+				\mathbf{y}^{[l] \top }  \hat{\boldsymbol{\rho}}^{[l]}
+			}{
+				\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2
+			}.
+		\end{equation}
 	\end{lemma}
 	Proof of Lemma \ref{proposition:closed_form_orthgonalization} is provided in Appendix \ref{section:proof:proposition:closed_form_orthgonalization}.
 	\jongmin{proof needs to be revised}
-Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean of zero, their respective residuals, $\widetilde{W}_i^{[l+1]}$ and $Y_i^{[l+1]}$, also maintain a zero sample mean.
+	Since $\widetilde{W}_i^{[l]}$ and $Y_i^{[l]}$ are assumed to have a sample mean of zero, their respective residuals, $\widetilde{W}_i^{[l+1]}$ and $Y_i^{[l+1]}$, also maintain a zero sample mean.
 	
 	
 	
 	
 	
-\subsection{Final step: estimating  the hybrid regression coefficient}
-\label{section:sub:regression_coeff}
-The hybrid regression coefficient $\beta$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS directions and scores. First, note that we can show $
-\widehat{\rho}_i^{[l]}
-=
-\langle  W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H}
-=
-\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}
-$, where 
-$\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}$ for $l \ge 2$, with $
-\widehat{\iota}^{[1]} = \widehat{\xi}^{[1]}
-$. Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
-\begin{equation*}
-	Y_i = \sum \limits_{l=1}^L \widehat{\nu}^{[l]} \widehat{\rho}_i^{[l]} + \epsilon_i.
-\end{equation*}
-This model lets us to express $Y_i$ as:
+	\subsection{Final step: estimating  the hybrid regression coefficient}
+	\label{section:sub:regression_coeff}
+	The hybrid regression coefficient $\beta$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS directions and scores. First, note that we can show $
+	\widehat{\rho}_i^{[l]}
+	=
+	\langle  W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H}
+	=
+	\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}
+	$, where 
+	$\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}$ for $l \ge 2$, with $
+	\widehat{\iota}^{[1]} = \widehat{\xi}^{[1]}
+	$. Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
+	\begin{equation*}
+		Y_i = \sum \limits_{l=1}^L \widehat{\nu}^{[l]} \widehat{\rho}_i^{[l]} + \epsilon_i.
+	\end{equation*}
+	This model lets us to express $Y_i$ as:
 	\begin{equation*}
 		Y_i = \sum \limits_{l=1}^L \widehat{\nu}^{[l]} \langle W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H} +\epsilon_i 
 		= 
@@ -750,65 +750,65 @@ This model lets us to express $Y_i$ as:
 	\end{equation*}
 	Here, the number of PLS components $L$ to be estimated can be chosen by cross-validation.
 	
- \begin{algorithm} 
-	\caption{Hybrid partial least squares regression}\label{alg:hybrid_pls}
-	\begin{algorithmic}[1]
-		\State 	\textbf{Initialize:} $(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta^{[1]}, \mathbf{y}^{[1]})$ as the data objects after basis expansion, following Section \ref{sec: finite basis approximation}.
-		
-		\State Standardize  $\widetilde{W}_1^{[1]}, \ldots, \widetilde{W}_n^{[1]}$ and $Y_1^{[1]}, \ldots, Y_n^{[1]}$, following Section \ref{subsec: Data Preprocessing}
-		\For{$l = 1, 2, \ldots, L$}
-		\\
-		\textbf{PLS direction and score estimation  (Proposition \ref{proposition:linear_regul}): }
-		\State $\mathbf{u}_j^{[l]} \leftarrow B \Theta_j^{[l]\top} \mathbf{y}^{[l]}, ~j = 1, \ldots, K$
-		\State $\mathbf{v}^{[l]} \leftarrow \mathbf{Z}^{[l]\top} \mathbf{y}^{[l]} $
-		\State $	q^{[l]}  \leftarrow \sum_{j=1}^K \mathbf{u}_j^{[l]\top} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} + \mathbf{v}^{[l]\top} \mathbf{v}^{[l]}$
-		\State $( \hat{\gamma}_{j1}^{[l]} , \ldots, \hat{\gamma}_{jM}^{[l]} )^\top  \leftarrow \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} , ~j = 1, \ldots, K$
-		\State $\hat{\boldsymbol{\zeta}}^{[l]}  \leftarrow \frac{1}{\sqrt{q}} \mathbf{v}^{[l]} $
-		\State $	\hat{\xi}^{[l]}	\leftarrow 
-		\biggl(
-		\sum_{m=1}^M \hat{\gamma}_{1m}^{[l]} \, b_m(t),
-		\ldots, 
-		\sum_{m=1}^M \hat{\gamma}_{Km}^{[l]} \, b_m(t), \hat{\boldsymbol{\zeta}}^{[l]}
-		\biggr)
-		$
-		\Comment{PLS direction} 
-		\State 
-		$
-		\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\xi}^{[l]},   \tilde{W}^{[l]}_i \rangle, 
-		~i=1,  \ldots, n
-		$ \Comment{PLS score}
-		\\
-		\textbf{Residualization (Proposition \ref{proposition:closed_form_orthgonalization}):}
-		\State $\nu^{[l]} 
-		\leftarrow
-		\frac{
-			\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
-			\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
-		}$ \Comment{Least squares estimate} 
-		%
-		\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
-		%
-		\State $ \widehat{ \delta }^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\widetilde{W}_i^{[l]} $ \Comment{Least squares estimate} 
-		\label{alg:step:scalar_pls_residualization}
-		\State $\widetilde{W}_i^{[l+1]}  \leftarrow \widetilde{W}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{ \delta}^{[l]} $
-		\EndFor
-		\textbf{Regression coefficient estimation (Section \ref{section:sub:regression_coeff}):}
-		\State
-		$\widehat{ \iota }^{[1]} \leftarrow \widehat{ \xi }^{[1]}$
-		\For{$l =  2, \ldots, L$}
-		\State $\widehat{ \iota }^{[l]} \leftarrow \widehat{  \xi }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta }^{[u]}, \widehat{ \xi }^{[l]} \rangle  \widehat{ \iota }^{[u]}$  
-		\EndFor
-		$	\widehat{ \beta } \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \iota}^{[l]}$ \Comment{regression coefficient estimate}
-		\State \textbf{Output:} the  regression coefficient estimate $	\widehat{ \beta }$
-	\end{algorithmic}
-\end{algorithm}
-
+	\begin{algorithm} 
+		\caption{Hybrid partial least squares regression}\label{alg:hybrid_pls}
+		\begin{algorithmic}[1]
+			\State 	\textbf{Initialize:} $(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta^{[1]}, \mathbf{y}^{[1]})$ as the data objects after basis expansion, following Section \ref{sec: finite basis approximation}.
+			
+			\State Standardize  $\widetilde{W}_1^{[1]}, \ldots, \widetilde{W}_n^{[1]}$ and $Y_1^{[1]}, \ldots, Y_n^{[1]}$, following Section \ref{subsec: Data Preprocessing}
+			\For{$l = 1, 2, \ldots, L$}
+			\\
+			\textbf{PLS direction and score estimation  (Proposition \ref{proposition:linear_regul}): }
+			\State $\mathbf{u}_j^{[l]} \leftarrow B \Theta_j^{[l]\top} \mathbf{y}^{[l]}, ~j = 1, \ldots, K$
+			\State $\mathbf{v}^{[l]} \leftarrow \mathbf{Z}^{[l]\top} \mathbf{y}^{[l]} $
+			\State $	q^{[l]}  \leftarrow \sum_{j=1}^K \mathbf{u}_j^{[l]\top} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} + \mathbf{v}^{[l]\top} \mathbf{v}^{[l]}$
+			\State $( \hat{\gamma}_{j1}^{[l]} , \ldots, \hat{\gamma}_{jM}^{[l]} )^\top  \leftarrow \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j^{[l]} , ~j = 1, \ldots, K$
+			\State $\hat{\boldsymbol{\zeta}}^{[l]}  \leftarrow \frac{1}{\sqrt{q}} \mathbf{v}^{[l]} $
+			\State $	\hat{\xi}^{[l]}	\leftarrow 
+			\biggl(
+			\sum_{m=1}^M \hat{\gamma}_{1m}^{[l]} \, b_m(t),
+			\ldots, 
+			\sum_{m=1}^M \hat{\gamma}_{Km}^{[l]} \, b_m(t), \hat{\boldsymbol{\zeta}}^{[l]}
+			\biggr)
+			$
+			\Comment{PLS direction} 
+			\State 
+			$
+			\widehat{\rho}_i^{[l]} \leftarrow \langle \hat{\xi}^{[l]},   \tilde{W}^{[l]}_i \rangle, 
+			~i=1,  \ldots, n
+			$ \Comment{PLS score}
+			\\
+			\textbf{Residualization (Proposition \ref{proposition:closed_form_orthgonalization}):}
+			\State $\nu^{[l]} 
+			\leftarrow
+			\frac{
+				\sum_{i=1}^n Y_i^{[l]} \widehat{\rho}_{i}^{[l]}}{
+				\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}
+			}$ \Comment{Least squares estimate} 
+			%
+			\State $ Y_i^{[l+1]} \leftarrow Y_i^{[l]} - \nu^{[l]}\widehat{\rho}_i^{[l]}~i=1,  \ldots, n$
+			%
+			\State $ \widehat{ \delta }^{[l]}  \leftarrow \frac{1}{\sum_{i=1}^n \widehat{\rho}_{i}^{[l]2}}\sum_{i=1}^n  \widehat{\rho}_{i}^{[l]}\widetilde{W}_i^{[l]} $ \Comment{Least squares estimate} 
+			\label{alg:step:scalar_pls_residualization}
+			\State $\widetilde{W}_i^{[l+1]}  \leftarrow \widetilde{W}_i^{[l]} -   \widehat{\rho}_{i}^{[l]}  \widehat{ \delta}^{[l]} $
+			\EndFor
+			\textbf{Regression coefficient estimation (Section \ref{section:sub:regression_coeff}):}
+			\State
+			$\widehat{ \iota }^{[1]} \leftarrow \widehat{ \xi }^{[1]}$
+			\For{$l =  2, \ldots, L$}
+			\State $\widehat{ \iota }^{[l]} \leftarrow \widehat{  \xi }^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta }^{[u]}, \widehat{ \xi }^{[l]} \rangle  \widehat{ \iota }^{[u]}$  
+			\EndFor
+			$	\widehat{ \beta } \leftarrow \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \iota}^{[l]}$ \Comment{regression coefficient estimate}
+			\State \textbf{Output:} the  regression coefficient estimate $	\widehat{ \beta }$
+		\end{algorithmic}
+	\end{algorithm}
+	
 	
 	\section{Properties of the hybrid PLS}
 	\label{section:main:properties_of_our_method}
-This section provides the mathematical properties that support the algorithm suggested in Section \ref{section:main:our_algorithm}.
-Section \ref{section:sub:tucker} shows that the core optimization problem for the Partial Least Squares (PLS) direction estimation step, presented in Proposition \ref{proposition:eigen_noregul}, is well-defined under mild conditions.
-Section \ref{section:sub:geom} demonstrates that our algorithm preserves the core properties of PLS, namely the orthonormality of the derived directions and the orthogonality of the scores.
+	This section provides the mathematical properties that support the algorithm suggested in Section \ref{section:main:our_algorithm}.
+	Section \ref{section:sub:tucker} shows that the core optimization problem for the Partial Least Squares (PLS) direction estimation step, presented in Proposition \ref{proposition:eigen_noregul}, is well-defined under mild conditions.
+	Section \ref{section:sub:geom} demonstrates that our algorithm preserves the core properties of PLS, namely the orthonormality of the derived directions and the orthogonality of the scores.
 	
 	\subsection{ Tucker's Criterion  }\label{section:sub:tucker} 
 	The fundamental property of classical scalar PLS is that the PLS component direction  corresponds to the first eigenvector of the squared covariance matrix, satisfying  the Tucker's Criterion \citep{Tucker1938}.
@@ -941,16 +941,16 @@ Section \ref{section:sub:geom} demonstrates that our algorithm preserves the cor
 	Based on this inner product, the following proposition states that the PLS component directions estimated from Proposition  \ref{proposition:eigen_regul} are orthonormal.
 	\begin{proposition}[Orthonormality of estimated PLS component directions]\label{proposition: modified orthnormality of PLS components}
 		The PLS component directions $
-\widehat{\xi}^{[1]}, \widehat{\xi}^{[2]}, \ldots, \widehat{\xi}^{[L]}
-$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathbb{H}, \Lambda}$. That is,
+		\widehat{\xi}^{[1]}, \widehat{\xi}^{[2]}, \ldots, \widehat{\xi}^{[L]}
+		$, estimated via Proposition \ref{proposition:eigen_regul} with a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, are mutually orthonormal with respect to the inner product $\langle \cdot, \cdot \rangle_{\mathbb{H}, \Lambda}$. That is,
 		\begin{equation*}
 			\langle \widehat{\xi}^{[l_1]}, \widehat{\xi}^{[l_2]} \rangle_{\mathbb{H}, \Lambda}
 			= \mathbbm{1}(l_1 = l_2), \quad l_1, l_2 = 1, \ldots, L.
 		\end{equation*}
 	\end{proposition}
 	The proof of Proposition \ref{proposition: modified orthnormality of PLS components} is provided in Appendix \ref{section:proof:proposition: modified orthnormality of PLS components}.
- 
-The next proposition states that the vectors of estimated PLS scores for different iteration numbers are mutually orthogonal.
+	
+	The next proposition states that the vectors of estimated PLS scores for different iteration numbers are mutually orthogonal.
 	\begin{proposition}	\label{proposition: orthnormality of PLS scores}
 		Recall from Lemma \ref{proposition:closed_form_orthgonalization} that   $\widehat{\boldsymbol{\rho}}^{[l]}$ denote the $n$-dimensional vector whose elements consist of the $l$-th estimated PLS scores ($l=1, \ldots, L$) of $n$ observations.
 		The vectors $\widehat{\boldsymbol{\rho}}^{[1]}, \widehat{\boldsymbol{\rho}}^{[2]}, \ldots, \widehat{\boldsymbol{\rho}}^{[L]}$  are mutually orthogonal in the sense that
@@ -1244,541 +1244,518 @@ The next proposition states that the vectors of estimated PLS scores for differe
 	\begin{itemize}
 		\item aaa
 	\end{itemize}
- 
-
-
-\subsection{Proof of Proposition \ref{proposition:eigen_noregul}  }\label{section:proof:proposition:linear_regul_system_unregularized}
-\begin{proof}
-	Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
-	\begin{equation*}
-		\xi_j(t) := 
-		\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
-	\end{equation*}
-	with coefficient vectors $\boldsymbol{\gamma}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
-	Then, 
-	the empirical covariance is
-	computed as follows:
-	\begin{align*}
-		\widehat{\textnormal{Cov}} (
-		\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
-		) 
-		&=  %1
-		\frac{1}{n} 
-		\sum 
-		\limits_{i=1}^n 
-		y_i
-		\langle \widetilde{W}_i, \xi \rangle_\mathbb{H} \\
-		&= %2
-		\frac{1}{n} 
-		\sum \limits_{i=1}^n
-		y_i
-		\biggl(
-		\sum_{j=1}^K
-		\langle \widetilde{X}_{ij}, \xi_j \rangle  
-		+
-		\mathbf{Z}_i^\top 
-		\boldsymbol{\zeta} 
-		\biggr)
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&= %3
-		\frac{1}{n}
-		\sum
-		\limits_{i=1}^n 
-		y_i
-		\biggl( \sum \limits_{k=1}^K \int_0^1 \widetilde{X}_{ij}(t) \, \xi_j(t) \, dt \biggr)
-		+
-		\frac{1}{n}
-		\sum
-		\limits_{i=1}^n
-		y_i
-		( \mathbf{Z}_i^\top \boldsymbol{\zeta} )
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=  
-		\frac{1}{n} \sum \limits_{i=1}^n 
-		y_i
-		\biggl\{ 
-		\sum \limits_{k=1}^K \int_0^1
-		\biggl(
-		\sum_{m=1}^M \theta_{ijm} b_{m}(t) 
-		\biggr) 
-		\biggl(
-		\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
-		\biggr) 
-		dt
-		\biggr\}  
-		+
-		\frac{1}{n}
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=  
-		\frac{1}{n} \sum \limits_{i=1}^n 
-		y_i
-		\biggl\{ 
-		\sum \limits_{k=1}^K 
-		\sum_{m=1}^M
-		\sum_{m'=1}^M  
-		\theta_{ijm}
-		d_{jm'}
-		\int_0^1
-		b_{m}(t) 
-		b_{m'}(t) 
-		dt
-		\biggr\}  
-		+
-		\frac{1}{n}
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=  
-		\sum \limits_{k=1}^K 
-		\biggl\{
-		\frac{1}{n} \sum \limits_{i=1}^n 
-		y_i
-		(
-		\boldsymbol{\theta}_{ij}^\top
-		B
-		\boldsymbol{\gamma}_j
-		)  
-		\biggr\}
-		+
-		\frac{1}{n}
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=  
-		\frac{1}{n}
-		\biggl(
-		\sum \limits_{k=1}^K 
-		\mathbf{y}^\top
-		\Theta_{j}
-		B
-		\boldsymbol{\gamma}_j
-		+
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		\biggr)
-	\end{align*}	
-	Building on this computation, the squared empirical covariance is
-	expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V_matrix}:
-	%	The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, takin
-	\begin{align*}
-		\widehat{\textnormal{Cov}}^2 (
-		\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
-		)  
-		&= 
-		\frac{1}{n^2}
-		\biggl(
-		\sum \limits_{k=1}^K 
-		\mathbf{y}^\top
-		\Theta_{j}
-		B
-		\boldsymbol{\gamma}_j
-		+
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		\biggr)^2
-		%%%%%%%%%%%%%%%%%%%%
-		\\	&=
-		\frac{1}{n^2} 
-		(
-		\mathbf{y}^\top
-		\Theta
-		\mathbb{B}  
-		\boldsymbol{\xi}
-		)^2
-		\\
-		&	= 
-		\frac{1}{n^2} 
-		\boldsymbol{\xi}^\top
-		(\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top 
-		\boldsymbol{\xi}
-		\\&=
-		\boldsymbol{\xi}^\top
-		V 
-		\boldsymbol{\xi}.
-		\numberthis \label{covariance_squares_as_quadratic_form}
-	\end{align*}
-	The squared norm of $\xi$ in the hybrid Hilbert space $\mathbb{H}$ 
-	%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
-	is computed as follows:
-	\begin{align*}
-		\langle {\xi},{\xi} \rangle_{\mathbb{H}}
-		&=
-		\sum_{j=1}^K
-		\int_0^1
-		\xi_j(t) \, \xi_j(t)
-		\, dt
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K \int_0^1
-		\biggl(
-		\sum_{m=1}^M d_{jm} b_{m}(t) 
-		\biggr) 
-		\biggl(
-		\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
-		\biggr) 
-		dt
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}  
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K 
-		\sum_{m=1}^M
-		\sum_{m'=1}^M
-		d_{jm}
-		d_{jm'}
-		\int_0^1
-		b_{m}(t) 
-		b_{m'}(t) 
-		dt
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&=
-		\sum \limits_{j=1}^K 
-		\boldsymbol{\gamma}_j^\top
-		B
-		\boldsymbol{\gamma}_j
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
-		%%%%%%%%%%%%%
-		\\&=
-		\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
-		\numberthis \label{unit_norm_as_quadform}
-	\end{align*}
-	Therefore, the covariance maximization problem \eqref{def:maximizer_squared_empirical_cov} is equivalent to the generalized Raleigh quotient \eqref{eq: Unregularized generalized rayleigh quotient equation}. This completes  the proof of Proposition~\ref{proposition:eigen_noregul}.
-	
-	\subsection{Proof of Proposition \ref{proposition:eigen_regul} }\label{section:proof:proposition:eigen_regul}
-	The penalization term 
-	$\sum \limits_{j=1}^K \lambda_j 
-	\operatorname{PEN}(\xi_K)$
-	can be written in matrix form as:
-	\begin{align*}
-		\sum \limits_{j=1}^K 
-		\lambda_j
-		\operatorname{PEN}({\xi}_j)
-		&=
-		\sum \limits_{j=1}^K 
-		\lambda_j
-		\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
-		\\&=
-		\sum \limits_{j=1}^K 
-		\lambda_j
-		\int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
-		\\&	 =
-		%%%%%%%%%%%%%%%%%%%
-		\sum \limits_{j=1}^K 
-		\lambda_j
-		\sum_{l=1}^M
-		\sum_{m=1}^M
-		\theta_{ijl} \theta_{ijm}
-		\int_0^1
-		\, b_l^{\prime \prime}(t) 
-		b_m^{\prime \prime}(t)
-		dt
-		\\&	 =
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\sum \limits_{j=1}^K
-		\lambda_j
-		\boldsymbol{\gamma}_j^\top
-		B^{\prime \prime} 
-		\boldsymbol{\gamma}_j
-		%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&= 
-		\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
-		\numberthis \label{pen_as_matrix}
-	\end{align*}
-	where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda$ is defined in \eqref{def:Lambda}. 
-	
-	Combining this with \eqref{unit_norm_as_quadform}, 
-	we can compute
-	\begin{equation*}
-		\| \xi  \|_\mathbb{H} +  \sum \limits_{j=1}^K \lambda_j 
-		\operatorname{PEN}(\xi_K) 
-		= 
-		\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
-		+ 
-		\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi}
-		=
-		\boldsymbol{\xi}^\top 
-		(
-		\mathbb{B}
-		+
-		\Lambda \mathbb{B}^{\prime \prime})
-		\boldsymbol{\xi}.
-	\end{equation*}
-	This computation along with \eqref{covariance_squares_as_quadratic_form} implies that the covariance maximization problem  
-	\eqref{def:maximizer_squared_empirical_cov_reg} is equivalent to the generalized Raleigh quotient \eqref{eq: Regularized generalized rayleigh quotient equation}.  This completes  the proof of Proposition \ref{proposition:eigen_regul}.
 	
 	
 	
+	\subsection{Proof of Proposition \ref{proposition:eigen_noregul}  }\label{section:proof:proposition:linear_regul_system_unregularized}
+	\begin{proof}
+		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
+		\begin{equation*}
+			\xi_j(t) := 
+			\sum_{m=1}^M d_{jm} \, b_m(t), \quad j = 1, \ldots, K,
+		\end{equation*}
+		with coefficient vectors $\boldsymbol{\gamma}_j := (d_{j1}, \ldots, d_{jM})^\top \in \mathbb{R}^M$.
+		Then, 
+		the empirical covariance is
+		computed as follows:
+		\begin{align*}
+			\widehat{\textnormal{Cov}} (
+			\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
+			) 
+			&=  %1
+			\frac{1}{n} 
+			\sum 
+			\limits_{i=1}^n 
+			y_i
+			\langle \widetilde{W}_i, \xi \rangle_\mathbb{H} \\
+			&= %2
+			\frac{1}{n} 
+			\sum \limits_{i=1}^n
+			y_i
+			\biggl(
+			\sum_{j=1}^K
+			\langle \widetilde{X}_{ij}, \xi_j \rangle  
+			+
+			\mathbf{Z}_i^\top 
+			\boldsymbol{\zeta} 
+			\biggr)
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&= %3
+			\frac{1}{n}
+			\sum
+			\limits_{i=1}^n 
+			y_i
+			\biggl( \sum \limits_{k=1}^K \int_0^1 \widetilde{X}_{ij}(t) \, \xi_j(t) \, dt \biggr)
+			+
+			\frac{1}{n}
+			\sum
+			\limits_{i=1}^n
+			y_i
+			( \mathbf{Z}_i^\top \boldsymbol{\zeta} )
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\frac{1}{n} \sum \limits_{i=1}^n 
+			y_i
+			\biggl\{ 
+			\sum \limits_{k=1}^K \int_0^1
+			\biggl(
+			\sum_{m=1}^M \theta_{ijm} b_{m}(t) 
+			\biggr) 
+			\biggl(
+			\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
+			\biggr) 
+			dt
+			\biggr\}  
+			+
+			\frac{1}{n}
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta} 
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\frac{1}{n} \sum \limits_{i=1}^n 
+			y_i
+			\biggl\{ 
+			\sum \limits_{k=1}^K 
+			\sum_{m=1}^M
+			\sum_{m'=1}^M  
+			\theta_{ijm}
+			d_{jm'}
+			\int_0^1
+			b_{m}(t) 
+			b_{m'}(t) 
+			dt
+			\biggr\}  
+			+
+			\frac{1}{n}
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta} 
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\sum \limits_{k=1}^K 
+			\biggl\{
+			\frac{1}{n} \sum \limits_{i=1}^n 
+			y_i
+			(
+			\boldsymbol{\theta}_{ij}^\top
+			B
+			\boldsymbol{\gamma}_j
+			)  
+			\biggr\}
+			+
+			\frac{1}{n}
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\frac{1}{n}
+			\biggl(
+			\sum \limits_{k=1}^K 
+			\mathbf{y}^\top
+			\Theta_{j}
+			B
+			\boldsymbol{\gamma}_j
+			+
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta} 
+			\biggr)
+		\end{align*}	
+		Building on this computation, the squared empirical covariance is
+		expressed as the quadratic form involving the matrix $V$ defined in \eqref{def:V_matrix}:
+		%	The objective function matches that of \eqref{eq: Regularized generalized rayleigh quotient equation}, takin
+		\begin{align*}
+			\widehat{\textnormal{Cov}}^2 (
+			\langle \widetilde{W}, \xi  \rangle_{\mathbb{H}}, Y 
+			)  
+			&= 
+			\frac{1}{n^2}
+			\biggl(
+			\sum \limits_{k=1}^K 
+			\mathbf{y}^\top
+			\Theta_{j}
+			B
+			\boldsymbol{\gamma}_j
+			+
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta} 
+			\biggr)^2
+			%%%%%%%%%%%%%%%%%%%%
+			\\	&=
+			\frac{1}{n^2} 
+			(
+			\mathbf{y}^\top
+			\Theta
+			\mathbb{B}  
+			\boldsymbol{\xi}
+			)^2
+			\\
+			&	= 
+			\frac{1}{n^2} 
+			\boldsymbol{\xi}^\top
+			(\mathbb{B} \Theta^\top \mathbf{y})(\mathbb{B} \Theta^\top \mathbf{y})^\top 
+			\boldsymbol{\xi}
+			\\&=
+			\boldsymbol{\xi}^\top
+			V 
+			\boldsymbol{\xi}.
+			\numberthis \label{covariance_squares_as_quadratic_form}
+		\end{align*}
+		The squared norm of $\xi$ in the hybrid Hilbert space $\mathbb{H}$ 
+		%can be expressed as the inner product on $(\mathbb{R}^M)^K \times \mathbb{R}^p$ defined in Lemma~\ref{lemma:valid_inner_product_tuple} as follows:
+		is computed as follows:
+		\begin{align*}
+			\langle {\xi},{\xi} \rangle_{\mathbb{H}}
+			&=
+			\sum_{j=1}^K
+			\int_0^1
+			\xi_j(t) \, \xi_j(t)
+			\, dt
+			+
+			\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\sum \limits_{j=1}^K \int_0^1
+			\biggl(
+			\sum_{m=1}^M d_{jm} b_{m}(t) 
+			\biggr) 
+			\biggl(
+			\sum_{m'=1}^M d_{jm'} b_{m'}(t) 
+			\biggr) 
+			dt
+			+
+			\boldsymbol{\zeta}^\top \boldsymbol{\zeta}  
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\sum \limits_{j=1}^K 
+			\sum_{m=1}^M
+			\sum_{m'=1}^M
+			d_{jm}
+			d_{jm'}
+			\int_0^1
+			b_{m}(t) 
+			b_{m'}(t) 
+			dt
+			+
+			\boldsymbol{\zeta}^\top \boldsymbol{\zeta}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\sum \limits_{j=1}^K 
+			\boldsymbol{\gamma}_j^\top
+			B
+			\boldsymbol{\gamma}_j
+			+
+			\boldsymbol{\zeta}^\top \boldsymbol{\zeta},
+			%%%%%%%%%%%%%
+			\\&=
+			\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
+			\numberthis \label{unit_norm_as_quadform}
+		\end{align*}
+		Therefore, the covariance maximization problem \eqref{def:maximizer_squared_empirical_cov} is equivalent to the generalized Raleigh quotient \eqref{eq: Unregularized generalized rayleigh quotient equation}. This completes  the proof of Proposition~\ref{proposition:eigen_noregul}.
+		
+		\subsection{Proof of Proposition \ref{proposition:eigen_regul} }\label{section:proof:proposition:eigen_regul}
+		The penalization term 
+		$\sum \limits_{j=1}^K \lambda_j 
+		\operatorname{PEN}(\xi_K)$
+		can be written in matrix form as:
+		\begin{align*}
+			\sum \limits_{j=1}^K 
+			\lambda_j
+			\operatorname{PEN}({\xi}_j)
+			&=
+			\sum \limits_{j=1}^K 
+			\lambda_j
+			\int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
+			\\&=
+			\sum \limits_{j=1}^K 
+			\lambda_j
+			\int_0^1 \bigl\{ \sum_{l=1}^M \theta_{ijl} \, b_l^{\prime \prime}(t) \bigr\}^2 dt
+			\\&	 =
+			%%%%%%%%%%%%%%%%%%%
+			\sum \limits_{j=1}^K 
+			\lambda_j
+			\sum_{l=1}^M
+			\sum_{m=1}^M
+			\theta_{ijl} \theta_{ijm}
+			\int_0^1
+			\, b_l^{\prime \prime}(t) 
+			b_m^{\prime \prime}(t)
+			dt
+			\\&	 =
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\sum \limits_{j=1}^K
+			\lambda_j
+			\boldsymbol{\gamma}_j^\top
+			B^{\prime \prime} 
+			\boldsymbol{\gamma}_j
+			%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&= 
+			\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi},
+			\numberthis \label{pen_as_matrix}
+		\end{align*}
+		where $\boldsymbol{\xi}$ is the concatenated coefficient vector form of $\xi$ as defined in \eqref{def:maximizer_euclidean_form}, $\mathbb{B}^{\prime\prime}$ is defined in \eqref{def:gram_block}, and $\Lambda$ is defined in \eqref{def:Lambda}. 
+		
+		Combining this with \eqref{unit_norm_as_quadform}, 
+		we can compute
+		\begin{equation*}
+			\| \xi  \|_\mathbb{H} +  \sum \limits_{j=1}^K \lambda_j 
+			\operatorname{PEN}(\xi_K) 
+			= 
+			\boldsymbol{\xi}^\top \mathbb{B} \boldsymbol{\xi}
+			+ 
+			\boldsymbol{\xi}^{\top} \Lambda \mathbb{B}^{\prime \prime} \boldsymbol{\xi}
+			=
+			\boldsymbol{\xi}^\top 
+			(
+			\mathbb{B}
+			+
+			\Lambda \mathbb{B}^{\prime \prime})
+			\boldsymbol{\xi}.
+		\end{equation*}
+		This computation along with \eqref{covariance_squares_as_quadratic_form} implies that the covariance maximization problem  
+		\eqref{def:maximizer_squared_empirical_cov_reg} is equivalent to the generalized Raleigh quotient \eqref{eq: Regularized generalized rayleigh quotient equation}.  This completes  the proof of Proposition \ref{proposition:eigen_regul}.
+		
+		
+		
+		
+		
+	\end{proof}
 	
-	
-\end{proof}
-
-\subsection{Proof of Proposition  \ref{proposition:linear_regul}}\label{section:proof:proposition:linear_regul}
-\begin{proof}
-	The optimization problem 
-	\eqref{eq: Regularized generalized rayleigh quotient equation} can be written as
-	\begin{align*}
-		\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,\;
-			\boldsymbol{\zeta} \in \mathbb{R}^p}~&
+	\subsection{Proof of Proposition  \ref{proposition:linear_regul}}\label{section:proof:proposition:linear_regul}
+	\begin{proof}
+		The optimization problem 
+		\eqref{eq: Regularized generalized rayleigh quotient equation} can be written as
+		\begin{align*}
+			\max_{\boldsymbol{\gamma}_1, \ldots, \boldsymbol{\gamma}_K \in \mathbb{R}^M,\;
+				\boldsymbol{\zeta} \in \mathbb{R}^p}~&
+			\frac{1}{n^2}
+			\left(
+			\sum_{j=1}^K 
+			\mathbf{y}^\top
+			\Theta_j
+			B  
+			\boldsymbol{\gamma}_j
+			+
+			\mathbf{y}^\top
+			Z \boldsymbol{\zeta} 
+			\right)^2,
+			\\
+			\text{subject to}\quad&
+			\sum_{j=1}^K 
+			\boldsymbol{\gamma}_j^\top
+			(B + \lambda_j B^{\prime\prime})
+			\boldsymbol{\gamma}_j
+			+
+			\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
+		\end{align*}
+		
+		Let $\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data. Then the objective becomes
+		\[
 		\frac{1}{n^2}
 		\left(
 		\sum_{j=1}^K 
-		\mathbf{y}^\top
-		\Theta_j
-		B  
-		\boldsymbol{\gamma}_j
+		\mathbf{u}_j^\top \boldsymbol{\gamma}_j
 		+
-		\mathbf{y}^\top
-		Z \boldsymbol{\zeta} 
-		\right)^2,
-		\\
-		\text{subject to}\quad&
-		\sum_{j=1}^K 
-		\boldsymbol{\gamma}_j^\top
-		(B + \lambda_j B^{\prime\prime})
-		\boldsymbol{\gamma}_j
-		+
-		\boldsymbol{\zeta}^\top \boldsymbol{\zeta} = 1.
-	\end{align*}
+		\mathbf{v}^\top \boldsymbol{\zeta}
+		\right)^2.
+		\]
+		The objective function is continuous. The constraint defines the boundary of an ellipsoid in a finite-dimensional Euclidean space, the feasible set is compact. By the Weierstrass Extreme Value Theorem (see, e.g., Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}), a global maximizer exists. The constraint function is continuously differentiable and its gradient vanishes only at the origin, which is not feasible. 
+		Thus the gradient  is nonzero at all feasible points.
+		Hence, the Linear Independence Constraint Qualification (LICQ) holds, and the Karush-Kuhn-Tucker (KKT) conditions are necessary for local optimality (see, e.g., Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
+		
+		Define the Lagrangian:
+		\[
+		\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \mu) 
+		:= 
+		\left( \sum_{j=1}^K \mathbf{u}_j^\top  \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)^2
+		- 
+		\mu 
+		\left[
+		\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1
+		\right].
+		\]
+		
+		Let $s := \dfrac{2}{n^2} \left( \sum_{j=1}^K \mathbf{u}_j^\top \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)$. The KKT conditions require that:
+		\begin{align}
+			\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
+			s \mathbf{u}_j - 2\mu (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = 0, \quad \text{for } j = 1, \ldots, K, \label{eq:lag_grad_gamma} \\
+			\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
+			s \mathbf{v} - 2\mu \boldsymbol{\zeta} = 0. \label{eq:lag_grad_zeta}
+		\end{align}
+		
+		From \eqref{eq:lag_grad_gamma} and \eqref{eq:lag_grad_zeta}, we have
+		\[
+		(B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = \frac{s}{2\mu} \mathbf{u}_j, \quad
+		\boldsymbol{\zeta} = \frac{s}{2\mu} \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
+		\]
+		This implies that for any local maximizer, there exists $c \ne 0$ such that 
+		\[
+		\boldsymbol{\gamma}_j = c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
+		\boldsymbol{\zeta} = c \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
+		\]
+		Since we assumed in Section~\ref{sec: finite basis approximation} that the functions $\{b_m(t)\}$ and their second derivatives are linearly independent, both $B$ and $B^{\prime\prime}$ are positive definite (see, for example, Theorem 273 of \citealp{gockenbachFiniteDimensionalLinearAlgebra2010}). As positive definiteness is preserved under conic combinations, $B + \lambda_j B^{\prime\prime}$ is also positive definite. 
+		
+		A local maximizer must also be primal feasible. Substituting the conditions above in to the primal constraint:
+		\begin{align*}
+			\sum_{j=1}^K 
+			\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)^\top 
+			(B + \lambda_j B^{\prime\prime}) 
+			\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)
+			+ c^2 \mathbf{v}^\top \mathbf{v} &= 1 \\
+			\Rightarrow 
+			c^2 \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right) &= 1.
+		\end{align*}
+		
+		Solving for $c^2$ gives:
+		\[
+		c^2 = \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right)^{-1}.
+		\]
+		
+		Hence, the unique maximizer (up to sign) is:
+		\[
+		\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
+		\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{q}} \mathbf{v},
+		\]
+		where
+		\[
+		q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
+		\]
+		
+		This completes the proof of Proposition \ref{section:proof:proposition:linear_regul}.
+		
+		
+	\end{proof}
 	
-	Let $\mathbf{u}_j := B \Theta_j^\top \mathbf{y} \in \mathbb{R}^M$ and $\mathbf{v} := Z^\top \mathbf{y} \in \mathbb{R}^p$. These are fixed problem data. Then the objective becomes
-	\[
-	\frac{1}{n^2}
-	\left(
-	\sum_{j=1}^K 
-	\mathbf{u}_j^\top \boldsymbol{\gamma}_j
-	+
-	\mathbf{v}^\top \boldsymbol{\zeta}
-	\right)^2.
-	\]
-	The objective function is continuous. The constraint defines the boundary of an ellipsoid in a finite-dimensional Euclidean space, the feasible set is compact. By the Weierstrass Extreme Value Theorem (see, e.g., Theorem 2.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}), a global maximizer exists. The constraint function is continuously differentiable and its gradient vanishes only at the origin, which is not feasible. 
-	Thus the gradient  is nonzero at all feasible points.
-	Hence, the Linear Independence Constraint Qualification (LICQ) holds, and the Karush-Kuhn-Tucker (KKT) conditions are necessary for local optimality (see, e.g., Theorem 5.3.1 in \citealt{bazaraaNonlinearProgrammingTheory2006}).
 	
-	Define the Lagrangian:
-	\[
-	\mathcal{L}(\{\boldsymbol{\gamma}_j\}, \boldsymbol{\zeta}, \mu) 
-	:= 
-	\left( \sum_{j=1}^K \mathbf{u}_j^\top  \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)^2
-	- 
-	\mu 
-	\left[
-	\sum_{j=1}^K \boldsymbol{\gamma}_j^\top (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j + \boldsymbol{\zeta}^\top \boldsymbol{\zeta} - 1
-	\right].
-	\]
-	
-	Let $s := \dfrac{2}{n^2} \left( \sum_{j=1}^K \mathbf{u}_j^\top \boldsymbol{\gamma}_j + \mathbf{v}^\top \boldsymbol{\zeta} \right)$. The KKT conditions require that:
-	\begin{align}
-		\nabla_{\boldsymbol{\gamma}_j} \mathcal{L} &= 
-		s \mathbf{u}_j - 2\mu (B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = 0, \quad \text{for } j = 1, \ldots, K, \label{eq:lag_grad_gamma} \\
-		\nabla_{\boldsymbol{\zeta}} \mathcal{L} &= 
-		s \mathbf{v} - 2\mu \boldsymbol{\zeta} = 0. \label{eq:lag_grad_zeta}
-	\end{align}
-	
-	From \eqref{eq:lag_grad_gamma} and \eqref{eq:lag_grad_zeta}, we have
-	\[
-	(B + \lambda_j B^{\prime\prime}) \boldsymbol{\gamma}_j = \frac{s}{2\mu} \mathbf{u}_j, \quad
-	\boldsymbol{\zeta} = \frac{s}{2\mu} \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
-	\]
-	This implies that for any local maximizer, there exists $c \ne 0$ such that 
-	\[
-	\boldsymbol{\gamma}_j = c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
-	\boldsymbol{\zeta} = c \mathbf{v}, \quad \text{for } j = 1, \ldots, K.
-	\]
-	Since we assumed in Section~\ref{sec: finite basis approximation} that the functions $\{b_m(t)\}$ and their second derivatives are linearly independent, both $B$ and $B^{\prime\prime}$ are positive definite (see, for example, Theorem 273 of \citealp{gockenbachFiniteDimensionalLinearAlgebra2010}). As positive definiteness is preserved under conic combinations, $B + \lambda_j B^{\prime\prime}$ is also positive definite. 
-	
-	A local maximizer must also be primal feasible. Substituting the conditions above in to the primal constraint:
+	\subsection{Proof of Lemma \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
+	For notational simplicity, we omit the iteration superscript $[l]$.
+	Recall from  \eqref{def:plsscore} that
+	$\hat{\rho}_i
+	=
+	\langle \widetilde{W}_i, \, \hat{\xi} \rangle_{\mathbb{H}}$.
+	Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
+	is computed through the following matrix multiplication:
+	\begin{equation}\label{score_inner_product_all_n}
+		\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
+	\end{equation}
+	The least square criterion   can be decomposed as follows:
 	\begin{align*}
-		\sum_{j=1}^K 
-		\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)^\top 
-		(B + \lambda_j B^{\prime\prime}) 
-		\left( c (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j \right)
-		+ c^2 \mathbf{v}^\top \mathbf{v} &= 1 \\
-		\Rightarrow 
-		c^2 \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right) &= 1.
+		\operatorname{SSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} \\
+		&= 
+		\underbrace{
+			\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
+		\underbrace{
+			-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
+		}_{B_1(\boldsymbol{\delta})}
+		\underbrace{
+			+ 
+			(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
+			\langle \delta, \, \delta \rangle_{\mathbb{H}}
+		}_{B_2(\boldsymbol{\delta})}
 	\end{align*}
+	\begin{comment}
+		\begin{align*}
+			\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
+			&= 
+			\underbrace{
+				\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
+			\underbrace{
+				-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
+			}_{B_1(\boldsymbol{\delta})}
+			\underbrace{
+				+ 
+				(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
+				\langle \delta, \, \delta \rangle_{\mathbb{H}}
+			}_{B_2(\boldsymbol{\delta})}
+			\underbrace{
+				+ 
+				\tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
+			}_{B_3(\boldsymbol{\delta})}
+		\end{align*}
+	\end{comment}
+	Here, part $A$ does not contain $\delta$, so it does not contribute to the minimization problem.
 	
-	Solving for $c^2$ gives:
-	\[
-	c^2 = \left( \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v} \right)^{-1}.
-	\]
-	
-	Hence, the unique maximizer (up to sign) is:
-	\[
-	\boldsymbol{\gamma}_j^\ast = \frac{1}{\sqrt{q}} (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j, \quad
-	\boldsymbol{\zeta}^\ast = \frac{1}{\sqrt{q}} \mathbf{v},
-	\]
-	where
-	\[
-	q := \sum_{j=1}^K \mathbf{u}_j^\top (B + \lambda_j B^{\prime\prime})^{-1} \mathbf{u}_j + \mathbf{v}^\top \mathbf{v}.
-	\]
-	
-	This completes the proof of Proposition \ref{section:proof:proposition:linear_regul}.
-	
-	
-\end{proof}
-
-
-\subsection{Proof of Lemma \ref{proposition:closed_form_orthgonalization} }\label{section:proof:proposition:closed_form_orthgonalization}
-For notational simplicity, we omit the iteration superscript $[l]$.
-Recall from  \eqref{def:plsscore} that
-$\hat{\rho}_i
-=
-\langle \widetilde{W}_i, \, \hat{\xi} \rangle_{\mathbb{H}}$.
-Using the basis expansion coefficient notation from \eqref{def:truncated_zeta_and_delta}, \eqref{def:coef_vector_form}, \eqref{def:theta}, and \eqref{def:B_matrix}, the full vector of PLS scores $\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$ 
-is computed through the following matrix multiplication:
-\begin{equation}\label{score_inner_product_all_n}
-	\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
-\end{equation}
-The least square criterion   can be decomposed as follows:
-\begin{align*}
-	\operatorname{SSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} \\
-	&= 
-	\underbrace{
-		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
-	\underbrace{
-		-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
-	}_{B_1(\boldsymbol{\delta})}
-	\underbrace{
-		+ 
+	Let $\boldsymbol{\delta}:= (\pi_1^\top, \ldots, \pi_K^\top, \boldsymbol{\chi}^\top )^\top$ be the $MK+p$-dimensional concatenated vector of basis coefficients and the scalar part of $\boldsymbol{\delta}$. 
+	%Abusing notation, we treat $\operatorname{PENSSE}$ as a function of $\boldsymbol{\delta}$.
+	Abusing notation, we treat $\operatorname{SSE}$ as a function of $\boldsymbol{\delta}$.
+	Next, We will now demonstrate that the combined term $
+	%B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta}) + B_3(\boldsymbol{\delta})
+	B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta})
+	$ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component functions:
+	\begin{align*}
+		B_1(\boldsymbol{\delta}) &= 
+		- 2\sum_{i=1}^n \hat{\rho}_i  \langle \delta, \, \widetilde{W}_i  \rangle_{\mathbb{H}} 
+		=
+		- 2\hat{\boldsymbol{\rho}}^\top 
+		\biggl(
+		\sum_{j=1}^K \Theta_j B \boldsymbol{\pi}_j
+		+\mathbf{Z} \boldsymbol{\chi}
+		\biggr),
+		%%%%%%%%%%%%%%%%%%%%%%%
+		\\ 
+		B_2(\boldsymbol{\delta})
+		&=
 		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
 		\langle \delta, \, \delta \rangle_{\mathbb{H}}
-	}_{B_2(\boldsymbol{\delta})}
-\end{align*}
-\begin{comment}
-\begin{align*}
-	\operatorname{PENSSE}( \delta) &= \sum_{i=1}^n \langle \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta, \, \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta \rangle_{\mathbb{H}} + \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) \\
-	&= 
-	\underbrace{
-		\sum_{i=1}^n \langle \widetilde{W}_i^{[l]}, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}}}_{A} 
-	\underbrace{
-		-2 \sum_{i=1}^n \hat{\rho}_i^{[l]} \langle \delta, \, \widetilde{W}_i^{[l]} \rangle_{\mathbb{H}} 
-	}_{B_1(\boldsymbol{\delta})}
-	\underbrace{
-		+ 
-		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
-		\langle \delta, \, \delta \rangle_{\mathbb{H}}
-	}_{B_2(\boldsymbol{\delta})}
-	\underbrace{
-		+ 
-		\tau \sum_{j=1}^K\operatorname{PEN}(\delta_j)
-	}_{B_3(\boldsymbol{\delta})}
-\end{align*}
-\end{comment}
-Here, part $A$ does not contain $\delta$, so it does not contribute to the minimization problem.
-
-Let $\boldsymbol{\delta}:= (\pi_1^\top, \ldots, \pi_K^\top, \boldsymbol{\chi}^\top )^\top$ be the $MK+p$-dimensional concatenated vector of basis coefficients and the scalar part of $\boldsymbol{\delta}$. 
-%Abusing notation, we treat $\operatorname{PENSSE}$ as a function of $\boldsymbol{\delta}$.
-Abusing notation, we treat $\operatorname{SSE}$ as a function of $\boldsymbol{\delta}$.
-Next, We will now demonstrate that the combined term $
-%B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta}) + B_3(\boldsymbol{\delta})
-B_1(\boldsymbol{\delta}) + B_2(\boldsymbol{\delta})
-$ is a quadratic function of $\boldsymbol{\delta}$, by expanding its component functions:
-\begin{align*}
-	B_1(\boldsymbol{\delta}) &= 
-	- 2\sum_{i=1}^n \hat{\rho}_i  \langle \delta, \, \widetilde{W}_i  \rangle_{\mathbb{H}} 
-	=
-	- 2\hat{\boldsymbol{\rho}}^\top 
-	\biggl(
-	\sum_{j=1}^K \Theta_j B \boldsymbol{\pi}_j
-	+\mathbf{Z} \boldsymbol{\chi}
-	\biggr),
-	%%%%%%%%%%%%%%%%%%%%%%%
-	\\ 
-	B_2(\boldsymbol{\delta})
-	&=
-	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})
-	\langle \delta, \, \delta \rangle_{\mathbb{H}}
-	=
-	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
-	\biggl(
-	\sum_{j=1}^K \pi_j^\top B \pi_j
-	+\boldsymbol{\chi}^\top \boldsymbol{\chi}
-	\biggr),
-	\\
-%	B_3(\boldsymbol{\delta}) &= \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) = \tau \boldsymbol{\delta} B^{''} \boldsymbol{\delta},
-\end{align*}
-%where the expansion of $B_3(\boldsymbol{\delta})$ leverages the computation in \eqref{pen_as_matrix}.
-Now we compute the gradients:
-\begin{align*}
-	\nabla_{\boldsymbol{\pi}_j}
-	B_1(\boldsymbol{\delta}) 
-	&= -2
-	B
-	\Theta_j^\top
-	\hat{\boldsymbol{\rho}}  ,~
-	j = 1, \ldots, K,
-	\quad
-	\nabla_{\boldsymbol{\chi}}
-	B_1(\boldsymbol{\delta}) 	  
-	= -2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}},
-	%
-	\\
-	\nabla_{\boldsymbol{\pi}_j}
-	B_2(\boldsymbol{\delta}) 
-	&= 
-	2
-	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
-	B 	\boldsymbol{\pi}_j
-	,~
-	j = 1, \ldots, K,
-	\quad
-	\nabla_{\boldsymbol{\chi}}
-	B_2(\boldsymbol{\delta}) 
-	=
-	2(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})\boldsymbol{\chi} ,
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%\\ \nabla_{\boldsymbol{\pi}_j} B_3(\boldsymbol{\delta})  &=  2 \tau B^{\prime \prime }	\boldsymbol{\pi}_j ,~ j = 1, \ldots, K, \quad \nabla_{\boldsymbol{\chi}} B_3(\boldsymbol{\delta})  =0.
-\end{align*}
+		=
+		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+		\biggl(
+		\sum_{j=1}^K \pi_j^\top B \pi_j
+		+\boldsymbol{\chi}^\top \boldsymbol{\chi}
+		\biggr),
+		\\
+		%	B_3(\boldsymbol{\delta}) &= \tau \sum_{j=1}^K\operatorname{PEN}(\delta_j) = \tau \boldsymbol{\delta} B^{''} \boldsymbol{\delta},
+	\end{align*}
+	%where the expansion of $B_3(\boldsymbol{\delta})$ leverages the computation in \eqref{pen_as_matrix}.
+	Now we compute the gradients:
+	\begin{align*}
+		\nabla_{\boldsymbol{\pi}_j}
+		B_1(\boldsymbol{\delta}) 
+		&= -2
+		B
+		\Theta_j^\top
+		\hat{\boldsymbol{\rho}}  ,~
+		j = 1, \ldots, K,
+		\quad
+		\nabla_{\boldsymbol{\chi}}
+		B_1(\boldsymbol{\delta}) 	  
+		= -2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}},
+		%
+		\\
+		\nabla_{\boldsymbol{\pi}_j}
+		B_2(\boldsymbol{\delta}) 
+		&= 
+		2
+		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+		B 	\boldsymbol{\pi}_j
+		,~
+		j = 1, \ldots, K,
+		\quad
+		\nabla_{\boldsymbol{\chi}}
+		B_2(\boldsymbol{\delta}) 
+		=
+		2(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})\boldsymbol{\chi} ,
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%\\ \nabla_{\boldsymbol{\pi}_j} B_3(\boldsymbol{\delta})  &=  2 \tau B^{\prime \prime }	\boldsymbol{\pi}_j ,~ j = 1, \ldots, K, \quad \nabla_{\boldsymbol{\chi}} B_3(\boldsymbol{\delta})  =0.
+	\end{align*}
 	The Hessian of 
 	$\operatorname{SSE}( \boldsymbol{\delta})$ is then given by 
 	$
 	2 	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B.
 	$
-\begin{comment}
-The Hessian of 
-$\operatorname{PENSSE}( \boldsymbol{\delta})$ is then given by 
-$
-2 	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
-+
-2
-\tau
-B^{\prime \prime}.
-$
-\end{comment}
-%Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$ and $B''$ are positive definite, $\operatorname{PENSSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
-Since   $B$ and is positive definite, $\operatorname{SSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
-\begin{align*}
-	\nabla_{\boldsymbol{\pi}_j}	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
-	&	=
-	-2
-	B
-	\Theta_j^\top
-	\hat{\boldsymbol{\rho}}
-	+
-	2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
-	B 	\hat{\boldsymbol{\pi}}_j
-	=
-	0,~
-	j = 1, \ldots, K,
-	\\
-	\nabla_{\boldsymbol{\chi} }	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
-	&=
-	-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
-	+
-	2 (\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) \hat{\boldsymbol{\chi} }
-	=
-	0,
-\end{align*}
-\begin{comment}
+	\begin{comment}
+		The Hessian of 
+		$\operatorname{PENSSE}( \boldsymbol{\delta})$ is then given by 
+		$
+		2 	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
+		+
+		2
+		\tau
+		B^{\prime \prime}.
+		$
+	\end{comment}
+	%Since we assumed in Section \ref{sec: finite basis approximation} that both $B'$ and $B''$ are positive definite, $\operatorname{PENSSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
+	Since   $B$ and is positive definite, $\operatorname{SSE}( \delta)$ is convex. Consequently, the gradient vanishes at its unique minimizer:
 	\begin{align*}
-		\nabla_{\boldsymbol{\pi}_j}	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+		\nabla_{\boldsymbol{\pi}_j}	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
 		&	=
 		-2
 		B
@@ -1787,14 +1764,11 @@ Since   $B$ and is positive definite, $\operatorname{SSE}( \delta)$ is convex. C
 		+
 		2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
 		B 	\hat{\boldsymbol{\pi}}_j
-		+
-		2
-		B^{\prime \prime }	\hat{\boldsymbol{\pi}}_j
 		=
 		0,~
 		j = 1, \ldots, K,
 		\\
-		\nabla_{\boldsymbol{\chi} }	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+		\nabla_{\boldsymbol{\chi} }	\operatorname{SSE}( \hat{\boldsymbol{\delta}} )
 		&=
 		-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
 		+
@@ -1802,430 +1776,456 @@ Since   $B$ and is positive definite, $\operatorname{SSE}( \delta)$ is convex. C
 		=
 		0,
 	\end{align*}
-\end{comment}
-providing the following closed-form solution:
-\begin{comment}
-\begin{equation*}
-	\hat{\boldsymbol{\pi}}_j\\
-	=
-	\bigl\{
-	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
-	+
-	\tau
-	B^{\prime \prime}
-	\bigr\}^{-1}
-	B
-	\Theta_j^\top
-	\hat{\boldsymbol{\rho}}
-	~
-	j = 1, \ldots, K,
-	%%%%%%%%%%%%%%%%%%%%%%%%
-	\quad
-	\hat{\boldsymbol{\chi} }
-	=
-	\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
-	\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
-\end{equation*}
-\end{comment}
-\begin{equation*}
-	\hat{\boldsymbol{\pi}}_j\\
-	=
-	\bigl\{
-	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
-	\bigr\}^{-1}
-	B
-	\Theta_j^\top
-	\hat{\boldsymbol{\rho}}
-	=
-	\frac{1}{\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}} \Theta_j^\top
-	\hat{\boldsymbol{\rho}}
-	~
-	j = 1, \ldots, K,
-	%%%%%%%%%%%%%%%%%%%%%%%%
-	\quad
-	\hat{\boldsymbol{\chi} }
-	=
-	\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
-	\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
-\end{equation*}
-\begin{comment}
-The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
-$\hat{\delta}^{[l]}   \in \widetilde{\mathbb{H}}$, has basis coefficients
-\begin{equation*}
-	\hat{\boldsymbol{\pi}}_j^{[l]}
-	=
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
-	\Theta_j^{[l] \top}
-	\hat{\boldsymbol{\rho}}^{[l]}
-	,
-	~
-	j = 1, \ldots, K,
-\end{equation*}
-and scalar parts given by:
-\begin{equation*}
-	\hat{\boldsymbol{\chi} }^{[l]}
-	=
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
-	\mathbf{Z}^{[l] \top}  \hat{\boldsymbol{\rho}}^{[l]}.
-\end{equation*}
-\end{comment}
-Expanding with respect to these coefficients, we obtain
-\begin{equation*}
-	\delta^{[l]}
-	= 
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
-	\sum_{i=1}^n 
-	\widehat{\rho}_i^{[l]}
-	\widetilde{W}_i^{[l]}.
-\end{equation*}
-On the other hand since $\mathbf{y}^{[l]}$ and  
+	\begin{comment}
+		\begin{align*}
+			\nabla_{\boldsymbol{\pi}_j}	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+			&	=
+			-2
+			B
+			\Theta_j^\top
+			\hat{\boldsymbol{\rho}}
+			+
+			2	(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) 
+			B 	\hat{\boldsymbol{\pi}}_j
+			+
+			2
+			B^{\prime \prime }	\hat{\boldsymbol{\pi}}_j
+			=
+			0,~
+			j = 1, \ldots, K,
+			\\
+			\nabla_{\boldsymbol{\chi} }	\operatorname{PENSSE}( \hat{\boldsymbol{\delta}} )
+			&=
+			-2\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}
+			+
+			2 (\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}) \hat{\boldsymbol{\chi} }
+			=
+			0,
+		\end{align*}
+	\end{comment}
+	providing the following closed-form solution:
+	\begin{comment}
+		\begin{equation*}
+			\hat{\boldsymbol{\pi}}_j\\
+			=
+			\bigl\{
+			(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
+			+
+			\tau
+			B^{\prime \prime}
+			\bigr\}^{-1}
+			B
+			\Theta_j^\top
+			\hat{\boldsymbol{\rho}}
+			~
+			j = 1, \ldots, K,
+			%%%%%%%%%%%%%%%%%%%%%%%%
+			\quad
+			\hat{\boldsymbol{\chi} }
+			=
+			\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
+			\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
+		\end{equation*}
+	\end{comment}
+	\begin{equation*}
+		\hat{\boldsymbol{\pi}}_j\\
+		=
+		\bigl\{
+		(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})  B
+		\bigr\}^{-1}
+		B
+		\Theta_j^\top
+		\hat{\boldsymbol{\rho}}
+		=
+		\frac{1}{\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}}} \Theta_j^\top
+		\hat{\boldsymbol{\rho}}
+		~
+		j = 1, \ldots, K,
+		%%%%%%%%%%%%%%%%%%%%%%%%
+		\quad
+		\hat{\boldsymbol{\chi} }
+		=
+		\frac{1}{(\hat{\boldsymbol{\rho}}^\top \hat{\boldsymbol{\rho}})}
+		\mathbf{Z}^\top  \hat{\boldsymbol{\rho}}.
+	\end{equation*}
+	\begin{comment}
+		The solution to the optimization problem \eqref{def:argmin_pensse}, denoted
+		$\hat{\delta}^{[l]}   \in \widetilde{\mathbb{H}}$, has basis coefficients
+		\begin{equation*}
+			\hat{\boldsymbol{\pi}}_j^{[l]}
+			=
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+			\Theta_j^{[l] \top}
+			\hat{\boldsymbol{\rho}}^{[l]}
+			,
+			~
+			j = 1, \ldots, K,
+		\end{equation*}
+		and scalar parts given by:
+		\begin{equation*}
+			\hat{\boldsymbol{\chi} }^{[l]}
+			=
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+			\mathbf{Z}^{[l] \top}  \hat{\boldsymbol{\rho}}^{[l]}.
+		\end{equation*}
+	\end{comment}
+	Expanding with respect to these coefficients, we obtain
+	\begin{equation*}
+		\delta^{[l]}
+		= 
+		\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+		\sum_{i=1}^n 
+		\widehat{\rho}_i^{[l]}
+		\widetilde{W}_i^{[l]}.
+	\end{equation*}
+	On the other hand since $\mathbf{y}^{[l]}$ and  
 	$\hat{\boldsymbol{\rho}}^{[l]}$ are zero-mean,
 	it is well known that the least square estimate of linear regression coefficient is compuated as $\hat{\nu}^{[l]} =  
-\frac{
-	\mathbf{y}^{[l] \top }  \hat{\boldsymbol{\rho}}^{[l]}
-}{
-	\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
-This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
+	\frac{
+		\mathbf{y}^{[l] \top }  \hat{\boldsymbol{\rho}}^{[l]}
+	}{
+		\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
+	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
 	\section{Proof of Section \ref{section:main:properties_of_our_method}}
 	
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
 	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
 	\begin{proof} 
-	Any bounded linear functional from a Hilbert space to  $\mathbb{R}$  is a compact operator.
-	This is because the image of any bounded set under such a functional is a bounded set in $\mathbb{R}$,
-	and by Bolzano-Weierstrass Theorem, every bounded sequence of real numbers has a convergent subsequence.
-Therefore,  to show that $\mathcal{C}_{YW}$ is a compact operator, it suffices to show that 
- $\mathcal{C}_{YW}$ is a bounded linear functional.
-
-\medskip
-\noindent
-\textit{Linearity.}~	  
- The operator $\mathcal{C}_{YW}: \mathbb{H} \rightarrow \mathbb{R}$ is defined as 
- $\mathcal{C}_{YW} h = \langle \Sigma_{YW}, h \rangle_\mathbb{H}$.
- For any $h_1, h_2 \in \mathbb{H}$ and scalar $c \in \mathbb{R}$, the linearity of the inner product implies: \begin{align*} \mathcal{C}_{YW}(h_1 + h_2) &= \langle \Sigma_{YW}, h_1 + h_2 \rangle_\mathbb{H} = \langle \Sigma_{YW}, h_1 \rangle_\mathbb{H} + \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} = \mathcal{C}_{YW} h_1 + \mathcal{C}_{YW} h_2,
- 	 \\ 
- 	 \mathcal{C}_{YW}(c h) &= \langle \Sigma_{YW}, c h \rangle_\mathbb{H} = c \langle \Sigma_{YW}, h \rangle_\mathbb{H} = c \, \mathcal{C}_{YW} h. \end{align*}
- Thus, $\mathcal{C}_{YW}$ is a linear functional. 
- 
-\medskip
-\noindent
-\textit{Boundedness.}~ 
-To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for all $h \in \mathbb{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
-	|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathbb{H}| \leq \|\Sigma_{YW}\|_\mathbb{H} \|h\|_\mathbb{H}. 
-	\end{equation*}
-Now, we must verify that $\|\Sigma_{YW}\|_\mathbb{H}$ is finite. 
-Recall that 
-$$\Sigma_{YW} = (\sigma_{YX,1}(t), \ldots, \sigma_{YX,K}(t), \sigma_{YZ,1}, \ldots, \sigma_{YZ,p}).$$
-  Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$.
-The norm of $\Sigma_{YW}$ in $\mathbb{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathbb{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
-	<
-	K T Q_1 + p  Q_2 < \infty,
- \end{equation*} 
- where the last inequality uses the condition \eqref{condition_for_compact}.
- Let $M = \sqrt{K T Q_1 + p  Q_2 }$. Thus, we have shown that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for a finite constant $M$.
- This completes the proof of Lemma \ref{lemma:cross_cov_functional}.
- 
-   \end{proof}
+		Any bounded linear functional from a Hilbert space to  $\mathbb{R}$  is a compact operator.
+		This is because the image of any bounded set under such a functional is a bounded set in $\mathbb{R}$,
+		and by Bolzano-Weierstrass Theorem, every bounded sequence of real numbers has a convergent subsequence.
+		Therefore,  to show that $\mathcal{C}_{YW}$ is a compact operator, it suffices to show that 
+		$\mathcal{C}_{YW}$ is a bounded linear functional.
+		
+		\medskip
+		\noindent
+		\textit{Linearity.}~	  
+		The operator $\mathcal{C}_{YW}: \mathbb{H} \rightarrow \mathbb{R}$ is defined as 
+		$\mathcal{C}_{YW} h = \langle \Sigma_{YW}, h \rangle_\mathbb{H}$.
+		For any $h_1, h_2 \in \mathbb{H}$ and scalar $c \in \mathbb{R}$, the linearity of the inner product implies: \begin{align*} \mathcal{C}_{YW}(h_1 + h_2) &= \langle \Sigma_{YW}, h_1 + h_2 \rangle_\mathbb{H} = \langle \Sigma_{YW}, h_1 \rangle_\mathbb{H} + \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} = \mathcal{C}_{YW} h_1 + \mathcal{C}_{YW} h_2,
+			\\ 
+			\mathcal{C}_{YW}(c h) &= \langle \Sigma_{YW}, c h \rangle_\mathbb{H} = c \langle \Sigma_{YW}, h \rangle_\mathbb{H} = c \, \mathcal{C}_{YW} h. \end{align*}
+		Thus, $\mathcal{C}_{YW}$ is a linear functional. 
+		
+		\medskip
+		\noindent
+		\textit{Boundedness.}~ 
+		To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for all $h \in \mathbb{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
+			|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathbb{H}| \leq \|\Sigma_{YW}\|_\mathbb{H} \|h\|_\mathbb{H}. 
+		\end{equation*}
+		Now, we must verify that $\|\Sigma_{YW}\|_\mathbb{H}$ is finite. 
+		Recall that 
+		$$\Sigma_{YW} = (\sigma_{YX,1}(t), \ldots, \sigma_{YX,K}(t), \sigma_{YZ,1}, \ldots, \sigma_{YZ,p}).$$
+		Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$.
+		The norm of $\Sigma_{YW}$ in $\mathbb{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathbb{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
+			<
+			K T Q_1 + p  Q_2 < \infty,
+		\end{equation*} 
+		where the last inequality uses the condition \eqref{condition_for_compact}.
+		Let $M = \sqrt{K T Q_1 + p  Q_2 }$. Thus, we have shown that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for a finite constant $M$.
+		This completes the proof of Lemma \ref{lemma:cross_cov_functional}.
+		
+	\end{proof}
 	\subsection{Proof of Lemma \ref{lemma:cross_cov_operator}}\label{section:proof:lemma:cross_cov_operator}
- \begin{proof}
-For $h \in \mathbb{H}$ and $d \in \mathbb{R}$, we have:
-\begin{equation*}
-\langle
-	\mathcal{C}_{YW} h, d \rangle 
-	= 
-\mathbb{E}
-	[
-		 \langle W_1, h \rangle_\mathbb{H} Y_1  
-	] 	 \,  d
-%%%%%%%%%%%%%%%%%%
-=
-\mathbb{E} \langle   Y_1 W_1 d , \, h\rangle_{\mathbb{H}} 
-%%%%%%%%%%%%%%%%%%%%%%%%
- = \langle h, \, \mathbb{E}[Y_1 W_1 d   ]\rangle_{\mathbb{H}}
- =
- \langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}
-\end{equation*}
-Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
-	This completes the proof of Lemma \ref{lemma:cross_cov_operator}.
- \end{proof}
- 
-\subsection{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
-\begin{proof}We show that $\mathcal{U}$ is self-adjoint, positive-semidefinite, and compact, in turn.
+	\begin{proof}
+		For $h \in \mathbb{H}$ and $d \in \mathbb{R}$, we have:
+		\begin{equation*}
+			\langle
+			\mathcal{C}_{YW} h, d \rangle 
+			= 
+			\mathbb{E}
+			[
+			\langle W_1, h \rangle_\mathbb{H} Y_1  
+			] 	 \,  d
+			%%%%%%%%%%%%%%%%%%
+			=
+			\mathbb{E} \langle   Y_1 W_1 d , \, h\rangle_{\mathbb{H}} 
+			%%%%%%%%%%%%%%%%%%%%%%%%
+			= \langle h, \, \mathbb{E}[Y_1 W_1 d   ]\rangle_{\mathbb{H}}
+			=
+			\langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}
+		\end{equation*}
+		Thus, we have $\langle \mathcal{C}_{YW} h, d \rangle =  \langle h, \mathcal{C}_{WY} d \rangle_{\mathbb{H}}$, which implies $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
+		This completes the proof of Lemma \ref{lemma:cross_cov_operator}.
+	\end{proof}
 	
-	\medskip
-	\noindent
-	\textit{Self-adjoint.}~
-	For any $h_1, h_2 \in \mathbb{H}$, we have
-	\begin{align*}
-		\langle 
-		\mathcal{U} h_1, \, h_2 
-		\rangle_\mathbb{H}  
-		= 
-		\bigl \langle 
-		\langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \Sigma_{YW},
-		\,
-		h_2
-		\bigr \rangle_\mathbb{H}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		&= \langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H}
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		\\&= 
-		\bigl \langle 
-		h_1,
-		\,
-		\langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} \Sigma_{YW} 
-		\bigr \rangle_\mathbb{H}
-		\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathbb{H}.
-	\end{align*}
-	
-	\medskip
-	\noindent
-	\textit{Positive-semidefinite.}~
-	For every $h \in \mathbb{H}$, we have
-	\begin{equation*}
-		\langle 
-		\mathcal{U} h,
-		\,
-		h
-		\rangle_\mathbb{H}
-		=
-		\bigl \langle 
-		\langle 
-		\Sigma_{YW},\, h \rangle_{\mathbb{H}}  \Sigma_{YW}, \, h
-		\bigr \rangle_\mathbb{H}
-		= \langle \Sigma_{YW}, \, h \rangle_\mathbb{H}^2 \ge 0.
-	\end{equation*}
-	
-	\medskip
-	\noindent
-	\textit{Compact.}~
-	By Lemma \ref{lemma:cross_cov_functional}, $\mathcal{C}_{YW}$ is a compact operator.
-	By  Theorem 4.1.3 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
-	the composition of two operators is compact if either operator is compact. Therefore
-	$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}$ is a compact operator.
-	This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
-\end{proof}
-
-	
-\subsection{Proof of Theorem \ref{theorem:population_PLS}}\label{section:proof:theorem:population_PLS}
-\begin{proof}
-	by Theorem 4.3.1 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
-	since $\mathcal{C}_{YW}$ is compact by Lemma \ref{lemma:cross_cov_functional}, it 
-	has the singular value decomposition of $\mathcal{C}_{YW}$, given by:
-\begin{equation*}
-	\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
-\end{equation*}
-Let $\Vert \cdot \Vert_{\mathrm{op}}$ denote an operator norm. By  4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we have
-\begin{equation*}
-	\Vert \mathcal{C}_{YW} \Vert_{\mathrm{op}} = \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | \mathcal{C}_{YW} h |^2 
-	= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | E(\langle W, h \rangle_\mathbb{H} Y)|^2 
-	= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} \textnormal{Cov}^2(\langle W, h \rangle_\mathbb{H}, Y) 
-	= \kappa_1^2,
-\end{equation*}
-with maximum attained at $h=f_{11}$, which is an eigenfunction of  $\mathcal{C}_{YW}^* \, \circ \, \mathcal{C}_{YW} = \mathcal{C}_{WY} \, \circ \, \mathcal{C}_{YW} = \mathcal{U}$ corresponding to the largest eigenvalue $\kappa_1^2.$
-This completes the proof of Theorem \ref{theorem:population_PLS}.
-\end{proof}
-
-
-
-
-
+	\subsection{Proof of Lemma \ref{lemma:composite_cross_cov}}\label{section:proof:lemma:composite_cross_cov}
+	\begin{proof}We show that $\mathcal{U}$ is self-adjoint, positive-semidefinite, and compact, in turn.
+		
+		\medskip
+		\noindent
+		\textit{Self-adjoint.}~
+		For any $h_1, h_2 \in \mathbb{H}$, we have
+		\begin{align*}
+			\langle 
+			\mathcal{U} h_1, \, h_2 
+			\rangle_\mathbb{H}  
+			= 
+			\bigl \langle 
+			\langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \Sigma_{YW},
+			\,
+			h_2
+			\bigr \rangle_\mathbb{H}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			&= \langle h_1, \Sigma_{YW} \rangle_\mathbb{H} \langle \Sigma_{YW}, h_2 \rangle_\mathbb{H}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&= 
+			\bigl \langle 
+			h_1,
+			\,
+			\langle \Sigma_{YW}, h_2 \rangle_\mathbb{H} \Sigma_{YW} 
+			\bigr \rangle_\mathbb{H}
+			\\ 	&= \langle h_1, \mathcal{U} h_2 \rangle_\mathbb{H}.
+		\end{align*}
+		
+		\medskip
+		\noindent
+		\textit{Positive-semidefinite.}~
+		For every $h \in \mathbb{H}$, we have
+		\begin{equation*}
+			\langle 
+			\mathcal{U} h,
+			\,
+			h
+			\rangle_\mathbb{H}
+			=
+			\bigl \langle 
+			\langle 
+			\Sigma_{YW},\, h \rangle_{\mathbb{H}}  \Sigma_{YW}, \, h
+			\bigr \rangle_\mathbb{H}
+			= \langle \Sigma_{YW}, \, h \rangle_\mathbb{H}^2 \ge 0.
+		\end{equation*}
+		
+		\medskip
+		\noindent
+		\textit{Compact.}~
+		By Lemma \ref{lemma:cross_cov_functional}, $\mathcal{C}_{YW}$ is a compact operator.
+		By  Theorem 4.1.3 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+		the composition of two operators is compact if either operator is compact. Therefore
+		$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}$ is a compact operator.
+		This completes the proof of Lemma \ref{lemma:composite_cross_cov}.
+	\end{proof}
 	
 	
-
-
-\begin{comment}
-	\section{Proof of Proposition \ref{proposition:compact_operator}}\label{section:proof:proposition:compact_operator}
-\begin{proof}
-	The brief strategy of the proof is as follows.
-		We   show that an image of a bounded family in $\mathbb{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
-		Then we apply the Arzel\'{a}-Ascoli theorem to show that $\mathcal{U}$ is \textit{compact}.
-
-Let $\mathcal{B}=\{h \in \mathbb{H}: \Vert h \Vert_\mathbb{H}^2 \le M\}$ denote a bounded family in $\mathbb{H}$ for some constant $0 < M < \infty$.
-Clearly, $h=(f, \mathbf{v}) \in \mathcal{B}$ also implies 
-\begin{equation}\label{individual_norm_bound}
-\Vert f_k \Vert_\mathcal{F}^2 \le M,
-~k=1,\ldots,K, \quad\text{and}\quad
-\Vert \mathbf{v} \Vert^2 \le M.
-\end{equation}
-Define $\mathcal{I}  = \{\mathcal{U}h: h \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$.
-
-\medskip
-\noindent
-\textit{Uniform boundedness of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and an evaluation point $\mathbf{t}= (t_1, \ldots, t_k) \in [0,1]^K$, we denote the $\ell_2$ norm of the evaluated object $\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ as follows:
-$\bigl(
-f_1(t_1), \ldots, f_k(t_k), \mathbf{v}
-\bigr)$
-   as follows:
-\begin{equation*}
-	\| h (\mathbf{t}) \|_2^2 := \sum_{k=1}^K f^2_k(t_k) + \| \mathbf{v} \|_2^2.
-\end{equation*}
- %We first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$.
-  Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in [0,1]^K$, 
-  by Lemma \ref{lemma:composite_cross_cov}, we have:
-  \begin{equation}\label{gtsq_expansion}
-\Vert g (\mathbf{t}) \Vert^2_2
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- = \Vert (\mathcal{U}h)(\mathbf{t}) \Vert^2_2 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- \overset{(i)}{=} 
-\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} \, \Sigma_{YW}(\mathbf{t}) \Vert^2_2
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  =
-\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2
-\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2.
-  \end{equation}
-  We will show that $\Vert g (\mathbf{t}) \Vert^2_2 < \infty$ by  showing $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 < \infty$ and $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2 < \infty$ in turn. First, to bound 
-   $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2$, it suffices to bound $\langle \Sigma_{YW}, h \rangle_\mathbb{H}$:
-\begin{align*}
-\langle \Sigma_{YW}, h \rangle_\mathbb{H}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&=
-\sum_{k=1}^K \langle \sigma_{YX, k}, \, f_k \rangle_\mathcal{F}  
-+ 
-\langle \sigma_{YZ}, \, \mathbf{v} \rangle
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&\overset{(i)}{\le}
-\sum_{k=1}^K 
-\langle \sigma_{YX, k}, \sigma_{YX, k} \rangle_\mathcal{F}^{1/2} 
-\langle f_k, f_k \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=
-  \sum \limits_{k=1}^K
-  \biggl(
-  	\int_0^1
-  	\sigma_{YX, k}^{2}(t)\, dt
-  	\biggr)^{1/2} 
-  	\Vert f_k \Vert_\mathcal{F} 
-  	+
-\biggl(
-\sum \limits_{r=1}^p \sigma_{YZ, r}^2
-\biggr)^{1/2}
-\Vert \mathbf{v} \Vert_2
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&\overset{(ii)}{<}
- \sqrt{M}
- \biggl\{
-\sum \limits_{k=1}^K 
- \biggl(
- \int_0^1 Q_1 dt
- \biggr)^{1/2}
- +
- \biggl(
- \sum \limits_{r=1}^p Q_2 
- \biggr)^{\frac{1}{2}} 
- \biggr\}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\ & = K\sqrt{M TQ_1}   + \sqrt{MpQ_2} < \infty.
-\numberthis \label{squared_ip_bound}
-\end{align*}
-where
-step $(i)$ uses Cauchy-Schwarz inequality,
-and
-step $(ii)$ uses the conditions \eqref{condition_for_compact} 
-and \eqref{individual_norm_bound}.
-
-Next, we bound $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  $:
-\begin{align*}
-\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-= %%%%%%%%%%%%%%%%%
-\sum \limits_{k=1}^K
-\sigma_{YX, k}^{2}(t_k)
-+
-\sum \limits_{r=1}^p \sigma^2_{YZ,r}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<
-\sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 
-=  KQ_1 +pQ_2 < \infty.
-\end{align*}
-Therefore, we have
-\begin{equation*}
-	\Vert g (\mathbf{t}) \Vert^2_2 < 
-	 2K^2 M TQ_1   + 2MpQ_2 + KQ_1 +pQ_2< \infty.
-\end{equation*}
-Since this bound does not depend on the evaluation point, we conclude that across all $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I}$, their functional components $s_1(t), \ldots, s_K(t)$ are uniformly bounded.
-
-\medskip
-\noindent
-\textit{Equicontinuity of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and 
-two evaluation points
- $\mathbf{t}=(t_1, \ldots, t_K) \in [0,1]^K$
- and
- $\mathbf{t}^\ast=(t_1^\ast, \ldots, t_K^\ast) \in [0,1]^K$,
-we denote the $\ell_2$ distance between   two evaluations
-$\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ 
-and
-$\bigl( f_1(t^\ast_1), \ldots, f_k(t^\ast_k), \mathbf{v} \bigr)$
-as follows:
-\begin{equation*}
-	\| h (\mathbf{t}) - h (\mathbf{t}^\ast)\|_2^2 
-	:= 
-	\sum_{k=1}^K 
-	\bigl(
-	f_k(t_k) - f_k(t_k^\ast)
-	\bigr)^2 .
-\end{equation*}
-For any $g \in \mathcal{I}$, via similar computation as in \eqref{gtsq_expansion}, we have
-\begin{align*}
-	\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 
-	%%%%%%%%%%%%%%%%%
-	= %%%%%%%%%%%%%%%%%%
-	\Vert 
-	(\mathcal{U}h)(\mathbf{t}) - (\mathcal{U}h)( \mathbf{t}^\ast ) 
-	\Vert_2^2
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&= %%%%%%%%%%%%%%%
-	\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} 
-	\,
-	\Sigma_{YW}(\mathbf{t}) - \langle \Sigma_{YW}, h \rangle_\mathbb{H} \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=
-\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2.
-\end{align*}
-We have already shown in \eqref{squared_ip_bound} that  $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \leq  2K^2 M TQ_1   + 2MpQ_2$.
-Next we bound $\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2$, which do not depend on $h$.
-\begin{align*}
-\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2	
-=%%%%%%%%%%%%%
-   \sum \limits_{k=1}^K  
-   \bigl\{
-   \sigma_{YX, k }(t_k) -\sigma_{YX, k}(t_k^\ast ) 
-   \bigr\}^2 
-& \leq%%%%%%%%%%%%%
-\sum \limits_{k=1}^K  
-\bigl\{
-2\sigma^2_{YX, k }(t_k) + 2\sigma^2_{YX, k}(t_k^\ast ) 
-\bigr\}
-%%%%%%%%%%%%%%%%%%%%%%
-\\& \le 
-4KQ_1.
-\end{align*}
-Therefore we have
-\begin{equation}\label{bound_elltwo_dist}
-	\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 \leq 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1.
-\end{equation}
-Given $\epsilon > 0$, define 
-\begin{equation*}
-	\tilde{\epsilon}: = \frac{\epsilon}{  ( 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1 )^{1/2}}
-\end{equation*}
-By the uniform continuity assumption of $\sigma_{YX, k}$'s, there exists $\delta_k > 0$ such that
-\begin{equation*}
-	|t_k - t_k^\ast| < \delta_k \implies |\sigma_{YX, k}(t_k) - \sigma_{YX, k}(t_k^\ast)|< \tilde{\epsilon},~\text{for all}~k=1, \ldots, K.
-\end{equation*}
-Set $\delta := \min_{k=1, \ldots, K} \delta_k$.Then  by \eqref{bound_elltwo_dist},  
-across  $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I},$ for all $k=1, \ldots, K$, 
-$|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
-
-\medskip
-\noindent
-\textit{Conclusion.}~ For any bounded sequence $\{h_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}h_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a subsequence that converges in its first functional component, by the Arzel\'{a}-Ascoli theorem. We then apply the theorem again to that subsequence to extract a sub-subsequence that also converges in the second functional component. By repeating this process, we ultimately obtain a subsequence of $\{\mathbf{g}_n\}$ that converges in all its components. Therefore, $\mathcal{U}$ is a compact operator.
-\end{proof}
-\end{comment}
- 
+	\subsection{Proof of Theorem \ref{theorem:population_PLS}}\label{section:proof:theorem:population_PLS}
+	\begin{proof}
+		by Theorem 4.3.1 of \citet{hsingTheoreticalFoundationsFunctional2015}, 
+		since $\mathcal{C}_{YW}$ is compact by Lemma \ref{lemma:cross_cov_functional}, it 
+		has the singular value decomposition of $\mathcal{C}_{YW}$, given by:
+		\begin{equation*}
+			\mathcal{C}_{YW} = \sum \limits_{j=1}^\infty \iota_j (f_{1j} \otimes f_{2j}).
+		\end{equation*}
+		Let $\Vert \cdot \Vert_{\mathrm{op}}$ denote an operator norm. By  4.3.4 in \citet{hsingTheoreticalFoundationsFunctional2015}, we have
+		\begin{equation*}
+			\Vert \mathcal{C}_{YW} \Vert_{\mathrm{op}} = \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | \mathcal{C}_{YW} h |^2 
+			= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} | E(\langle W, h \rangle_\mathbb{H} Y)|^2 
+			= \sup_{\substack{h \in \mathbb{H} \\ \Vert h \Vert_\mathbb{H}=1}} \textnormal{Cov}^2(\langle W, h \rangle_\mathbb{H}, Y) 
+			= \kappa_1^2,
+		\end{equation*}
+		with maximum attained at $h=f_{11}$, which is an eigenfunction of  $\mathcal{C}_{YW}^* \, \circ \, \mathcal{C}_{YW} = \mathcal{C}_{WY} \, \circ \, \mathcal{C}_{YW} = \mathcal{U}$ corresponding to the largest eigenvalue $\kappa_1^2.$
+		This completes the proof of Theorem \ref{theorem:population_PLS}.
+	\end{proof}
 	
 	
-
+	
+	
+	
+	
+	
+	
+	
+	\begin{comment}
+		\section{Proof of Proposition \ref{proposition:compact_operator}}\label{section:proof:proposition:compact_operator}
+		\begin{proof}
+			The brief strategy of the proof is as follows.
+			We   show that an image of a bounded family in $\mathbb{H}$ under $\mathcal{U}$ is uniformly bounded and equicontinuous.
+			Then we apply the Arzel\'{a}-Ascoli theorem to show that $\mathcal{U}$ is \textit{compact}.
+			
+			Let $\mathcal{B}=\{h \in \mathbb{H}: \Vert h \Vert_\mathbb{H}^2 \le M\}$ denote a bounded family in $\mathbb{H}$ for some constant $0 < M < \infty$.
+			Clearly, $h=(f, \mathbf{v}) \in \mathcal{B}$ also implies 
+			\begin{equation}\label{individual_norm_bound}
+				\Vert f_k \Vert_\mathcal{F}^2 \le M,
+				~k=1,\ldots,K, \quad\text{and}\quad
+				\Vert \mathbf{v} \Vert^2 \le M.
+			\end{equation}
+			Define $\mathcal{I}  = \{\mathcal{U}h: h \in \mathcal{B}\}$ as the image of  $\mathcal{B}$ under $\mathcal{U}$.
+			
+			\medskip
+			\noindent
+			\textit{Uniform boundedness of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and an evaluation point $\mathbf{t}= (t_1, \ldots, t_k) \in [0,1]^K$, we denote the $\ell_2$ norm of the evaluated object $\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ as follows:
+			$\bigl(
+			f_1(t_1), \ldots, f_k(t_k), \mathbf{v}
+			\bigr)$
+			as follows:
+			\begin{equation*}
+				\| h (\mathbf{t}) \|_2^2 := \sum_{k=1}^K f^2_k(t_k) + \| \mathbf{v} \|_2^2.
+			\end{equation*}
+			%We first show that $\mathcal{I}$ is a family of uniformly bounded functions with respect to arguments on $\mathcal{T}$.
+			Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$. Then for any $g \in \mathcal{I}$ and $\mathbf{t} \in [0,1]^K$, 
+			by Lemma \ref{lemma:composite_cross_cov}, we have:
+			\begin{equation}\label{gtsq_expansion}
+				\Vert g (\mathbf{t}) \Vert^2_2
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				= \Vert (\mathcal{U}h)(\mathbf{t}) \Vert^2_2 
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\overset{(i)}{=} 
+				\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} \, \Sigma_{YW}(\mathbf{t}) \Vert^2_2
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				=
+				\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2
+				\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2.
+			\end{equation}
+			We will show that $\Vert g (\mathbf{t}) \Vert^2_2 < \infty$ by  showing $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 < \infty$ and $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2 < \infty$ in turn. First, to bound 
+			$\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2$, it suffices to bound $\langle \Sigma_{YW}, h \rangle_\mathbb{H}$:
+			\begin{align*}
+				\langle \Sigma_{YW}, h \rangle_\mathbb{H}
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				&=
+				\sum_{k=1}^K \langle \sigma_{YX, k}, \, f_k \rangle_\mathcal{F}  
+				+ 
+				\langle \sigma_{YZ}, \, \mathbf{v} \rangle
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\\&\overset{(i)}{\le}
+				\sum_{k=1}^K 
+				\langle \sigma_{YX, k}, \sigma_{YX, k} \rangle_\mathcal{F}^{1/2} 
+				\langle f_k, f_k \rangle_\mathcal{F}^{1/2} + \langle \sigma_{YZ}, \sigma_{YZ} \rangle^{1/2} \langle \mathbf{v}, \mathbf{v} \rangle^{1/2}
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\\&=
+				\sum \limits_{k=1}^K
+				\biggl(
+				\int_0^1
+				\sigma_{YX, k}^{2}(t)\, dt
+				\biggr)^{1/2} 
+				\Vert f_k \Vert_\mathcal{F} 
+				+
+				\biggl(
+				\sum \limits_{r=1}^p \sigma_{YZ, r}^2
+				\biggr)^{1/2}
+				\Vert \mathbf{v} \Vert_2
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\\&\overset{(ii)}{<}
+				\sqrt{M}
+				\biggl\{
+				\sum \limits_{k=1}^K 
+				\biggl(
+				\int_0^1 Q_1 dt
+				\biggr)^{1/2}
+				+
+				\biggl(
+				\sum \limits_{r=1}^p Q_2 
+				\biggr)^{\frac{1}{2}} 
+				\biggr\}
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\\ & = K\sqrt{M TQ_1}   + \sqrt{MpQ_2} < \infty.
+				\numberthis \label{squared_ip_bound}
+			\end{align*}
+			where
+			step $(i)$ uses Cauchy-Schwarz inequality,
+			and
+			step $(ii)$ uses the conditions \eqref{condition_for_compact} 
+			and \eqref{individual_norm_bound}.
+			
+			Next, we bound $\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  $:
+			\begin{align*}
+				\Vert   \Sigma_{YW}(\mathbf{t}) \Vert^2_2  
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				= %%%%%%%%%%%%%%%%%
+				\sum \limits_{k=1}^K
+				\sigma_{YX, k}^{2}(t_k)
+				+
+				\sum \limits_{r=1}^p \sigma^2_{YZ,r}
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				<
+				\sum \limits_{k=1}^K Q_1 + \sum \limits_{r=1}^p Q_2 
+				=  KQ_1 +pQ_2 < \infty.
+			\end{align*}
+			Therefore, we have
+			\begin{equation*}
+				\Vert g (\mathbf{t}) \Vert^2_2 < 
+				2K^2 M TQ_1   + 2MpQ_2 + KQ_1 +pQ_2< \infty.
+			\end{equation*}
+			Since this bound does not depend on the evaluation point, we conclude that across all $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I}$, their functional components $s_1(t), \ldots, s_K(t)$ are uniformly bounded.
+			
+			\medskip
+			\noindent
+			\textit{Equicontinuity of $\mathcal{I}$.}~Given a hybrid object $h = (f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$ and 
+			two evaluation points
+			$\mathbf{t}=(t_1, \ldots, t_K) \in [0,1]^K$
+			and
+			$\mathbf{t}^\ast=(t_1^\ast, \ldots, t_K^\ast) \in [0,1]^K$,
+			we denote the $\ell_2$ distance between   two evaluations
+			$\bigl( f_1(t_1), \ldots, f_k(t_k), \mathbf{v} \bigr)$ 
+			and
+			$\bigl( f_1(t^\ast_1), \ldots, f_k(t^\ast_k), \mathbf{v} \bigr)$
+			as follows:
+			\begin{equation*}
+				\| h (\mathbf{t}) - h (\mathbf{t}^\ast)\|_2^2 
+				:= 
+				\sum_{k=1}^K 
+				\bigl(
+				f_k(t_k) - f_k(t_k^\ast)
+				\bigr)^2 .
+			\end{equation*}
+			For any $g \in \mathcal{I}$, via similar computation as in \eqref{gtsq_expansion}, we have
+			\begin{align*}
+				\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 
+				%%%%%%%%%%%%%%%%%
+				= %%%%%%%%%%%%%%%%%%
+				\Vert 
+				(\mathcal{U}h)(\mathbf{t}) - (\mathcal{U}h)( \mathbf{t}^\ast ) 
+				\Vert_2^2
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				&= %%%%%%%%%%%%%%%
+				\Vert \langle \Sigma_{YW}, h \rangle_\mathbb{H} 
+				\,
+				\Sigma_{YW}(\mathbf{t}) - \langle \Sigma_{YW}, h \rangle_\mathbb{H} \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2
+				%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+				\\&=
+				\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2.
+			\end{align*}
+			We have already shown in \eqref{squared_ip_bound} that  $\langle \Sigma_{YW}, h \rangle_\mathbb{H}^2 \leq  2K^2 M TQ_1   + 2MpQ_2$.
+			Next we bound $\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2$, which do not depend on $h$.
+			\begin{align*}
+				\Vert \Sigma_{YW}(\mathbf{t})- \Sigma_{YW}( \mathbf{t}^\ast ) \Vert^2_2	
+				=%%%%%%%%%%%%%
+				\sum \limits_{k=1}^K  
+				\bigl\{
+				\sigma_{YX, k }(t_k) -\sigma_{YX, k}(t_k^\ast ) 
+				\bigr\}^2 
+				& \leq%%%%%%%%%%%%%
+				\sum \limits_{k=1}^K  
+				\bigl\{
+				2\sigma^2_{YX, k }(t_k) + 2\sigma^2_{YX, k}(t_k^\ast ) 
+				\bigr\}
+				%%%%%%%%%%%%%%%%%%%%%%
+				\\& \le 
+				4KQ_1.
+			\end{align*}
+			Therefore we have
+			\begin{equation}\label{bound_elltwo_dist}
+				\Vert g(\mathbf{t}) - g ( \mathbf{t}^\ast ) \Vert_2^2 \leq 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1.
+			\end{equation}
+			Given $\epsilon > 0$, define 
+			\begin{equation*}
+				\tilde{\epsilon}: = \frac{\epsilon}{  ( 2K^2 M TQ_1   + 2MpQ_2 + 4KQ_1 )^{1/2}}
+			\end{equation*}
+			By the uniform continuity assumption of $\sigma_{YX, k}$'s, there exists $\delta_k > 0$ such that
+			\begin{equation*}
+				|t_k - t_k^\ast| < \delta_k \implies |\sigma_{YX, k}(t_k) - \sigma_{YX, k}(t_k^\ast)|< \tilde{\epsilon},~\text{for all}~k=1, \ldots, K.
+			\end{equation*}
+			Set $\delta := \min_{k=1, \ldots, K} \delta_k$.Then  by \eqref{bound_elltwo_dist},  
+			across  $g = (s_1(t), \ldots, s_K(t), \mathbf{w}) \in \mathcal{I},$ for all $k=1, \ldots, K$, 
+			$|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
+			
+			\medskip
+			\noindent
+			\textit{Conclusion.}~ For any bounded sequence $\{h_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}h_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a subsequence that converges in its first functional component, by the Arzel\'{a}-Ascoli theorem. We then apply the theorem again to that subsequence to extract a sub-subsequence that also converges in the second functional component. By repeating this process, we ultimately obtain a subsequence of $\{\mathbf{g}_n\}$ that converges in all its components. Therefore, $\mathcal{U}$ is a compact operator.
+		\end{proof}
+	\end{comment}
+	
+	
+	
+	
 	
 	
 	
@@ -2324,9 +2324,9 @@ $|t_k - t^*_k| < \delta$ implies $|s_k(t_k) - s_k(t_k^\ast)| < \epsilon$.
 		step $(i)$ uses \eqref{rough_norm_matrix_form},
 		step $(ii)$ uses the fact that $\hat{\boldsymbol{\xi}}_{l_1}$ is a generalized eigenvector ($\kappa_{l_1}$ denotes the corresponding generalized eigenvalue), as presented in Proposition \ref{proposition:eigen_regul},
 		and step $(iii)$ uses the definition of $V$ matrix given in \eqref{def:V_matrix}.
-Here, $c$ represents a scalar that condenses all multiplicative terms preceding $\mathbf{y}^\top$.
+		Here, $c$ represents a scalar that condenses all multiplicative terms preceding $\mathbf{y}^\top$.
 		
-Orthogonality can be demonstrated by showing that $\Theta^{[l_1] } \mathbb{B} \hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n$.
+		Orthogonality can be demonstrated by showing that $\Theta^{[l_1] } \mathbb{B} \hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n$.
 		From the construction in \eqref{def:full_theta}, \eqref{def:theta} and \eqref{def:gram_block}, the
 		$i$th entry of $\Theta^{[l_1] }
 		\mathbb{B}
@@ -2355,371 +2355,371 @@ Orthogonality can be demonstrated by showing that $\Theta^{[l_1] } \mathbb{B} \h
 			\rangle_{\mathbb{H}},
 			\numberthis \label{thetaBzetal2i}
 		\end{align*}
-where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}. To expand the last quantity, we use a recursive relationship derived as follows. Recall from Lemma  \ref{proposition:closed_form_orthgonalization} that we have
-	\begin{equation}\label{algorithm_step:residualization_predictor:recall}
-	\widetilde{W}_i^{[l_1]} 
-	:= 
-	\widetilde{W}_i^{[l_1-1]}  - 
-	\frac{\widehat{\rho}_{i\,l_1-1}}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-	\sum_{i=1}^n 
-	\widehat{\rho}_{i \,l_1-1}
-	\widetilde{W}_i^{[l_1-1]}.
-\end{equation} 	
-Let us denote, with some abuse of notation:
-\begin{equation}\label{notation:n_predictors}
-	\widetilde{\boldsymbol{W}}^{[l_1]}  := 
-	\bigl(
-\widetilde{W}_1^{[l_1-1]}, \ldots, \widetilde{W}_n^{[l_1-1]}
-	\bigr)^\top \in \widetilde{\mathbb{H}}^{\otimes n},
-\end{equation}
-and
-\begin{equation}\label{notation:n_inner_products}
-	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}}
-	:= 
-	\biggl(
-	\langle 
-	\widetilde{W}_1^{[l_1-1]}, 
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}},
-	\ldots, 
-	\langle 
-	\widetilde{W}_n^{[l_1-1]},  
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}}
-	\biggr)^\top 
-	\in \mathbb{R}^n.
-\end{equation}
-Recalling \eqref{thetaBzetal2i},
-to achieve our goal of showing $
-\Theta^{[l_1] }
-\mathbb{B}
-\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n,
-$
-it suffices to show
-   $	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
-\hat{\xi}^{[l_2]}
-\rangle_{\mathbb{H}} = \mathbf{0}$.
-Using these notations and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
-\begin{equation}\label{regression_relation_with_notation_abuse}
-\widetilde{\boldsymbol{W}}^{[l_1]}  = 
-\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
-\biggl(
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-	\hat{\boldsymbol{\rho}}^{[l_1-1] }
-	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
-	} 
-	\biggr)
-		\widetilde{\boldsymbol{W}}^{[l_1-1]},
-\end{equation}
-and thus
-\begin{equation*}
-\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
-\hat{\xi}^{[l_2]}
-\rangle_{\mathbb{H}}
-  = 
-\langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-\hat{\xi}^{[l_2]}
-\rangle_{\mathbb{H}} 
-- 
-	\biggl(
-	\frac{1
-	}{
-	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
-	}
-		\hat{\boldsymbol{\rho}}^{[l_1-1]}
-	\hat{\boldsymbol{\rho}}^{[l_1-1] \top}
-	\biggr)
-	\bigl \langle 
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-	\hat{\xi}^{[l_2]}
-	\bigr \rangle_{\mathbb{H}}.
-\end{equation*}
-Clearly, the right-hand side represents a linear operator from $\mathbb{R}^n$ to $\mathbb{R}^n$, which we denote as $P^{[l_1-1]}$.
-	Thus, 
-	we have $\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}}  = 
-	P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}}$.
-Repeatedly using this relationship, we have
-	\begin{align*}
-	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}} 
-	&=
-P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-\hat{\xi}^{[l_2]}
-\rangle_{\mathbb{H}} 
-	\\
-		&=
-		P^{[l_1-1]} P^{[l_1-2]}   \langle 	\widetilde{\boldsymbol{W}}^{[l_1-2]}  ,
+		where the last equality uses the computation of the $i$th entry in \eqref{score_inner_product_all_n}. To expand the last quantity, we use a recursive relationship derived as follows. Recall from Lemma  \ref{proposition:closed_form_orthgonalization} that we have
+		\begin{equation}\label{algorithm_step:residualization_predictor:recall}
+			\widetilde{W}_i^{[l_1]} 
+			:= 
+			\widetilde{W}_i^{[l_1-1]}  - 
+			\frac{\widehat{\rho}_{i\,l_1-1}}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			\sum_{i=1}^n 
+			\widehat{\rho}_{i \,l_1-1}
+			\widetilde{W}_i^{[l_1-1]}.
+		\end{equation} 	
+		Let us denote, with some abuse of notation:
+		\begin{equation}\label{notation:n_predictors}
+			\widetilde{\boldsymbol{W}}^{[l_1]}  := 
+			\bigl(
+			\widetilde{W}_1^{[l_1-1]}, \ldots, \widetilde{W}_n^{[l_1-1]}
+			\bigr)^\top \in \widetilde{\mathbb{H}}^{\otimes n},
+		\end{equation}
+		and
+		\begin{equation}\label{notation:n_inner_products}
+			\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}}
+			:= 
+			\biggl(
+			\langle 
+			\widetilde{W}_1^{[l_1-1]}, 
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}},
+			\ldots, 
+			\langle 
+			\widetilde{W}_n^{[l_1-1]},  
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}}
+			\biggr)^\top 
+			\in \mathbb{R}^n.
+		\end{equation}
+		Recalling \eqref{thetaBzetal2i},
+		to achieve our goal of showing $
+		\Theta^{[l_1] }
+		\mathbb{B}
+		\hat{\boldsymbol{\xi}}_{l_2} = \mathbf{0} \in \mathbb{R}^n,
+		$
+		it suffices to show
+		$	\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 		\hat{\xi}^{[l_2]}
-		\rangle_{\mathbb{H}}
-		  \\
-		&= \underbrace{ P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]}}_{:=P}  P^{[l_2]} \langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+		\rangle_{\mathbb{H}} = \mathbf{0}$.
+		Using these notations and  \eqref{algorithm_step:residualization_predictor:recall}, we have, with some abuse of notation,
+		\begin{equation}\label{regression_relation_with_notation_abuse}
+			\widetilde{\boldsymbol{W}}^{[l_1]}  = 
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\biggl(
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			\hat{\boldsymbol{\rho}}^{[l_1-1] }
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+			} 
+			\biggr)
+			\widetilde{\boldsymbol{W}}^{[l_1-1]},
+		\end{equation}
+		and thus
+		\begin{equation*}
+			\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}}
+			= 
+			\langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}} 
+			- 
+			\biggl(
+			\frac{1
+			}{
+				\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+			}
+			\hat{\boldsymbol{\rho}}^{[l_1-1]}
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top}
+			\biggr)
+			\bigl \langle 
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+			\hat{\xi}^{[l_2]}
+			\bigr \rangle_{\mathbb{H}}.
+		\end{equation*}
+		Clearly, the right-hand side represents a linear operator from $\mathbb{R}^n$ to $\mathbb{R}^n$, which we denote as $P^{[l_1-1]}$.
+		Thus, 
+		we have $\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
 		\hat{\xi}^{[l_2]}
-		\rangle_{\mathbb{H}}
-		  \\
-&= P \,\biggl\{
-\langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
-\hat{\xi}^{[l_2]}
-\rangle_{\mathbb{H}} 
-- 
-\biggl(
-\frac{1
-}{
-	\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2
-}
-\hat{\boldsymbol{\rho}}^{[l_2]}
-\hat{\boldsymbol{\rho}}^{[l_2] \top}
-\biggr)
-\bigl \langle 
-\widetilde{\boldsymbol{W}}^{[l_2]}  ,
-\hat{\xi}^{[l_2]}
-\bigr \rangle_{\mathbb{H}}
-\biggr\}
-		  \\
-&= P \,\biggl\{
-\hat{\boldsymbol{\rho}}^{[l_2]}
-- 
-\biggl(
-\frac{1
-}{
-	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
-}
-\hat{\boldsymbol{\rho}}^{[l_2]}
-\hat{\boldsymbol{\rho}}^{[l_2] \top}
-\biggr)
- \hat{\boldsymbol{\rho}}^{[l_2]}
-\biggr\}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&= P \,\biggl\{
-\hat{\boldsymbol{\rho}}^{[l_2]}
-- 
-\biggl(
-\frac{\hat{\boldsymbol{\rho}}^{[l_2] \top} \hat{\boldsymbol{\rho}}^{[l_2]}
-}{
-	\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
-}
-\biggr)
-\hat{\boldsymbol{\rho}}^{[l_2]}
-\biggr\}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&= P \,\biggl\{
-\hat{\boldsymbol{\rho}}^{[l_2]}
-- 
-\hat{\boldsymbol{\rho}}^{[l_2]}
-\biggr\}
-=
-P \mathbf{0} = \mathbf{0}.
-	\end{align*}
-This completes the proof of Proposition 
-	\ref{proposition: modified orthnormality of PLS components}.
+		\rangle_{\mathbb{H}}  = 
+		P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+		\hat{\xi}^{[l_2]}
+		\rangle_{\mathbb{H}}$.
+		Repeatedly using this relationship, we have
+		\begin{align*}
+			\langle 	\widetilde{\boldsymbol{W}}^{[l_1]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}} 
+			&=
+			P^{[l_1-1]} \langle 	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}} 
+			\\
+			&=
+			P^{[l_1-1]} P^{[l_1-2]}   \langle 	\widetilde{\boldsymbol{W}}^{[l_1-2]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}}
+			\\
+			&= \underbrace{ P^{[l_1-1]} P^{[l_1-2]} \ldots P^{[l_2 + 1]}}_{:=P}  P^{[l_2]} \langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}}
+			\\
+			&= P \,\biggl\{
+			\langle 	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+			\hat{\xi}^{[l_2]}
+			\rangle_{\mathbb{H}} 
+			- 
+			\biggl(
+			\frac{1
+			}{
+				\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2
+			}
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\biggr)
+			\bigl \langle 
+			\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+			\hat{\xi}^{[l_2]}
+			\bigr \rangle_{\mathbb{H}}
+			\biggr\}
+			\\
+			&= P \,\biggl\{
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			- 
+			\biggl(
+			\frac{1
+			}{
+				\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+			}
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\biggr)
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			\biggr\}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&= P \,\biggl\{
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			- 
+			\biggl(
+			\frac{\hat{\boldsymbol{\rho}}^{[l_2] \top} \hat{\boldsymbol{\rho}}^{[l_2]}
+			}{
+				\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2
+			}
+			\biggr)
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			\biggr\}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&= P \,\biggl\{
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			- 
+			\hat{\boldsymbol{\rho}}^{[l_2]}
+			\biggr\}
+			=
+			P \mathbf{0} = \mathbf{0}.
+		\end{align*}
+		This completes the proof of Proposition 
+		\ref{proposition: modified orthnormality of PLS components}.
 	\end{proof}
 	\subsection{Proof of Proposition \ref{proposition: orthnormality of PLS scores}}\label{section:proof:proposition: orthnormality of PLS scores}
 	\begin{proof}
-			For $l_1 < l_2$, we have
-\begin{align*}
-\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
-\widehat{\boldsymbol{\rho}}^{[l_2]}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&=  
-\sum_{i=1}^n
-\widehat{ \rho }^{[l_1 ]}_i \,
-\widehat{ \rho }^{[l_2]}_i
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=  
-\sum_{i=1}^n
-\widehat{ \rho }^{[l_1 ]}_i \,
-\bigl \langle 	\widetilde{W}^{[l_2]}_i  ,
-\hat{\xi}^{[l_2]}
-\bigr \rangle_{\mathbb{H}}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=  
-\big \langle
-\sum_{i=1}^n
-\widehat{ \rho }^{[l_1 ]}_i \,
- 	\widetilde{W}^{[l_2]}_i  ,
-\hat{\xi}^{[l_2]}
-\big \rangle_{\mathbb{H}}
-\end{align*}
-Therefore,
-to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
-\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
- it suffices to show that
-$\sum_{i=1}^n
-\widehat{ \rho }^{[l_1 ]}_i \,
-\widetilde{W}^{[l_2]}_i  = 0 \in   \mathbb{H}  $,
-where this   zero element represents an ordered pair of $K$ zero functions and a zero matrix.
-Using Lemma    \ref{proposition:closed_form_orthgonalization}, notations from 
-\eqref{notation:n_predictors} and
-\eqref{notation:n_inner_products},
-and equation \eqref{regression_relation_with_notation_abuse}, we have:
-\begin{align*}
-	\widetilde{\boldsymbol{W}}^{[l_1]}  &= 
-	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
-	\biggl(
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-	\hat{\boldsymbol{\rho}}^{[l_1-1] }
-	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
-	} 
-	\biggr)
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}
-%%%%%%%%%%%%%%%%%%%%%%
-\\&=	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
-\biggl(
-\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-\langle 	
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-	\hat{\xi}^{[l_1-1]}
-\rangle_{\mathbb{H}}
-\hat{\boldsymbol{\rho}}^{[l_1-1] \top
-} 
-\biggr)
-\widetilde{\boldsymbol{W}}^{[l_1-1]}.
-\end{align*}
-Using this relationship and
-with some abuse of notation, we have:
-\begin{align*}
-\sum_{i=1}^n
-\widehat{ \rho }^{[l_1 ]}_i \,
-\widetilde{W}^{[l_2]}_i 
-&=
-		\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1]}
-\\  &=	
+		For $l_1 < l_2$, we have
+		\begin{align*}
+			\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+			\widehat{\boldsymbol{\rho}}^{[l_2]}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			&=  
+			\sum_{i=1}^n
+			\widehat{ \rho }^{[l_1 ]}_i \,
+			\widehat{ \rho }^{[l_2]}_i
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\sum_{i=1}^n
+			\widehat{ \rho }^{[l_1 ]}_i \,
+			\bigl \langle 	\widetilde{W}^{[l_2]}_i  ,
+			\hat{\xi}^{[l_2]}
+			\bigr \rangle_{\mathbb{H}}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=  
+			\big \langle
+			\sum_{i=1}^n
+			\widehat{ \rho }^{[l_1 ]}_i \,
+			\widetilde{W}^{[l_2]}_i  ,
+			\hat{\xi}^{[l_2]}
+			\big \rangle_{\mathbb{H}}
+		\end{align*}
+		Therefore,
+		to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+		\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
+		it suffices to show that
+		$\sum_{i=1}^n
+		\widehat{ \rho }^{[l_1 ]}_i \,
+		\widetilde{W}^{[l_2]}_i  = 0 \in   \mathbb{H}  $,
+		where this   zero element represents an ordered pair of $K$ zero functions and a zero matrix.
+		Using Lemma    \ref{proposition:closed_form_orthgonalization}, notations from 
+		\eqref{notation:n_predictors} and
+		\eqref{notation:n_inner_products},
+		and equation \eqref{regression_relation_with_notation_abuse}, we have:
+		\begin{align*}
+			\widetilde{\boldsymbol{W}}^{[l_1]}  &= 
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\biggl(
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			\hat{\boldsymbol{\rho}}^{[l_1-1] }
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+			} 
+			\biggr)
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}
+			%%%%%%%%%%%%%%%%%%%%%%
+			\\&=	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\biggl(
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			\langle 	
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+			\hat{\xi}^{[l_1-1]}
+			\rangle_{\mathbb{H}}
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+			} 
+			\biggr)
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}.
+		\end{align*}
+		Using this relationship and
+		with some abuse of notation, we have:
+		\begin{align*}
+			\sum_{i=1}^n
+			\widehat{ \rho }^{[l_1 ]}_i \,
+			\widetilde{W}^{[l_2]}_i 
+			&=
 			\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\widetilde{\boldsymbol{W}}^{[l_1]}
+			\\  &=	
 			\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\biggl(
-	\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-	\langle 	
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-	\hat{\xi}^{[l_1-1]}
-	\rangle_{\mathbb{H}}
-	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
-	} 
-	\biggr)
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}
-\\	&=	
-	\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
-	\frac{
-		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
-	\hat{\xi}^{[l_1-1]}
-	\rangle_{\mathbb{H}}
-	}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
-%%%%%%%%%%%%%%%%%%%%%%%%%
-	\bigl(
-	\hat{\boldsymbol{\rho}}^{[l_1-1] \top
-	} 
-	\widetilde{\boldsymbol{W}}^{[l_1-1]}
-	\bigr)
-\\	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)~(\text{say}).
-\end{align*}
-Here, the function $h^{[l_1-1]}: \tilde{ \mathbb{H} } \mapsto \widetilde{\mathbb{H}}$ maps the zero element of $\widetilde{\mathbb{H}}$ to itself, where the zero element represents an ordered pair of $K$ zero functions and a zero matrix. Using this relationship, we have
-\begin{align*}
-	\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1]}  
-%%%%%%%%%%%%%%%%
-	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)
-%%%%%%%%%%%%%%%%
-\\&=
-h^{[l_1-1]} 
-\circ 
-h^{[l_1-2]}
-\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_1-2]} \bigr)
-%%%%%%%%%%%%%%%%
-\\&=
-h^{[l_1-1]} 
-\circ 
-h^{[l_1-2]}
-\circ 
-\ldots
-\circ 
-h^{[l_2]}
-\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} \bigr).
-\end{align*}
-Therefore,
-to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
-\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
- it suffices to show $h^{[l_2]}
-\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} \bigr) = 0$:
-%
-\begin{align*}
-h^{[l_2]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} \bigr)
-&=
-		\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\widetilde{\boldsymbol{W}}^{[l_2]} - 
-	\frac{
-		\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
-		\widetilde{\boldsymbol{W}}^{[l_2]}  ,
-		\hat{\xi}^{[l_2]}
-		\rangle_{\mathbb{H}}
-	}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
-	%%%%%%%%%%%%%%%%%%%%%%%%%
-	\bigl(
-	\hat{\boldsymbol{\rho}}^{[l_2] \top
-	} 
-	\widetilde{\boldsymbol{W}}^{[l_2]}
-	\bigr)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=
-\hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} - 
-\frac{
-		\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\langle 	 
-	\widetilde{\boldsymbol{W}}^{[l_2]}  ,
-	\hat{\xi}^{[l_2]}
-	\rangle_{\mathbb{H}}
-}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
-% 
-\bigl(
-\hat{\boldsymbol{\rho}}^{[l_2] \top
-} 
-\widetilde{\boldsymbol{W}}^{[l_2]}
-\bigr)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=
-\hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} - 
-\frac{
-	\hat{\boldsymbol{\rho}}^{[l_2] \top}
-	\hat{\boldsymbol{\rho}}^{[l_2]  } 
-}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
-% 
-\bigl(
-\hat{\boldsymbol{\rho}}^{[l_2] \top
-} 
-\widetilde{\boldsymbol{W}}^{[l_2]}
-\bigr)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\&=
-\hat{\boldsymbol{\rho}}^{[l_2] \top}
-\widetilde{\boldsymbol{W}}^{[l_2]} 
-- 
-\hat{\boldsymbol{\rho}}^{[l_2] \top
-} 
-\widetilde{\boldsymbol{W}}^{[l_2]}
-\\&=0.
-\end{align*}
-This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\biggl(
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			\langle 	
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+			\hat{\xi}^{[l_1-1]}
+			\rangle_{\mathbb{H}}
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+			} 
+			\biggr)
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}
+			\\	&=	
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} - 
+			\frac{
+				\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+				\widetilde{\boldsymbol{W}}^{[l_1-1]}  ,
+				\hat{\xi}^{[l_1-1]}
+				\rangle_{\mathbb{H}}
+			}{\| 	\hat{\boldsymbol{\rho}}^{[l_1-1]}\|_2^2}
+			%%%%%%%%%%%%%%%%%%%%%%%%%
+			\bigl(
+			\hat{\boldsymbol{\rho}}^{[l_1-1] \top
+			} 
+			\widetilde{\boldsymbol{W}}^{[l_1-1]}
+			\bigr)
+			\\	&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)~(\text{say}).
+		\end{align*}
+		Here, the function $h^{[l_1-1]}: \tilde{ \mathbb{H} } \mapsto \widetilde{\mathbb{H}}$ maps the zero element of $\widetilde{\mathbb{H}}$ to itself, where the zero element represents an ordered pair of $K$ zero functions and a zero matrix. Using this relationship, we have
+		\begin{align*}
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_1]}  
+			%%%%%%%%%%%%%%%%
+			&=	h^{[l_1-1]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_1-1]} \bigr)
+			%%%%%%%%%%%%%%%%
+			\\&=
+			h^{[l_1-1]} 
+			\circ 
+			h^{[l_1-2]}
+			\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_1-2]} \bigr)
+			%%%%%%%%%%%%%%%%
+			\\&=
+			h^{[l_1-1]} 
+			\circ 
+			h^{[l_1-2]}
+			\circ 
+			\ldots
+			\circ 
+			h^{[l_2]}
+			\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} \bigr).
+		\end{align*}
+		Therefore,
+		to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
+		\widehat{\boldsymbol{\rho}}^{[l_2]} = 0$,
+		it suffices to show $h^{[l_2]}
+		\bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+		\widetilde{\boldsymbol{W}}^{[l_2]} \bigr) = 0$:
+		%
+		\begin{align*}
+			h^{[l_2]} \bigl( \hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} \bigr)
+			&=
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} - 
+			\frac{
+				\langle 	 	\hat{\boldsymbol{\rho}}^{[l_2] \top}
+				\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+				\hat{\xi}^{[l_2]}
+				\rangle_{\mathbb{H}}
+			}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+			%%%%%%%%%%%%%%%%%%%%%%%%%
+			\bigl(
+			\hat{\boldsymbol{\rho}}^{[l_2] \top
+			} 
+			\widetilde{\boldsymbol{W}}^{[l_2]}
+			\bigr)
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} - 
+			\frac{
+				\hat{\boldsymbol{\rho}}^{[l_2] \top}
+				\langle 	 
+				\widetilde{\boldsymbol{W}}^{[l_2]}  ,
+				\hat{\xi}^{[l_2]}
+				\rangle_{\mathbb{H}}
+			}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+			% 
+			\bigl(
+			\hat{\boldsymbol{\rho}}^{[l_2] \top
+			} 
+			\widetilde{\boldsymbol{W}}^{[l_2]}
+			\bigr)
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} - 
+			\frac{
+				\hat{\boldsymbol{\rho}}^{[l_2] \top}
+				\hat{\boldsymbol{\rho}}^{[l_2]  } 
+			}{\| 	\hat{\boldsymbol{\rho}}^{[l_2]}\|_2^2}
+			% 
+			\bigl(
+			\hat{\boldsymbol{\rho}}^{[l_2] \top
+			} 
+			\widetilde{\boldsymbol{W}}^{[l_2]}
+			\bigr)
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\hat{\boldsymbol{\rho}}^{[l_2] \top}
+			\widetilde{\boldsymbol{W}}^{[l_2]} 
+			- 
+			\hat{\boldsymbol{\rho}}^{[l_2] \top
+			} 
+			\widetilde{\boldsymbol{W}}^{[l_2]}
+			\\&=0.
+		\end{align*}
+		This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
 	\end{proof}
- 
 	
 	
- 
+	
+	
 	
 	
 \end{document}
