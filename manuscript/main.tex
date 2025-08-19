@@ -73,7 +73,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand{\jongmin}[1]{
-	{ \color{teal} \textit{(JM: #1)}}
+	{ \color{teal} \textit{(JM:) #1}}
 }
 
 
@@ -185,7 +185,7 @@
 	
 	
 	\section{Background on partial least squares and its extension to hybrid predictors}  
-	\jongmin{I replaced the formal presentation of the naive algorithm with an   the scalar version and a brief outline of the pointwise hybrid  extension strategy. The main reason for this revision is that the hybrid inner product is introduced specifically to address the extension challenge, so it is more natural to present it after listing the challenges. Previously, the naive algorithm section relied on the hybrid inner product for normalization.}
+	\jongmin{comment: I replaced the formal presentation of the naive algorithm with an   the scalar version and a brief outline of the pointwise hybrid  extension strategy. The main reason for this revision is that the hybrid inner product is introduced specifically to address the extension challenge, so it is more natural to present it after listing the challenges. Previously, the naive algorithm section relied on the hybrid inner product for normalization.}
 	For intuition, let us return to the high-dimensional Euclidean predictor setting $
 	Y_i =  \boldsymbol{\beta}^\top \mathbf{Z}_i + \epsilon_i$.
 	A common way to address ill-posedness and correlation is to approximate the high-dimensional vector $\mathbf{Z}_i$ using a low-dimensional vector $
@@ -283,7 +283,7 @@
 	
 	\section{Proposed PLS Algorithm} \label{section:main:our_algorithm}
 	Our new framework builds on the fact that all computations in Algorithm \ref{alg:scalar_pls} are arithmetic operations in an inner product space. We therefore formally define the Hilbert space of hybrid random predictors along with its corresponding complete inner product, and leverage them to extend Algorithm \ref{alg:scalar_pls}.
-	\jongmin{I split the definition into three parts, adding completeness, separability, and the sigma-field.}
+	\jongmin{comment: I split the definition into three parts, adding completeness, separability, and the sigma-field.}
 	\begin{definition}[Hybrid space]\label{def:hilbert_space}
 		Let $\mathbb{H}$ be a product space defined as the Cartesian product of $K$ copies of the space of square-integrable functions on $[0,1]$ and the $p$-dimensional Euclidean space:
 		$$
@@ -524,7 +524,9 @@
 	\medskip
 	\noindent
 	\textit{Proposed regularized estimation procedure.}~ \label{sec: Regularization of PLS Components}
-	Although Proposition \ref{proposition:eigen_noregul} efficiently estimates the PLS component direction $\hat{\xi} = (\hat{\xi}_1, \ldots, \hat{\xi}_K, \hat{\boldsymbol{\zeta}})$, the functional components $\hat{\xi}_1, \ldots, \hat{\xi}_K$ may not be smooth, potentially leading to overfitting and unstable predictions. To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
+Although Proposition \ref{proposition:eigen_noregul} offers an efficient way to estimate the PLS component direction $\hat{\xi}$, its functional components, $\hat{\xi}_1, \ldots, \hat{\xi}_K$, may not be smooth. \jongmin{added: Since  the final regression coefficient $\hat{\beta}$ is constructed as a linear combination of these directions (Section \ref{section:sub:regression_coeff}),
+this can lead to a non-smooth $\hat{\beta}$} which complicates interpretation and can lead to overfitting and unstable predictions. 
+	To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
 	\begin{equation}\label{def:roughness_penalty}
 		\operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
 		.
@@ -672,7 +674,7 @@
 	we employ a basis expansion approach to fit the entire hybrid object in one step.
 	Therefore, our method is computationally efficient, and applicable for dense or irregular functional data.
 	Consequently, $\delta^{[l]}$ is obtained by minimizing a  
-	least squares criterion: \jongmin{I removed the penalization because it makes proving the orthonormality of the PLS components in Proposition \ref{proposition: modified orthnormality of PLS components} impossible.}
+	least squares criterion: \jongmin{comment: I removed the penalization because it makes proving the orthonormality of the PLS components in Proposition \ref{proposition: modified orthnormality of PLS components} impossible. Smoothness of $\beta$ seems to soley rely on the smoothness of $\xi$. See Section \ref{section:sub:regression_coeff}.}
 	\begin{equation}\label{def:argmin_pensse}
 		\hat{\delta}^{[l]} := \arg \min_{\delta \in \widetilde{\mathbb{H}}} \sum_{i=1}^n 
 		\| \widetilde{W}_i^{[l]} - \hat{\rho}_i^{[l]}\, \delta\|_{\mathbb{H}}^2.
@@ -683,7 +685,7 @@
 		\hat{\nu}^{[l]}   	\widehat{\rho}_i^{[l]} + \epsilon_i.
 	\end{equation*}
 	The following proposition demonstrates that this residualization step can be performed simply, analogous to scalar PLS.
-	\begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}
+	\begin{lemma}[Closed-form  solution]\label{proposition:closed_form_orthgonalization}\jongmin{Previously stated as "we can show".}
 		Let us denote
 		$
 		\hat{\boldsymbol{\rho}}^{[l]} := (\hat{\rho}^{[l]}_1, \ldots, \hat{\rho}^{[l]}_n)^\top.
@@ -761,9 +763,12 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 	\end{equation*}
 	which, given the uniqueness of $ \beta $, leads to
 	\begin{equation*}
-		\widehat{ \beta} = \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \iota }^{[l]}.
+		\widehat{ \beta} = \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \iota }^{[l]}
+		=\jongmin{added:}
+	 \sum_{l=1}^L \left( \widehat{\nu}^{[l]} - \sum_{k=l+1}^L \widehat{\nu}^{[k]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[k]} \rangle_{\mathbb{H}} \right) \widehat{\xi}^{[l]}.
 	\end{equation*}
-	Here, the number of PLS components $L$ to be estimated can be chosen by cross-validation.
+	\jongmin{added: Note that if $L$ is too large, $\widehat{ \beta}$ can be wiggly even if $\widehat{\xi}^{[l]}$'s are smooth.}
+	Thus the number of PLS components $L$ to be estimated can be chosen by cross-validation.
 	
 	\begin{algorithm} 
 		\caption{Hybrid partial least squares regression}\label{alg:hybrid_pls}
