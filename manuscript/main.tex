@@ -770,7 +770,7 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 		\begin{algorithmic}[1]
 			\State 	\textbf{Initialize:} $(\mathbb{B}, \mathbb{B}^{\prime\prime}, \Theta^{[1]}, \mathbf{y}^{[1]})$ as the data objects after basis expansion, following Section \ref{sec: finite basis approximation}.
 			
-			\State Standardize  $\widetilde{W}_1^{[1]}, \ldots, \widetilde{W}_n^{[1]}$ and $Y_1^{[1]}, \ldots, Y_n^{[1]}$, following Section \ref{subsec: Data Preprocessing}
+			\State   $\widetilde{W}_1^{[1]}, \ldots, \widetilde{W}_n^{[1]}, Y_1^{[1]}, \ldots, Y_n^{[1]} \leftarrow$ standardized versions of $W_1, \ldots, W_n, Y_1, \ldots, Y_n$, following Section \ref{subsec: Data Preprocessing}
 			\For{$l = 1, 2, \ldots, L$}
 			\\
 			\textbf{PLS direction and score estimation  (Proposition \ref{proposition:linear_regul}): }
@@ -1258,8 +1258,7 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 	\item Appendix \ref{section:proof:lemma:hybrid_hilbert_space} proves that our defined product space is a separable Hilbert space.
 	\item Appendix \ref{section:proof:section:sub:iterative}  provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
 	\item Appendix \ref{section:proof:section:sub:tucker} provides proof of Theorem \ref{theorem:population_PLS}, 
-	demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
-	proofs of the intermediate lemmas that support the main theorem.
+	demonstrating that the population-level version of the optimization problem solved at each step is well-defined.
 \end{itemize}
 \section{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
 \begin{proof}
@@ -1272,10 +1271,6 @@ Therefore $\mathbb{H} = \bigl( \mathbb{L}^2[0,1] \bigr)^K \times \mathbb{R}^p$ i
 \end{proof}
 	\section{Proof of Section \ref{section:sub:iterative}}\label{section:proof:section:sub:iterative}
 	
-\section{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
-\begin{proof}
-	content...
-\end{proof}
 
 
 This section provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
@@ -1920,6 +1915,58 @@ Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:p
 	}{
 		\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
 	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
+	
+\section{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
+\begin{proof}We prove the lemma using mathematical induction.
+
+\medskip
+\noindent
+\textit{Base case ($l=1$).}~
+		For $l=1$, the lemma states $\widehat{\rho}_i^{[1]} = \langle W_i, \widehat{\iota}^{[1]} \rangle_{\mathbb{H}}$. Since  $\widehat{\iota}^{[1]} := \widehat{\xi}^{[1]}$ and $W^{[1]}_i = W_i$, the base case holds.
+
+\medskip
+\noindent
+\textit{Inductive steps.}~		
+Assume   $\widehat{\rho}_i^{[u]} = \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}$ for $u =1 , \ldots, l$. We want to show that $\widehat{\rho}_i^{[l+1]} = \langle W_i, \widehat{\iota}^{[l+1]} \rangle_{\mathbb{H}}$.
+Recall from  \eqref{def:plsscore} and Lemma \ref{proposition:closed_form_orthgonalization} that we have
+\begin{equation}
+ \widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l+1]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}},
+ \quad
+ \widetilde{W}_i^{[l+1]} = \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}
+\end{equation}
+Combining these two, we have
+\begin{equation}\label{rholp1}
+\widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
+=
+\langle \widetilde{W}_i^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}.
+\end{equation}
+Next,
+ we can express $\widetilde{W}_i^{[l]}$ in terms of the original predictor $W_i$ by recursively applying  Lemma \ref{proposition:closed_form_orthgonalization}:
+		$$ \widetilde{W}_i^{[l]} = \widetilde{W}_i^{[l-1]} - \widehat{\rho}_i^{[l-1]} \widehat{\delta}^{[l-1]} = \ldots = W_i - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \widehat{\delta}^{[u]} $$
+	Substituting this into our equation \eqref{rholp1}, we have:
+\begin{align*}
+\widehat{\rho}_i^{[l+1]} 
+&= \left\langle W_i - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \right\rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
+\\&=
+ \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+ \\&=
+ \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+ \\& \overset{(i)}{=}
+    \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}
+%%%%%%%%%%%%%%%%%%%%%%%%
+\\& = 
+\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+-
+\left\langle W_i,   \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
+%%%%%%%%%%%%%%%%%%%%%%%%
+\\& = 
+\left\langle W_i, \widehat{\xi}^{[l+1]} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
+\\&= \widehat{\rho}_i^{[l+1]}.
+\end{align*}
+where step $(i)$ uses the inductive hypothesis $\langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}} = \widehat{\rho}_i^{[u]}$ for all $u \leq l$.
+		By the principle of mathematical induction, the lemma holds for all $l \ge 1$. This completes the proof of Lemma \ref{lemma:recursive}.
+\end{proof}
+
 	\section{Proof of Section \ref{section:sub:tucker}}\label{section:proof:section:sub:tucker}
 	This section provides proof of Theorem \ref{theorem:population_PLS}, 
 demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
