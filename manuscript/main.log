@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  16 AUG 2025 19:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  18 AUG 2025 17:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -592,13 +592,9 @@ put line 215.
 [2]
 
 [3]
-
-LaTeX Warning: Reference `section:proof:lemma:hybrid_hilbert_space' on page 4 u
-ndefined on input line 306.
-
 LaTeX Font Info:    Trying to load font information for U+euf on input line 311
 .
-(c:/texlive/2025/texmf-dist/tex/latex/amsfonts/ueuf.fd
+ (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/ueuf.fd
 File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
 )
 Overfull \hbox (18.01924pt too wide) detected at line 352
@@ -633,7 +629,7 @@ L/cmm/m/it/10.95 ;  [][] \OT1/cmr/m/n/10.95 := (\OML/cmm/m/it/10.95 ^^Y[]; [] ;
 [6]
 
 [7]
-Overfull \hbox (8.55116pt too wide) in paragraph at lines 580--589
+Overfull \hbox (8.55116pt too wide) in paragraph at lines 582--591
 [][][]\T1/ptm/m/sc/11 Proposition \T1/ptm/m/n/11 3.5 (Reg-u-lar-ized es-ti-ma-t
 ion of PLS com-po-nent di-rec-tion)\T1/ptm/m/sc/11 . []\T1/ptm/m/it/11 Let $\OT
 1/cmr/m/n/10.95 (\U/msb/m/n/11 B\OML/cmm/m/it/10.95 ; \U/msb/m/n/11 B[]\OML/cmm
@@ -650,19 +646,19 @@ ion of PLS com-po-nent di-rec-tion)\T1/ptm/m/sc/11 . []\T1/ptm/m/it/11 Let $\OT
 [10]
 
 [11]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 948
+
+[12]
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 963
 .
  (c:/texlive/2025/texmf-dist/tex/latex/bbm-macros/ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
 )
 
 LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 948.
+(Font)              size <5> substituted on input line 963.
 
 
-
-[12]
-Overfull \hbox (43.52954pt too wide) detected at line 981
+Overfull \hbox (43.52954pt too wide) detected at line 996
 [] \OML/cmm/m/it/10.95 p\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 X \OMS/cmsy/m/n
 /10.95 j \OT1/cmr/bx/n/10.95 M\OML/cmm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 R\OML/c
 mm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 C\OT1/cmr/m/n/10.95 ) = \OMS/cmsy/m/n/10.95
@@ -671,28 +667,28 @@ cmsy/m/n/10.95 ^^@ [] [] j\OT1/cmr/bx/n/10.95 C\OMS/cmsy/m/n/10.95 j ^^@ [] []
 j\OT1/cmr/bx/n/10.95 R\OMS/cmsy/m/n/10.95 j ^^@ [][] [] \OML/cmm/m/it/10.95 :
  []
 
-<image/cor_strong.pdf, id=451, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=463, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 997.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 1012.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/cor_weak.pdf, id=452, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=464, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 1004.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 1019.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/graph_strong.pdf, id=453, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=465, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 1013.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 1028.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
-<image/graph_weak.pdf, id=454, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=466, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 1020.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 1035.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
-047.
+062.
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
@@ -701,7 +697,7 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 
 [14 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
-Overfull \hbox (53.07956pt too wide) detected at line 1075
+Overfull \hbox (53.07956pt too wide) detected at line 1090
 \OML/cmm/m/it/10.95 X[]\OT1/cmr/m/n/10.95 (0) = 0\OML/cmm/m/it/10.95 ;  X[]\OT1
 /cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) = \OML/cmm/m/it/10.95
  ^^ZX[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t \OMS/cmsy/m/n/10.95 ^^@ \OT1/c
@@ -712,39 +708,39 @@ r/m/n/10.95 (0\OML/cmm/m/it/10.95 ; ^^[[]\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.9
  ; \OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 :
  []
 
-<image/graph.png, id=496, 447.3513pt x 447.3513pt>
+<image/graph.png, id=509, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 1106.
+Package pdftex.def Info: image/graph.png  used on input line 1121.
 (pdftex.def)             Requested size: 162.39752pt x 162.39789pt.
 
 
 [15]
 
-LaTeX Warning: Reference `table ' on page 16 undefined on input line 1137.
+LaTeX Warning: Reference `table ' on page 16 undefined on input line 1152.
 
-<Screenshot 2025-02-25 125839.png, id=508, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=520, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
-140.
+155.
 (pdftex.def)             Requested size: 365.39752pt x 153.62358pt.
 
 
-[16 <./image/graph.png>] (./main.bbl
+[16 <./image/graph.png>]
 
-[17 <./Screenshot 2025-02-25 125839.png>])
+[17 <./Screenshot 2025-02-25 125839.png>] (./main.bbl
 
-[18]
+[18])
 
 [19]
 
-LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 20 undefined on
- input line 1494.
-
-
-
 [20]
+
+LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 21 undefined on
+ input line 1518.
+
+
 
 [21]
 
@@ -758,7 +754,9 @@ LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 20 undefined on
 
 [26]
 
-[27] (./main.aux)
+[27]
+
+[28] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
@@ -775,16 +773,16 @@ LaTeX Warning: There were undefined references.
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A6C27448AD855EAFD424AD53ACDEB016;6324.
+(rerunfilecheck)             Checksum: 0EF03C078A4D95D051CD41F9B2EBFBD1;6690.
  ) 
 Here is how much of TeX's memory you used:
- 14702 strings out of 469626
- 229733 string characters out of 5475183
- 629953 words of memory out of 5000000
- 41118 multiletter control sequences out of 15000+600000
+ 14712 strings out of 469626
+ 229911 string characters out of 5475183
+ 631225 words of memory out of 5000000
+ 41124 multiletter control sequences out of 15000+600000
  699045 words of font info for 137 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,20n,79p,1040b,607s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,20n,79p,1040b,635s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <c:/Users/jongmin/.texlive2025/texmf-var/fonts/pk/ljfour/public/bbm/bbm10.65
 7pk><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/t
 exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/202
@@ -813,10 +811,10 @@ s/symbols/msbm5.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/sym
 bols/msbm7.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:
 /texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texm
 f-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (27 pages, 1007484 bytes).
+Output written on main.pdf (28 pages, 1010259 bytes).
 PDF statistics:
- 835 PDF objects out of 1000 (max. 8388607)
- 713 compressed objects within 8 object streams
- 160 named destinations out of 1000 (max. 500000)
- 295 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 864 PDF objects out of 1000 (max. 8388607)
+ 740 compressed objects within 8 object streams
+ 164 named destinations out of 1000 (max. 500000)
+ 311 words of extra memory for PDF output out of 10000 (max. 10000000)
 

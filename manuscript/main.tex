@@ -441,8 +441,10 @@
 	\widetilde{X}_{i1}(t), \ldots, \widetilde{X}_{iK}(t),  \omega^{1/2} \mathbf{Z}_i
 	\bigr)$, whose vector part has been scaled by a factor of $\omega^{1/2}$.
 	
-	\subsection{Iterative steps}
-	The iterative process presented here yields an orthonormal hybrid basis that effectively captures the predictor-response relationships. It proceeds through two intermediate steps: the estimation of the PLS component direction (Section \ref{section:sub:compute_PLS_component}) and residualization (Section \ref{section:sub:residualization}). The properties of the resulting estimates are introduced in Section \ref{section:main:properties_of_our_method}.
+	\subsection{Iterative steps}\label{section:sub:iterative}
+	The iterative process presented here yields an orthonormal hybrid basis that effectively captures the predictor-response relationships. It proceeds through two intermediate steps: the estimation of the PLS component direction (Section \ref{section:sub:compute_PLS_component}) and residualization (Section \ref{section:sub:residualization}). 
+	The proofs are deferred to Appendix \ref{section:proof:section:sub:iterative}.
+	The properties of the resulting estimates are introduced in Section \ref{section:main:properties_of_our_method}.
 	\subsubsection{Iterative step 1: regularized estimation of  PLS component direction}  \label{section:sub:compute_PLS_component} 
 	We begin by formally introducing the core optimization problem pertinent to the PLS direction estimation, which is formulated as a generalized Rayleigh quotient (Proposition \ref{proposition:eigen_noregul}). Building upon this foundational concept, we present our regularized PLS component direction estimation step that promotes smoothness (Proposition \ref{proposition:eigen_regul}). Furthermore,  we detail an efficient computational scheme (Proposition \ref{proposition:linear_regul}).
 	
@@ -724,16 +726,29 @@
 	
 	\subsection{Final step: estimating  the hybrid regression coefficient}
 	\label{section:sub:regression_coeff}
-	The hybrid regression coefficient $\beta$ in model \eqref{eq: Hybrid functional model} can be written in terms of the estimated PLS directions and scores. First, note that we can show $
+	The hybrid regression coefficient $\beta$ in model \eqref{eq: Hybrid functional model} can be written 
+	as a linear combination of PLS directions:
+\begin{lemma}\label{lemma:recursive}
+Let use define
+$
+\widehat{\iota}^{[1]} := \widehat{\xi}^{[1]}.
+$
+For $l \ge 2$, we recursively   define:
+\begin{equation*}
+	\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}. 
+\end{equation*}
+Then we have:
+\begin{equation*}
 	\widehat{\rho}_i^{[l]}
 	=
 	\langle  W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H}
 	=
-	\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}
-	$, where 
-	$\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}$ for $l \ge 2$, with $
-	\widehat{\iota}^{[1]} = \widehat{\xi}^{[1]}
-	$. Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
+	\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}.
+\end{equation*}
+	\end{lemma}
+Proof of Lemma \ref{lemma:recursive} is provided in Appendix \ref{section:proof:lemma:recursive}.
+
+Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
 	\begin{equation*}
 		Y_i = \sum \limits_{l=1}^L \widehat{\nu}^{[l]} \widehat{\rho}_i^{[l]} + \epsilon_i.
 	\end{equation*}
@@ -1239,14 +1254,23 @@
 	\appendix
 	
 	\section{Overview of Appendix}
-	
-	\section{Notations}
-	\begin{itemize}
-		\item aaa
-	\end{itemize}
-	
-	
-	
+\begin{itemize}
+	\item Appendix \ref{section:proof:lemma:hybrid_hilbert_space} proves that our defined product space is a separable Hilbert space.
+	\item Appendix \ref{section:proof:section:sub:iterative}  provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
+\end{itemize}
+\section{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
+\begin{proof}
+	Both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are Hilbert spaces, with their inner products, norms, and metrics corresponding to the terms defined in equation \eqref{eq: hybrid inner product}. A finite Cartesian product of Hilbert spaces, equipped with an $\ell_2$ norm of the component metrics (which is our metric), is also a Hilbert space.
+	Furthermore, both of 	 $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are separable.
+	For $\mathbb{L}^2[0,1]$, the set of all polynomials with rational coefficients is a countable and dense subset.
+	For $\mathbb{R}^p$,  the set of all vectors with rational components forms a countable and dense subset.
+A finite Cartesian product of separable spaces is also separable.
+Therefore $\mathbb{H} = \bigl( \mathbb{L}^2[0,1] \bigr)^K \times \mathbb{R}^p$ is separable.
+\end{proof}
+	\section{Proof of Section \ref{section:sub:iterative}}\label{section:proof:section:sub:iterative}
+This section provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
+Appendices \ref{section:proof:proposition:linear_regul_system_unregularized} and \ref{section:proof:proposition:eigen_regul} derive the eigenproblem formulations for unregularized and regularized PLS direction estimation, respectively.
+Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:proposition:closed_form_orthgonalization} provide proofs for the simple computation schemes for regularized PLS direction estimation and residualization, respectively.	
 	\subsection{Proof of Proposition \ref{proposition:eigen_noregul}  }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
 		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
@@ -2716,7 +2740,8 @@
 		\end{align*}
 		This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
 	\end{proof}
-	
+
+\subsection{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
 	
 	
 	
