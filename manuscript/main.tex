@@ -1257,6 +1257,9 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 \begin{itemize}
 	\item Appendix \ref{section:proof:lemma:hybrid_hilbert_space} proves that our defined product space is a separable Hilbert space.
 	\item Appendix \ref{section:proof:section:sub:iterative}  provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
+	\item Appendix \ref{section:proof:section:sub:tucker} provides proof of Theorem \ref{theorem:population_PLS}, 
+	demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
+	proofs of the intermediate lemmas that support the main theorem.
 \end{itemize}
 \section{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
 \begin{proof}
@@ -1268,6 +1271,13 @@ A finite Cartesian product of separable spaces is also separable.
 Therefore $\mathbb{H} = \bigl( \mathbb{L}^2[0,1] \bigr)^K \times \mathbb{R}^p$ is separable.
 \end{proof}
 	\section{Proof of Section \ref{section:sub:iterative}}\label{section:proof:section:sub:iterative}
+	
+\section{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
+\begin{proof}
+	content...
+\end{proof}
+
+
 This section provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
 Appendices \ref{section:proof:proposition:linear_regul_system_unregularized} and \ref{section:proof:proposition:eigen_regul} derive the eigenproblem formulations for unregularized and regularized PLS direction estimation, respectively.
 Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:proposition:closed_form_orthgonalization} provide proofs for the simple computation schemes for regularized PLS direction estimation and residualization, respectively.	
@@ -1910,8 +1920,10 @@ Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:p
 	}{
 		\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
 	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
-	\section{Proof of Section \ref{section:main:properties_of_our_method}}
-	
+	\section{Proof of Section \ref{section:sub:tucker}}\label{section:proof:section:sub:tucker}
+	This section provides proof of Theorem \ref{theorem:population_PLS}, 
+demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
+ proofs of the intermediate lemmas that support the main theorem.
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
 	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
 	\begin{proof} 
@@ -2741,10 +2753,7 @@ Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:p
 		This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
 	\end{proof}
 
-\subsection{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
-	
-	
-	
+
 	
 	
 \end{document}
