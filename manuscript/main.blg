@@ -1,6 +1,10 @@
 This is BibTeX, Version 0.99d (TeX Live 2025)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
+White space in argument---line 32 of file main.aux
+ : \citation{Graph
+ :                 Estimation From Multi-Attribute Data}
+I'm skipping whatever remains of this command
 The style file: imsart-nameyear.bst
 Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
 Reallocated global_strs (elt_size=200001) to 20 items from 10.
@@ -13,75 +17,75 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: bibliography.bib
 Warning--string name "apr" is undefined
---line 31 of file bibliography.bib
+--line 61 of file bibliography.bib
 Warning--string name "apr" is undefined
---line 54 of file bibliography.bib
+--line 107 of file bibliography.bib
 Warning--string name "jan" is undefined
---line 63 of file bibliography.bib
+--line 125 of file bibliography.bib
+Warning--string name "aug" is undefined
+--line 159 of file bibliography.bib
 Warning--string name "feb" is undefined
---line 96 of file bibliography.bib
+--line 209 of file bibliography.bib
 Warning--string name "jan" is undefined
---line 123 of file bibliography.bib
-Warning--string name "oct" is undefined
---line 230 of file bibliography.bib
-Warning--string name "dec" is undefined
 --line 243 of file bibliography.bib
-Warning--string name "jul" is undefined
---line 257 of file bibliography.bib
-Warning--string name "feb" is undefined
---line 269 of file bibliography.bib
-Warning--string name "sep" is undefined
---line 281 of file bibliography.bib
+Warning--string name "oct" is undefined
+--line 457 of file bibliography.bib
 Warning--string name "dec" is undefined
---line 307 of file bibliography.bib
-Warning--string name "mar" is undefined
---line 339 of file bibliography.bib
+--line 483 of file bibliography.bib
+Warning--string name "jul" is undefined
+--line 511 of file bibliography.bib
+Warning--string name "feb" is undefined
+--line 535 of file bibliography.bib
+Warning--string name "sep" is undefined
+--line 559 of file bibliography.bib
+Warning--string name "dec" is undefined
+--line 611 of file bibliography.bib
 Warning--string name "may" is undefined
---line 351 of file bibliography.bib
+--line 699 of file bibliography.bib
 Warning--string name "may" is undefined
---line 362 of file bibliography.bib
+--line 721 of file bibliography.bib
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
-You've used 29 entries,
+You've used 27 entries,
             5204 wiz_defined-function locations,
-            1060 strings with 11576 characters,
-and the built_in function-call counts, 139681 in all, are:
-= -- 23464
-> -- 437
-< -- 55
-+ -- 9226
-- -- 172
-* -- 7108
-:= -- 22241
-add.period$ -- 90
-call.type$ -- 29
-change.case$ -- 173
-chr.to.int$ -- 28
-cite$ -- 29
-duplicate$ -- 940
-empty$ -- 5683
-format.name$ -- 584
-if$ -- 34346
-int.to.chr$ -- 2
+            1045 strings with 11242 characters,
+and the built_in function-call counts, 130112 in all, are:
+= -- 21856
+> -- 411
+< -- 53
++ -- 8593
+- -- 165
+* -- 6621
+:= -- 20712
+add.period$ -- 82
+call.type$ -- 27
+change.case$ -- 163
+chr.to.int$ -- 27
+cite$ -- 27
+duplicate$ -- 877
+empty$ -- 5292
+format.name$ -- 552
+if$ -- 31988
+int.to.chr$ -- 1
 int.to.str$ -- 1
 missing$ -- 0
-newline$ -- 322
-num.names$ -- 132
-pop$ -- 637
+newline$ -- 300
+num.names$ -- 123
+pop$ -- 602
 preamble$ -- 1
-purify$ -- 113
+purify$ -- 107
 quote$ -- 0
-skip$ -- 13796
+skip$ -- 12848
 stack$ -- 0
-substring$ -- 17679
-swap$ -- 332
-text.length$ -- 261
+substring$ -- 16449
+swap$ -- 308
+text.length$ -- 243
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 730
+type$ -- 686
 warning$ -- 0
-while$ -- 401
+while$ -- 374
 width$ -- 0
-write$ -- 669
-(There were 14 warnings)
+write$ -- 623
+(There was 1 error message)

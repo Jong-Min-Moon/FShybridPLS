@@ -1,4 +1,4 @@
-\begin{thebibliography}{29}
+\begin{thebibliography}{27}
 % BibTex style file: imsart-nameyear.bst, 2017-11-03
 % Default style options (sort=1,type=nameyear).
 % Used options (sort=1,type=nameyear).
@@ -130,12 +130,12 @@
 \endbibitem
 
 \bibitem[\protect\citeauthoryear{{Febrero-Bande}, Galeano and
-  {Gonz{\'a}lez-Manteiga}}{2017a}]{febrero-bandeFunctionalPrincipalComponent2017}
+  {Gonz{\'a}lez-Manteiga}}{2017}]{febrero-bandeFunctionalPrincipalComponent2017}
 \begin{barticle}[author]
 \bauthor{\bsnm{{Febrero-Bande}},~\bfnm{Manuel}\binits{M.}},
   \bauthor{\bsnm{Galeano},~\bfnm{Pedro}\binits{P.}} \AND
   \bauthor{\bsnm{{Gonz{\'a}lez-Manteiga}},~\bfnm{Wenceslao}\binits{W.}}
-(\byear{2017}a).
+(\byear{2017}).
 \btitle{Functional Principal Component Regression and Functional Partial
   Least-Squares Regression: {{An}} Overview and a Comparative Study}.
 \bjournal{International Statistical Review}
@@ -144,19 +144,20 @@
 \end{barticle}
 \endbibitem
 
-\bibitem[\protect\citeauthoryear{Febrero-Bande, Galeano and
-  Gonz\'{a}lez-Manteiga}{2017b}]{Febrero2017}
-\begin{barticle}[author]
-\bauthor{\bsnm{Febrero-Bande},~\bfnm{M.}\binits{M.}},
-  \bauthor{\bsnm{Galeano},~\bfnm{P.}\binits{P.}} \AND
-  \bauthor{\bsnm{Gonz\'{a}lez-Manteiga},~\bfnm{W.}\binits{W.}}
-(\byear{2017}b).
-\btitle{Functional principal component regression and functional partial
-  least-squares regression: An overview and a comparative study}.
-\bjournal{International Statistical Review}
-\bvolume{85}
-\bpages{61-83}.
-\end{barticle}
+\bibitem[\protect\citeauthoryear{Geng, Kolar and
+  Koyejo}{2020}]{gengJointNonparametricPrecision2020}
+\begin{binproceedings}[author]
+\bauthor{\bsnm{Geng},~\bfnm{Sinong}\binits{S.}},
+  \bauthor{\bsnm{Kolar},~\bfnm{Mladen}\binits{M.}} \AND
+  \bauthor{\bsnm{Koyejo},~\bfnm{Oluwasanmi}\binits{O.}}
+(\byear{2020}).
+\btitle{Joint {{Nonparametric Precision Matrix Estimation}} with
+  {{Confounding}}}.
+In \bbooktitle{Proceedings of {{The}} 35th {{Uncertainty}} in {{Artificial
+  Intelligence Conference}}}
+\bpages{378--388}.
+\bpublisher{PMLR}.
+\end{binproceedings}
 \endbibitem
 
 \bibitem[\protect\citeauthoryear{Gockenbach}{2010}]{gockenbachFiniteDimensionalLinearAlgebra2010}
@@ -248,32 +249,6 @@
 \bjournal{Journal of Machine Learning Research}
 \bvolume{15}
 \bpages{1713--1750}.
-\end{barticle}
-\endbibitem
-
-\bibitem[\protect\citeauthoryear{Lang}{1993}]{langRealFunctionalAnalysis1993}
-\begin{bbook}[author]
-\bauthor{\bsnm{Lang},~\bfnm{Serge}\binits{S.}}
-(\byear{1993}).
-\btitle{Real and {{Functional Analysis}}}.
-\bseries{Graduate {{Texts}} in {{Mathematics}}}
-\bvolume{142}.
-\bpublisher{Springer}, \baddress{New York, NY}.
-\end{bbook}
-\endbibitem
-
-\bibitem[\protect\citeauthoryear{Mutis
-  et~al.}{2025}]{mutisFunctiononfunctionLinearQuantile2025}
-\begin{barticle}[author]
-\bauthor{\bsnm{Mutis},~\bfnm{Muge}\binits{M.}},
-  \bauthor{\bsnm{Beyaztas},~\bfnm{Ufuk}\binits{U.}},
-  \bauthor{\bsnm{Karaman},~\bfnm{Filiz}\binits{F.}} \AND
-  \bauthor{\bsnm{Lin~Shang},~\bfnm{Han}\binits{H.}}
-(\byear{2025}).
-\btitle{On Function-on-Function Linear Quantile Regression}.
-\bjournal{Journal of Applied Statistics}
-\bvolume{52}
-\bpages{814--840}.
 \end{barticle}
 \endbibitem
 
