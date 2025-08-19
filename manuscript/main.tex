@@ -172,14 +172,17 @@ by proposing a hybrid partial least square (PLS) regression framework that integ
 	using power-series  \citep{goldsmithPenalizedFunctionalRegression2011},
 	B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}, or 
 	wavelets \citep{zhaoWaveletbasedLASSOFunctional2012},
-	and structure-aware regularization, such as roughness penalties \jongmin{let's add citations here}.
-	For the high-dimensionality challenge, a major solution is regression with derived inputs,
-	such as Principal Component Analysis (PCA) regression.
-	This involves applying (multivariate) functional PCA (FPCA)  to the functional predictors, possibly with standard PCA to the scalar predictors,
+	and structure-aware regularization, such as roughness penalties \jongmin{comment:let's add citations here}.
+	
+	For the high-dimensionality, a major solution is using derived inputs.
+	A widespread approach in this line is the principal component analysis (PCA) regression.
+	It is a two-step approach, applying (multivariate) functional PCA  to the functional predictors, possibly with standard PCA to the scalar predictors,
 	followed by a classical multivariate regression on the resulting scores.
-	This PCA regression strategy is well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
-	However, this approach has a major drawback: the derived inputs are not informed by the response variable. Consequently, they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
-	Partial Least Squares (PLS) regression offers a powerful alternative by explicitly seeking low-dimensional projections of the predictors that maximize their covariance with the outcome. PLS has been extensively studied in the context of functional data, both for single and multiple functional predictors \citep{predaPLSRegressionStochastic2005, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}.
+	PCA regression is well-studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
+	However, since the PCA-derived inputs are not informed by the response variable,   they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
+In terms of predictive power, partial least squares (PLS) regression is a powerful alternative. This two-step approach first iteratively constructs a set of orthogonal latent components from the predictors that have the maximal covariance with the response variable. This low-dimensional representation is then used to fit a linear regression model.
+PLS for linear regression in the context of functional data was initiated by \citet{predaPLSRegressionStochastic2005} for signle predictor.
+  PLS has been extensively studied , both for single and multiple functional predictors \citep{, reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, delaigleMethodologyTheoryPartial2012, aguileraPenalizedVersionsFunctional2016, febrero-bandeFunctionalPrincipalComponent2017, beyaztasRobustFunctionalPartial2022, saricamPartialLeastsquaresEstimation2022, mutisFunctiononfunctionLinearQuantile2025}.
 	However, all of these existing PCA or PLS approaches overlook the potentially strong correlations between functional and scalar components. This can lead to multicollinearity and suboptimal predictive performance.
 	To address the third challenge, \citet{jangPrincipalComponentAnalysis2021}  proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response, so they may fail to capture the directions of maximal correlation with the outcome.
 	
