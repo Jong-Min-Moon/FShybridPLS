@@ -164,7 +164,10 @@
 	is an ill-posed problem.% that requires dimension reduction or regularization based on structural assumptions, such as derivatives and covariance patterns.
 	Second, we face the high-dimensionality of the predictors with $K+p$ dimensions.
 	Third, strong correlations between functional and scalar predictors are common but often overlooked by separate modeling approaches.
+	This paper unifies the remedies proposed for these three issues
+by proposing a hybrid partial least square (PLS) regression framework that integrates functional and vector predictors in a principled and coherent manner. Before we summarize the key contributions of this new framework, we will first discuss previous approaches and their limitations.
 	
+	\subsection{Previous works and limitations}
 	To address the ill-posedness stemming from the infinite-dimensionality of the functional components, common remedies include basis expansion,
 	using power-series  \citep{goldsmithPenalizedFunctionalRegression2011},
 	B-splines \citep{cardotSplineEstimatorsFunctional2003, caiPredictionFunctionalLinear2006}, or 
@@ -524,8 +527,8 @@
 	\medskip
 	\noindent
 	\textit{Proposed regularized estimation procedure.}~ \label{sec: Regularization of PLS Components}
-Although Proposition \ref{proposition:eigen_noregul} offers an efficient way to estimate the PLS component direction $\hat{\xi}$, its functional components, $\hat{\xi}_1, \ldots, \hat{\xi}_K$, may not be smooth. \jongmin{added: Since  the final regression coefficient $\hat{\beta}$ is constructed as a linear combination of these directions (Section \ref{section:sub:regression_coeff}),
-this can lead to a non-smooth $\hat{\beta}$} which complicates interpretation and can lead to overfitting and unstable predictions. 
+	Although Proposition \ref{proposition:eigen_noregul} offers an efficient way to estimate the PLS component direction $\hat{\xi}$, its functional components, $\hat{\xi}_1, \ldots, \hat{\xi}_K$, may not be smooth. \jongmin{added: Since  the final regression coefficient $\hat{\beta}$ is constructed as a linear combination of these directions (Section \ref{section:sub:regression_coeff}),
+		this can lead to a non-smooth $\hat{\beta}$} which complicates interpretation and can lead to overfitting and unstable predictions. 
 	To address this, we propose a regularized extension that balances predictive performance with smoothness. Specifically, we penalize the roughness of each $\hat{\xi}_j$ using its integrated squared second derivative 
 	\begin{equation}\label{def:roughness_penalty}
 		\operatorname{PEN}(\hat{\xi}_j) := \int_0^1 \bigl\{ \hat{\xi}_j^{\prime\prime}(t) \bigr\}^2 dt
@@ -730,27 +733,27 @@ this can lead to a non-smooth $\hat{\beta}$} which complicates interpretation an
 	\label{section:sub:regression_coeff}
 	The hybrid regression coefficient $\beta$ in model \eqref{eq: Hybrid functional model} can be written 
 	as a linear combination of PLS directions:
-\begin{lemma}\label{lemma:recursive}
-Let use define
-$
-\widehat{\iota}^{[1]} := \widehat{\xi}^{[1]}.
-$
-For $l \ge 2$, we recursively   define:
-\begin{equation*}
-	\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}. 
-\end{equation*}
-Then we have:
-\begin{equation*}
-	\widehat{\rho}_i^{[l]}
-	=
-	\langle  W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H}
-	=
-	\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}.
-\end{equation*}
+	\begin{lemma}\label{lemma:recursive}
+		Let use define
+		$
+		\widehat{\iota}^{[1]} := \widehat{\xi}^{[1]}.
+		$
+		For $l \ge 2$, we recursively   define:
+		\begin{equation*}
+			\widehat{ \iota}^{[l]} = \widehat{\xi}^{[l]} - \sum_{u=1}^{l-1} \langle \widehat{ \delta}^{[u]}, \widehat{\xi}^{[l]} \rangle_{\mathbb{H}} \widehat{ \iota}^{[u]}. 
+		\end{equation*}
+		Then we have:
+		\begin{equation*}
+			\widehat{\rho}_i^{[l]}
+			=
+			\langle  W_i^{[l]}, \widehat{\xi}^{[l]} \rangle_\mathbb{H}
+			=
+			\langle  W_i, \widehat{ \iota}^{[l]} \rangle_\mathbb{H}.
+		\end{equation*}
 	\end{lemma}
-Proof of Lemma \ref{lemma:recursive} is provided in Appendix \ref{section:proof:lemma:recursive}.
-
-Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
+	Proof of Lemma \ref{lemma:recursive} is provided in Appendix \ref{section:proof:lemma:recursive}.
+	
+	Next,  \eqref{algorithm_step:residualization_predictor} leads to the following model:
 	\begin{equation*}
 		Y_i = \sum \limits_{l=1}^L \widehat{\nu}^{[l]} \widehat{\rho}_i^{[l]} + \epsilon_i.
 	\end{equation*}
@@ -765,7 +768,7 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 	\begin{equation*}
 		\widehat{ \beta} = \sum \limits_{l=1}^L\widehat{\nu}^{[l]} \widehat{ \iota }^{[l]}
 		=\jongmin{added:}
-	 \sum_{l=1}^L \left( \widehat{\nu}^{[l]} - \sum_{k=l+1}^L \widehat{\nu}^{[k]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[k]} \rangle_{\mathbb{H}} \right) \widehat{\xi}^{[l]}.
+		\sum_{l=1}^L \left( \widehat{\nu}^{[l]} - \sum_{k=l+1}^L \widehat{\nu}^{[k]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[k]} \rangle_{\mathbb{H}} \right) \widehat{\xi}^{[l]}.
 	\end{equation*}
 	\jongmin{added: Note that if $L$ is too large, $\widehat{ \beta}$ can be wiggly even if $\widehat{\xi}^{[l]}$'s are smooth.}
 	Thus the number of PLS components $L$ to be estimated can be chosen by cross-validation.
@@ -1259,28 +1262,28 @@ Next,  \eqref{algorithm_step:residualization_predictor} leads to the following m
 	\appendix
 	
 	\section{Overview of Appendix}
-\begin{itemize}
-	\item Appendix \ref{section:proof:lemma:hybrid_hilbert_space} proves that our defined product space is a separable Hilbert space.
-	\item Appendix \ref{section:proof:section:sub:iterative}  provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
-	\item Appendix \ref{section:proof:section:sub:tucker} provides proof of Theorem \ref{theorem:population_PLS}, 
-	demonstrating that the population-level version of the optimization problem solved at each step is well-defined.
-\end{itemize}
-\section{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
-\begin{proof}
-	Both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are Hilbert spaces, with their inner products, norms, and metrics corresponding to the terms defined in equation \eqref{eq: hybrid inner product}. A finite Cartesian product of Hilbert spaces, equipped with an $\ell_2$ norm of the component metrics (which is our metric), is also a Hilbert space.
-	Furthermore, both of 	 $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are separable.
-	For $\mathbb{L}^2[0,1]$, the set of all polynomials with rational coefficients is a countable and dense subset.
-	For $\mathbb{R}^p$,  the set of all vectors with rational components forms a countable and dense subset.
-A finite Cartesian product of separable spaces is also separable.
-Therefore $\mathbb{H} = \bigl( \mathbb{L}^2[0,1] \bigr)^K \times \mathbb{R}^p$ is separable.
-\end{proof}
+	\begin{itemize}
+		\item Appendix \ref{section:proof:lemma:hybrid_hilbert_space} proves that our defined product space is a separable Hilbert space.
+		\item Appendix \ref{section:proof:section:sub:iterative}  provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
+		\item Appendix \ref{section:proof:section:sub:tucker} provides proof of Theorem \ref{theorem:population_PLS}, 
+		demonstrating that the population-level version of the optimization problem solved at each step is well-defined.
+	\end{itemize}
+	\section{Proof of Lemma \ref{lemma:hybrid_hilbert_space}}\label{section:proof:lemma:hybrid_hilbert_space}
+	\begin{proof}
+		Both $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are Hilbert spaces, with their inner products, norms, and metrics corresponding to the terms defined in equation \eqref{eq: hybrid inner product}. A finite Cartesian product of Hilbert spaces, equipped with an $\ell_2$ norm of the component metrics (which is our metric), is also a Hilbert space.
+		Furthermore, both of 	 $\mathbb{L}^2[0,1]$ and $\mathbb{R}^p$ are separable.
+		For $\mathbb{L}^2[0,1]$, the set of all polynomials with rational coefficients is a countable and dense subset.
+		For $\mathbb{R}^p$,  the set of all vectors with rational components forms a countable and dense subset.
+		A finite Cartesian product of separable spaces is also separable.
+		Therefore $\mathbb{H} = \bigl( \mathbb{L}^2[0,1] \bigr)^K \times \mathbb{R}^p$ is separable.
+	\end{proof}
 	\section{Proof of Section \ref{section:sub:iterative}}\label{section:proof:section:sub:iterative}
 	
-
-
-This section provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
-Appendices \ref{section:proof:proposition:linear_regul_system_unregularized} and \ref{section:proof:proposition:eigen_regul} derive the eigenproblem formulations for unregularized and regularized PLS direction estimation, respectively.
-Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:proposition:closed_form_orthgonalization} provide proofs for the simple computation schemes for regularized PLS direction estimation and residualization, respectively.	
+	
+	
+	This section provides the proofs for the core problem formulations and computational schemes of the iterative steps for estimating the PLS direction and performing residualization.
+	Appendices \ref{section:proof:proposition:linear_regul_system_unregularized} and \ref{section:proof:proposition:eigen_regul} derive the eigenproblem formulations for unregularized and regularized PLS direction estimation, respectively.
+	Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:proposition:closed_form_orthgonalization} provide proofs for the simple computation schemes for regularized PLS direction estimation and residualization, respectively.	
 	\subsection{Proof of Proposition \ref{proposition:eigen_noregul}  }\label{section:proof:proposition:linear_regul_system_unregularized}
 	\begin{proof}
 		Let $\xi = (\xi_1, \ldots, \xi_K, \boldsymbol{\zeta}) \in \mathbb{H}$. Assume that each functional component $\xi_j \in \mathbb{L}^2([0,1])$ lies in the span of the basis functions ${b_1(t), \ldots, b_M(t)}$ and can be written as
@@ -1921,61 +1924,61 @@ Appendices \ref{section:proof:proposition:linear_regul} and \ref{section:proof:p
 		\| \hat{\boldsymbol{\rho}}^{[l]} \|_2^2}$.
 	This completes the proof of Lemma \ref{proposition:closed_form_orthgonalization}.
 	
-\section{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
-\begin{proof}We prove the lemma using mathematical induction.
-
-\medskip
-\noindent
-\textit{Base case ($l=1$).}~
+	\section{Proof of Lemma \ref{lemma:recursive}}\label{section:proof:lemma:recursive}
+	\begin{proof}We prove the lemma using mathematical induction.
+		
+		\medskip
+		\noindent
+		\textit{Base case ($l=1$).}~
 		For $l=1$, the lemma states $\widehat{\rho}_i^{[1]} = \langle W_i, \widehat{\iota}^{[1]} \rangle_{\mathbb{H}}$. Since  $\widehat{\iota}^{[1]} := \widehat{\xi}^{[1]}$ and $W^{[1]}_i = W_i$, the base case holds.
-
-\medskip
-\noindent
-\textit{Inductive steps.}~		
-Assume   $\widehat{\rho}_i^{[u]} = \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}$ for $u =1 , \ldots, l$. We want to show that $\widehat{\rho}_i^{[l+1]} = \langle W_i, \widehat{\iota}^{[l+1]} \rangle_{\mathbb{H}}$.
-Recall from  \eqref{def:plsscore} and Lemma \ref{proposition:closed_form_orthgonalization} that we have
-\begin{equation}
- \widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l+1]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}},
- \quad
- \widetilde{W}_i^{[l+1]} = \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}
-\end{equation}
-Combining these two, we have
-\begin{equation}\label{rholp1}
-\widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
-=
-\langle \widetilde{W}_i^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}.
-\end{equation}
-Next,
- we can express $\widetilde{W}_i^{[l]}$ in terms of the original predictor $W_i$ by recursively applying  Lemma \ref{proposition:closed_form_orthgonalization}:
+		
+		\medskip
+		\noindent
+		\textit{Inductive steps.}~		
+		Assume   $\widehat{\rho}_i^{[u]} = \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}$ for $u =1 , \ldots, l$. We want to show that $\widehat{\rho}_i^{[l+1]} = \langle W_i, \widehat{\iota}^{[l+1]} \rangle_{\mathbb{H}}$.
+		Recall from  \eqref{def:plsscore} and Lemma \ref{proposition:closed_form_orthgonalization} that we have
+		\begin{equation}
+			\widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l+1]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}},
+			\quad
+			\widetilde{W}_i^{[l+1]} = \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}
+		\end{equation}
+		Combining these two, we have
+		\begin{equation}\label{rholp1}
+			\widehat{\rho}_i^{[l+1]} = \langle \widetilde{W}_i^{[l]} - \widehat{\rho}_i^{[l]} \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
+			=
+			\langle \widetilde{W}_i^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}.
+		\end{equation}
+		Next,
+		we can express $\widetilde{W}_i^{[l]}$ in terms of the original predictor $W_i$ by recursively applying  Lemma \ref{proposition:closed_form_orthgonalization}:
 		$$ \widetilde{W}_i^{[l]} = \widetilde{W}_i^{[l-1]} - \widehat{\rho}_i^{[l-1]} \widehat{\delta}^{[l-1]} = \ldots = W_i - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \widehat{\delta}^{[u]} $$
-	Substituting this into our equation \eqref{rholp1}, we have:
-\begin{align*}
-\widehat{\rho}_i^{[l+1]} 
-&= \left\langle W_i - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \right\rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
-\\&=
- \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
- \\&=
- \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
- \\& \overset{(i)}{=}
-    \langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}
-%%%%%%%%%%%%%%%%%%%%%%%%
-\\& = 
-\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
--
-\left\langle W_i,   \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
-%%%%%%%%%%%%%%%%%%%%%%%%
-\\& = 
-\left\langle W_i, \widehat{\xi}^{[l+1]} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
-\\&= \widehat{\rho}_i^{[l+1]}.
-\end{align*}
-where step $(i)$ uses the inductive hypothesis $\langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}} = \widehat{\rho}_i^{[u]}$ for all $u \leq l$.
+		Substituting this into our equation \eqref{rholp1}, we have:
+		\begin{align*}
+			\widehat{\rho}_i^{[l+1]} 
+			&= \left\langle W_i - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \right\rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} 
+			\\&=
+			\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l-1} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \widehat{\rho}_i^{[l]} \langle \widehat{\delta}^{[l]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+			\\&=
+			\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \widehat{\rho}_i^{[u]} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+			\\& \overset{(i)}{=}
+			\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}}
+			%%%%%%%%%%%%%%%%%%%%%%%%
+			\\& = 
+			\langle W_i, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}}
+			-
+			\left\langle W_i,   \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
+			%%%%%%%%%%%%%%%%%%%%%%%%
+			\\& = 
+			\left\langle W_i, \widehat{\xi}^{[l+1]} - \sum_{u=1}^{l} \langle \widehat{\delta}^{[u]}, \widehat{\xi}^{[l+1]} \rangle_{\mathbb{H}} \widehat{\iota}^{[u]} \right\rangle_{\mathbb{H}} 
+			\\&= \widehat{\rho}_i^{[l+1]}.
+		\end{align*}
+		where step $(i)$ uses the inductive hypothesis $\langle W_i, \widehat{\iota}^{[u]} \rangle_{\mathbb{H}} = \widehat{\rho}_i^{[u]}$ for all $u \leq l$.
 		By the principle of mathematical induction, the lemma holds for all $l \ge 1$. This completes the proof of Lemma \ref{lemma:recursive}.
-\end{proof}
-
+	\end{proof}
+	
 	\section{Proof of Section \ref{section:sub:tucker}}\label{section:proof:section:sub:tucker}
 	This section provides proof of Theorem \ref{theorem:population_PLS}, 
-demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
- proofs of the intermediate lemmas that support the main theorem.
+	demonstrating that the population-level version of the optimization problem solved at each step is well-defined, and 
+	proofs of the intermediate lemmas that support the main theorem.
 	\subsection{Proof of  Lemma \ref{lemma:cross_cov_functional} }\label{section:proof:lemma:cross_cov_functional}
 	\jongmin{An alternative proof to the compactness of $\mathcal{U}$; rather than directly showing $\mathcal{U}$ is compact, we show $\mathcal{C}_{YW}$ is compact}
 	\begin{proof} 
@@ -2804,8 +2807,8 @@ demonstrating that the population-level version of the optimization problem solv
 		\end{align*}
 		This completes the proof of Proposition \ref{proposition: orthnormality of PLS scores}.
 	\end{proof}
-
-
+	
+	
 	
 	
 \end{document}
