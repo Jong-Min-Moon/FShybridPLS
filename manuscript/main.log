@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  20 AUG 2025 00:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  20 AUG 2025 17:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -651,22 +651,18 @@ ion of PLS com-po-nent di-rec-tion)\T1/ptm/m/sc/11 . []\T1/ptm/m/it/11 Let $\OT
 
 [13]
 
-LaTeX Warning: Reference `section:proof:prop:ols_uniqueness' on page 14 undefin
-ed on input line 1011.
-
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 104
-9.
-(c:/texlive/2025/texmf-dist/tex/latex/bbm-macros/ubbm.fd
+[14]
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 105
+0.
+ (c:/texlive/2025/texmf-dist/tex/latex/bbm-macros/ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
 )
 
 LaTeX Font Warning: Font shape `U/bbm/m/n' in size <5.5> not available
-(Font)              size <5> substituted on input line 1049.
+(Font)              size <5> substituted on input line 1050.
 
 
-
-[14]
-Overfull \hbox (43.52954pt too wide) detected at line 1082
+Overfull \hbox (43.52954pt too wide) detected at line 1083
 [] \OML/cmm/m/it/10.95 p\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 X \OMS/cmsy/m/n
 /10.95 j \OT1/cmr/bx/n/10.95 M\OML/cmm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 R\OML/c
 mm/m/it/10.95 ; \OT1/cmr/bx/n/10.95 C\OT1/cmr/m/n/10.95 ) = \OMS/cmsy/m/n/10.95
@@ -675,28 +671,28 @@ cmsy/m/n/10.95 ^^@ [] [] j\OT1/cmr/bx/n/10.95 C\OMS/cmsy/m/n/10.95 j ^^@ [] []
 j\OT1/cmr/bx/n/10.95 R\OMS/cmsy/m/n/10.95 j ^^@ [][] [] \OML/cmm/m/it/10.95 :
  []
 
-<image/cor_strong.pdf, id=567, 310.15875pt x 289.08pt>
+<image/cor_strong.pdf, id=568, 310.15875pt x 289.08pt>
 File: image/cor_strong.pdf Graphic file (type pdf)
 <use image/cor_strong.pdf>
-Package pdftex.def Info: image/cor_strong.pdf  used on input line 1098.
+Package pdftex.def Info: image/cor_strong.pdf  used on input line 1099.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/cor_weak.pdf, id=568, 310.15875pt x 289.08pt>
+<image/cor_weak.pdf, id=569, 310.15875pt x 289.08pt>
 File: image/cor_weak.pdf Graphic file (type pdf)
 <use image/cor_weak.pdf>
-Package pdftex.def Info: image/cor_weak.pdf  used on input line 1105.
+Package pdftex.def Info: image/cor_weak.pdf  used on input line 1106.
 (pdftex.def)             Requested size: 182.69876pt x 170.28223pt.
-<image/graph_strong.pdf, id=569, 289.08pt x 289.08pt>
+<image/graph_strong.pdf, id=570, 289.08pt x 289.08pt>
 File: image/graph_strong.pdf Graphic file (type pdf)
 <use image/graph_strong.pdf>
-Package pdftex.def Info: image/graph_strong.pdf  used on input line 1114.
+Package pdftex.def Info: image/graph_strong.pdf  used on input line 1115.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
-<image/graph_weak.pdf, id=570, 289.08pt x 289.08pt>
+<image/graph_weak.pdf, id=571, 289.08pt x 289.08pt>
 File: image/graph_weak.pdf Graphic file (type pdf)
 <use image/graph_weak.pdf>
-Package pdftex.def Info: image/graph_weak.pdf  used on input line 1121.
+Package pdftex.def Info: image/graph_weak.pdf  used on input line 1122.
 (pdftex.def)             Requested size: 182.69876pt x 182.69919pt.
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
-148.
+149.
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
@@ -705,7 +701,7 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 
 [16 <./image/cor_strong.pdf> <./image/cor_weak.pdf> <./image/graph_strong.pdf> 
 <./image/graph_weak.pdf>]
-Overfull \hbox (53.07956pt too wide) detected at line 1176
+Overfull \hbox (53.07956pt too wide) detected at line 1177
 \OML/cmm/m/it/10.95 X[]\OT1/cmr/m/n/10.95 (0) = 0\OML/cmm/m/it/10.95 ;  X[]\OT1
 /cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) = \OML/cmm/m/it/10.95
  ^^ZX[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t \OMS/cmsy/m/n/10.95 ^^@ \OT1/c
@@ -716,22 +712,22 @@ r/m/n/10.95 (0\OML/cmm/m/it/10.95 ; ^^[[]\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.9
  ; \OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 :
  []
 
-<image/graph.png, id=613, 447.3513pt x 447.3513pt>
+<image/graph.png, id=614, 447.3513pt x 447.3513pt>
 File: image/graph.png Graphic file (type png)
 <use image/graph.png>
-Package pdftex.def Info: image/graph.png  used on input line 1207.
+Package pdftex.def Info: image/graph.png  used on input line 1208.
 (pdftex.def)             Requested size: 162.39752pt x 162.39789pt.
 
 
 [17]
 
-LaTeX Warning: Reference `table ' on page 18 undefined on input line 1238.
+LaTeX Warning: Reference `table ' on page 18 undefined on input line 1239.
 
-<Screenshot 2025-02-25 125839.png, id=624, 766.36313pt x 322.20375pt>
+<Screenshot 2025-02-25 125839.png, id=625, 766.36313pt x 322.20375pt>
 File: Screenshot 2025-02-25 125839.png Graphic file (type png)
 <use Screenshot 2025-02-25 125839.png>
 Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
-241.
+242.
 (pdftex.def)             Requested size: 365.39752pt x 153.62358pt.
 
 
@@ -746,7 +742,7 @@ Package pdftex.def Info: Screenshot 2025-02-25 125839.png  used on input line 1
 [22]
 
 LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 23 undefined on
- input line 1609.
+ input line 1610.
 
 
 
@@ -761,35 +757,40 @@ LaTeX Warning: Reference `def:maximizer_euclidean_form' on page 23 undefined on
 [27]
 
 [28]
+Overfull \hbox (4.21635pt too wide) detected at line 2436
+[]
+ []
+
+
 
 [29]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 2421.
+(hyperref)                than one, level fixed on input line 2449.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 2421.
+(hyperref)                removing `math shift' on input line 2449.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\ell' on input line 2421.
+(hyperref)                removing `\ell' on input line 2449.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 2421.
+(hyperref)                removing `math shift' on input line 2449.
 
 
 
 [30]
 
-[31]
-
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 2426.
+(hyperref)                than one, level fixed on input line 2454.
 
 
-Underfull \hbox (badness 995) in paragraph at lines 2426--2427
+
+[31]
+Underfull \hbox (badness 995) in paragraph at lines 2454--2455
 \OMS/cmsy/m/n/10.95 h\OML/cmm/m/it/10.95 W \OMS/cmsy/m/n/10.95 ^^@ [][]h\OML/cm
 m/m/it/10.95 W; ^^X[]\OMS/cmsy/m/n/10.95 i[]\OML/cmm/m/it/10.95 ^^X[]; v\OMS/cm
 sy/m/n/10.95 i[] \OT1/cmr/m/n/10.95 = \OMS/cmsy/m/n/10.95 h\OML/cmm/m/it/10.95 
@@ -800,7 +801,7 @@ T1/cmr/m/n/10.95 0 =
  []
 
 
-Overfull \hbox (31.17819pt too wide) in paragraph at lines 2426--2427
+Overfull \hbox (31.17819pt too wide) in paragraph at lines 2454--2455
 \OML/cmm/m/it/10.95 E\OT1/cmr/m/n/10.95 [\OML/cmm/m/it/10.95 Y\OMS/cmsy/m/n/10.
 95 h\OML/cmm/m/it/10.95 W; v\OMS/cmsy/m/n/10.95 i[]\OT1/cmr/m/n/10.95 ]$\T1/ptm
 /m/n/11 , is non-zero be-cause $\OML/cmm/m/it/10.95 v \OMS/cmsy/m/n/10.95 2 \OM
@@ -818,16 +819,16 @@ OT1/cmr/m/n/10.95 [\OML/cmm/m/it/10.95 ^^Z[]\OMS/cmsy/m/n/10.95 h\OML/cmm/m/it/
 [33]
 
 LaTeX Warning: Reference `normal_equation' on page 34 undefined on input line 2
-506.
+534.
 
 
-
-[34]
-Overfull \hbox (8.03247pt too wide) detected at line 2547
+Overfull \hbox (8.03247pt too wide) detected at line 2575
 []
  []
 
 
+
+[34]
 
 [35]
 
@@ -851,23 +852,17 @@ LaTeX Warning: There were undefined references.
 
 LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: AB14E018694FCA44ED5FB1F5B63999C0;9348
-(rerunfilecheck)             After:  BF144590F20B794F92ECCF59E43A5C4A;9376.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 2AACA31A1F7B19BF6D1E15771B8FE6F2;9376.
  ) 
 Here is how much of TeX's memory you used:
  14791 strings out of 469626
  231142 string characters out of 5475183
- 631044 words of memory out of 5000000
+ 631118 words of memory out of 5000000
  41164 multiletter control sequences out of 15000+600000
  699045 words of font info for 137 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,20n,79p,7682b,589s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,20n,79p,7682b,595s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <c:/Users/jongmin/.texlive2025/texmf-var/fonts/pk/ljfour/public/bbm/bbm10.65
 7pk><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><c:/t
 exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb><c:/texlive/202
@@ -896,10 +891,10 @@ s/symbols/msbm5.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/sym
 bols/msbm7.pfb><c:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:
 /texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><c:/texlive/2025/texm
 f-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (38 pages, 1058122 bytes).
+Output written on main.pdf (38 pages, 1057930 bytes).
 PDF statistics:
- 1048 PDF objects out of 1200 (max. 8388607)
- 906 compressed objects within 10 object streams
+ 1050 PDF objects out of 1200 (max. 8388607)
+ 908 compressed objects within 10 object streams
  203 named destinations out of 1000 (max. 500000)
  431 words of extra memory for PDF output out of 10000 (max. 10000000)
 

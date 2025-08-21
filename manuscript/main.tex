@@ -875,17 +875,29 @@ $\mathbb{E}[Y_1]=0 \in \mathbb{R}$ and $\mathbb{E}[W_1] = 0 \in \mathbb{H}$.
 		\bigr)^\top %= E(Y\mathbf{Z})
 		\in \mathbb{R}^p.
 	\end{equation*}
-	Based on these definitions, we define the cross-covariance term between the response and the hybrid predictor as
-	\begin{equation*}
-		\Sigma_{YW} :=  
-		\mathbb{E}
-		[ Y_1 W_1 ]
-		=
-		\bigl(
-		\sigma_{YX, 1} , \ldots, \sigma_{YX, K} , \, \sigma_{YZ}
-		\bigr) \in \mathbb{H}.
-	\end{equation*}
+	Based on these definitions, 
 	Based on these definitions, we introduce two cross-covariance operators and their properties.
+	
+ We define an operator $\mathcal{T}$ that maps an element $g \in \mathbb{H}$   (representing a potential regression coefficient) to the predicted response.
+\begin{lemma}\label{lemma:tau_ast}
+	Let the cross-covariance between the response $Y$ and the hybrid predictor $W$ be
+	\[
+	\Sigma_{YW} := \mathbb{E}[ Y_1 W_1 ]
+	= \bigl( \sigma_{YX,1}, \ldots, \sigma_{YX,K}, \, \sigma_{YZ} \bigr) 
+	\in \mathbb{H}.
+	\]
+	Define the linear operator $\mathcal{T}: \mathbb{H} \to \mathbb{R}$ by
+	\[
+	\mathcal{T} g := \langle W_1, g \rangle_{\mathbb{H}}, \quad g \in \mathbb{H}.
+	\]
+	Let $\mathcal{T}^\ast: \mathbb{R} \to \mathbb{H}$ denote its adjoint operator. Then,
+	\[
+	\mathbb{E}[ \mathcal{T}^\ast Y_1 ] = \Sigma_{YW}.
+	\]
+\end{lemma}
+
+Proof of Lemma \ref{lemma:tau_ast} is provided in Appendix \ref{section:rpoof:lemma:tau_ast}.
+
 	\begin{lemma}\label{lemma:cross_cov_functional}
 		Define the operator $
 		\mathcal{C}_{YW}
@@ -975,18 +987,7 @@ Proof of Lemma \ref{lem:regression_W_rho} is provided in Appendix \ref{section:p
 
   
   	
- We define an operator $\mathcal{T}$ that maps an element $g \in \mathbb{H}$   (representing a potential regression coefficient) to the predicted response.
-\begin{lemma}\label{lemma:tau_ast}
-	Define the linear operator $\mathcal{T}: \mathbb{H} \to \mathbb{R}$ that maps  $g \in \mathbb{H}$ to 
-	$
-	\mathcal{T}g = \langle W, g \rangle_{\mathbb{H}}
-	$.
- Let $\mathcal{T}^\ast: \mathbb{R} \to \mathbb{H}$ denote its adjoint operator. Then,
-	\[
-	\Sigma_{YW}^{[1]} = \mathcal{T}^\ast Y.
-	\]
-\end{lemma}
-Proof of Lemma \ref{lemma:tau_ast} is provided in Appendix \ref{section:rpoof:lemma:tau_ast}.
+
 
 
 
@@ -2406,7 +2407,34 @@ The following theorem states that the fitted values from hybrid PLS converge to 
 		
 \subsection{Proof of Lemma \ref{lemma:tau_ast} }\label{section:rpoof:lemma:tau_ast}
 	\begin{proof}
-	The adjoint operator  is uniquely defined by the property relating the inner products in $L^2(\Omega)$ and $\mathbb{H}$: $$ \langle \mathcal{T}g, Y \rangle_{L^2(\Omega)} = \langle g, \mathcal{T}^\ast Y \rangle_{\mathbb{H}}, \quad \text{for all } g \in \mathbb{H}, Y \in L^2(\Omega) $$ Here, $\langle \cdot, \cdot \rangle_{L^2(\Omega)}$ denotes the inner product in $L^2(\Omega)$, which is the expectation $E[\cdot]$. Let's explicitly derive the expression for $\mathcal{T}^\ast Y$: $$ \langle g, \mathcal{T}^\ast Y \rangle_{\mathbb{H}} = E[\langle W, g \rangle_{\mathbb{H}} Y] $$ By the properties of expectation and the linearity of the inner product (assuming appropriate boundedness and measurability for interchange of expectation and inner product): $$ E[\langle W, g \rangle_{\mathbb{H}} Y] = E[\langle g, W \rangle_{\mathbb{H}} Y] = \langle g, E[YW] \rangle_{\mathbb{H}} $$ Comparing the leftmost and rightmost parts of the definition of the adjoint: $$ \mathcal{T}^\ast Y = E[YW] $$
+By the definition of the adjoint operator, 
+for all $g \in \mathbb{H}$, we have
+\begin{align*}
+	 \langle
+	\Sigma_{YW}, g \rangle_{\mathbb{H}} 
+=	
+	 \langle
+	 \mathbb{E}
+	 [ Y_1 W_1], g \rangle_{\mathbb{H}} 
+	=
+\mathbb{E}
+[ Y_1 \langle W_1, g \rangle_{\mathbb{H}} ]
+=
+\mathbb{E}[
+Y_1
+(\mathcal{T}g)
+]
+=
+\mathbb{E}[
+\langle \mathcal{T}g, Y_1 \rangle
+]
+&= \mathbb{E}[
+\langle g, \mathcal{T}^\ast Y_1 \rangle_{\mathbb{H}}
+]
+\\&= 
+\langle g, \mathbb{E}[\mathcal{T}^\ast Y_1 ]\rangle_{\mathbb{H}}.
+\end{align*}	
+This completes the proof of Lemma \ref{lemma:tau_ast}.
 	\end{proof}
 
 \subsection{Proof of}
