@@ -1223,7 +1223,6 @@ get_rho <- function(d_vec, W){
   rho <- rho + W$Z %*% d_vec[(K * M + 1):length(d_vec)]
   return (rho)
 }
-     
 ```
 
 ```{r}
@@ -1300,6 +1299,27 @@ cat(xi_hat_direct_new$functional_list[[2]]$coefs- xi_hat_direct$functional_list[
  
 
 ## Residualization
+
+### response residualization
+
+```{r}
+get_nu <- function(y, rho){
+            rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
+            nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
+            return(nu)  
+}
+```
+
+
+
+```{r}
+LSE_ptws <- function(input, rho) {
+            rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
+            nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
+            return(nu)
+}
+
+```
 
 ### LSE_hybrid
 ```{r}
