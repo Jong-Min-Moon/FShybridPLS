@@ -111,7 +111,7 @@
 		\end{aug}
 		
 		\begin{abstract}
-	Regression of a scalar response on mixed functional- and scalar-valued predictors, such as medical imaging with auxiliary patient information, introduces the new challenge of handling cross-modality correlations. To address this, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space.
+			Regression of a scalar response on mixed functional- and scalar-valued predictors, such as medical imaging with auxiliary patient information, introduces the new challenge of handling cross-modality correlations. To address this, we propose a hybrid partial least squares (PLS) regression framework that integrates functional and scalar predictors within a unified Hilbert space.
 			We then extend the classical nonlinear iterative PLS (NIPALS) algorithm to this hybrid Hilbert space by iteratively maximizing the empirical cross-covariance between the hybrid predictor and the response. As a result, our method identifies low-dimensional representations that capture both within- and between-modality variation, as well as the response-predictor correlation. The procedure is computationally efficient, requiring only the solution of linear systems at each step. We provide theoretical properties to justify our algorithm and demonstrate its effectiveness through simulations and an application to clinical outcome prediction using renal imaging and scalar covariates from the Emory University renal study.
 		\end{abstract}
 		
@@ -166,7 +166,7 @@
 	is an ill-posed problem.% that requires dimension reduction or regularization based on structural assumptions, such as derivatives and covariance patterns.
 	Second, we face the high-dimensionality of the predictors with $K+p$ dimensions.
 	Third, strong correlations between functional and scalar predictors are common but often overlooked by separate modeling approaches.
-This paper addresses these three issues in a unified way by introducing a hybrid partial least squares (PLS) regression framework defined on a novel hybrid Hilbert space. Before summarizing the key contributions of this framework, we first review previous approaches and their limitations.
+	This paper addresses these three issues in a unified way by introducing a hybrid partial least squares (PLS) regression framework defined on a novel hybrid Hilbert space. Before summarizing the key contributions of this framework, we first review previous approaches and their limitations.
 	
 	\subsection{Previous works and limitations}
 	To address the ill-posedness stemming from the infinite-dimensionality of the functional components, common remedies include basis expansion,
@@ -176,18 +176,18 @@ This paper addresses these three issues in a unified way by introducing a hybrid
 	and structure-aware regularization, such as roughness penalties \jongmin{comment:let's add citations here}.
 	
 	For the high-dimensionality, a major solution is using derived inputs.
-A straightforward approach in this direction is principal component analysis (PCA) regression, which applies PCA separately to the functional- (by, for example, \citealt{happ_multivariate_2018}) and scalar predictors, and then performs a classical multivariate regression on the combined scores.
+	A straightforward approach in this direction is principal component analysis (PCA) regression, which applies PCA separately to the functional- (by, for example, \citealt{happ_multivariate_2018}) and scalar predictors, and then performs a classical multivariate regression on the combined scores.
 	PCA regression is well-studied for linear regression with functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}.
 	However, since the PCA-derived inputs are not informed by the response variable,   they are not guaranteed to capture the core regression relationship with a small number of derived inputs.
-In terms of predictive power, partial least squares (PLS) regression is a powerful alternative. It iteratively constructs a set of orthogonal latent components from the predictors that have the maximal covariance with the response variable, and use the resulting scores for regression.
-%
-PLS for linear regression in the context of functional predictor alone was introduced by \citet{predaPLSRegressionStochastic2005} for the case of a single predictor. Motivated by regression on chemometric spectra, \citet{reissFunctionalPrincipalComponent2007}, \citet{aguileraUsingBasisExpansions2010}, and \citet{aguileraPenalizedVersionsFunctional2016} extended the framework by incorporating basis approximations and roughness penalties to promote smoothness. \citet{delaigleMethodologyTheoryPartial2012} provided the first thorough theoretical analysis, while \citet{saricamPartialLeastsquaresEstimation2022} proposed a computationally efficient procedure based on Golub-Kahan bidiagonalization. For a comprehensive review, see \citet{febrero-bandeFunctionalPrincipalComponent2017}. More recently, \citet{beyaztasRobustFunctionalPartial2022} extended the framework to accommodate multiple functional predictors.
-
-However,  these existing approaches overlook the potentially strong correlations between functional and scalar components, which can lead to multicollinearity and suboptimal predictive performance. Multimodal correlations have mostly been addressed within an unsupervised learning framework. For instance, \citet{kolar_graph_2014} studied the estimation of joint undirected graphical models for  functional and vector data, while \citet{gengJointNonparametricPrecision2020} considered joint precision matrix estimation for brain measurements and confounding scalar covariate. \citet{jangPrincipalComponentAnalysis2021} proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response and may fail to capture  correlation with the outcome.
-
-
+	In terms of predictive power, partial least squares (PLS) regression is a powerful alternative. It iteratively constructs a set of orthogonal latent components from the predictors that have the maximal covariance with the response variable, and use the resulting scores for regression.
+	%
+	PLS for linear regression in the context of functional predictor alone was introduced by \citet{predaPLSRegressionStochastic2005} for the case of a single predictor. Motivated by regression on chemometric spectra, \citet{reissFunctionalPrincipalComponent2007}, \citet{aguileraUsingBasisExpansions2010}, and \citet{aguileraPenalizedVersionsFunctional2016} extended the framework by incorporating basis approximations and roughness penalties to promote smoothness. \citet{delaigleMethodologyTheoryPartial2012} provided the first thorough theoretical analysis, while \citet{saricamPartialLeastsquaresEstimation2022} proposed a computationally efficient procedure based on Golub-Kahan bidiagonalization. For a comprehensive review, see \citet{febrero-bandeFunctionalPrincipalComponent2017}. More recently, \citet{beyaztasRobustFunctionalPartial2022} extended the framework to accommodate multiple functional predictors.
+	
+	However,  these existing approaches overlook the potentially strong correlations between functional and scalar components, which can lead to multicollinearity and suboptimal predictive performance. Multimodal correlations have mostly been addressed within an unsupervised learning framework. For instance, \citet{kolar_graph_2014} studied the estimation of joint undirected graphical models for  functional and vector data, while \citet{gengJointNonparametricPrecision2020} considered joint precision matrix estimation for brain measurements and confounding scalar covariate. \citet{jangPrincipalComponentAnalysis2021} proposed a joint PCA method that accounts for correlations between functional and scalar data. However, the resulting components are still not informed by the response and may fail to capture  correlation with the outcome.
+	
+	
 	\subsection{Our contributions}
-To address the gaps mentioned above, we unify the remedies proposed for these three issues: basis expansion, partial least squares, and accounting for correlations between the functional and scalar components.
+	To address the gaps mentioned above, we unify the remedies proposed for these three issues: basis expansion, partial least squares, and accounting for correlations between the functional and scalar components.
 	We propose a hybrid PLS regression framework that integrates functional and vector predictors in a principled and coherent manner. To extract predictive structure from these jointly observed and potentially correlated data types, we define a Hilbert space that treats the tuple of functional and vector components as a single hybrid object, equipped with a suitable inner product. The hybrid PLS direction is then obtained by iteratively maximizing the empirical covariance with the response, subject to a unit-norm constraint in this Hilbert space. Our framework is readily applicable to dense and irregular functional data and supports regularization techniques to prevent overfitting and reduce variance. We also provide the mathematical properties that justify our algorithm.
 	
 	
@@ -200,24 +200,24 @@ To address the gaps mentioned above, we unify the remedies proposed for these th
 	\widehat{\rho}_1^{[1]}, \ldots,   \widehat{\rho}_1^{[L]}  
 	\bigr)^\top \in \mathbb{R}^L.
 	$ To retain the regression relationship, the $l$-th PLS direction $\hat{\boldsymbol{\xi}}_l$ solves:
-	\begin{equation*}
-		\max_{ \boldsymbol{ \alpha } } 
+	\begin{equation}\label{scalar_PLS_sample}
+		\max_{ \mathbf{ h } } 
 		\widehat{\operatorname{Cov}}^2
 		\bigl(
 		\{
 		\langle 
-		\boldsymbol{\alpha}, \mathbf{Z}_i
+		\mathbf{ h }, \mathbf{Z}_i
 		\rangle
 		, Y_i
 		\}_{i=1}^n
-		\bigr)~\text{s.t.}~\| \boldsymbol{\alpha} \|_2 = 1,~\boldsymbol{\alpha}^\top  \widehat{\operatorname{Cov}}^2
+		\bigr)~\text{s.t.}~\| \mathbf{ h } \|_2 = 1,~\mathbf{ h }^\top  \widehat{\operatorname{Cov}}^2
 		\bigl(
 		\{
 		\mathbf{Z}_i
 		\}_{i=1}^n
 		\bigr) \hat{\boldsymbol{\xi}}_j = 0, \quad j = 1, \ldots, l-1,
-	\end{equation*}
-	where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{alg:scalar_pls}.
+	\end{equation}
+	where the two $\widehat{\operatorname{Cov}}^2$ denote sample cross-covariance and sample covariance, respectively. A standard algorithm for solving this optimization problem, called nonlinear iterative partial least squares (NIPALS) is presented in Algorithm \ref{alg:scalar_pls}.
 	\begin{algorithm} 
 		\caption{Scalar partial least squares regression}\label{alg:scalar_pls}
 		\begin{algorithmic}[1]
@@ -838,103 +838,170 @@ To address the gaps mentioned above, we unify the remedies proposed for these th
 	Section \ref{section:sub:geom} demonstrates that our algorithm preserves the core properties of PLS, namely the orthonormality of the derived directions and the orthogonality of the scores.
 	
 	\subsection{ Tucker's Criterion  }\label{section:sub:tucker} 
-	    \jongmin{comment:maybe we can move this section to precede the algorithm section. then the new structure will introduce population version first and introduce finite-sample estimation procedure.}
-	The fundamental property of classical scalar PLS is that the PLS component direction  corresponds to the first eigenvector of the squared covariance matrix, satisfying  the Tucker's Criterion \citep{Tucker1938}.
-	Under a mild assumption,
-	We derive an analogous result  in our scalar-on-hybrid regression model setting \eqref{eq: Hybrid functional model}.
-	This justifies our estimation procedure introduced in Section \ref{section:main:our_algorithm}.
-For notational simplicity, we omit the index $l$. At the population level, where the random objects are fully observed, it suffices to consider $Y_1$ and $W_1$ rather than their sampled realizations.
-We assume 
-$\mathbb{E}[Y_1]=0 \in \mathbb{R}$ and $\mathbb{E}[W_1] = 0 \in \mathbb{H}$.
- We first define the cross-covariance between the response and the functional predictors, where the predictors correspond to the observed versions for $l=1$ and to the residualized versions for $l \ge 2$:
-	\begin{equation}\label{def:cross_covariance_yx}
-		\sigma_{YX}
-		=
-		\bigl(
-		\sigma_{YX, 1}(t) , \ldots, \sigma_{YX, K}(t) 
-		\bigr)
-		:=
-		\bigl(
-		\mathbb{E}
-		[Y_1 X_{11}]
-		,\ldots, 
-		\mathbb{E}
-		[Y_1  X_{1K}]
-		\bigr)   \in \mathcal{F}^{\otimes K},
-	\end{equation}
-	and between the response and the scalar predictor:
-	\begin{equation*}
-		\sigma_{YZ} 
-		= 
-		(\sigma_{YZ,1}, \ldots, \sigma_{YZ,p})^\top 
-		:= 
-		\bigl(
-		\mathbb{E}[Y_1 Z_{11}]
-		,\ldots,
-		\mathbb{E}[Y_1 Z_{1p}]
-		\bigr)^\top %= E(Y\mathbf{Z})
-		\in \mathbb{R}^p.
-	\end{equation*}
-	Based on these definitions, 
-	Based on these definitions, we introduce two cross-covariance operators and their properties.
+	\jongmin{comment:maybe we can move this section to precede the algorithm section. then the new structure will introduce population version first and introduce finite-sample estimation procedure.}
+	We now derive the population analogue of Algorithm~\ref{alg:hybrid_pls} and establish its key mathematical properties, namely the orthogonality of the PLS directions and scores, as well as convergence to the true response. At the population level, where the random objects are fully observable, we may drop the sample index $i$ and simply work with $Y$
+	and
+	$W = (X_1, \ldots, X_K, Z_1, \ldots, Z_p)$. Throughout this section we assume 
+	$\mathbb{E}[Y] = 0 \in \mathbb{R}$ and $\mathbb{E}[W] = 0 \in \mathbb{H}$.
 	
- We define an operator $\mathcal{T}$ that maps an element $g \in \mathbb{H}$   (representing a potential regression coefficient) to the predicted response.
-\begin{lemma}\label{lemma:tau_ast}
-	Let the cross-covariance between the response $Y$ and the hybrid predictor $W$ be
-	\[
-	\Sigma_{YW} := \mathbb{E}[ Y_1 W_1 ]
-	= \bigl( \sigma_{YX,1}, \ldots, \sigma_{YX,K}, \, \sigma_{YZ} \bigr) 
-	\in \mathbb{H}.
-	\]
-	Define the linear operator $\mathcal{T}: \mathbb{H} \to \mathbb{R}$ by
-	\[
-	\mathcal{T} g := \langle W_1, g \rangle_{\mathbb{H}}, \quad g \in \mathbb{H}.
-	\]
-	Let $\mathcal{T}^\ast: \mathbb{R} \to \mathbb{H}$ denote its adjoint operator. Then,
-	\[
-	\mathbb{E}[ \mathcal{T}^\ast Y_1 ] = \Sigma_{YW}.
-	\]
-\end{lemma}
-
-Proof of Lemma \ref{lemma:tau_ast} is provided in Appendix \ref{section:rpoof:lemma:tau_ast}.
-
+	The core optimization problem in PLS is formulated in terms of maximizing the squared cross-covariance. At the population level, this quantity is naturally characterized by cross-covariance operators, which we define next. For notational simplicity, we suppress the iteration index $l$, with the understanding that for $l=1$ the predictors correspond to the original variables, while for $l \geq 2$ they represent the residualized versions.
+	\begin{definition}\label{def:cross_cov_terms}
+		The covariance operator of the hybrid predictor $W$ is denoted as $\Sigma_{W} := \mathbb{E}[W \otimes W]$, so that for $u,v \in \mathbb{H}$, we have
+		\[
+		\Sigma_{W} u = \mathbb{E}[
+		\langle W, u\rangle_{\mathbb{H}}W
+		],
+		\quad
+		\langle \Sigma_{W} u, v \rangle_{\mathbb{H}}
+		= \mathbb{E}[\langle W,u \rangle_{\mathbb{H}} \, \langle W,v \rangle_{\mathbb{H}}].
+		\]
+		
+		The cross-covariances between the response $Y$ and the predictors are
+		\[
+		\sigma_{YX}
+		:=
+		\bigl(\mathbb{E}[Y X_{1}],\ldots,\mathbb{E}[Y X_{K}]\bigr) \in \mathcal{F}^{K},
+		\quad
+		\sigma_{YZ} 
+		:=
+		\bigl(\mathbb{E}[Y Z_{1}],\ldots,\mathbb{E}[Y Z_{p}]\bigr)^\top \in \mathbb{R}^p.
+		\]
+		
+		The cross-covariance between $Y$ and the hybrid predictor $W$ is then
+		\[
+		\Sigma_{YW} := \mathbb{E}[ Y W ] = \bigl( \sigma_{YX}, \, \sigma_{YZ} \bigr) \in \mathbb{H}.
+		\]
+	\end{definition}
+	At the population level, Algorithm \ref{alg:hybrid_pls} without regularizaiton can be expressed as follows.
+	Let $W^{[1]} := W$ and $Y^{[1]} := Y$.
+	For any   integer $l \geq 2$,
+	to be the residuals of the 
+	
+	where 
+	
+	and
+	
+	which is attained by the leading eigenfunction of the operator 
+	$\mathcal{U}^{[l-1]}$, defined analogously to Lemma~\ref{lemma:composite_cross_cov} 
+	using $W^{[l-1]}$ and $Y^{[l-1]}$, provided the conditions in 
+	Lemma~\ref{lemma:cross_cov_functional} are satisfied.
+	\begin{definition}[Population PLS]\label{def:population_pls}
+		The population analogue of the PLS optimization problem \eqref{scalar_PLS_sample} in the hybrid space is formulated as the constrained generalized eigenproblem:
+		\begin{equation}\label{const_eigen_pop}
+			\xi^{[l]} = \arg\max_{h \in \mathbb{H}}
+			\operatorname{Cov}^2(\langle W, h \rangle_{\mathbb{H}}, Y),~s.t.~\|h\|_{\mathbb{H}}=1, \langle h, \Sigma_W \, \xi^{[j]} \rangle_{\mathbb{H}} = 0,\, j < l.
+		\end{equation}
+	\end{definition}
+	As in scalar case, this problem can be solved by an iterative algorithm, and yields orthogonal scores:
+	\begin{proposition}[Properties of population PLS]
+		\label{prop:residualization_equiv_eigen}
+		The solution of optimization problem \eqref{const_eigen_pop} of Definition \ref{def:population_pls} is equivalent to that of population NIPALS (Algorithm \ref{alg:population_pls}).  For every \(s\ge 1\) and every \(j\le s-1\), we have
+		$
+		\mathbb{E}[\rho^{[j]}\rho^{[s]}]=0
+		$
+		and
+		$
+		\mathbb{E}[Y^{[s]}\rho^{[j]}]=0.
+		$
+		
+	\end{proposition}
+	Proof of Proposition \ref{prop:residualization_equiv_eigen} is provided in Appendix \ref{section:proof:prop:residualization_equiv_eigen}.
+	\begin{algorithm} 
+		\caption{Population NIPALS}\label{alg:population_pls}
+		\begin{algorithmic}[1]
+			\State
+			$(W^{[1]}, Y^{[1]} \leftarrow (W, Y)$
+			\For{$l = 1, 2, \ldots, L$}
+			\State
+			$
+			\xi^{[l]}
+			\leftarrow
+			\arg\max_{h \in \mathbb{H}} \operatorname{Cov}^2(\langle W^{[l]}, h \rangle_{\mathbb{H}}, Y^{[l]})~s.t.~ \|h\|_{\mathbb{H}} = 1,
+			$\label{alg:line:pls_direction} \Comment{PLS direction}
+			%%%%%%%%%
+			\State 
+			$
+			\rho^{[l]} \leftarrow \langle \xi^{[l]}, W^{[l]} \rangle 
+			$ \Comment{PLS score}
+			%%%%%%%%%%
+			\State
+			$
+			\delta^{[l]}
+			\leftarrow
+			\frac{1}{\mathbb{E}[ (\rho^{[l]})^2 ]}  \mathbb{E}[W^{[l]} \rho^{[l]}]
+			$\label{population_delta}
+			\Comment{Linear regression of 
+				$W^{[l]}$
+				on $\rho^{[l]}$}
+			%%%%%%%%%%%
+			\State
+			$
+			\nu^{[l]}
+			\leftarrow
+			\frac{1}{\mathbb{E}[ (\rho^{[l]})^2 ]}
+			\mathbb{E}[Y^{[l]} \rho^{[l]}]
+			$
+			\Comment{
+				Linear regression of 
+				$Y^{[l]} $
+				on $\rho^{[l]}$
+			}
+			%%%%%%%%%%%%%%%%%%%
+			\State 
+			$ W^{[l+1]} \leftarrow W^{[l]} - \rho^{[l]} \, \delta^{[l]}$
+			\label{population_predictor_residualize}
+			\Comment{
+				Residualized predictor
+			}
+			\State
+			$ Y^{[l]} \leftarrow Y^{[l-1]} - \nu^{[l-1]} \, \rho^{[l-1]}$
+			\Comment{
+				Residualized response
+			}
+			\EndFor
+			\State \textbf{Output:}
+			PLS directions $\xi^{[1]}, \ldots, \xi^{[L]}$
+		\end{algorithmic}
+	\end{algorithm}
+	
+	We show that problem \eqref{const_eigen_pop} and Algorithm \ref{alg:population_pls} are well-defined under mild conditions by  establishing that line \ref{alg:line:pls_direction} of Algorithm \ref{alg:population_pls} is well-defined under mild conditions. For clarity, we define the relevant operators while omitting the iteration index for the residualized predictors and responses.
 	\begin{lemma}\label{lemma:cross_cov_functional}
 		Define the operator $
-		\mathcal{C}_{YW}
-		=
-		\mathbb{E}(W_1 \otimes_\mathbb{H} Y_1)
-		: \mathbb{H} \rightarrow \mathbb{R}$ such that for any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$, it maps $h$ to a real number as: \begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W_1, h \rangle_\mathbb{H} Y_1 \right] = \langle \Sigma_{YW}, h \rangle_\mathbb{H} = \sum \limits_{k=1}^K \int_0^1 \sigma_{YX, k}(t) \, f_k(t) \, dt + \sigma_{YW}^\top \mathbf{v}. \end{equation*} 
-		\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact. This way, we don't need uniform continuiity of $\sigma_{YX}$.}If there exist finite constants $Q_1$ and $Q_2$ such that
+		\mathcal{C}_{YW}$ such that for   any $h=(f_1, \ldots, f_K, \mathbf{v}) \in \mathbb{H}$,
+		\begin{equation*} \mathcal{C}_{YW} h := \mathbb{E} \left[ \langle W, h \rangle_\mathbb{H} Y \right] = \langle \Sigma_{YW}, h \rangle_\mathbb{H} \in \mathbb{R}.
+		\end{equation*} 
+		\jongmin{instead of showing $\mathcal{U}$ is compact, let's show $\mathcal{C}_{YW}$ is compact. This way, we don't need uniform continuiity of $\sigma_{YX}$.}
+		If 
+		$\sigma_{YX}$ and $\sigma_{YZ}$ are bounded in the sense that
+		there exist finite constants $Q_1$ and $Q_2$ such that
 		\begin{align}\label{condition_for_compact}
-			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \sigma_{YX, k}^{2}(t) < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \sigma_{YZ, r}^2 < Q_2,
+			\max \limits_{k=1, \ldots, K} \sup \limits_{t \in [0,1]} \mathbb{E}
+			[Y X_{k}](t)^2 < Q_1 \quad \textnormal{and} \quad  \max_{r=1, \ldots, p} \mathbb{E}
+			[Y Z_{r}]^2 < Q_2,
 		\end{align}
 		the operator $\mathcal{C}_{YW}$ is a compact operator.
 	\end{lemma}
 	Proof of Lemma \ref{lemma:cross_cov_functional}
 	is provided in Appendix \ref{section:proof:lemma:cross_cov_functional}.
 	\begin{lemma}\label{lemma:cross_cov_operator}
-		Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]: \mathbb{R} \rightarrow \mathbb{H}$,
-		which	maps  $d \in \mathbb{R}$ to a hybrid object in $\mathbb{H}$ as follows:
+		Define $\mathcal{C}_{WY} = \mathbb{E}[Y \otimes W]$,
+		such that for any  $d \in \mathbb{R}$,
 		%%%%
 		\begin{align*}		
 			\mathcal{C}_{WY} d 
 			:= 
 			\mathbb{E} 
 			\bigl[
-			\langle Y_1, d \rangle W_1 
+			\langle Y, d \rangle W 
 			\bigr] 
 			= 
 			\mathbb{E}
-			[ Y_1 W_1 d ] =  d \, \Sigma_{Y W}.
+			[ Y W d ] =  d \, \Sigma_{Y W} \in \mathbb{H}.
 		\end{align*}
 		Then	$\mathcal{C}_{WY}$ is an adjoint operator of $\mathcal{C}_{YW}$. That is, $\mathcal{C}_{WY} = \mathcal{C}_{YW}^\ast$.
-	\end{lemma}
-	
-	
-	
+	\end{lemma}	
 	The proof of Lemma \ref{lemma:cross_cov_operator} is provided in Appendix \ref{section:proof:lemma:cross_cov_operator}.
 	
-	Based on these two operators, we define a positive   operator as follows:
 	\begin{lemma}[Composite cross-covariance operator]\label{lemma:composite_cross_cov}
 		Define
 		$\mathcal{U} := \mathcal{C}_{WY} \circ \mathcal{C}_{YW}: \mathbb{H} \rightarrow \mathbb{H}$ as an operator which performs the following mapping:
@@ -957,77 +1024,28 @@ Proof of Lemma \ref{lemma:tau_ast} is provided in Appendix \ref{section:rpoof:le
 	The proof of Lemma \ref{lemma:composite_cross_cov} is provided in Appendix \ref{section:proof:lemma:composite_cross_cov}.
 	By the Hilbert-Schmidt theorem (e.g., Theorem 4.2.4 in \citealp{hsingTheoreticalFoundationsFunctional2015}), Lemma \ref{lemma:composite_cross_cov} guarantees the existence of a complete orthonormal system of eigenfunctions $\{\xi_{(u)}\}_{u \in \mathbb{N}}$ of $\mathcal{U}$ in $\mathbb{H}$ such that $\mathcal{U} \xi_{(u)} = \kappa_{(u)}  \xi_{(u)}$, where $\{\kappa_{(u)}\}_{u \in \mathbb{N}}$ are the corresponding sequence of eigenvalues that goes to zero as $u \rightarrow \infty$, that is, $\kappa_{(1)} \ge \kappa_{(2)} \ge \cdots \ge 0$.
 	
-	The following theorem introduces the population-level PLS and Tucker's Criterion, adapted to our scalar-on-hybrid regression model setting, based on the aforementioned operators defined in the hybrid space.
+	The following theorem presents population-level PLS and Tucker's Criterion for our scalar-on-hybrid regression model and ensures that line \ref{alg:line:pls_direction} of Algorithm \ref{alg:population_pls} is well-defined under mild conditions.
 	\begin{theorem}[Tucker's criterion]\label{theorem:population_PLS} Under the conditions of Lemma \ref{lemma:cross_cov_functional}, the constrained maximum
 		\begin{equation*} 
-			\max \limits_{\substack{\xi \in \mathbb{H} \\ \Vert \xi \Vert_\mathbb{H}=1}} \operatorname{Cov}^2 \left(\langle W_1 , \, \xi \rangle_\mathbb{H}, Y_1 \right)
+			\max \limits_{\substack{ \Vert \xi \Vert_\mathbb{H}=1}} \operatorname{Cov}^2 \left(\langle W , \, \xi \rangle_\mathbb{H}, Y \right)
 		\end{equation*} 
 		is attained by the eigenfunction associated with the largest eigenvalue of the operator $\mathcal{U}$.
 	\end{theorem}
-	Note that the maximizer is a deterministic element of $\mathbb{H}$.
 	The proof of Theorem \ref{theorem:population_PLS} is provided in Appendix \ref{section:proof:theorem:population_PLS}.
-
- 
-Let 
- $\mathcal{U}^{[l]} := \Sigma_{YW}^{[l]} \otimes \Sigma_{YW}^{[l]}$,
- where
- $\Sigma_{YW}^{[l]} = E(Y_1^{[l]}  W_1^{[l]})$
- is formulated   using the $l$-th residualized response and predictors.
- Assuming that $\mathcal{U}^{[l]}$
-   satisfies the conditions of Lemma \ref{lemma:cross_cov_functional},
-	the $l$-th PLS direction $\xi^{[l]}$ can be obtained as the \textit{first} eigenfunction of  $\mathcal{U}^{[l]}$. 
 	
-\jongmin{comment: I added the following properties, motivated by Proposition 4 of \citet{predaPLSRegressionStochastic2005} and section 2 of \citet{aguileraPenalizedVersionsFunctional2016}. }
-
-
- 
-\begin{lemma} \label{lem:regression_W_rho} The population-level least square regression coefficient of regressing $W_1^{[l]}$ on its score $\rho_1^{[l]} = \langle W_1^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}}$ is $\mathbf{\xi^{[l]}} \in \mathbb{H}$. This coefficient is used in the residualization process as follows: \begin{align*} W_1^{[l]} &= W_1^{[l-1]} - \langle W_1^{[l-1]}, \xi^{[l-1]} \rangle_{\mathbb{H}} \xi^{[l-1]},\end{align*} where  $W_1^{[1]} = W_1$. \end{lemma} 
-Proof of Lemma \ref{lem:regression_W_rho} is provided in Appendix \ref{section:proof:lem:regression_W_rho}.
- 
-
-  
-  	
-
-
-
-
-\begin{proposition}\label{proposition:pls_direction_in_range_T_ast}
-	All PLS Directions Reside in $R(\mathcal{T}^\ast  )$
-\end{proposition}
- Proof of Proposition \ref{proposition:pls_direction_in_range_T_ast} is provided in Appendix \ref{section:proof:proposition:pls_direction_in_range_T_ast}
- 
-\begin{proposition}
-	\label{proposition:CONS}
-	The set of PLS directions $\{\xi^{[l]}\}_{l=1}^\infty$ forms a complete orthonormal system (CONS) for $R(\mathcal{T}^*)$.
-\end{proposition}
-Proof of Proposition \ref{proposition:CONS}
-is provided in Appendix \ref{section:proof:proposition:CONS}.
-
-\begin{corollary}
-	\label{cor:orthogonal_scores}
-	Given that $\{\xi^{[l]}\}_{l=1}^\infty$ is a complete orthonormal system (CONS) for $R(\mathcal{T}^*)$, the corresponding PLS scores $\rho^{[l]}$ can be equivalently expressed as $\rho^{[l]} = \langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}} = \langle W, \xi^{[l]} \rangle_{\mathbb{H}}$. Furthermore, the set of PLS scores $\{\rho^{[l]}\}_{l=1}^\infty$ forms an orthogonal system, that is, for any $j \neq l$, $\mathbb{E}[\rho^{[j]} \rho^{[l]}] = 0$.
-\end{corollary}
- 
-\begin{proposition} \label{prop:ols_uniqueness} Let $\beta_{\mathrm{OLS}}$ denote a minimizer of the mean squared error $\mathbb{E}[\|Y - \langle \beta, W \rangle_{\mathbb{H}}\|_2^2]$. This minimizer satisfies the normal equation: \begin{equation*} \mathbb{E}[(Y - \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}})W] = \mathbf{0} \in {\mathbb{H}}. \end{equation*}  If $\mathcal{T}^\ast \mathcal{T}$ is not invertible, $\beta_{\mathrm{OLS}}$ may not be unique, but all solutions for $\beta_{\mathrm{OLS}}$ reside in $R(\mathcal{T}^*)$, and the corresponding fitted values $Y_{\mathrm{OLS}} = \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}$ are always unique. \end{proposition}
-Proof of Proposition \ref{prop:ols_uniqueness} is provided in Appendix \ref{section:proof:prop:ols_uniqueness}.
-\begin{proposition}\label{proposition:nu_l}
-	At the $l$-th iteration, the 
-	population level least square regression coefficient of the residual response $Y^{[l]}$ on the score $\rho^{[l]}$ is defined as:
-	$$\nu^{[l]} = \langle \beta_{\mathrm{OLS}}, \xi^{[l]} \rangle_{\mathbb{H}}.$$
-\end{proposition}
-Proof of Proposition \ref{proposition:nu_l} is provided in Appendix \ref{section:proof:proposition:nu_l}.
-
-The following theorem states that the fitted values from hybrid PLS converge to those of ordinary linear regression in the mean-squared sense. This shows that hybrid PLS, as a dimension-reduction technique, can effectively capture the predictive power of a full linear model when a sufficient number of components is used.
-\begin{theorem}[$L^2$ Convergence of Hybrid PLS at Population Level]\label{thm:hybrid_pls_convergence}
-	 Define $Y_{\mathrm{OLS}} = \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}$ as the population-level ordinary linear regression fitted value. Let $Y_{\mathrm{PLS}, L} = \sum_{l=1}^L \nu^{[l]} \rho^{[l]}$ be the Hybrid PLS fitted value with $L$ components. Then, the Hybrid PLS fitted value converges to the ordinary linear regression fitted value in the mean-squared sense:
-	\begin{equation*}
-		\lim_{L \to \infty} \mathbb{E}\left[ \| Y_{\mathrm{PLS},L } - Y_{\mathrm{OLS}} \|_2^2 \right] = 0
-	\end{equation*}
-\end{theorem}
- The proof of Theorem \ref{thm:hybrid_pls_convergence} is provided in Appendix \ref{section:proof:thm:hybrid_pls_convergence}.
+	Finally, the following theorem states that the fitted values from hybrid PLS converge to those of ordinary linear regression in the mean-squared sense. This shows that hybrid PLS, as a dimension-reduction technique, can effectively capture the predictive power of a full linear model when a sufficient number of components is used.
+	\begin{theorem}[$L^2$ Convergence of Hybrid PLS at Population Level]\label{thm:hybrid_pls_convergence}
+		Let $Y_{\mathrm{PLS}, L} = \sum_{l=1}^L \nu^{[l]} \rho^{[l]}$ be the Hybrid PLS fitted value with $L$ components. Then, the Hybrid PLS fitted value converges to $Y$ in the mean-squared sense:
+		\begin{equation*}
+			\lim_{L \to \infty} \mathbb{E}\left[ \| Y_{\mathrm{PLS},L } - Y  \|_2^2 \right] = 0
+		\end{equation*}
+	\end{theorem}
+	The proof of Theorem \ref{thm:hybrid_pls_convergence} is provided in Appendix \ref{section:proof:thm:hybrid_pls_convergence}.
 	
 	\subsection{Geometric properties}\label{section:sub:geom}
-	A fundamental property of partial least squares   is that between iterations, its derived directions are orthonormal and PLS scores are orthogonal. Our regularized estimates preserve this property, with respect to a modified inner product that incorporates the roughness penalty, defines as follows:
+	A fundamental property of partial least squares,
+	as seem in Definition \ref{def:population_pls} and Proposition \ref{prop:residualization_equiv_eigen},
+	is that between iterations, its derived directions are orthonormal and PLS scores are orthogonal. Our regularized estimates preserve this property, with respect to a modified inner product that incorporates the roughness penalty, defines as follows:
 	\begin{definition}[Roughness-sensitive inner product]\label{def:hybrid_inner_product_roughness}
 		Given two hybrid predictors $W_1 = (X_{11}, \ldots, X_{1K}, \mathbf{Z}_1)$ and $W_2 = (X_{21}, \ldots, X_{2K}, \mathbf{Z}_2)$, both elements of $\mathbb{H}$ as defined in Definition \ref{def:hybrid_predictor}, and a roughness penalty matrix $\Lambda = \operatorname{blkdiag}(\lambda_1 I_M, \ldots, \lambda_K I_M, 0_{p \times p})$, the roughness-sensitive inner product between $W_1$ and $W_2$ is defined as:
 		\begin{equation}		\label{eq: hybrid inner product_roughness}
@@ -2083,11 +2101,18 @@ The following theorem states that the fitted values from hybrid PLS converge to 
 		To show that $\mathcal{C}_{YW}$ is bounded, we need to find a finite constant $M$ such that $|\mathcal{C}_{YW} h| \leq M \|h\|_\mathbb{H}$ for all $h \in \mathbb{H}$. By the Cauchy-Schwarz inequality, we have: \begin{equation*} 
 			|\mathcal{C}_{YW} h| = |\langle \Sigma_{YW}, h \rangle_\mathbb{H}| \leq \|\Sigma_{YW}\|_\mathbb{H} \|h\|_\mathbb{H}. 
 		\end{equation*}
+		%%%%%%%%%%%%%%%%
 		Now, we must verify that $\|\Sigma_{YW}\|_\mathbb{H}$ is finite. 
-		Recall that 
-		$$\Sigma_{YW} = (\sigma_{YX,1}(t), \ldots, \sigma_{YX,K}(t), \sigma_{YZ,1}, \ldots, \sigma_{YZ,p}).$$
 		Let $\mu([0,1])$ denote a Lebesgue measure of $[0,1]$, and let $T = \max_{k=1, \ldots, K} \, \mu([0,1])$.
-		The norm of $\Sigma_{YW}$ in $\mathbb{H}$ is given by: \begin{equation*} \|\Sigma_{YW}\|_\mathbb{H}^2 = \sum_{k=1}^K \int_0^1 \sigma_{YX,k}(t)^2 \, dt + \sum_{r=1}^p \sigma_{YZ,r}^2
+		The squared norm of $\Sigma_{YW}$   is given by:
+		\begin{equation*}
+			\|\Sigma_{YW}\|_\mathbb{H}^2 
+			= 
+			\langle \Sigma_{YW}, \Sigma_{YW} \rangle_\mathbb{H}
+			=
+			\sum_{k=1}^K
+			\int_0^1 \mathbb{E} \left[   Y X_k\right](t)^2 \, dt
+			+ \sum_{r=1}^p \mathbb{E} \left[   Y Z_r\right]^2
 			<
 			K T Q_1 + p  Q_2 < \infty,
 		\end{equation*} 
@@ -2098,7 +2123,7 @@ The following theorem states that the fitted values from hybrid PLS converge to 
 	\end{proof}
 	\subsection{Proof of Lemma \ref{lemma:cross_cov_operator}}\label{section:proof:lemma:cross_cov_operator}
 	\begin{proof}
-		For $h \in \mathbb{H}$ and $d \in \mathbb{R}$, we have:
+		For any $h \in \mathbb{H}$ and $d \in \mathbb{R}$, we have:
 		\begin{equation*}
 			\langle
 			\mathcal{C}_{YW} h, d \rangle 
@@ -2392,228 +2417,412 @@ The following theorem states that the fitted values from hybrid PLS converge to 
 			\textit{Conclusion.}~ For any bounded sequence $\{h_n\}_{n \in \mathbb{N}} \in \mathcal{B}$, the sequence $\{\mathbf{g}_n = \mathcal{U}h_n\}_{n \in \mathbb{N}} \in \mathcal{I}$ contains a subsequence that converges in its first functional component, by the Arzel\'{a}-Ascoli theorem. We then apply the theorem again to that subsequence to extract a sub-subsequence that also converges in the second functional component. By repeating this process, we ultimately obtain a subsequence of $\{\mathbf{g}_n\}$ that converges in all its components. Therefore, $\mathcal{U}$ is a compact operator.
 		\end{proof}
 	\end{comment}
-
-\section{Proof of consistency}
-\subsection{
-		Proof of Lemma \ref{lem:regression_W_rho}
-}\label{section:proof:lem:regression_W_rho}
-\begin{proof} We are seeking the population-level regression coefficient, denoted $\gamma \in \mathbb{H}$, for the linear model: $$W_1^{[\ell]} = \gamma \rho_1^{[\ell]} + \text{Error}$$ where $W_1^{[\ell]}$ is the dependent variable (a random element in $\mathbb{H}$), and $\rho_1^{[\ell]} = \langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}}$ is the independent variable (a scalar random variable). The optimal regression coefficient $\gamma$ (in the sense of minimizing the mean squared error $E[\|W_1^{[\ell]} - \gamma \rho_1^{[\ell]}\|^2_{\mathbb{H}}]$) is given by the formula: 
-	$$\gamma = \frac{E[W_1^{[\ell]} \rho_1^{[\ell]}]}{E[(\rho_1^{[\ell]})^2]}$$ 
-	This formula holds assuming $E[W_1^{[\ell]}] = \mathbf{0}_{\mathbb{H}}$ and $E[\rho_1^{[\ell]}] = 0$, which is true due to the residualization process and the property of zero-mean predictors in the population. Let's compute the components of this formula:
- \begin{enumerate} \item \textbf{Denominator:} The denominator is $E[(\rho_1^{[\ell]})^2] = E[(\langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}})^2]$. This is the population variance of the score $\rho_1^{[\ell]}$. \item \textbf{Numerator:} The numerator is $E[W_1^{[\ell]} \rho_1^{[\ell]}] = E[W_1^{[\ell]} \langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}}]$. This is the expectation of the product of a random element $W_1^{[\ell]}$ and a scalar random variable $\langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}}$. A fundamental identity in Hilbert spaces states that for any random element $X \in \mathbb{H}$ and any non-random unit vector $u \in \mathbb{H}$ (like $\xi^{[\ell]}$ which has unit norm), if $E[X] = \mathbf{0}_{\mathbb{H}}$, then: $$E[X\langle X,u\rangle_{\mathbb{H}}]=E[\langle X,u\rangle_{\mathbb{H}}^2]u$$ Applying this identity by setting $X=W_1^{[\ell]}$ and $u=\xi^{[\ell]}$: $$E[W_1^{[\ell]}\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}}]=E[(\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}})^2]\xi^{[\ell]}$$ \end{enumerate} Substituting these into the formula for $\gamma$: $$\gamma = \frac{E[(\langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}})^2] \xi^{[\ell]}}{E[(\langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}})^2]}$$ Assuming that $E[(\langle W_1^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}})^2] \neq 0$ (i.e., the score has non-zero variance, implying $\xi^{[\ell]}$ captures some variation), we can cancel the terms, resulting in: $$\gamma = \xi^{[\ell]}$$ This result is intuitively consistent with the orthogonal decomposition of $W_1^{[\ell]}$: $$W_1^{[\ell]}=\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}}\xi^{[\ell]}+(W_1^{[\ell]}-\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}}\xi^{[\ell]})$$ The second term, $(W_1^{[\ell]}-\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}}\xi^{[\ell]})$, is the part of $W_1^{[\ell]}$ that is orthogonal to $\xi^{[\ell]}$ (and thus uncorrelated with $\rho_1^{[\ell]}$). When $W_1^{[\ell]}$ is regressed on $\rho_1^{[\ell]}$, the regression model isolates the component of $W_1^{[\ell]}$ that is linearly related to $\rho_1^{[\ell]}$, which is precisely $\langle W_1^{[\ell]},\xi^{[\ell]}\rangle_{\mathbb{H}}\xi^{[\ell]}$. The coefficient for $\rho_1^{[\ell]}$ in this linear relationship is simply $\xi^{[\ell]}$. \end{proof}
 	
- 
-
-		
-\subsection{Proof of Lemma \ref{lemma:tau_ast} }\label{section:rpoof:lemma:tau_ast}
-	\begin{proof}
-By the definition of the adjoint operator, 
-for all $g \in \mathbb{H}$, we have
-\begin{align*}
-	 \langle
-	\Sigma_{YW}, g \rangle_{\mathbb{H}} 
-=	
-	 \langle
-	 \mathbb{E}
-	 [ Y_1 W_1], g \rangle_{\mathbb{H}} 
-	=
-\mathbb{E}
-[ Y_1 \langle W_1, g \rangle_{\mathbb{H}} ]
-=
-\mathbb{E}[
-Y_1
-(\mathcal{T}g)
-]
-=
-\mathbb{E}[
-\langle \mathcal{T}g, Y_1 \rangle
-]
-&= \mathbb{E}[
-\langle g, \mathcal{T}^\ast Y_1 \rangle_{\mathbb{H}}
-]
-\\&= 
-\langle g, \mathbb{E}[\mathcal{T}^\ast Y_1 ]\rangle_{\mathbb{H}}.
-\end{align*}	
-This completes the proof of Lemma \ref{lemma:tau_ast}.
-	\end{proof}
-
-\subsection{Proof of}
-\begin{proof}
-The first PLS direction $\xi^{[1]}$ is the principal eigenfunction of $\mathcal{U}^{[1]} = \Sigma_{YW}^{[1]} \otimes \Sigma_{YW}^{[1]}$. Let $\lambda^{[1]}$ be the largest eigenvalue associated with $\xi^{[1]}$. By the definition of an eigenfunction: $$ \mathcal{U}^{[1]} \xi^{[1]} = \lambda^{[1]} \xi^{[1]} $$ Substituting the definition of $\mathcal{U}^{[1]}$: $$ (\Sigma_{YW}^{[1]} \otimes \Sigma_{YW}^{[1]}) \xi^{[1]} = \lambda^{[1]} \xi^{[1]} $$ This means: $$ \Sigma_{YW}^{[1]} \langle \Sigma_{YW}^{[1]}, \xi^{[1]} \rangle_{\mathbb{H}} = \lambda^{[1]} \xi^{[1]} $$ If there is any linear correlation between $Y$ and $W$, then $\Sigma_{YW}^{[1]} \neq 0$, which implies $\lambda^{[1]}$ must be non-zero. From the equation above, if $\lambda^{[1]} \neq 0$: $$ \xi^{[1]} = \frac{\langle \Sigma_{YW}^{[1]}, \xi^{[1]} \rangle_{\mathbb{H}}}{\lambda^{[1]}} \Sigma_{YW}^{[1]} $$ This equation shows that $\xi^{[1]}$ is a scalar multiple of $\Sigma_{YW}^{[1]}$. Since $\Sigma_{YW}^{[1]} \in R(\mathcal{T}^\ast  )$ (as shown in Step 2), and $R(\mathcal{T}^\ast  )$ is a subspace of $\mathbb{H}$ (and thus closed under scalar multiplication), any scalar multiple of $\Sigma_{YW}^{[1]}$ must also be in $R(\mathcal{T}^\ast  )$. Therefore, the first PLS direction $\xi^{[1]}$ formally resides in the range of the adjoint operator $R(\mathcal{T}^\ast  )$.
-\end{proof}
-  The first PLS direction $\xi^{[1]}$ is the principal eigenfunction of the operator $\mathcal{U}^{[1]} = \Sigma_{YW}^{[1]} \otimes \Sigma_{YW}^{[1]}$. The term $\Sigma_{YW}^{[1]}$ is the population cross-covariance between the (initial, unresidualized) response $Y$ and hybrid predictor $W$: $$ \Sigma_{YW}^{[1]} = E[YW] $$ From our derivation in Step 1, we see that $\Sigma_{YW}^{[1]}$ is precisely equal to $\mathcal{T}^\ast Y$. Since $\Sigma_{YW}^{[1]} = \mathcal{T}^\ast Y$, it directly follows that $\Sigma_{YW}^{[1]}$ belongs to the **range of the adjoint operator $R(\mathcal{T}^\ast  )$**. By definition, $R(\mathcal{T}^\ast  )$ comprises all elements in $\mathbb{H}$ that can be expressed as $\mathcal{T}^\ast Y$ for some $y \in L^2(\Omega)$. 
-
-\subsection{Proof of Proposition \ref{proposition:pls_direction_in_range_T_ast}}\label{section:proof:proposition:pls_direction_in_range_T_ast}
-\begin{proof}
-	The First Eigenfunction $\xi^{[1]}$ Resides in $R(\mathcal{T}^\ast  )$
-  We aim to formally prove that for any $\ell \ge 1$, the $\ell$-th PLS direction $\xi^{[\ell]}$ belongs to the range of the adjoint operator $\mathcal{T}^\ast  $, denoted $R(\mathcal{T}^\ast  )$, at the population level. This proof uses mathematical induction. \paragraph*{1. Recall Definitions and Base Case} \begin{itemize} \item \textbf{Hybrid Hilbert Space ($\mathbb{H}$):} The space where predictors $W$ reside. \item \textbf{Response Space ($L^2(\Omega)$):} The space of scalar random variables (responses $Y$) with finite second moments. \item \textbf{Operator $\mathcal{T}: \mathbb{H} \rightarrow L^2(\Omega)$:} Defined by $\mathcal{T}g = \langle W, g \rangle_{\mathbb{H}}$. This maps a potential regression coefficient $g$ to a predicted response. \item \textbf{Adjoint Operator $\mathcal{T}^\ast  : L^2(\Omega) \rightarrow \mathbb{H}$:} Uniquely defined by $\langle \mathcal{T}g, Y \rangle_{L^2(\Omega)} = \langle g, \mathcal{T}^\ast Y \rangle_{\mathbb{H}}$. As derived, $\mathcal{T}^\ast Y = E[YW]$. The range $R(\mathcal{T}^\ast  )$ is the subspace of $\mathbb{H}$ containing all elements that are linearly correlated with $Y$. \item \textbf{$\ell$-th PLS Direction ($\xi^{[\ell]}$):} The principal eigenfunction of $\mathcal{U}^{[\ell]} = \Sigma_{YW}^{[\ell]} \otimes \Sigma_{YW}^{[\ell]}$, where $\Sigma_{YW}^{[\ell]} = E[Y^{[\ell]} W^{[\ell]}]$. \end{itemize} \paragraph{Base Case ($\ell=1$):} For the first PLS direction, $\xi^{[1]}$, we consider $\Sigma_{YW}^{[1]} = E[YW]$. From the definition of the adjoint operator $\mathcal{T}^\ast  $, we have $\mathcal{T}^\ast Y = E[YW]$. Therefore, $\Sigma_{YW}^{[1]} = \mathcal{T}^\ast Y$. This explicitly shows that $\Sigma_{YW}^{[1]} \in R(\mathcal{T}^\ast  )$. Since $\xi^{[1]}$ is the principal eigenfunction of $\mathcal{U}^{[1]} = \Sigma_{YW}^{[1]} \otimes \Sigma_{YW}^{[1]}$, it satisfies $\mathcal{U}^{[1]} \xi^{[1]} = \lambda^{[1]} \xi^{[1]}$. This implies $\Sigma_{YW}^{[1]} \langle \Sigma_{YW}^{[1]}, \xi^{[1]} \rangle_{\mathbb{H}} = \lambda^{[1]} \xi^{[1]}$. If $\Sigma_{YW}^{[1]} \neq 0$ (meaning there's linear correlation between $Y$ and $W$), then $\lambda^{[1]} \neq 0$, and $\xi^{[1]}$ must be a scalar multiple of $\Sigma_{YW}^{[1]}$: $$ \xi^{[1]} = \frac{\langle \Sigma_{YW}^{[1]}, \xi^{[1]} \rangle_{\mathbb{H}}}{\lambda^{[1]}} \Sigma_{YW}^{[1]} $$ Since $\Sigma_{YW}^{[1]} \in R(\mathcal{T}^\ast  )$ and $R(\mathcal{T}^\ast  )$ is a subspace (closed under scalar multiplication), it directly follows that $\xi^{[1]} \in R(\mathcal{T}^\ast  )$. The base case is proven. \paragraph*{2. Inductive Step: Assume $\xi^{[1]}, \ldots, \xi^{[\ell-1]} \in R(\mathcal{T}^\ast  )$} Assume that the first $\ell-1$ PLS directions, $\xi^{[1]}, \ldots, \xi^{[\ell-1]}$, all reside in $R(\mathcal{T}^\ast  )$. We need to prove that $\xi^{[\ell]}$ also resides in $R(\mathcal{T}^\ast  )$. The $\ell$-th PLS direction $\xi^{[\ell]}$ is a scalar multiple of $\Sigma_{YW}^{[\ell]} = E[Y^{[\ell]} W^{[\ell]}]$. Thus, to prove $\xi^{[\ell]} \in R(\mathcal{T}^\ast  )$, it suffices to prove that $\Sigma_{YW}^{[\ell]} \in R(\mathcal{T}^\ast  )$. Recall the residualization process at the population level: $$W^{[\ell]} = W^{[\ell-1]} - \langle W^{[\ell-1]}, \xi^{[\ell-1]} \rangle_{\mathbb{H}} \xi^{[\ell-1]}$$ $$Y^{[\ell]} = Y^{[\ell-1]} - \nu^{[\ell-1]} \rho^{[\ell-1]}$$ where $\rho^{[\ell-1]} = \langle W^{[\ell-1]}, \xi^{[\ell-1]} \rangle_{\mathbb{H}}$. By iterating this process, we can express $W^{[\ell]}$ and $Y^{[\ell]}$ in terms of the original $W$, $Y$, and the previously extracted PLS components: $$W^{[\ell]} = W - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \xi^{[j]}$$ $$Y^{[\ell]} = Y - \sum_{j=1}^{\ell-1} \nu^{[j]} \rho^{[j]}$$ From the inductive hypothesis and the base case, all $\xi^{[j]} \in R(\mathcal{T}^\ast  )$ for $j=1, \ldots, \ell-1$. Since $R(\mathcal{T}^\ast  )$ is a subspace, any linear combination of these $\xi^{[j]}$ also belongs to $R(\mathcal{T}^\ast  )$. Thus, the sum $\sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \xi^{[j]}$ is an element of $R(\mathcal{T}^\ast  )$. Now, we need to show that $\Sigma_{YW}^{[\ell]} = E[Y^{[\ell]} W^{[\ell]}]$ resides in $R(\mathcal{T}^\ast  )$. To do this, we demonstrate that for any $v \in R(\mathcal{T}^\ast  )^\perp$ (the orthogonal complement of $R(\mathcal{T}^\ast  )$ in $\mathbb{H}$), $\langle \Sigma_{YW}^{[\ell]}, v \rangle_{\mathbb{H}} = 0$. By definition, $R(\mathcal{T}^\ast  )^\perp = \{v \in \mathbb{H} \mid E[\langle W, v \rangle_{\mathbb{H}} Y] = 0\}$. Consider $E[\langle W^{[\ell]}, v \rangle_{\mathbb{H}} Y^{[\ell]}]$ for any $v \in R(\mathcal{T}^\ast  )^\perp$: $$E[\langle W^{[\ell]}, v \rangle_{\mathbb{H}} Y^{[\ell]}] = E\left[ \left\langle W - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \xi^{[j]}, v \right\rangle_{\mathbb{H}} \left( Y - \sum_{k=1}^{\ell-1} \nu^{[k]} \rho^{[k]} \right) \right]$$ Due to the orthogonality of $v$ to all $\xi^{[j]}$ (since $v \in R(\mathcal{T}^\ast  )^\perp$ and $\xi^{[j]} \in R(\mathcal{T}^\ast  )$): $$ \left\langle W - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \xi^{[j]}, v \right\rangle_{\mathbb{H}} = \langle W, v \rangle_{\mathbb{H}} - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \langle \xi^{[j]}, v \rangle_{\mathbb{H}} = \langle W, v \rangle_{\mathbb{H}} - 0 = \langle W, v \rangle_{\mathbb{H}} $$ Thus, the expression simplifies to: $$ E[\langle W^{[\ell]}, v \rangle_{\mathbb{H}} Y^{[\ell]}] = E\left[ \langle W, v \rangle_{\mathbb{H}} \left( Y - \sum_{k=1}^{\ell-1} \nu^{[k]} \rho^{[k]} \right) \right] $$ $$ = E[\langle W, v \rangle_{\mathbb{H}} Y] - \sum_{k=1}^{\ell-1} \nu^{[k]} E[\langle W, v \rangle_{\mathbb{H}} \rho^{[k]}] $$ The first term $E[\langle W, v \rangle_{\mathbb{H}} Y] = 0$ because $v \in R(\mathcal{T}^\ast  )^\perp$. For the second term, $E[\langle W, v \rangle_{\mathbb{H}} \rho^{[k]}] = E[\langle W, v \rangle_{\mathbb{H}} \langle W, \xi^{[k]} \rangle_{\mathbb{H}}]$. Since $v \in R(\mathcal{T}^\ast  )^\perp$ and $\xi^{[k]} \in R(\mathcal{T}^\ast  )$, and $E[\langle U, X \rangle \langle V, X \rangle]$ represents the covariance between inner products, and components in $R(\mathcal{T}^\ast  )$ and $R(\mathcal{T}^\ast  )^\perp$ are uncorrelated: $E[\langle W, v \rangle_{\mathbb{H}} \langle W, \xi^{[k]} \rangle_{\mathbb{H}}] = \text{Cov}(\langle W, v \rangle_{\mathbb{H}}, \langle W, \xi^{[k]} \rangle_{\mathbb{H}}) + E[\langle W, v \rangle_{\mathbb{H}}]E[\langle W, \xi^{[k]} \rangle_{\mathbb{H}}]$. Assuming zero-mean predictors ($E[W]=0$), the second term is zero. The covariance $\text{Cov}(\langle W, v \rangle_{\mathbb{H}}, \langle W, \xi^{[k]} \rangle_{\mathbb{H}})$ is also zero since $v$ and $\xi^{[k]}$ are in orthogonal subspaces. Therefore, $E[\langle W^{[\ell]}, v \rangle_{\mathbb{H}} Y^{[\ell]}] = 0$ for all $v \in R(\mathcal{T}^\ast  )^\perp$. This implies that $\Sigma_{YW}^{[\ell]} = E[Y^{[\ell]} W^{[\ell]}]$ is orthogonal to $R(\mathcal{T}^\ast  )^\perp$. By the property of orthogonal decomposition in Hilbert spaces ($R(\mathcal{T}^\ast  ) \oplus R(\mathcal{T}^\ast  )^\perp = \mathbb{H}$), if an element is orthogonal to the orthogonal complement of a closed subspace, it must belong to that subspace. Thus, $\Sigma_{YW}^{[\ell]}$ must reside in $R(\mathcal{T}^\ast  )$. Since $\xi^{[\ell]}$ is a scalar multiple of $\Sigma_{YW}^{[\ell]}$, we conclude that $\xi^{[\ell]} \in R(\mathcal{T}^\ast  )$. By mathematical induction, since the base case holds and the inductive step is proven, all PLS directions $\{\xi^{[\ell]}\}_{\ell=1}^\infty$ reside in $R(\mathcal{T}^\ast  )$. 
-\end{proof}
-
-\subsection{Proof of Proposition \ref{proposition:CONS}}\label{section:proof:proposition:CONS}
-
-\paragraph{1.1 Orthonormality through Residualization} The iterative nature of the PLS algorithm guarantees the orthonormality of the directions. The \textbf{residualization (or orthogonalization)} step is crucial. After the $(l-1)$-th PLS direction $\xi^{[l-1]}$ is determined, the predictors and response are adjusted to remove the linear effect of this component. Specifically, at the population level: $$W^{[l]} = W^{[l-1]} - \langle W^{[l-1]}, \xi^{[l-1]} \rangle_{\mathbb{H}} \xi^{[l-1]}$$ $$Y^{[l]} = Y^{[l-1]} - \nu^{[l-1]} \rho^{[l-1]}$$ where $W^{[1]} = W$ and $Y^{[1]} = Y$. This procedure ensures that the residualized predictors $W^{[l]}$ are orthogonal to all previous directions $\xi^{[j]}$ for $j < l$. Consequently, the newly found direction $\xi^{[l]}$, being derived from $W^{[l]}$, will be orthogonal to $\{\xi^{[1]}, \ldots, \xi^{[l-1]}\}$. By convention, PLS directions are normalized to have unit norm ($\Vert \xi^{[l]} \Vert_{\mathbb{H}} = 1$). Thus, the set $\{\xi^{[l]}\}_{l=1}^\infty$ is an orthonormal set. \paragraph{1.2 Completeness} The relevant predictor subspace is precisely the \textbf{range of the adjoint operator $\mathcal{T}^\ast  $}, denoted $R(\mathcal{T}^\ast  )$. To show that $\{\xi^{[l]}\}_{l=1}^\infty$ forms a CONS for $R(\mathcal{T}^\ast  )$, given their orthonormality, we must prove completeness. According to Theorem 2.4.12, this requires demonstrating that if an element $v \in R(\mathcal{T}^\ast  )$ is orthogonal to all PLS directions $\{\xi^{[l]}\}_{l=1}^\infty$, then $v$ must be the zero vector. Let $\mathcal{S} = \text{span}\{\xi^{[l]}\}_{l=1}^\infty$ be the subspace spanned by the PLS directions. Assume, for contradiction, that there exists a non-zero $v \in R(\mathcal{T}^\ast  )$ such that $v \perp \mathcal{S}$. This means $\langle v, \xi^{[l]} \rangle_{\mathbb{H}} = 0$ for all $l=1,2,\ldots$. Since $v \in R(\mathcal{T}^\ast  )$ and $v \neq 0$, it implies that $v$ contains non-zero linear predictive information regarding $Y$. Formally, $R(\mathcal{T}^\ast  )$ is the space of elements in $\mathbb{H}$ that are correlated with $Y$, so $E[\langle W, v \rangle_{\mathbb{H}} Y] \neq 0$. Now, consider the implications of $v \perp \mathcal{S}$ on the iterative PLS algorithm. At any step $\ell$, the residualized predictor $W^{[\ell]}$ is constructed such that its components orthogonal to $\{\xi^{[1]}, \ldots, \xi^{[\ell-1]}\}$ remain. Since $v$ is assumed orthogonal to all $\xi^{[j]}$, the projection of $W$ onto $v$ (i.e., $\langle W, v \rangle_{\mathbb{H}}$) is not removed by any residualization step. Similarly, $Y^{[\ell]}$ is the residual response. The cross-covariance relevant at step $\ell$ is $\Sigma_{YW}^{[\ell]} = E[Y^{[\ell]} W^{[\ell]}]$. If $v \in R(\mathcal{T}^\ast  )$ and $v \neq 0$, it implies that $E[\langle W, v \rangle_{\mathbb{H}} Y] \neq 0$. Let's examine the inner product of $\Sigma_{YW}^{[\ell]}$ with $v$: $\langle \Sigma_{YW}^{[\ell]}, v \rangle_{\mathbb{H}} = \langle E[Y^{[\ell]} W^{[\ell]}] , v \rangle_{\mathbb{H}} = E[Y^{[\ell]} \langle W^{[\ell]}, v \rangle_{\mathbb{H}}]$. Since $v \perp \xi^{[j]}$ for all $j$, the residualization process on $W$ does not affect $\langle W, v \rangle_{\mathbb{H}}$: $\langle W^{[\ell]}, v \rangle_{\mathbb{H}} = \langle W - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \xi^{[j]}, v \rangle_{\mathbb{H}} = \langle W, v \rangle_{\mathbb{H}} - \sum_{j=1}^{\ell-1} \langle W, \xi^{[j]} \rangle_{\mathbb{H}} \langle \xi^{[j]}, v \rangle_{\mathbb{H}} = \langle W, v \rangle_{\mathbb{H}} - 0 = \langle W, v \rangle_{\mathbb{H}}$. So, $\langle \Sigma_{YW}^{[\ell]}, v \rangle_{\mathbb{H}} = E[Y^{[\ell]} \langle W, v \rangle_{\mathbb{H}}]$. By the construction of PLS, the sequence $Y^{[\ell]}$ is generated such that $Y^{[\ell]} = Y - \sum_{j=1}^{\ell-1} \nu^{[j]} \rho^{[j]}$. Substituting this: $\langle \Sigma_{YW}^{[\ell]}, v \rangle_{\mathbb{H}} = E\left[ \left( Y - \sum_{j=1}^{\ell-1} \nu^{[j]} \rho^{[j]} \right) \langle W, v \rangle_{\mathbb{H}} \right]$ $= E[Y \langle W, v \rangle_{\mathbb{H}}] - \sum_{j=1}^{\ell-1} \nu^{[j]} E[\rho^{[j]} \langle W, v \rangle_{\mathbb{H}}]$ The first term, $E[Y \langle W, v \rangle_{\mathbb{H}}]$, is non-zero because $v \in R(\mathcal{T}^\ast  )$ and $v \neq 0$. The second term, $\sum_{j=1}^{\ell-1} \nu^{[j]} E[\rho^{[j]} \langle W, v \rangle_{\mathbb{H}}]$, simplifies. Recall $\rho^{[j]} = \langle W, \xi^{[j]} \rangle_{\mathbb{H}}$. So $E[\rho^{[j]} \langle W, v \rangle_{\mathbb{H}}] = E[\langle W, \xi^{[j]} \rangle_{\mathbb{H}} \langle W, v \rangle_{\mathbb{H}}]$. This represents the covariance between the component of $W$ in direction $\xi^{[j]}$ and the component of $W$ in direction $v$. Since $\xi^{[j]} \in R(\mathcal{T}^\ast  )$ and $v \perp R(\mathcal{T}^\ast  )$, these components are uncorrelated (assuming zero-mean $W$). Thus, $E[\rho^{[j]} \langle W, v \rangle_{\mathbb{H}}] = 0$. Therefore, $\langle \Sigma_{YW}^{[\ell]}, v \rangle_{\mathbb{H}} = E[Y \langle W, v \rangle_{\mathbb{H}}] \neq 0$ for all $\ell$. This implies that $\Sigma_{YW}^{[\ell]}$ is never the zero vector (or operator) as long as $v \neq 0$. The PLS algorithm, at each step $\ell$, extracts $\xi^{[\ell]}$ as the principal eigenfunction of $\mathcal{U}^{[\ell]}$. If $\Sigma_{YW}^{[\ell]}$ is non-zero, then $\mathcal{U}^{[\ell]}$ has a non-zero largest eigenvalue $\lambda^{[\ell]}$, and $\xi^{[\ell]} = (\langle \Sigma_{YW}^{[\ell]}, \xi^{[\ell]} \rangle_{\mathbb{H}} / \lambda^{[\ell]}) \Sigma_{YW}^{[\ell]}$. This means $\xi^{[\ell]}$ is directly related to $\Sigma_{YW}^{[\ell]}$. Since $\Sigma_{YW}^{[\ell]}$ has a non-zero component orthogonal to all previously extracted $\xi^{[j]}$ (namely, the component in direction $v$), the algorithm *must* continue to extract components that capture this remaining predictive information. This contradicts the assumption that $v$ is orthogonal to *all* $\xi^{[\ell]}$, as the algorithm would continue to extract components along the direction of $v$ or its correlates. The process of PLS is designed to exhaust all such linearly predictive information in $R(\mathcal{T}^\ast  )$. Therefore, the initial assumption that a non-zero $v \in R(\mathcal{T}^\ast  )$ exists orthogonal to all $\xi^{[\ell]}$ leads to a contradiction. Thus, if $v \in R(\mathcal{T}^\ast  )$ and $v \perp \mathcal{S}$, it must imply $v=0$. This establishes that $\mathcal{S}$ is complete in $R(\mathcal{T}^\ast  )$. Combining orthonormality and completeness, $\{\xi^{[l]}\}_{l=1}^\infty$ forms a CONS for $R(\mathcal{T}^\ast  )$.
-
-
-\subsection{Proof of Proposition \ref{prop:ols_uniqueness}}\label{section:proof:prop:ols_uniqueness}
- \begin{proof} 
- 	1. Location of Solutions for $\beta_{\mathrm{OLS}}$
- 	The normal equation can be rewritten using the operator $\mathcal{T}$ and its adjoint $\mathcal{T}^*$. Recall that $E[YW] = \mathcal{T}^*Y$ and $E[W \langle \beta, W \rangle_{\mathbb{H}}] = \mathcal{T}^* \mathcal{T} \beta$. Thus, the normal equation becomes: $$ \mathcal{T}^* Y - \mathcal{T}^* \mathcal{T} \beta_{\mathrm{OLS}} = \mathbf{0}_{\mathbb{H}} $$ $$ \mathcal{T}^* \mathcal{T} \beta_{\mathrm{OLS}} = \mathcal{T}^* Y $$ This equation directly shows that $\mathcal{T}^* Y$ must be in the range of $\mathcal{T}^* \mathcal{T}$, i.e., $\mathcal{T}^* Y \in R(\mathcal{T}^* \mathcal{T})$. A fundamental property of operators in Hilbert spaces is that the range of $\mathcal{T}^* \mathcal{T}$ is equal to the range of $\mathcal{T}^*$, i.e., $R(\mathcal{T}^* \mathcal{T}) = R(\mathcal{T}^*)$. Therefore, any solution $\beta_{\mathrm{OLS}}$ to the normal equation implies that $\mathcal{T}^* Y$ must reside in $R(\mathcal{T}^*)$. If $\mathcal{T}^* \mathcal{T}$ is invertible, the unique solution is $\beta_{\mathrm{OLS}} = (\mathcal{T}^* \mathcal{T})^{-1} \mathcal{T}^* Y$. As shown in the proof "The OLS Solution $(\mathcal{T}^* \mathcal{T})^{-1} \mathcal{T}^* Y$ Resides in $R(\mathcal{T}^*)$," this unique solution itself resides in $R(\mathcal{T}^*)$. If $\mathcal{T}^* \mathcal{T}$ is not invertible, its null space (kernel) is non-trivial. In this case, there are infinitely many solutions to the normal equation. However, any solution $\beta_{\mathrm{OLS}}$ still satisfies $\mathcal{T}^* \mathcal{T} \beta_{\mathrm{OLS}} = \mathcal{T}^* Y$. Since the right-hand side $\mathcal{T}^* Y$ is an element of $R(\mathcal{T}^*)$, and $R(\mathcal{T}^* \mathcal{T}) = R(\mathcal{T}^*)$, any solution $\beta_{\mathrm{OLS}}$ must have its "predictive part" (its projection onto $R(\mathcal{T}^*)$) uniquely determined. More precisely, the minimum-norm solution (obtained via the Moore-Penrose pseudoinverse) always lies in $R(\mathcal{T}^*)$, and any other solution differs from it by an element in the null space of $\mathcal{T}^* \mathcal{T}$. 
- 	
- 	2. Uniqueness of Fitted Values $Y_{\mathrm{OLS}}$
- 	 Despite the potential non-uniqueness of $\beta_{\mathrm{OLS}}$, the fitted values $Y_{\mathrm{OLS}}$ are always unique. Let $\beta_1$ and $\beta_2$ be two different solutions to the normal equation, i.e., $\mathcal{T}^* \mathcal{T} \beta_1 = \mathcal{T}^* Y$ and $\mathcal{T}^* \mathcal{T} \beta_2 = \mathcal{T}^* Y$. Subtracting these equations gives: $$ \mathcal{T}^* \mathcal{T} (\beta_1 - \beta_2) = \mathbf{0}_{\mathbb{H}} $$ This means that the difference $(\beta_1 - \beta_2)$ belongs to the null space of $\mathcal{T}^* \mathcal{T}$, i.e., $(\beta_1 - \beta_2) \in \text{Null}(\mathcal{T}^* \mathcal{T})$. A key property in Hilbert spaces is that $\text{Null}(\mathcal{T}^* \mathcal{T}) = \text{Null}(\mathcal{T})$. Therefore, if we let $\delta = \beta_1 - \beta_2$, then $\mathcal{T}\delta = \mathbf{0}_{L^2(\Omega)}$. Now, let's examine the fitted values corresponding to $\beta_1$ and $\beta_2$: $$ Y_{\mathrm{OLS}}(\beta_1) = \langle \beta_1, W \rangle_{\mathbb{H}} = \mathcal{T}\beta_1 $$ $$ Y_{\mathrm{OLS}}(\beta_2) = \langle \beta_2, W \rangle_{\mathbb{H}} = \mathcal{T}\beta_2 $$ Consider their difference: $$ Y_{\mathrm{OLS}}(\beta_1) - Y_{\mathrm{OLS}}(\beta_2) = \mathcal{T}\beta_1 - \mathcal{T}\beta_2 = \mathcal{T}(\beta_1 - \beta_2) = \mathcal{T}\delta $$ Since $\mathcal{T}\delta = \mathbf{0}_{L^2(\Omega)}$, it follows that: $$ Y_{\mathrm{OLS}}(\beta_1) - Y_{\mathrm{OLS}}(\beta_2) = \mathbf{0}_{L^2(\Omega)} $$ Thus, $Y_{\mathrm{OLS}}(\beta_1) = Y_{\mathrm{OLS}}(\beta_2)$, demonstrating that the fitted values are unique even when the regression coefficient $\beta_{\mathrm{OLS}}$ itself is not unique. \end{proof}
-		\subsection{Proof of Proposition \ref{proposition:nu_l}}\label{section:proof:proposition:nu_l}
-
-
-
-\begin{proof}Since population level least square regression coefficient is precisely
-	\begin{equation*}
-		\nu^{[l]} = \frac{\mathbb{E}[Y^{[l]} \rho^{[l]}]}{\mathbb{E}[(\rho^{[l]})^2]},
-	\end{equation*}
-	it suffices to show that
-	\begin{equation*}
-		\mathbb{E}[Y^{[l]} \rho^{[l]}]
-		= 
-		\langle \beta_{\mathrm{OLS}}, \xi^{[\ell]} \rangle_{\mathbb{H}} \mathbb{E}[(\rho^{[\ell]})^2].
-	\end{equation*} 
-	We proceed in two intermediate steps:
+	\section{Proof of consistency}
+	
+	
+	\subsection{Proof of Proposition \ref{prop:residualization_equiv_eigen}}\label{section:proof:prop:residualization_equiv_eigen}
+	The proof procedes in the following steps.
 	\begin{enumerate}
-		\item Showing  
+		\item Show that for every \(s\ge 1\) and every \(j\le s-1\), we have $
+		\mathbb{E}[\rho^{[j]}\rho^{[s]}]=0
+		$ for Algorithm \ref{alg:population_pls} (Appendix \ref{section:proof:orthogonal_score_pop}),
+		%%%%
+		\item Show that for every \(s\ge 1\) and every \(j\le s-1\), we have
 		$
-		\beta_{\mathrm{OLS}} = (\mathcal{T}^\ast \mathcal{T})^{-1} \mathcal{T}^\ast Y \in R(\mathcal{T}^\ast)$,
+		\mathbb{E}[Y^{[s]}\rho^{[j]}]=0
+		$
+		for Algorithm \ref{alg:population_pls} (Appendix \ref{section:proof:orthogonal_score_residual_pop}),
 		%
-		\item Expanding and transforming $E[Y^{[l]} \rho^{[l]}]  $.
-	\end{enumerate}		
+		\item Show the equivalence between Algorithm \ref{alg:population_pls} and optimization problem \eqref{const_eigen_pop} (Appendix \ref{equiv_problem}).
+	\end{enumerate}
 	
-	\medskip
-	\noindent
-	\textit{1. Showing  
+	\subsubsection{Orthogonality of the scores in Algorithm \ref{alg:population_pls}}\label{section:proof:orthogonal_score_pop}
+	\begin{proof}
+		Let
 		$
-		\beta_{\mathrm{OLS}} = (\mathcal{T}^\ast \mathcal{T})^{-1} \mathcal{T}^\ast Y \in R(\mathcal{T}^\ast)$.}~
-	The term $\mathcal{T}^\ast Y$ is, by definition, an element of $R(\mathcal{T}^\ast  )$.
-	Next, let us consider The operator $\mathcal{T}^\ast   \mathcal{T}: \mathbb{H} \mapsto \mathbb{H}$ is a self-adjoint, positive semi-definite operator.  The inverse operator $(\mathcal{T}^\ast   \mathcal{T})^{-1}$ exists and is well-defined when $\mathcal{T}^\ast   \mathcal{T}$ is invertible.
-	Now, since $R(\mathcal{T}^\ast   \mathcal{T}) = R(\mathcal{T}^\ast  )$,
-	the operator $\mathcal{T}^\ast   \mathcal{T}$ maps elements from $\mathbb{H}$ specifically into the subspace $R(\mathcal{T}^\ast  )$.
-	Consequently, when the inverse operator $(\mathcal{T}^\ast   \mathcal{T})^{-1}$ is applied to an element that is already within $R(\mathcal{T}^\ast  )$ (such as $\mathcal{T}^\ast   Y$), the result will also remain within this same subspace $R(\mathcal{T}^\ast  )$.
-	Therefore, the entire expression $(\mathcal{T}^\ast   \mathcal{T})^{-1} \mathcal{T}^\ast   Y$ must   reside in $R(\mathcal{T}^\ast  )$.
-	
-	\medskip
-	\noindent
-	\textit{2. Expanding and transforming $E[Y^{[l]} \rho^{[l]}]$.
-	}
-	We can expand $\mathbb{E}[Y^{[l]} \rho^{[l]}] $ as:
-	\begin{equation*}
-		\mathbb{E}[Y^{[l]} \rho^{[l]}] 
-		\overset{(i)}{=} 
-		E
-		\bigl[ \bigl\{ ( Y - \sum_{j=1}^{\ell-1} \nu^{[j]} \rho^{[j]} \bigr\} \rho^{[l]} 
-		\bigr]
-		= \mathbb{E}[Y \rho^{[l]}] - \sum_{j=1}^{\ell-1} \nu^{[j]} \mathbb{E}[\rho^{[j]} \rho^{[l]}]
-		\overset{(ii)}{=}
-		\mathbb{E}[Y \rho^{[l]}],
-	\end{equation*}
-	where 
-	step $(i)$ repeatedly uses the residualization process for the response and
-	step $(ii)$ uses the orthogonality of the PLS scores presented in 
-	Corollary \ref{cor:orthogonal_scores}. 
-	We further expand:
-	\begin{align*}
-		\mathbb{E}[Y^{[l]} \rho^{[l]}] 
+		\Sigma_{W^{[l]}} := \mathbb{E}[ W^{[l]} \otimes W^{[l]} ]
+		$ as in Definition \ref{def:cross_cov_terms}.
+		Since 
+		$
+		\rho^{[l]} = \langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}},
+		$
+		we can rewrite the numerator and denominator of $\delta^{[l]}$ as
+		\[
+		\mathbb{E}[ \rho^{[l]}  \,  W^{[l]} ] 
+		= 
+		\mathbb{E}[
+		\langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}} W^{[l]} ]
+		= \Sigma_{W^{[l]}} \, \xi^{[l]},
+		\] 
+		and
+		\[
+		\mathbb{E}[ \rho^{[l]}  \,  \rho^{[l]} ] 
+		= 
+		\mathbb{E}[
+		\langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}} \langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}} ]
+		= 
+		\langle \Sigma_{W^{[l]}} \, \xi^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}},
+		\]
+		respectively.
+		Hence, at the population level, the residualization step can be written as
+		\[
+		W^{[l+1]} = W^{[l]} - 
+		\langle W^{[l]}, \xi^{[l]} \rangle_{\mathbb{H}}
+		\frac{ 
+			1
+		}
+		{ \langle \xi^{[l]}, \Sigma_{W^{[l]}} \, \xi^{[l]} \rangle_{\mathbb{H}} }
+		\Sigma_{W^{[l]}} \, \xi^{[l]} .
+		\]
+		
+		For $l_1 < l_2$:
+		\[
+		\mathbb{E}[\rho^{[l_1]} \, \rho^{[l_2]}]
 		=
-		\mathbb{E}[Y \rho^{[l]}]
+		\mathbb{E}\big[ \rho^{[l_1]} \,
+		\langle W^{[l_2]}, \xi^{[l_2]} \rangle_{\mathbb{H}} \big]
 		=
-		\mathbb{E}[Y  \langle W, \, \xi^{[l]} \rangle_{\mathbb{H}} ]
+		\mathbb{E}\big[ 
+		\langle \rho^{[l_1]} \, W^{[l_2]}, \xi^{[l_2]} \rangle_{\mathbb{H}} \big]
 		=
-		\langle \mathbb{E}[ Y W ], \, \xi^{[l]} \rangle_{\mathbb{H}} 
-		%%%%%%%%%%%%%%
-		&\overset{(i)}{=}
 		\langle 
-		\mathbb{E}[W \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}], \, \xi^{[l]} \rangle_{\mathbb{H}} 
-		\\&=
-		\mathbb{E}[\langle W, \xi^{[\ell]} \rangle_{\mathbb{H}} \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}].
-	\end{align*}		
-	where step $(i)$ uses the normal equation $	\mathbb{E}[(Y - \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}})W] = 0$ presented in  \eqref{normal_equation}.
+		\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2]}] \,
+		, \,
+		\xi^{[l_2]} \rangle_{\mathbb{H}}
+		\]
+		Therefore,
+		to show that $\mathbb{E}[\rho^{[l_1]} \, \rho^{[l_2]}]$,
+		it suffices to show $\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2]}] = 0 \in \mathbb{H} $.
+		
+		We can express
+		$\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2]}]$ as
+		\begin{align*}
+			\mathbb{E}&\big[ \rho^{[l_1]} \,W^{[l_2]}]
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2-1]}]
+			-
+			\mathbb{E}[
+			\rho^{[l_1]}
+			\frac{ 
+				\langle W^{[l_2-1]}, \xi^{[l_2-1]} \rangle_{\mathbb{H}}
+			}
+			{ \langle \xi^{[l_2-1]}, \Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]} \rangle_{\mathbb{H}} }
+			\Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]}
+			]
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2-1]}]
+			-
+			\mathbb{E}[
+			\rho^{[l_1]}
+			\langle W^{[l_2-1]}, \xi^{[l_2-1]} \rangle_{\mathbb{H}}
+			]
+			\frac{ 
+				1
+			}{ 
+				\langle
+				\xi^{[l_2-1]}, 
+				\Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]}
+				\rangle_{\mathbb{H}} }
+			\Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\&=
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2-1]}]
+			-
+			\langle 
+			\mathbb{E}[
+			\rho^{[l_1]} W^{[l_2-1]}], \xi^{[l_2-1]} \rangle_{\mathbb{H}}
+			\frac{ 
+				1
+			}{ 
+				\langle
+				\xi^{[l_2-1]}, 
+				\Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]}
+				\rangle_{\mathbb{H}} }
+			\Sigma_{W^{[l_2-1]}} \, \xi^{[l_2-1]}
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			\\	&=	H^{[l_2-1]} \bigl( 
+			\mathbb{E}[\rho^{[l_1]  }
+			W^{[l_2-1]}] \bigr)~(\text{say}).
+		\end{align*}
+		Here, the deterministic operator $H^{[l_2-1]}: \mathbb{H} \mapsto \mathbb{H}$ maps the zero element of $\mathbb{H}$ to itself. Using this relationship, we have
+		\begin{align*}
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2]}]  
+			%%%%%%%%%%%%%%%%
+			&=
+			H^{[l_2-1]} \bigl( \mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2-1]}] \bigr)
+			%%%%%%%%%%%%%%%%
+			\\&=
+			H^{[l_2-1]} 
+			\circ 
+			H^{[l_2-2]}
+			\bigl(
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_2-2]}]
+			\bigr)
+			%%%%%%%%%%%%%%%%
+			\\&=
+			H^{[l_2-1]} 
+			\circ 
+			H^{[l_2-2]}
+			\circ 
+			\ldots
+			\circ 
+			H^{[l_1]}
+			\bigl( \mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_1]}] \bigr).
+		\end{align*}
+		Therefore,
+		to  show that $\mathbb{E}[\rho^{[l_1]} \, \rho^{[l_2]}]$,
+		it suffices to show $H^{[l_1]}
+		\bigl( \mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_1]}] \bigr) = 0 \in \mathbb{H}$. Note that
+		we have
+		\begin{equation*}
+			\mathbb{E}[\rho^{[l_1]} W^{[l_1]}] = \mathbb{E}[\langle W^{[l_1]}, \xi^{[l_1]} \rangle_{\mathbb{H}} \, W^{[l_1]}] = \Sigma_{W^{[l_1]}} \, \xi^{[l_1]}.
+		\end{equation*}
+		Leveraging this, we have
+		\begin{align*}
+			H^{[l_1]}&
+			\bigl( \mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_1]}] \bigr)
+			\\           &=
+			\mathbb{E}\big[ \rho^{[l_1]} \,W^{[l_1]}]
+			-
+			\langle 
+			\mathbb{E}[
+			\rho^{[l_1]} W^{[l_1]}], \xi^{[l_1]} \rangle_{\mathbb{H}}
+			\frac{ 
+				1
+			}{ 
+				\langle
+				\xi^{[l_1]}, 
+				\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+				\rangle_{\mathbb{H}} }
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+			\\           &=
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+			-
+			\langle 
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}, \xi^{[l_1]} \rangle_{\mathbb{H}}
+			\frac{ 
+				1
+			}{ 
+				\langle
+				\xi^{[l_1]}, 
+				\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+				\rangle_{\mathbb{H}} }
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+			\\           &=
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+			-
+			\Sigma_{W^{[l_1]}} \, \xi^{[l_1]}
+			=0 \in \mathbb{H}.
+		\end{align*}
+		This completes the proof of
+		orthogonality of the scores in Algorithm \ref{alg:population_pls}.
+		
+		
+	\end{proof}
 	
-	Since $\beta_{\mathrm{OLS}} \in R(\mathcal{T}^*)$ and 		$\{\xi^{[k]}\}_{k=1}^\infty$ is a  CONS for $R(\mathcal{T}^\ast)$ by Proposition \ref{proposition:CONS}, we can further expand:
-	\begin{align*}
-		\mathbb{E}[Y^{[l]} \rho^{[l]}] 
-		=
-		\mathbb{E}[\langle W, \xi^{[\ell]} \rangle_{\mathbb{H}} \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}]
-		&=
-		\mathbb{E}[\langle W, \xi^{[\ell]} \rangle_{\mathbb{H}} \langle \sum_{k=1}^{\infty} \langle \beta_{\mathrm{OLS}}, \xi^{[k]} \rangle_{\mathbb{H}} \xi^{[k]}, W \rangle_{\mathbb{H}}]
-		\\&=
-		%%%%%%%%%%%%%%%%%5
-		\mathbb{E}
-		\bigl[ \rho^{[\ell]} \sum_{k=1}^{\infty} \langle \beta_{\mathrm{OLS}}, \xi^{[k]} \rangle_{\mathbb{H}} \rho^{[k]} \bigr]
-		\\& = \langle \beta_{\mathrm{OLS}}, \xi^{[\ell]} \rangle_{\mathbb{H}} \mathbb{E}[(\rho^{[\ell]})^2],
-	\end{align*}
-	where the last step 
-	uses the orthogonality of scores presented in Corollary \ref{cor:orthogonal_scores}.
-	This completes the proof of Proof of Proposition \ref{proposition:nu_l}.
-\end{proof}
-
-\subsection{Proof of Theorem \ref{thm:hybrid_pls_convergence}}\label{section:proof:thm:hybrid_pls_convergence}
-\begin{proof}
-By Proposition \ref{proposition:CONS},
-	 $\{\xi^{[l]}\}_{l=1}^\infty$ is a CONS for $R(\mathcal{T}^\ast  )$.
-	 By Appendix \ref{section:proof:proposition:nu_l}, 
-	 we have
-	 $\beta_{\mathrm{OLS}}   \in R(\mathcal{T}^\ast)$.
-Therefore, we can expand $Y_{\mathrm{OLS}}$ as:
-\begin{align*}
- Y_{\mathrm{OLS}}
- = 
- \langle \beta_{\mathrm{OLS}}, W \rangle_{\mathbb{H}}
- =
- \biggl \langle 
- \sum_{l=1}^{\infty} \langle \beta_{\mathrm{OLS}}, \xi^{[l]} \rangle_{\mathbb{H}} \xi^{[l]}, W 
- \biggr \rangle_{\mathbb{H}}
- \hspace{-.5em}
- =
- \sum_{l=1}^{\infty} \langle \beta_{\mathrm{OLS}}, \xi^{[l]} \rangle_{\mathbb{H}} \langle \xi^{[l]}, W \rangle_{\mathbb{H}}
- =
-\sum_{l=1}^{\infty} \nu^{[l]} \rho^{[l]},
-\end{align*}
-where the last equality uses
-Corollary \ref{cor:orthogonal_scores} and
-Proposition \ref{proposition:nu_l}.
-
-Then  the mean-squared error between the PLS approximation and the ordinary linear regression solution is written as
-\begin{align*}
- \mathbb{E}\left[ \| Y_{\mathrm{PLS},L } - Y_{\mathrm{OLS}} \|_2^2 \right] 
- %%%%%%%%%%%%%%%
- =
- \mathbb{E}\left[ 
- \bigl\|
-  \sum_{l=1}^{L} \nu^{[l]} \rho^{[l]} - \sum_{l=1}^{\infty} \nu^{[l]} \rho^{[l]} 
- \bigr\|_2^2 \right]
- %%%%%%%%%%%%%%%%%%
- &=
- \mathbb{E}\left[ 
- \bigl\|
- \sum_{l=L+1}^{\infty} \nu^{[l]} \rho^{[l]} 
- \bigr\|_2^2 \right]
- %%%%%%%%%%%%%%%%%%%
- \\&=
- \sum_{l=L+1}^{\infty} (\nu^{[l]})^2 \mathbb{E}[(\rho^{[l]})^2],
-\end{align*}
-where the last equality uses Corollary \ref{cor:orthogonal_scores}.
-
-Now, it suffices to show that $\sum_{l=L+1}^{\infty} (\nu^{[l]})^2 \mathbb{E}[(\rho^{[l]})^2] \to 0$ as $L \to \infty$.
-Now, since we assume $\mathbb{E}[Y] = 0$, and $Y_{\mathrm{OLS}}$ is linear in $Y$, we have
-\begin{align*}
-	\text{Var}(Y_{\mathrm{OLS}}) = \mathbb{E}[(Y_{\mathrm{OLS}})^2] = \mathbb{E}\left[\left(\sum_{l=1}^{\infty} \nu^{[l]} \rho^{[l]}\right)^2\right] 
-	= \sum_{l=1}^{\infty} (\nu^{[l]})^2 \mathbb{E}[(\rho^{[l]})^2],
-\end{align*}
-where the last equality uses Corollary \ref{cor:orthogonal_scores}.
-
-  By Cauchy–Schwarz in $\mathbb{H}$,
-\begin{equation*}
-\mathbb{E}|Y_{\mathrm{OLS}}|^2 
-	=
-\mathbb{E}	|\langle \beta_{\text{OLS}}, W\rangle_{\mathbb{H}}|^2 \le \mathbb{E}\|\beta_{\text{OLS}}\|_{\mathbb{H}}^{2}\,\mathbb{E}\|W\|_{\mathbb{H}}^{2} < \infty,
-\end{equation*}
-$(\nu^{[l]})^2 \mathbb{E}[(\rho^{[l]})^2]$ has a convergent series.
-For any convergent series, the sum of its tail (i.e., from $L+1$ to infinity) must approach zero as $L$ tends to infinity This concludes the proof of Theorem \ref{thm:hybrid_pls_convergence}. \end{proof} 
+	\subsubsection{Orthogonality of the scores and response residuals in Algorithm \ref{alg:population_pls}}\label{section:proof:orthogonal_score_residual_pop}
+	\begin{proof}
+		Fix \(s\ge 2\) and \(j\le s-1\). Recall the residualization for the response:
+		\[
+		Y^{[s]} \;=\; Y - \sum_{k=1}^{s-1} \nu^{[k]}\,\rho^{[k]},
+		\qquad
+		\nu^{[k]} \;=\; \frac{\mathbb{E}[Y^{[k]}\rho^{[k]}]}{\mathbb{E}[(\rho^{[k]})^2]}.
+		\]
+		Compute the covariance of interest by expanding the residual:
+		\begin{align*}
+			\mathbb{E}\big[ Y^{[s]}\,\rho^{[j]} \big]
+			= \mathbb{E}\Big[ \Big( Y - \sum_{k=1}^{s-1} \nu^{[k]}\rho^{[k]}\Big)\, \rho^{[j]} \Big] 
+			= \mathbb{E}[Y\,\rho^{[j]}] \;-\; \sum_{k=1}^{s-1} \nu^{[k]}\,\mathbb{E}[\rho^{[k]}\rho^{[j]}].
+		\end{align*}
+		
+		By the score orthogonality already established in Appendix \ref{section:proof:orthogonal_score_pop},
+		we have \(\mathbb{E}[\rho^{[k]}\rho^{[j]}]=0\) for every \(k\neq j\). Thus only the \(k=j\) term survives in the sum and we obtain
+		\[
+		\mathbb{E}\big[ Y^{[s]}\,\rho^{[j]} \big]
+		= \mathbb{E}[Y\,\rho^{[j]}] - \nu^{[j]}\,\mathbb{E}[(\rho^{[j]})^2].
+		\]
+		
+		It remains to identify \(\mathbb{E}[Y\,\rho^{[j]}]\). Using the definition of the \((j)\)-th residual response,
+		\[
+		Y = Y^{[j]} + \sum_{m=1}^{j-1} \nu^{[m]}\rho^{[m]},
+		\]
+		and again using score orthogonality \(\mathbb{E}[\rho^{[m]}\rho^{[j]}]=0\) for \(m<j\), we find
+		\[
+		\mathbb{E}[Y\,\rho^{[j]}] = \mathbb{E}[Y^{[j]}\,\rho^{[j]}].
+		\]
+		Substitute this into the previous display and use the definition of \(\nu^{[j]}\):
+		\[
+		\mathbb{E}\big[ Y^{[s]}\,\rho^{[j]} \big]
+		= \mathbb{E}[Y^{[j]}\,\rho^{[j]}] - 
+		\frac{\mathbb{E}[Y^{[j]}\rho^{[j]}]}{\mathbb{E}[(\rho^{[j]})^2]}\,\mathbb{E}[(\rho^{[j]})^2]
+		= 0.
+		\]
+		This completes the proof of orthogonality between scores and residualized responses.
+	\end{proof}
+	
+	\subsubsection{Equivalence of the problems}\label{equiv_problem}
+	\begin{proof}
+		Recall the residualization definitions (for fixed \(l\ge 2\)):
+		\[
+		W^{[l]} \;=\; W - \sum_{j=1}^{\,l-1} \rho^{[j]}\,\delta^{[j]},
+		\qquad
+		Y^{[l]} \;=\; Y - \sum_{k=1}^{\,l-1} \nu^{[k]}\,\rho^{[k]},
+		\]
+		where
+		\[
+		\rho^{[j]}=\langle W^{[j]},\xi^{[j]}\rangle,\quad
+		\delta^{[j]}=\frac{\mathbb{E}[\rho^{[j]} W^{[j]}]}{\mathbb{E}[(\rho^{[j]})^2]},
+		\quad
+		\nu^{[j]}=\frac{\mathbb{E}[\rho^{[j]} Y^{[j]}]}{\mathbb{E}[(\rho^{[j]})^2]}.
+		\]
+		Since \(W,Y\) are centered, 
+		so are $W^{l}, Y^{l}$.
+		Thus covariances are expectations of products.
+		Fix any \(w\in\mathbb{H}\).  Using linearity,
+		\begin{align*}
+			\operatorname{Cov}\!\big(\langle W^{[l]},w\rangle,\;Y^{[l]}\big)
+			&= \mathbb{E}\Big[\big(\langle W,w\rangle - \sum_{j=1}^{l-1} \rho^{[j]}\langle\delta^{[j]},w\rangle\big)
+			\big(Y - \sum_{k=1}^{l-1} \nu^{[k]}\rho^{[k]}\big)\Big] \\
+			\\&= \mathbb{E}[\langle W,w\rangle Y] 
+			- \sum_{k=1}^{l-1} \nu^{[k]}\,\mathbb{E}[\langle W,w\rangle \rho^{[k]}]
+			- \underbrace{
+				\sum_{j=1}^{l-1} \langle\delta^{[j]},w\rangle\,\mathbb{E}[\rho^{[j]} Y]}_{:=S_1} \\
+			&\qquad
+			\underbrace{
+				+ 
+				\sum_{j=1}^{l-1}\sum_{k=1}^{l-1} \langle\delta^{[j]},w\rangle\,\nu^{[k]}\,\mathbb{E}[\rho^{[j]}\rho^{[k]}]
+			}_{:=S_2}.
+		\end{align*}
+		We claim that $S_1  = S_2$.
+		For $S_1$, first note that, since
+		\(Y = Y^{[l]} + \sum_{k=1}^{l-1}\nu^{[k]}\rho^{[k]}\), for each \(j\le l-1\) we have
+		\[
+		\mathbb{E}[\rho^{[j]} Y] = \mathbb{E}[\rho^{[j]} Y^{[l]}] + \sum_{k=1}^{l-1} \nu^{[k]}\mathbb{E}[\rho^{[j]}\rho^{[k]}]=
+		\nu^{[j]}\,\mathbb{E}[(\rho^{[j]})^2],
+		\]
+		where the last equality uses 
+		\(\mathbb{E}[\rho^{[j]} Y^{[l]}]=0\) (Appendix \ref{section:proof:orthogonal_score_residual_pop}) and
+		\(\mathbb{E}[\rho^{[j]}\rho^{[k]}]=0\) for \(j\ne k\) (Appendix \ref{section:proof:orthogonal_score_pop}).
+		Therefore we have
+		\[
+		S_1 = \sum_{j=1}^{l-1} \langle\delta^{[j]},w\rangle \nu^{[j]}\,\mathbb{E}[(\rho^{[j]})^2].
+		\]
+		For $S_2$, 
+		since  \(\mathbb{E}[\rho^{[j]}\rho^{[k]}]=0\) for \(j\ne k\) (Appendix \ref{section:proof:orthogonal_score_pop}), we have:
+		\begin{equation*}
+			S_2
+			=
+			\sum_{j=1}^{l-1}\sum_{k=1}^{l-1} \langle\delta^{[j]},w\rangle\,\nu^{[k]}\,\mathbb{E}[\rho^{[j]}\rho^{[k]}]
+			= \sum_{j=1}^{l-1} \langle\delta^{[j]},w\rangle\,\nu^{[j]}\,\mathbb{E}[(\rho^{[j]})^2].   
+		\end{equation*}
+		Since $S_1 = S_2$, 
+		and
+		\(\mathbb{E}[\langle W,w\rangle Y]=\operatorname{Cov}(\langle W,w\rangle,Y)\), we have
+		\[
+		\operatorname{Cov}\big(\langle W^{[l]},w\rangle,\;Y^{[l]}\big)
+		= \operatorname{Cov}(\langle W,w\rangle,Y)
+		- \sum_{k=1}^{l-1} \nu^{[k]}\,\operatorname{Cov}(\langle W,w\rangle,\rho^{[k]}).
+		\]
+		Therefore we are solving
+		\begin{align*}
+			\max_{\|w\|_{\mathbb{H}}=1}~&
+			\Big\{ 
+			\operatorname{Cov}(\langle W,w\rangle,Y)
+			- \sum_{k=1}^{l-1} \nu^{[k]}\,\operatorname{Cov}(\langle W,w\rangle,\rho^{[k]})
+			\Big\}^2
+			\\
+			s.t.~&
+			\nu^{[k]}
+			=
+			\frac{1}{\mathbb{E}[ (\rho^{[k]})^2 ]}
+			\mathbb{E}[Y^{[l]} \rho^{[k]}],~k=1, \ldots, l-1
+			\\~&
+			\rho^{[k]} = \langle \xi^{[k]}, W^{[k]} \rangle,~k=1, \ldots, l-1 
+			\\~&
+			\delta^{[k]}
+			=
+			\frac{1}{\mathbb{E}[ (\rho^{[k]})^2 ]}  \mathbb{E}[W^{[k]} \rho^{[k]}],~k=1, \ldots, l-1
+			\\~&
+			W^{[k+1]} = W^{[k]} - \rho^{[k]} \, \delta^{[k]},~k=1, \ldots, l-1
+			\\~&
+			Y^{[k]} =Y^{[k-1]} - \nu^{[k-1]} \, \rho^{[k-1]},~k=1, \ldots, l-1
+		\end{align*}
+		Since the constraints imply 
+		that for every \(s\ge 1\) and every \(j\le s-1\), we have $
+		\mathbb{E}[\rho^{[j]}\rho^{[s]}]=\langle w, \Sigma_W \, \xi^{[k]} \rangle_{\mathbb{H}} = \operatorname{Cov}(\langle W,w\rangle,\rho^{[k]}) =0
+		$ (Appendix \ref{section:proof:orthogonal_score_pop}),
+		the above problem is equivalent to 
+		\begin{align*}
+			\max_{\|w\|_{\mathbb{H}}=1}~&
+			\Big\{ 
+			\operatorname{Cov}(\langle W,w\rangle,Y)
+			\Big\}^2
+			\\
+			s.t.~&
+			\nu^{[k]}
+			=
+			\frac{1}{\mathbb{E}[ (\rho^{[k]})^2 ]}
+			\mathbb{E}[Y^{[l]} \rho^{[k]}],~k=1, \ldots, l-1
+			\\~&
+			\rho^{[k]} = \langle \xi^{[k]}, W^{[k]} \rangle,~k=1, \ldots, l-1 
+			\\~&
+			\delta^{[k]}
+			=
+			\frac{1}{\mathbb{E}[ (\rho^{[k]})^2 ]}  \mathbb{E}[W^{[k]} \rho^{[k]}],~k=1, \ldots, l-1
+			\\~&
+			W^{[k+1]} = W^{[k]} - \rho^{[k]} \, \delta^{[k]},~k=1, \ldots, l-1
+			\\~&
+			Y^{[k]} =Y^{[k-1]} - \nu^{[k-1]} \, \rho^{[k-1]},~k=1, \ldots, l-1
+			\\~& \langle w, \Sigma_W \, \xi^{[k]} \rangle_{\mathbb{H}}=0,~k=1, \ldots, l-1.
+		\end{align*}
+		Removing constraints that does not affect the objective function, the above optimization problem is equivalent to
+		\begin{align*}
+			\max_{\|w\|_{\mathbb{H}}=1}~&
+			\Big\{ 
+			\operatorname{Cov}(\langle W,w\rangle,Y)
+			\Big\}^2
+			\\
+			s.t.~&
+			\langle w, \Sigma_W \, \xi^{[k]} \rangle_{\mathbb{H}}=0,~k=1, \ldots, l-1.
+		\end{align*}
+		This completes
+		the proof of Proposition \ref{prop:residualization_equiv_eigen}.
+	\end{proof}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	\subsection{Proof of Theorem \ref{thm:hybrid_pls_convergence}}\label{section:proof:thm:hybrid_pls_convergence}
+	\begin{proof}
+		Iterating the residualization $Y^{[l]} = Y^{[l-1]} - \nu^{[l-1]} \rho^{[l-1]}$ for $l=1,\dots,L$, we obtain
+		\begin{equation}\label{eq:Y_sum_residuals}
+			Y = \sum_{j=0}^{L-1} \nu^{[j]} \rho^{[j]} + Y^{[L]} = Y_{\mathrm{PLS},L-1} + Y^{[L]}.
+		\end{equation}
+		Consider the $L^2$ norm of the remaining residual $Y^{[L]}$:
+		\[
+		\mathbb{E}[(Y^{[L]})^2] = \mathbb{E}[(Y^{[L-1]} - \nu^{[L-1]} \rho^{[L-1]})^2] = \mathbb{E}[(Y^{[L-1]})^2] - (\nu^{[L-1]})^2 \mathbb{E}[(\rho^{[L-1]})^2].
+		\]
+		Thus, the residual variance is nonnegative and monotonically decreasing with $L$:
+		\[
+		0 \le \mathbb{E}[(Y^{[L]})^2] \le \mathbb{E}[(Y^{[L-1]})^2] \le \cdots \le \mathbb{E}[Y^2] < \infty.
+		\]
+		Therefore, the series $\sum_{l=1}^{\infty} (\nu^{[l]})^2 \mathbb{E}[(\rho^{[l]})^2]$ converges and the residual variance $\mathbb{E}[(Y^{[L]})^2] \to 0$ as $L \to \infty$.
+		From \eqref{eq:Y_sum_residuals}, the mean squared error of the PLS approximation is
+		\[
+		\mathbb{E}\bigl[ \| Y_{\mathrm{PLS},L-1} - Y \|^2 \bigr] = \mathbb{E}[(Y^{[L]})^2] \to 0 \quad \text{as } L \to \infty.
+		\]
+		This completes the proof of Theorem \ref{thm:hybrid_pls_convergence}.
+	\end{proof}
+	
+	
 	\section{Proof of geometric properties}
 	
 	
@@ -2919,20 +3128,20 @@ For any convergent series, the sum of its tail (i.e., from $L+1$ to infinity) mu
 			\widehat{ \rho }^{[l_1 ]}_i \,
 			\widehat{ \rho }^{[l_2]}_i
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-			\\&=  
+			=  
 			\sum_{i=1}^n
 			\widehat{ \rho }^{[l_1 ]}_i \,
 			\bigl \langle 	\widetilde{W}^{[l_2]}_i  ,
 			\hat{\xi}^{[l_2]}
 			\bigr \rangle_{\mathbb{H}}
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-			\\&=  
+			=  
 			\big \langle
 			\sum_{i=1}^n
 			\widehat{ \rho }^{[l_1 ]}_i \,
 			\widetilde{W}^{[l_2]}_i  ,
 			\hat{\xi}^{[l_2]}
-			\big \rangle_{\mathbb{H}}
+			\big \rangle_{\mathbb{H}}.
 		\end{align*}
 		Therefore,
 		to show that $\widehat{\boldsymbol{\rho}}^{[l_1 ] \top}
