@@ -1196,6 +1196,36 @@ get_xi_hat_linear_pen <- function(W, y, lambda){
 ```
 
 
+the full vector of PLS scores $$\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$$
+	is computed through the following matrix multiplication:
+$$
+		\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
+$$	
+```{r}
+get_rho <- function(d_vec, W){
+  K <- W$n_functional
+  M <- W$n_basis_list[[1]]
+  n_scalar <- W$n_scalar
+  n <- W$n_sample
+  rho <- rep(0, n)
+  
+  #functional part
+  for (j in 1:K){
+    start_index <- (j-1)*M + 1
+    end_index <- j*M
+    gamma_j <- d_vec[ start_index : end_index]
+    Theta_j  <- t(W$functional_list[[j]]$coefs)
+    B <- W$gram_list[[j]]
+    rho <- rho + Theta_j %*% B %*% gamma_j
+  }
+      
+  #scalar part
+  rho <- rho + W$Z %*% d_vec[(K * M + 1):length(d_vec)]
+  return (rho)
+}
+     
+```
+
 ```{r}
 library(fda)
 
