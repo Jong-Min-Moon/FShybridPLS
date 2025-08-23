@@ -1362,38 +1362,33 @@ LSE_hybrid <- function(W, rho) {
 #' @export
 fit.hybridPLS <- function(W, y, n_iter, lambda) {
   # 1. Initialize storage
-  W_now <- rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+  W_now <- rho <- xi <- delta <- nu  <- iota <- beta <- list()
  
   # 3. Initialize residuals
   W_now[[1]] <- W
   y_now <- y
-  final_succesful_iteration <- 0
-  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
-  constr_mat_chol <- t(chol(constr_mat))
   for (l in 1:n_iter) {
     cat(paste(l, "th component", "\n"))
 
     xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
-     rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
+    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
     delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
     W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
     nu[[l]] <- get_nu(y_now, rho[[l]]); y_now <- residualize_y(y_now, rho[[l]], nu[[l]]) # response residual
  
-    # Step 3: Orthogonalize and update prediction
-    #sigma[[l]] <- xi[[l]]
-    #if (l == 1) {
-    #  eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
-    #} else {
-    #  for (u in 1:(l - 1)) {
-    #    sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
-    #  }
-    #  eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
-    #}
+    iota[[l]] <- xi[[l]]
+    if (l == 1) {
+      beta[[l]] <- scalar_mul.predictor_hybrid( iota[[l]], nu[[l]] )
+    } else {
+      for (u in 1:(l - 1)) iota[[l]] <- subtr.predictor_hybrid( iota[[l]], iota[[u]], inprod.predictor_hybrid(delta[[u]], xi[[l]]))
+      beta[[l]] <- add.predictor_hybrid(beta[[l - 1]], iota[[l]], nu[[l]])
+    }
   }
   return (list(
     rho = rho,
     xi = xi,
-    W = W_now
+    W = W_now,
+    beta = beta
   ))
 }
 
