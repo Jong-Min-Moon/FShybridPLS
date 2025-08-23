@@ -600,7 +600,83 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
 }
 ```
 
+```{r}
+#' Inner product between two predictor_hybrid objects (with broadcasting)
+#'
+#' Computes the inner product between two `predictor_hybrid` objects,
+#' including both functional and scalar components. Supports broadcasting
+#' when one of the inputs has a single observation.
+#'
+#' @param xi_1 A `predictor_hybrid` object.
+#' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
+#'
+#' @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
+#' @export
+inprod_pen.predictor_hybrid <- function(xi_1, xi_2 = NULL, lambda) {
+  # Handle self-inner product
+  if (is.null(xi_2)) xi_2 <- xi_1 
+  
+  # Type checks
+  if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
+    stop("Both inputs must be of class 'predictor_hybrid'.")
+  }
 
+  # Structural checks
+  if (xi_1$n_functional != xi_2$n_functional) {
+    stop("Mismatch in number of functional predictors.")
+  }
+  if (xi_1$n_scalar != xi_2$n_scalar) {
+    stop("Mismatch in number of scalar predictors.")
+  }
+
+  # Swap so that broadcasting always applies to xi_2
+  if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
+    tmp <- xi_1
+    xi_1 <- xi_2
+    xi_2 <- tmp
+  }
+
+  n1 <- xi_1$n_sample
+  n2 <- xi_2$n_sample
+
+  if (!(n1 == n2 || n2 == 1)) {
+    stop("Sample sizes are incompatible for broadcasting.")
+  }
+
+  
+  inprod <- inprod.predictor_hybrid(xi_1, xi_2)
+  # Prepare components
+  f1 <- xi_1$functional_list
+
+  f2 <- xi_2$functional_list
+
+  # Replicate fd and Z if needed
+  if (n2 == 1) {
+    f2 <- rep_fd(f2, n1)
+    Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
+  }
+    for (j in 1:xi_1$n_functional){f1[[j]] <- lambda[j] * f1[[j]]}
+  L_op <- fda::Lfd(2, bwtlist = NULL) 
+  # Compute functional inner products
+  inprod_deriv2 <- vapply(
+    seq_len(n1), 
+    function(i) {
+      sum(vapply(seq_along(f1), function(j) {
+      fda::inprod(
+        fdobj1 = f1[[j]][i], 
+        fdobj2 = f2[[j]][i], 
+        Lfdobj1 = int2Lfd(2),
+        Lfdobj2 = int2Lfd(2)
+        )
+    }, numeric(1)))
+  }, numeric(1))
+ 
+
+  # Combine results
+  result <- inprod + inprod_deriv2
+  if (n1 == 1 && n2 == 1) as.numeric(result) else result
+}
+```
 
 ### subset_predictor_hybrid
 
@@ -1103,7 +1179,6 @@ get_xi_hat_linear_pen <- function(W, y, lambda){
 
     # linear system
     R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
-    print(R)
     U_cholesky <- chol(R)
     L_cholesky <- t(U_cholesky)
     intermediate <- forwardsolve(L_cholesky, u[[j]])
@@ -1159,7 +1234,7 @@ set.seed(111)
 
 n_sample <- 100
 n_scalar <- 2
-n_basis <- 5
+n_basis <- 20
 n_functional <- 2
 
 # Scalar predictors Z (centered)
@@ -1346,6 +1421,7 @@ fit.hybridPLS <- function(W, y, n_iter, lambda) {
     cat(paste(l, "th component", "\n"))
 
     xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
+    print("123")
     rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
     delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
     W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
@@ -1362,6 +1438,10 @@ fit.hybridPLS <- function(W, y, n_iter, lambda) {
     #  eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
     #}
   }
+  return (list(
+    rho = rho,
+    xi = xi
+  ))
 }
 
 ```
