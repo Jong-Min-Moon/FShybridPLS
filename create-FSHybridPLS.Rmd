@@ -657,84 +657,7 @@ We run unit tests for:
 | 4    | Broadcasting (single vs. multi)    | x2: (1×2), x3: (3×2)   | 3              | Broadcast x2 across x3                          |
 | 5    | Broadcasting (multi vs. single)    | x3: (3×2), x2: (1×2)   | 3              | Broadcast x2 across x3                          |
 
-
-```{r}
-testthat::test_that("inprod.predictor_hybrid returns correct vector output for broadcasting and other cases", {
-  suppressPackageStartupMessages(library(fda))
-
-  basis <- create.bspline.basis(c(0, 1), 5)
-  make_fd <- function(val, n_sample) {
-    fd(coef = matrix(val, 5, n_sample), basisobj = basis)
-  }
-# data generation
-## three observations
-  fd1 <- make_fd(1, 3)
-  Z1 <- matrix(c(1, 2), nrow = 3, ncol = 2, byrow = TRUE)
-  x1 <- predictor_hybrid(Z1, list(fd1, fd1))
-## one observation
-  fd2 <- make_fd(2, 1)
-  Z2 <- matrix(c(3, 4), nrow = 1)
-  x2 <- predictor_hybrid(Z2, list(fd2, fd2))
-## three observations
-  Z3 <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, byrow = TRUE)
-  fd3 <- fd(coef = t(matrix(c(1:15), nrow = 3, byrow = TRUE)), basisobj = basis)
-  x3 <- predictor_hybrid(Z3, list(fd3, fd3))  
-## one observations
-  Z4 <- matrix(c(5, 6), nrow = 1)
-  fd4 <- make_fd(3, 1)
-  x4 <- predictor_hybrid(Z4, list(fd4, fd4))
-  
-# Case 1: Self inner product (1 sample)
-  out1 <- inprod.predictor_hybrid(x2)
-  expected_scalar_1 <- sum(Z2^2)
-  expected_functional_1 <- sum(sapply(x2$functional_list, function(fd) fda::inprod(fd, fd)))
-  testthat::expect_equal(out1, expected_scalar_1 + expected_functional_1)
-
-# Case 2: Three-sample vs. Three-sample
-  out2 <- inprod.predictor_hybrid(x1, x3)
-  expected_scalar_2 <- rowSums(Z1 * Z3)
-  expected_functional_2 <- vapply(1:3, function(i) {
-    sum(sapply(1:2, function(j) {
-      fda::inprod(x1$functional_list[[j]][i], x3$functional_list[[j]][i])
-    }))
-  }, numeric(1))
-  testthat::expect_equal(out2, expected_scalar_2 + expected_functional_2)
-  
-  # Case 3: One-sample vs. one-sample
-
-  out3 <- inprod.predictor_hybrid(x2, x4)
-  expected_scalar_3 <- sum(Z2 * Z4)
-  expected_functional_3 <-2*fda::inprod(fd2, fd4)
-  testthat::expect_equal(out3, as.numeric(expected_scalar_3 + expected_functional_3))
-
-
-  # Case 4: Broadcasting (single vs. multi)
-  out4 <- inprod.predictor_hybrid(x2, x3)
-  expected_scalar_4 <- c(0,0,0)
-  for (i in 1:3){
-    expected_scalar_4[i] <-  sum(Z2 * Z3[i,])
-    }
-
-  expected_functional_4 <-  c(0,0,0)
-  for (i in 1:3){
-    expected_functional_4[i] <- 2*fda::inprod(
-      fd2,
-      fd(
-        coef = matrix(
-        c(
-        (5*i+1-5):(5*i)
-        ), 5, 1), #end of matrix
-         basisobj = basis) #end of fd
-      )# end of inprod
-  }
-
-  testthat::expect_equal(as.vector(out4), as.vector(expected_scalar_4 + expected_functional_4))
-
-  # Case 4: Broadcasting (multi  vs. single)
-  testthat::expect_equal(as.vector(inprod.predictor_hybrid( x3, x2)), as.vector(expected_scalar_4 + expected_functional_4))  
-})
-```
-
+ 
 
 ### subset_predictor_hybrid
 
@@ -753,6 +676,178 @@ subset_predictor_hybrid <- function(W, i) {
 }
 
 ```
+
+### replace_obs_hybrid
+
+```{r}
+#' Replace a single observation in a predictor_hybrid object
+#'
+#' Replaces the i-th observation of a predictor_hybrid object with a new
+#' single-sample predictor_hybrid object.
+#'
+#' @param W A predictor_hybrid object with one or more samples.
+#' @param i An integer index specifying the observation to replace.
+#' @param new_W A single-sample predictor_hybrid object to use for replacement.
+#'
+#' @return A predictor_hybrid object with the i-th observation replaced.
+#' @export
+replace_obs_hybrid <- function(W, i, new_W) {
+  # Input validation
+  if (!inherits(W, "predictor_hybrid") || !inherits(new_W, "predictor_hybrid")) {
+    stop("Both W and new_W must be of class 'predictor_hybrid'.")
+  }
+  if (new_W$n_sample != 1) {
+    stop("new_W must be a single-sample predictor_hybrid object.")
+  }
+  if (i < 1 || i > W$n_sample) {
+    stop(paste("Index i must be between 1 and", W$n_sample))
+  }
+  if (W$n_scalar != new_W$n_scalar) {
+    stop("Mismatch in number of scalar predictors.")
+  }
+  if (W$n_functional != new_W$n_functional) {
+    stop("Mismatch in number of functional predictors.")
+  }
+  
+  # Check for compatible basis objects
+  is_eqbasis <- getFromNamespace("is.eqbasis", "fda")
+  for (j in seq_len(W$n_functional)) {
+    if (!is_eqbasis(W$functional_list[[j]]$basis, new_W$functional_list[[j]]$basis)) {
+      stop("Functional predictors must have the same basis objects.")
+    }
+  }
+
+  # Replace the i-th observation in the scalar matrix Z
+  W$Z[i, ] <- new_W$Z[1, ]
+
+  # Replace the i-th observation in each functional predictor
+  for (j in seq_along(W$functional_list)) {
+    # The coefficients are stored as a matrix, with columns corresponding to samples
+    W$functional_list[[j]]$coefs[, i] <- new_W$functional_list[[j]]$coefs[, 1]
+  }
+
+  # The number of samples remains the same
+  return(W)
+}
+```
+
+
+```{r}
+testthat::test_that("replace_obs_hybrid correctly replaces an observation", {
+  # Setup: Create a multi-sample predictor_hybrid object
+  n_samples <- 5
+  n_scalar <- 2
+  n_functional <- 3
+  n_basis <- 5 # Assuming a fixed number of basis functions for simplicity
+
+  # Basis object
+  basis_obj <- create.bspline.basis(c(0, 1), nbasis = n_basis)
+
+  # Generate sample functional data
+  functional_list_initial <- lapply(1:n_functional, function(f_idx) {
+    fd(matrix(rnorm(n_basis * n_samples), ncol = n_samples), basis_obj)
+  })
+
+  # Generate sample scalar data
+  Z_initial <- matrix(rnorm(n_samples * n_scalar), nrow = n_samples, ncol = n_scalar)
+
+  W_original <- predictor_hybrid(Z = Z_initial, functional_list = functional_list_initial)
+
+  # Create a single-sample predictor_hybrid object for replacement
+  new_Z_scalar <- matrix(c(100, 200), nrow = 1)
+  new_functional_list_single <- lapply(1:n_functional, function(f_idx) {
+    fd(matrix(c(rep(10, n_basis), rep(20, n_basis), rep(30, n_basis))[f_idx * n_basis - (n_basis - 1):0], ncol = 1), basis_obj)
+  })
+  new_W_single <- predictor_hybrid(Z = new_Z_scalar, functional_list = new_functional_list_single)
+
+  # Test Case 1: Replace a middle observation (e.g., index 3)
+  index_to_replace <- 3
+  W_modified <- replace_obs_hybrid(W_original, index_to_replace, new_W_single)
+
+  # Verify scalar part
+  testthat::expect_equal(W_modified$Z[index_to_replace, ], new_W_single$Z[1, ],
+               info = "Scalar part at replaced index should match new_W_single$Z")
+  # Verify other scalar rows are unchanged
+  if (index_to_replace > 1) {
+    testthat::expect_equal(W_modified$Z[1:(index_to_replace - 1), ], W_original$Z[1:(index_to_replace - 1), ],
+                 info = "Scalar part before replaced index should be unchanged")
+  }
+  if (index_to_replace < n_samples) {
+    testthat::expect_equal(W_modified$Z[(index_to_replace + 1):n_samples, ], W_original$Z[(index_to_replace + 1):n_samples, ],
+                 info = "Scalar part after replaced index should be unchanged")
+  }
+
+  # Verify functional part
+  for (j in seq_len(n_functional)) {
+    testthat::expect_equal(coef(W_modified$functional_list[[j]])[, index_to_replace],
+                 coef(new_W_single$functional_list[[j]])[, 1],
+                 info = paste0("Functional predictor ", j, " at replaced index should match new_W_single"))
+    # Verify other functional columns are unchanged
+    if (index_to_replace > 1) {
+      testthat::expect_equal(coef(W_modified$functional_list[[j]])[, 1:(index_to_replace - 1)],
+                   coef(W_original$functional_list[[j]])[, 1:(index_to_replace - 1)],
+                   info = paste0("Functional predictor ", j, " before replaced index should be unchanged"))
+    }
+    if (index_to_replace < n_samples) {
+      testthat::expect_equal(coef(W_modified$functional_list[[j]])[, (index_to_replace + 1):n_samples],
+                   coef(W_original$functional_list[[j]])[, (index_to_replace + 1):n_samples],
+                   info = paste0("Functional predictor ", j, " after replaced index should be unchanged"))
+    }
+  }
+
+  # Test Case 2: Replacing the first observation (index 1)
+  index_to_replace <- 1
+  W_modified_first <- replace_obs_hybrid(W_original, index_to_replace, new_W_single)
+  testthat::expect_equal(W_modified_first$Z[index_to_replace, ], new_W_single$Z[1, ])
+  for (j in seq_len(n_functional)) {
+    testthat::expect_equal(coef(W_modified_first$functional_list[[j]])[, index_to_replace],
+                 coef(new_W_single$functional_list[[j]])[, 1])
+  }
+
+  # Test Case 3: Replacing the last observation (index n_samples)
+  index_to_replace <- n_samples
+  W_modified_last <- replace_obs_hybrid(W_original, index_to_replace, new_W_single)
+  testthat::expect_equal(W_modified_last$Z[index_to_replace, ], new_W_single$Z[1, ])
+  for (j in seq_len(n_functional)) {
+    testthat::expect_equal(coef(W_modified_last$functional_list[[j]])[, index_to_replace],
+                 coef(new_W_single$functional_list[[j]])[, 1])
+  }
+
+  # Test Case 4: Error handling for invalid index
+  testthat::expect_error(replace_obs_hybrid(W_original, 0, new_W_single), "Index i must be between 1 and")
+  testthat::expect_error(replace_obs_hybrid(W_original, n_samples + 1, new_W_single), "Index i must be between 1 and")
+
+  # Test Case 5: Error handling for new_W with multiple samples
+  multi_sample_new_W <- predictor_hybrid(Z = matrix(rnorm(2*n_scalar), nrow=2),
+                                         functional_list = lapply(1:n_functional, function(f_idx) {
+                                           fd(matrix(rnorm(n_basis*2), ncol = 2), basis_obj)
+                                         }))
+  testthat::expect_error(replace_obs_hybrid(W_original, 1, multi_sample_new_W), "new_W must be a single-sample predictor_hybrid object.")
+
+  # Test Case 6: Error handling for mismatch in n_scalar
+  mismatch_scalar_new_W <- predictor_hybrid(Z = matrix(rnorm(1*1), nrow=1),
+                                            functional_list = new_functional_list_single)
+  testthat::expect_error(replace_obs_hybrid(W_original, 1, mismatch_scalar_new_W), "Mismatch in number of scalar predictors.")
+
+  # Test Case 7: Error handling for mismatch in n_functional
+  mismatch_functional_new_W <- predictor_hybrid(Z = new_Z_scalar,
+                                                functional_list = new_functional_list_single[1]) # Only one functional predictor
+  testthat::expect_error(replace_obs_hybrid(W_original, 1, mismatch_functional_new_W), "Mismatch in number of functional predictors.")
+
+  # Test Case 8: Error handling for mismatch in basis objects
+  different_basis_obj <- create.bspline.basis(c(0, 1), nbasis = n_basis + 1) # Different basis
+mismatch_basis_new_W_list <- lapply(1:n_functional, function(f_idx) {
+  # Use the correct number of rows: nbasis of different_basis_obj
+  fd(matrix(rnorm(different_basis_obj$nbasis), ncol = 1), different_basis_obj)
+})
+  mismatch_basis_new_W <- predictor_hybrid(Z = new_Z_scalar,
+                                          functional_list = mismatch_basis_new_W_list)
+  testthat::expect_error(replace_obs_hybrid(W_original, 1, mismatch_basis_new_W), "Functional predictors must have the same basis objects.")
+
+})
+```
+
+
 
 # One iteration
 
@@ -1221,7 +1316,7 @@ get_rho <- function(d_vec, W){
       
   #scalar part
   rho <- rho + W$Z %*% d_vec[(K * M + 1):length(d_vec)]
-  return (rho)
+  return (as.vector(rho))
 }
 ```
 
@@ -1304,16 +1399,29 @@ cat(xi_hat_direct_new$functional_list[[2]]$coefs- xi_hat_direct$functional_list[
 
 ```{r}
 get_nu <- function(y, rho){
-            rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
-            nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
+            nu <- sum(y*rho) / sum(rho*rho)
             return(nu)  
 }
+```
+
+```{r}
+residualize_y <- function(y, rho){
+  nu <- get_nu(y, rho)
+  y_next <- y - nu * rho
+  return(y_next)
+}
+```
+
+output of the residualize_y and rho must be orthogonal.
+```{r}
+#sum(residualize_y(y, rho )*rho) #should output a very small number
 ```
 
 
 
 ```{r}
 LSE_ptws <- function(input, rho) {
+  # old implementation
             rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
             nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
             return(nu)
@@ -1321,9 +1429,45 @@ LSE_ptws <- function(input, rho) {
 
 ```
 
-### LSE_hybrid
+###  predictor residualization
+
+$$
+\widetilde{W}_i^{[l+1]} 
+			:= 	\widetilde{W}_i^{[l]}  - 
+			\widehat{\rho}_i^{[l]}
+			\hat{\delta}^{[l]},~\text{where}~
+			\delta^{[l]}
+			:= 
+			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
+			\sum_{i=1}^n 
+			\widehat{\rho}_i^{[l]}
+			\widetilde{W}_i^{[l]},
+$$
+
+
 ```{r}
-LSE_hybrid <- function(W, rho, tau) {
+get_delta <- function(W, rho){
+  delta <- scalar_mul.predictor_hybrid(subset_predictor_hybrid(W, 1), rho[1])
+   for (i in 2:length(rho)) {
+  delta <- add.predictor_hybrid(delta, subset_predictor_hybrid(W, i),  rho[i]) 
+} 
+  return(delta)
+}
+```
+
+
+```{r}
+residualize_predictor <- function(W, delta){
+  
+}
+```
+
+
+### LSE_hybrid
+
+```{r}
+LSE_hybrid <- function(W, rho) {
+  # old implementation
   C_star_J_star <- matrix(NA, nrow = W$n_sample, ncol = sum(W$n_basis_list) + W$n_scalar)
   for (ii in (1 : W$n_functional)){
     cumsum_n_basis_now <- sum(W$n_basis_list[1:ii])
@@ -1345,6 +1489,34 @@ LSE_hybrid <- function(W, rho, tau) {
   delta_hat <- hybrid_from_coef(W, d_hat_star) #hybrid regression coefficient
   return(delta_hat)
   }
+```
+
+
+
+```{r}
+###########################################
+)
+
+setMethod("fitted_value",
+          signature(
+            "predictor_hybrid",
+            "vector"
+          ),
+####################################################
+function(regcoef, pls_score) {
+  for (ii in 1 : (regcoef@n_functional) ){
+    regcoef@functional_list[[ii]] <- fd(
+        coef = coef(regcoef@functional_list[[ii]]) %*% matrix(pls_score, nrow=1),
+        basisobj = regcoef@functional_list[[ii]]$basis
+      )}
+  regcoef@Z <-  pls_score %*% regcoef@Z
+  return(regcoef)
+  }
+####################################################
+)
+
+
+
 ```
 
 

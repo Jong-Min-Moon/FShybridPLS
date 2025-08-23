@@ -1,0 +1,194 @@
+#setClass predictor_hybrid
+#add
+#subtr
+#scalar_mul
+#index_sample
+#hybrid_norm
+#get_mean
+#mean_sum_sqrd
+
+
+
+# basis_hybridPLS object
+setGeneric(
+  "fitted_value",
+  function(regcoef, pls_score) standardGeneric("fitted_value")
+)
+
+setGeneric(
+  "mean_sum_sqrd",
+  function(input) standardGeneric("mean_sum_sqrd")
+)
+
+setGeneric(
+  "hybrid_norm",
+  valueClass = "numeric",
+  function(xi) standardGeneric("hybrid_norm")
+)
+
+setGeneric(
+  "index_sample",
+  function(W, i) standardGeneric("index_sample")
+)
+
+setGeneric("get_mean", function(input)
+  standardGeneric("get_mean"))
+
+setGeneric("is_same_basis", function(input, other)
+  standardGeneric("is_same_basis"))
+
+setGeneric("is_one_observation", function(input)
+  standardGeneric("is_one_observation"))
+
+setGeneric("get_sum_of_norm_sqrd", function(input)
+  standardGeneric("get_sum_of_norm_sqrd"))
+
+
+
+
+setGeneric("add_broadcast", function(input, other, alpha=1)
+  standardGeneric("add_broadcast"))
+
+
+
+setGeneric(
+  "subtr_broadcast",
+  function(input, other, alpha=1)
+    standardGeneric("subtr_broadcast")
+)
+
+setGeneric(
+  "scalar_mul",
+  function(input, scalar) standardGeneric("scalar_mul")
+)
+
+setGeneric(
+  "get_mean",
+  function(input) standardGeneric("get_mean")
+)
+
+setGeneric(
+  "get_sd",
+  function(input) standardGeneric("get_sd")
+)
+
+
+
+
+
+
+
+
+
+
+setMethod("index_sample", signature("predictor_hybrid"),
+################################################################
+function(W, i){
+  n <- W@n_sample
+  if(i > n){stop("index out of range")}
+  W@Z <- matrix(W@Z[i,], nrow = 1)
+  for (ii in 1 : W@n_functional){
+    W@functional_list[[ii]] <- W@functional_list[[ii]][i]
+    }
+  return(W)
+  }
+################################################################
+)
+
+setMethod("hybrid_norm",
+          signature("predictor_hybrid"),
+function(xi) {
+            return( sqrt(hybrid_inner_prod(xi, xi)) )}
+)
+
+setMethod("get_mean", signature("predictor_hybrid"),
+function(input){
+  for (i in 1:input@n_functional){
+    input@functional_list[[i]] <- mean.fd(input@functional_list[[i]])
+  }
+  input@Z <- mean(input@Z)
+  return(input)
+}
+)
+
+setMethod("mean_sum_sqrd", signature("predictor_hybrid"),
+######################################################
+function(input){
+  norm_cumsum = 0
+  for (i in 1:(input@n_sample)){
+    obs_now <- index_sample(input, i)
+    norm_cumsum <- norm_cumsum + (hybrid_norm(obs_now))^2
+    }
+  return(norm_cumsum/(input@n_sample))
+  }
+######################################################
+)
+
+
+
+
+
+
+setMethod("is_same_basis", "predictor_hybrid",
+###########################################
+function(input, other){
+  if(input@n_functional != other@n_functional){
+    stop("Number of the functional predictors must be the same")
+    }
+  is_all_elem_same = 1
+  for (ii in 1:input@n_functional){
+    is_all_elem_same <- is_all_elem_same * is.eqbasis(
+      input@functional_list[[ii]]$basis,
+      other@functional_list[[ii]]$basis
+    )
+    }
+    if(is_all_elem_same){
+      return(TRUE)}else{
+        return(FALSE)
+        warning("Different bases")
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+setMethod("plot", signature("predictor_hybrid"),
+          function(x){
+
+            # Plot using base graphic engine
+            n_basis <- dim(x@predictor_functional_list[[1]]@J)[2]
+            splines <- create.bspline.basis(rangeval = c(0,1), nbasis = n_basis)
+            first <-fd(coef = t(x@predictor_functional_list[[1]]@coef), basisobj = splines)
+            second <-fd(coef = t(x@predictor_functional_list[[2]]@coef), basisobj = splines)
+
+
+
+            plot(first, main = "first functional")
+            plot(second, main = "second functional")
+            #y_1 <- eval.fd(x, psi_1)
+            #print(y_1)
+            #plot(x, y_1,  pch=".")
+            #plot(x, eval.fd(x, psi_2))
+          })
+
+
+
+
