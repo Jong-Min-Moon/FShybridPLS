@@ -1,0 +1,3 @@
+"0","delta <- get_delta(W,rho)"
+"0","res <- residualize_predictor(W, rho, delta)"
+"0","zero<-scalar_mul.predictor_hybrid( get_delta(res, rho), sum(rho*rho))"

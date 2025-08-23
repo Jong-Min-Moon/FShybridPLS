@@ -1,0 +1,8 @@
+"0","get_delta <- function(W, rho){"
+"0","  delta <- scalar_mul.predictor_hybrid(subset_predictor_hybrid(W, 1), rho[1])"
+"0","   for (i in 2:length(rho)) {"
+"0","  delta <- add.predictor_hybrid(delta, subset_predictor_hybrid(W, i),  rho[i]) "
+"0","   } "
+"0","  delta <- scalar_mul.predictor_hybrid(delta, 1/sum(rho*rho))"
+"0","  return(delta)"
+"0","}"
