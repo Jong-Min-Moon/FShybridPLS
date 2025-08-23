@@ -129,53 +129,6 @@ are_all_gram_matrices_identical <- function(gram_list, tolerance = sqrt(.Machine
 ```
 
 
-
-```{r}
-
-# --- Example Usage ---
-
-# Example 1: All matrices are identical
-mat1 <- matrix(c(1, 2, 3, 4), nrow = 2)
-mat2 <- matrix(c(1, 2, 3, 4), nrow = 2)
-mat3 <- matrix(c(1, 2, 3, 4), nrow = 2)
-identical_list <- list(mat1, mat2, mat3)
-print("Test Case 1: All matrices identical")
-print(are_all_gram_matrices_identical(identical_list)) # Expected: TRUE
-
-# Example 2: Matrices with slight floating-point differences (within tolerance)
-mat4 <- matrix(c(1.000000000000001, 2, 3, 4), nrow = 2)
-mat5 <- matrix(c(1, 2, 3, 4), nrow = 2)
-tolerance_list <- list(mat4, mat5)
-print("Test Case 2: Matrices with slight floating-point differences")
-print(are_all_gram_matrices_identical(tolerance_list)) # Expected: TRUE
-
-# Example 3: Matrices are not identical
-mat6 <- matrix(c(1, 2, 3, 5), nrow = 2) # Different value
-non_identical_list <- list(mat1, mat6, mat3)
-print("Test Case 3: Matrices are not identical")
-print(are_all_gram_matrices_identical(non_identical_list)) # Expected: FALSE
-
-# Example 4: List with different dimensions
-mat7 <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3)
-diff_dim_list <- list(mat1, mat7)
-print("Test Case 4: Matrices with different dimensions")
-print(are_all_gram_matrices_identical(diff_dim_list)) # Expected: FALSE (all.equal will catch this)
-
-# Example 5: Empty list
-empty_list <- list()
-print("Test Case 5: Empty list")
-print(are_all_gram_matrices_identical(empty_list)) # Expected: TRUE
-
-# Example 6: List with a single matrix
-single_matrix_list <- list(mat1)
-print("Test Case 6: Single matrix list")
-print(are_all_gram_matrices_identical(single_matrix_list)) # Expected: TRUE
-
-# Example 7: List containing non-matrix elements (will stop with an error)
-# non_matrix_list <- list(mat1, "not a matrix", mat3)
-# print("Test Case 7: List with non-matrix element (will throw error)")
-# print(are_all_gram_matrices_identical(non_matrix_list))
-```
  
 
 ## helpers for functional data objects
@@ -662,9 +615,9 @@ subset_predictor_hybrid <- function(W, i) {
   new_functional_list <- lapply(W$functional_list, function(fdobj) {
     fd(coef = matrix(coef(fdobj)[, i], ncol = 1), basisobj = fdobj$basis)
   })
-  predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+  new_predictor <- predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+  return(new_predictor)
 }
-
 ```
 
 ### replace_obs_hybrid
@@ -1150,6 +1103,7 @@ get_xi_hat_linear_pen <- function(W, y, lambda){
 
     # linear system
     R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
+    print(R)
     U_cholesky <- chol(R)
     L_cholesky <- t(U_cholesky)
     intermediate <- forwardsolve(L_cholesky, u[[j]])
@@ -1161,7 +1115,8 @@ get_xi_hat_linear_pen <- function(W, y, lambda){
   d_vec <- c(do.call(c, gamma), v)  # or: unlist(d)
   ## step 2: squared norm
   d_vec <- d_vec/ sqrt(q)
-  return(d_vec)
+  xi_hat <- predictor_hybrid_from_coef(format = W, coef = d_vec)
+  return(xi_hat)
 }
 ```
 
@@ -1194,6 +1149,7 @@ get_rho <- function(d_vec, W){
   return (as.vector(rho))
 }
 ```
+
 
 ```{r}
 library(fda)
@@ -1280,18 +1236,13 @@ get_nu <- function(y, rho){
 ```
 
 ```{r}
-residualize_y <- function(y, rho){
-  nu <- get_nu(y, rho)
+residualize_y <- function(y, rho, nu){
   y_next <- y - nu * rho
   return(y_next)
 }
 ```
 
-output of the residualize_y and rho must be orthogonal.
-```{r}
-#sum(residualize_y(y, rho )*rho) #should output a very small number
-```
-
+ 
 
 
 ```{r}
@@ -1337,20 +1288,15 @@ residualize_predictor <- function(W, rho, delta){
   n <- length(rho)
   W_res <- W
   for (i in 1:n){
-    W_res_i <-subtr.predictor_hybrid(subset_predictor_hybrid(W, i), delta,  rho[i]) 
+    W_i <- subset_predictor_hybrid(W, i)
+    W_res_i <-subtr.predictor_hybrid(W_i, delta,  rho[i]) 
     W_res <- replace_obs_hybrid(W_res, i, W_res_i)
   }
   return(W_res)
 }
 ```
 
-```{r}
-delta <- get_delta(W,rho)
-res <- residualize_predictor(W, rho, delta)
-zero<-get_delta(res, rho)
-```
-
-
+ 
 
 
 ### LSE_hybrid
@@ -1370,7 +1316,7 @@ LSE_hybrid <- function(W, rho) {
 
   # matrices in the statement of Proposition 4
   J_star <-as.matrix(get_jacobian_hybrid(W))
-  d_hat_star <- t( #basis coefficient of hybrid regression coefficient
+  d_hat_star <- t( #basis coefficient of hybrid regression coefficientdelta
     solve(
       t((norm(rho, type="2"))^2 * J_star),
       t(rho_t_C_star_J_star)
@@ -1381,31 +1327,42 @@ LSE_hybrid <- function(W, rho) {
   }
 ```
 
+ 
 
+# main algorithm
 
-```{r}
-###########################################
-)
+```{r eval=FALSE, include=FALSE}
+#' @export
+fit.hybridPLS <- function(W, y, n_iter, lambda) {
+  # 1. Initialize storage
+  W_now <- rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+ 
+  # 3. Initialize residuals
+  W_now[[1]] <- W
+  y_now <- y
+  final_succesful_iteration <- 0
 
-setMethod("fitted_value",
-          signature(
-            "predictor_hybrid",
-            "vector"
-          ),
-####################################################
-function(regcoef, pls_score) {
-  for (ii in 1 : (regcoef@n_functional) ){
-    regcoef@functional_list[[ii]] <- fd(
-        coef = coef(regcoef@functional_list[[ii]]) %*% matrix(pls_score, nrow=1),
-        basisobj = regcoef@functional_list[[ii]]$basis
-      )}
-  regcoef@Z <-  pls_score %*% regcoef@Z
-  return(regcoef)
+  for (l in 1:n_iter) {
+    cat(paste(l, "th component", "\n"))
+
+    xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
+    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
+    delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
+    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
+    nu[[l]] <- get_nu(y_now, rho[[l]]); y_now <- residualize_y(y_now, rho[[l]], nu[[l]]) # response residual
+ 
+    # Step 3: Orthogonalize and update prediction
+    #sigma[[l]] <- xi[[l]]
+    #if (l == 1) {
+    #  eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+    #} else {
+    #  for (u in 1:(l - 1)) {
+    #    sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
+    #  }
+    #  eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
+    #}
   }
-####################################################
-)
-
-
+}
 
 ```
 

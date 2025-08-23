@@ -1,0 +1,4 @@
+"0","residualize_y <- function(y, rho, nu){"
+"0","  y_next <- y - nu * rho"
+"0","  return(y_next)"
+"0","}"
