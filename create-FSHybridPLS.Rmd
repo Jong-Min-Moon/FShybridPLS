@@ -287,8 +287,8 @@ An alternative constructor for a predictor_hybrid object based on a flat numeric
 #'
 #' @export
 predictor_hybrid_from_coef <- function(format, coef){
-  M <- dim(format$gram_list[[1]])[2] # number of basis functions
-  K <- length(format$functional_list) # number of functional predictors
+  M <- format$n_basis_list[1] # number of basis functions
+  K <- format$n_functional # number of functional predictors
   for (ii in 1:K){
     format$functional_list[[ii]] <- fd(
       coef = as.matrix(coef[((ii-1)*M + 1):(ii*M)]),
@@ -613,68 +613,28 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
 #' @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
 #' @export
 inprod_pen.predictor_hybrid <- function(xi_1, xi_2 = NULL, lambda) {
-  # Handle self-inner product
-  if (is.null(xi_2)) xi_2 <- xi_1 
-  
-  # Type checks
-  if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
-    stop("Both inputs must be of class 'predictor_hybrid'.")
-  }
 
-  # Structural checks
-  if (xi_1$n_functional != xi_2$n_functional) {
-    stop("Mismatch in number of functional predictors.")
-  }
-  if (xi_1$n_scalar != xi_2$n_scalar) {
-    stop("Mismatch in number of scalar predictors.")
-  }
-
-  # Swap so that broadcasting always applies to xi_2
-  if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
-    tmp <- xi_1
-    xi_1 <- xi_2
-    xi_2 <- tmp
-  }
-
-  n1 <- xi_1$n_sample
-  n2 <- xi_2$n_sample
-
-  if (!(n1 == n2 || n2 == 1)) {
-    stop("Sample sizes are incompatible for broadcasting.")
-  }
-
-  
   inprod <- inprod.predictor_hybrid(xi_1, xi_2)
   # Prepare components
+  
   f1 <- xi_1$functional_list
 
   f2 <- xi_2$functional_list
-
-  # Replicate fd and Z if needed
-  if (n2 == 1) {
-    f2 <- rep_fd(f2, n1)
-    Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
-  }
-    for (j in 1:xi_1$n_functional){f1[[j]] <- lambda[j] * f1[[j]]}
-  L_op <- fda::Lfd(2, bwtlist = NULL) 
-  # Compute functional inner products
-  inprod_deriv2 <- vapply(
-    seq_len(n1), 
-    function(i) {
-      sum(vapply(seq_along(f1), function(j) {
-      fda::inprod(
-        fdobj1 = f1[[j]][i], 
-        fdobj2 = f2[[j]][i], 
-        Lfdobj1 = int2Lfd(2),
-        Lfdobj2 = int2Lfd(2)
+  for (j in 1:xi_1$n_functional){
+    inprod <- inprod + lambda[j] * fda::inprod(
+        fdobj1 = f1[[j]], 
+        fdobj2 = f2[[j]], 
+        Lfdobj1 = 2,
+        Lfdobj2 = 2
         )
-    }, numeric(1)))
-  }, numeric(1))
+   
+    }
+  
+
  
 
   # Combine results
-  result <- inprod + inprod_deriv2
-  if (n1 == 1 && n2 == 1) as.numeric(result) else result
+   return(as.numeric(inprod))
 }
 ```
 
@@ -1149,12 +1109,7 @@ get_pls_comp <- function(W, y, L){
 
   xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
   xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)
-  return(list(
-    xi_hat = xi_hat,
-    E = E,
-    V_star = V_star,
-    eigen_val = eigen_result$values[1]
-  ))
+  return(xi_hat)
 }
 ```
 
@@ -1179,13 +1134,10 @@ get_xi_hat_linear_pen <- function(W, y, lambda){
 
     # linear system
     R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
-    U_cholesky <- chol(R)
-    L_cholesky <- t(U_cholesky)
-    intermediate <- forwardsolve(L_cholesky, u[[j]])
-    gamma[[j]] <- backsolve(U_cholesky, intermediate)
+    gamma[[j]] <- solve(R, u[[j]])
     
      #q
-    q <- q + sum( u[[j]] * gamma[[j]] )
+    q <- q + sum( gamma[[j]] * ( R %*% gamma[[j]] ))
   }
   d_vec <- c(do.call(c, gamma), v)  # or: unlist(d)
   ## step 2: squared norm
@@ -1416,12 +1368,55 @@ fit.hybridPLS <- function(W, y, n_iter, lambda) {
   W_now[[1]] <- W
   y_now <- y
   final_succesful_iteration <- 0
-
+  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
+  constr_mat_chol <- t(chol(constr_mat))
   for (l in 1:n_iter) {
     cat(paste(l, "th component", "\n"))
 
     xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
-    print("123")
+     rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
+    delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
+    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
+    nu[[l]] <- get_nu(y_now, rho[[l]]); y_now <- residualize_y(y_now, rho[[l]], nu[[l]]) # response residual
+ 
+    # Step 3: Orthogonalize and update prediction
+    #sigma[[l]] <- xi[[l]]
+    #if (l == 1) {
+    #  eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+    #} else {
+    #  for (u in 1:(l - 1)) {
+    #    sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
+    #  }
+    #  eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
+    #}
+  }
+  return (list(
+    rho = rho,
+    xi = xi,
+    W = W_now
+  ))
+}
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+#' @export
+fit.hybridPLS_eigen <- function(W, y, n_iter, lambda) {
+  # 1. Initialize storage
+  W_now <- rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+ 
+  # 3. Initialize residuals
+  W_now[[1]] <- W
+  y_now <- y
+  final_succesful_iteration <- 0
+  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
+  constr_mat_chol <- t(chol(constr_mat))
+  for (l in 1:n_iter) {
+    cat(paste(l, "th component", "\n"))
+
+    #xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
+    xi[[l]]  <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol) # PLS direction
     rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
     delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
     W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
@@ -1440,10 +1435,53 @@ fit.hybridPLS <- function(W, y, n_iter, lambda) {
   }
   return (list(
     rho = rho,
-    xi = xi
+    xi = xi,
+    W = W_now
   ))
 }
 
+```
+
+```{r}
+inprod.predictor_hybrid(res$W[[5]], res$xi[[3]])
+
+sum(y * inprod.predictor_hybrid(res$W[[5]], res$xi[[3]]))
+
+inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], lambda)
+inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], 10*lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], 10*lambda)
+inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], lambda/10) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], lambda/10)
+sum(y * inprod.predictor_hybrid(res$W[[8]], res$xi[[1]])) - sum(y * inprod.predictor_hybrid(res_eigen$W[[8]], res_eigen$xi[[1]]))
+
+
+
+
+
+
+inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[3]], res_eigen$xi[[4]], lambda)
+inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], 10*lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[3]], res_eigen$xi[[4]], 10*lambda)
+inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], lambda/10)
+sum(y * inprod.predictor_hybrid(res$W[[3]], res$xi[[1]]))
+
+
+inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], lambda)
+inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], 10*lambda)
+inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], lambda/10)
+sum(y * inprod.predictor_hybrid(res$W[[5]], res$xi[[1]]))
+
+inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], lambda)
+inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], lambda/10)
+inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], 10*lambda )
+
+```
+
+
+
+
+```{r}
+lambda <- c(0.5,0.5)
+L=8
+res <- fit.hybridPLS(W,y,L, lambda)
+res_eigen <- fit.hybridPLS_eigen(W,y,L, lambda)
 ```
 
 

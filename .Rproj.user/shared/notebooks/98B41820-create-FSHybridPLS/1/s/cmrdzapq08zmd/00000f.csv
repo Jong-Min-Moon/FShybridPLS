@@ -1,0 +1,4 @@
+"0","sum(y * inprod.predictor_hybrid(res$W[[8]], res$xi[[1]])) - sum(y * inprod.predictor_hybrid(res_eigen$W[[8]], res_eigen$xi[[1]]))
+"
+"1","[1] 0.05717583
+"
