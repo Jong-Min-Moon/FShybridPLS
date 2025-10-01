@@ -79,6 +79,13 @@ Happ, C. and Greven, S. (2018).
 \newblock {\em Journal of the American Statistical Association} {\bf 113,}
   649--659.
 
+\bibitem[\protect\citeauthoryear{Hsing and Eubank}{Hsing and
+  Eubank}{2015}]{hsingTheoreticalFoundationsFunctional2015}
+Hsing, T. and Eubank, R. (2015).
+\newblock {\em Theoretical Foundations of Functional Data Analysis, with an
+  Introduction to Linear Operators}.
+\newblock Wiley, 1st edition edition.
+
 \bibitem[\protect\citeauthoryear{Jang}{Jang}{2021}]{jangPrincipalComponentAnalysis2021}
 Jang, J.~H. (2021).
 \newblock Principal component analysis of hybrid functional and vector data.
@@ -110,6 +117,14 @@ Saricam, S., Beyaztas, U., Asikgil, B., and Shang, H.~L. (2022).
 \newblock On partial least-squares estimation in scalar-on-function regression
   models.
 \newblock {\em Journal of Chemometrics} {\bf 36,} e3452.
+
+\bibitem[\protect\citeauthoryear{Wold}{Wold}{1975}]{woldPathModelsLatent1975}
+Wold, {\relax HERMAN}. (1975).
+\newblock Path models with latent variables: {{The NIPALS}} approach*.
+\newblock In Blalock, H.~M., Aganbegian, A., Borodkin, F.~M., Boudon, R., and
+  Capecchi, V., editors, {\em Quantitative {{Sociology}}}, International
+  {{Perspectives}} on {{Mathematical}} and {{Statistical Modeling}}, pages
+  307--357. Academic Press.
 
 \bibitem[\protect\citeauthoryear{Zhao, Ogden, and Reiss}{Zhao
   et~al.}{2012}]{zhaoWaveletbasedLASSOFunctional2012}

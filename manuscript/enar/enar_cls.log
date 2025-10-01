@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  1 OCT 2025 12:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  1 OCT 2025 14:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -247,7 +247,10 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
 
 [1
 
-] (./enar_cls.bbl
+]
+Underfull \vbox (badness 1377) has occurred while \output is active []
+
+
 
 
 Overfull \hbox (4.62497pt too wide) has occurred while \output is active
@@ -255,7 +258,26 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
  []
 
 [2]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+LaTeX Font Info:    Trying to load font information for U+euf on input line 84.
+
+ (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/ueuf.fd
+File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
+)
+
+LaTeX Warning: Reference `section:sub:compute_PLS_component' on page 3 undefine
+d on input line 102.
+
+
+LaTeX Warning: Reference `section:sub:residualization' on page 3 undefined on i
+nput line 103.
+
+
+LaTeX Warning: Reference `section:sub:regression_coeff' on page 3 undefined on 
+input line 105.
+
+
+LaTeX Warning: Reference `sec: Regularization of PLS Components' on page 3 unde
+fined on input line 126.
 
 
 
@@ -264,27 +286,62 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
 \OT1/cmr/m/n/9 3
  []
 
-[3]) AED endfloat: Processing end Figures and Tables
+[3]
+Overfull \hbox (3.33807pt too wide) in paragraph at lines 149--158
+\OT1/cmr/m/n/12 The $\OML/cmm/m/it/12 i$\OT1/cmr/m/n/12 th hy-brid pre-dic-tor,
+ pro-jected on $[]$, is rep-re-sented by the tu-ple $[] := ([]\OML/cmm/m/it/12 
+; [] ; []; [][]\OT1/cmr/m/n/12 )\OML/cmm/m/it/12 :$
+ []
+
+
 
 
 Overfull \hbox (4.62497pt too wide) has occurred while \output is active
 \OT1/cmr/m/n/9 4
  []
 
-[4] (./enar_cls.aux)
+[4] (./enar_cls.bbl
+
+
+Overfull \hbox (4.62497pt too wide) has occurred while \output is active
+\OT1/cmr/m/n/9 5
+ []
+
+[5]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+
+Overfull \hbox (4.62497pt too wide) has occurred while \output is active
+\OT1/cmr/m/n/9 6
+ []
+
+[6]) AED endfloat: Processing end Figures and Tables
+
+
+Overfull \hbox (4.62497pt too wide) has occurred while \output is active
+\OT1/cmr/m/n/9 7
+ []
+
+[7] (./enar_cls.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
  ***********
+
+
+LaTeX Warning: There were undefined references.
+
  ) 
 Here is how much of TeX's memory you used:
- 2883 strings out of 469626
- 39794 string characters out of 5475183
- 431121 words of memory out of 5000000
- 29692 multiletter control sequences out of 15000+600000
- 641133 words of font info for 92 fonts, out of 8000000 for 9000
+ 2927 strings out of 469626
+ 40917 string characters out of 5475183
+ 434121 words of memory out of 5000000
+ 29731 multiletter control sequences out of 15000+600000
+ 642142 words of font info for 96 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 57i,8n,65p,825b,345s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,8n,65p,825b,337s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/tex
 live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/texlive/202
 5/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2025/texmf-d
@@ -295,14 +352,16 @@ onts/cm/cmr10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cm
 r12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><c:
 /texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb><c:/texlive/20
 25/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c:/texlive/2025/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/2025/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmti9.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfo
-nts/symbols/msbm10.pfb>
-Output written on enar_cls.pdf (5 pages, 183602 bytes).
+dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/2025/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/2025/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmti12.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmti9.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/euler/
+eufm10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm
+10.pfb>
+Output written on enar_cls.pdf (8 pages, 222184 bytes).
 PDF statistics:
- 95 PDF objects out of 1000 (max. 8388607)
- 57 compressed objects within 1 object stream
+ 116 PDF objects out of 1000 (max. 8388607)
+ 71 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
