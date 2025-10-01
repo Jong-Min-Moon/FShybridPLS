@@ -1,0 +1,69 @@
+\documentclass[referee,12pt,usenatbib]{biom}
+
+
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+%\RequirePackage{,,}
+\bibliographystyle{biom} % Biometrics bib style if installed
+%\usepackage[authoryear,round]{natbib}
+\title{Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors}
+
+\begin{document}
+	\begin{abstract}
+	Motivated by renal imaging data with accompanying side information, we propose a hybrid partial least squares (PLS) regression method to capture cross-modality correlations in settings with both functional and scalar predictors. Our approach extends the nonlinear iterative PLS (NIPALS) algorithm to a hybrid Hilbert space, embedding functional and scalar predictors into a unified vector representation and iteratively maximizing their empirical cross-covariance with the response. The resulting low-dimensional representations effectively capture within- and between-modality variation and predictor-response correlation. Out method  preserves the desirable theoretical properties of PLS. Moreover, the procedure is computationally efficient, requiring only the solution of linear systems at each iteration.
+\end{abstract}
+
+\begin{keywords}
+Dimension reduction;
+Functional data analysis;
+Multiple data modalities;
+Multivariate data analysis;
+Multivariate functional data;
+Partial least square
+\end{keywords}
+
+\maketitle
+\newpage
+\section{Introduction} \label{sec: Introduction}
+Biomedical studies often collect multi-modal data.
+Our running example is the Emory University renal study \citep{changBayesianLatentClass2020, jangPrincipalComponentAnalysis2021}, which records two renogram curves (functional data) along with  side information (Euclidean vector) for each kidney.
+Such distinct yet related physiological signals can be represented as functional- and scalar-valued i.i.d. covariates in a linear regression model:
+\begin{equation}	\label{eq:hybrid_regression_model}
+	Y_i
+	= 
+	\boldsymbol{\beta}^\top \mathbf{Z}_i
+	+ 
+	\sum 
+	\limits_{k=1}^K 
+	\int  \beta_k(t) X_{ik}(t) dt + \epsilon_i,
+	\quad
+	i = 1, \ldots, n,
+	%= \langle \boldsymbol{\alpha}, \mathbf{Z} \rangle +  \langle \beta, X \rangle_{\mathcal{F}}  + \epsilon
+\end{equation}
+where $Y_i$ is a scalar response, 
+$X_{i1}(t), \ldots, X_{iK}(t) \in \mathbb{L}^2[0,1]$ are functional predictors, 
+$\mathbf{Z}_i = (Z_{i1}, \ldots, Z_{ip})^\top$ is a Euclidean vector covariate,
+and $\epsilon_i$ denotes observational noise.
+For notational convenience, we assume throughout that the responses and predictors are centered, so the intercept term can be omitted.
+The key   challenge here is the strong correlations between functional and scalar predictors,
+in addition to the ill-posedness of the infinite-dimensional slope functions $\beta_k(t)$ and the high dimensionality of the predictors ($K + p$). This paper addresses all three issues in a unified manner by introducing a hybrid partial least squares (PLS) regression framework defined on a novel hybrid Hilbert space.
+
+	\paragraph{Previous works and limitations}
+Basis expansion with regularization of roughness addresses the ill-posedness of functional data by exploiting their smoothness \citep{cardotSplineEstimatorsFunctional2003,aguileraPenalizedVersionsFunctional2016, 
+	caiPredictionFunctionalLinear2006, zhaoWaveletbasedLASSOFunctional2012}.
+High dimensionality can be addressed by using derived inputs, with PCA regression as a straightforward example. We can apply PCA  separately to functional (e.g., \citealt{happ_multivariate_2018}) and scalar predictors, followed by multivariate regression on the combined scores. While well studied for functional predictors alone \citep{hallMethodologyConvergenceRates2007, reissFunctionalPrincipalComponent2007, febrero-bandeFunctionalPrincipalComponent2017}, PCA regression may fail to capture the core regression relationship since the derived inputs are not guided by the response.
+Partial least squares (PLS) regression is a powerful alternative that constructs orthogonal latent components from predictors to maximize covariance with the response.
+For functional predictors, \citet{predaPLSRegressionStochastic2005} introduced PLS regression for a single predictor, with subsequent extensions incorporating
+basis approximations and roughness penalties
+\citep{reissFunctionalPrincipalComponent2007, aguileraUsingBasisExpansions2010, aguileraPenalizedVersionsFunctional2016}, and multiple functional predictors \citep{beyaztasRobustFunctionalPartial2022}.
+Theoretical and computational advances were developed by \citet{delaigleMethodologyTheoryPartial2012} and \citet{saricamPartialLeastsquaresEstimation2022}, respectively; see \citet{febrero-bandeFunctionalPrincipalComponent2017} for a review.
+These approaches ignore correlations between functional and scalar components, leading to multicollinearity and unreliable prediction. Multimodal correlations have mainly been explored in unsupervised settings,
+such as graphical models, precision matrix estimation, and joint PCA \citep{kolar_graph_2014, gengJointNonparametricPrecision2020, jangPrincipalComponentAnalysis2021}. However,  these methods are response-agnostic and may miss outcome-relevant correlations.
+
+\paragraph{Our contributions}
+To address these gaps, we propose a hybrid PLS regression framework that unifies basis expansion, PLS, and functional-scalar correlations. Treating functional and Euclidean components as a single vector in a Hilbert space with a suitable inner product, we iteratively extract joint directions that maximize covariance with the response under a unit-norm constraint. The framework handles dense or irregular functional data, supports regularization to reduce overfitting, and comes with theoretical guarantees.
+
+			\bibliography{bibliography.bib}
+			
+\end{document}

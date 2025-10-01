@@ -1,0 +1,49 @@
+
+
+
+
+#source("class_hybrid_predictors.R")
+
+
+
+#data$scalar <- data$scalar[,c(1,3,5,7,9,11,13,15)]
+rangeval=c(0,1)
+length.out=50
+train_ratio = 0.7
+n_fold = 10
+n_iter_max = 20
+
+result_mean <- data.frame(matrix(NA, nrow=1000, ncol=4))
+colnames(result_mean) <- c("pfr_test", "pfr_functioal_test", "pfr_scalar_test", "pls_test")
+result_logit <- data.frame(matrix(NA, nrow=1000, ncol=8))
+colnames(result_logit) <- c("pfr_test", "pfr_functioal_test", "pfr_scalar_test", "pls_test",
+                            "pfr_train", "pfr_functioal_train", "pfr_scalar_train", "pls_train"
+                            )
+
+
+data <- get_kidney_data("mean")
+for (i in 1:1000){
+  set.seed(i)
+  pfr_fitter <- PFRModel$new(data, length.out, train_ratio)
+  pfr_fitter$fit()
+  result_mean$"pfr_test"[i] <-pfr_fitter$computeError()$test_error
+
+  pfr_fitter_functional <- PFRModel$new(data, length.out, train_ratio)
+  pfr_fitter_functional$fit("functional_only")
+  result_mean$"pfr_functioal_test"[i] <- pfr_fitter_functional$computeError()$test_error
+
+  pfr_fitter_scalar <- PFRModel$new(data, length.out, train_ratio)
+  pfr_fitter_scalar$fit("scalar_only")
+  result_mean$"pfr_scalar_test"[i] <- pfr_fitter_scalar$computeError()$test_error
+
+  pls_fitter <- hybridPLSModel$new(data, length.out, train_ratio, n_fold, n_iter_max, i)
+  pls_fitter$fit()
+  result_mean$"pls_test"[i] <- pls_fitter$computeError()$test_error
+}
+save(result_mean, file = "renal_mean.RData")
+
+
+
+
+
+

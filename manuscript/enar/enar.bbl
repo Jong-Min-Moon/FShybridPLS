@@ -1,0 +1,165 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Aguilera, {Aguilera-Morillo}, and
+  Preda}{Aguilera et~al.}{2016}]{aguileraPenalizedVersionsFunctional2016}
+Aguilera, A.~M., {Aguilera-Morillo}, M.~C., and Preda, C. (2016).
+\newblock Penalized versions of functional {{PLS}} regression.
+\newblock {\em Chemometrics and Intelligent Laboratory Systems} {\bf 154,}
+  80--92.
+
+\bibitem[\protect\citeauthoryear{Aguilera, Escabias, Preda, and
+  Saporta}{Aguilera et~al.}{2010}]{aguileraUsingBasisExpansions2010}
+Aguilera, A.~M., Escabias, M., Preda, C., and Saporta, G. (2010).
+\newblock Using basis expansions for estimating functional {{PLS}} regression:
+  {{Applications}} with chemometric data.
+\newblock {\em Chemometrics and Intelligent Laboratory Systems} {\bf 104,}
+  289--305.
+
+\bibitem[\protect\citeauthoryear{Beyaztas and Lin~Shang}{Beyaztas and
+  Lin~Shang}{2022}]{beyaztasRobustFunctionalPartial2022}
+Beyaztas, U. and Lin~Shang, H. (2022).
+\newblock A robust functional partial least squares for
+  scalar-on-multiple-function regression.
+\newblock {\em Journal of Chemometrics} {\bf 36,} e3394.
+
+\bibitem[\protect\citeauthoryear{Beyaztas and Shang}{Beyaztas and
+  Shang}{2020}]{Beyaztas2020}
+Beyaztas, U. and Shang, H.~L. (2020).
+\newblock On function-on-function regression: Partial least squares approach.
+\newblock {\em Environmental and Ecological Statistics} {\bf 27,} 95--114.
+
+\bibitem[\protect\citeauthoryear{Cai and Hall}{Cai and
+  Hall}{2006}]{caiPredictionFunctionalLinear2006}
+Cai, T.~T. and Hall, P. (2006).
+\newblock Prediction in functional linear regression.
+\newblock {\em The Annals of Statistics} {\bf 34,} 2159--2179.
+
+\bibitem[\protect\citeauthoryear{Cardot, Ferraty, and Sarda}{Cardot
+  et~al.}{2003}]{cardotSplineEstimatorsFunctional2003}
+Cardot, H., Ferraty, F., and Sarda, P. (2003).
+\newblock Spline estimators for the functional linear model.
+\newblock {\em Statistica Sinica} {\bf 13,} 571--591.
+
+\bibitem[\protect\citeauthoryear{Chang, Jang, Manatunga, Taylor, and
+  Long}{Chang et~al.}{2020}]{changBayesianLatentClass2020}
+Chang, C., Jang, J.~H., Manatunga, A., Taylor, A.~T., and Long, Q. (2020).
+\newblock A bayesian latent class model to predict kidney obstruction in the
+  absence of gold standard.
+\newblock {\em Journal of the American Statistical Association} {\bf 115,}
+  1645--1663.
+
+\bibitem[\protect\citeauthoryear{Delaigle and Hall}{Delaigle and
+  Hall}{2012}]{delaigleMethodologyTheoryPartial2012}
+Delaigle, A. and Hall, P. (2012).
+\newblock Methodology and theory for partial least squares applied to
+  functional data.
+\newblock {\em The Annals of Statistics} {\bf 40,} 322--352.
+
+\bibitem[\protect\citeauthoryear{{Febrero-Bande}, Galeano, and
+  {Gonz{\'a}lez-Manteiga}}{{Febrero-Bande}
+  et~al.}{2017}]{febrero-bandeFunctionalPrincipalComponent2017}
+{Febrero-Bande}, M., Galeano, P., and {Gonz{\'a}lez-Manteiga}, W. (2017).
+\newblock Functional principal component regression and functional partial
+  least-squares regression: {{An}} overview and a comparative study.
+\newblock {\em International Statistical Review} {\bf 85,} 61--83.
+
+\bibitem[\protect\citeauthoryear{Geng, Kolar, and Koyejo}{Geng
+  et~al.}{2020}]{gengJointNonparametricPrecision2020}
+Geng, S., Kolar, M., and Koyejo, O. (2020).
+\newblock Joint {{Nonparametric Precision Matrix Estimation}} with
+  {{Confounding}}.
+\newblock In {\em Proceedings of {{The}} 35th {{Uncertainty}} in {{Artificial
+  Intelligence Conference}}}, pages 378--388. PMLR.
+
+\bibitem[\protect\citeauthoryear{Goldsmith, Bobb, Crainiceanu, Caffo, and
+  Reich}{Goldsmith et~al.}{2011}]{goldsmithPenalizedFunctionalRegression2011}
+Goldsmith, J., Bobb, J., Crainiceanu, C.~M., Caffo, B., and Reich, D. (2011).
+\newblock Penalized functional regression.
+\newblock {\em Journal of Computational and Graphical Statistics} {\bf 20,}
+  830--851.
+
+\bibitem[\protect\citeauthoryear{Hall and Horowitz}{Hall and
+  Horowitz}{2007}]{hallMethodologyConvergenceRates2007}
+Hall, P. and Horowitz, J.~L. (2007).
+\newblock Methodology and convergence rates for functional linear regression.
+\newblock {\em The Annals of Statistics} {\bf 35,} 70--91.
+
+\bibitem[\protect\citeauthoryear{Happ and Greven}{Happ and
+  Greven}{2018}]{happ_multivariate_2018}
+Happ, C. and Greven, S. (2018).
+\newblock Multivariate functional principal component analysis for data
+  observed on different (dimensional) domains.
+\newblock {\em Journal of the American Statistical Association} {\bf 113,}
+  649--659.
+
+\bibitem[\protect\citeauthoryear{Hsing and Eubank}{Hsing and
+  Eubank}{2015}]{hsingTheoreticalFoundationsFunctional2015}
+Hsing, T. and Eubank, R. (2015).
+\newblock {\em Theoretical Foundations of Functional Data Analysis, with an
+  Introduction to Linear Operators}.
+\newblock Wiley, 1st edition edition.
+
+\bibitem[\protect\citeauthoryear{Jang}{Jang}{2021}]{jangPrincipalComponentAnalysis2021}
+Jang, J.~H. (2021).
+\newblock Principal component analysis of hybrid functional and vector data.
+\newblock {\em Statistics in Medicine} {\bf 40,} 5152--5173.
+
+\bibitem[\protect\citeauthoryear{Kolar, Liu, and Xing}{Kolar
+  et~al.}{2014}]{kolar_graph_2014}
+Kolar, M., Liu, H., and Xing, E.~P. (2014).
+\newblock Graph estimation from multi-attribute data.
+\newblock {\em Journal of Machine Learning Research} {\bf 15,} 1713--1750.
+
+\bibitem[\protect\citeauthoryear{Preda and Saporta}{Preda and
+  Saporta}{2005}]{predaPLSRegressionStochastic2005}
+Preda, C. and Saporta, G. (2005).
+\newblock {{PLS}} regression on a stochastic process.
+\newblock {\em Computational Statistics \& Data Analysis} {\bf 48,} 149--158.
+
+\bibitem[\protect\citeauthoryear{Reiss and Ogden}{Reiss and
+  Ogden}{2007}]{reissFunctionalPrincipalComponent2007}
+Reiss, P.~T. and Ogden, R.~T. (2007).
+\newblock Functional principal component regression and functional partial
+  least squares.
+\newblock {\em Journal of the American Statistical Association} {\bf 102,}
+  984--996.
+
+\bibitem[\protect\citeauthoryear{Rice and Silverman}{Rice and
+  Silverman}{1991}]{Rice1991}
+Rice, J.~A. and Silverman, B.~W. (1991).
+\newblock Estimating the mean and covariance structure nonparametrically when
+  the data are curves.
+\newblock {\em Journal of the Royal Statistical Society: Series B} {\bf 53,}
+  233--243.
+
+\bibitem[\protect\citeauthoryear{Saricam, Beyaztas, Asikgil, and Shang}{Saricam
+  et~al.}{2022}]{saricamPartialLeastsquaresEstimation2022}
+Saricam, S., Beyaztas, U., Asikgil, B., and Shang, H.~L. (2022).
+\newblock On partial least-squares estimation in scalar-on-function regression
+  models.
+\newblock {\em Journal of Chemometrics} {\bf 36,} e3452.
+
+\bibitem[\protect\citeauthoryear{Silverman}{Silverman}{1996}]{Silverman1996}
+Silverman, B.~W. (1996).
+\newblock Smoothed functional principal components by choice of norm.
+\newblock {\em The Annals of Statistics} {\bf 24,} 1--24.
+
+\bibitem[\protect\citeauthoryear{Wang}{Wang}{2018}]{Wang2018}
+Wang, Y. (2018).
+\newblock {\em Partial least squares methods for functional regression models}.
+\newblock PhD thesis, University of North Carolina at Chapel Hill.
+
+\bibitem[\protect\citeauthoryear{Zhao, Ogden, and Reiss}{Zhao
+  et~al.}{2012}]{zhaoWaveletbasedLASSOFunctional2012}
+Zhao, Y., Ogden, R.~T., and Reiss, P.~T. (2012).
+\newblock Wavelet-based {{LASSO}} in functional linear regression.
+\newblock {\em Journal of Computational and Graphical Statistics} {\bf 21,}
+  600--617.
+
+\bibitem[\protect\citeauthoryear{Zhu, Strawn, and Dunson}{Zhu
+  et~al.}{2016}]{zhuBayesianGraphicalModels2016}
+Zhu, H., Strawn, N., and Dunson, D.~B. (2016).
+\newblock Bayesian graphical models for multivariate functional data.
+\newblock {\em Journal of Machine Learning Research} {\bf 17,} 1--27.
+
+\end{thebibliography}
