@@ -1681,7 +1681,11 @@ split.all <- function(data_fun_1, data_fun_2, data_scalar, response, train_idx) 
 ```
 
 
+### normailize.all
+
 ```{r}
+#' 
+#' @export
 normailize.all <- function(split.all_obj){
   curve_normalize_result_1 <- curve_normalize_train_test_fd(
     split.all_obj$data_fun_1_train,
@@ -1727,6 +1731,168 @@ normailize.all <- function(split.all_obj){
   )
 }
 ```
+
+
+### curve_normalize
+Subtracts the mean function and divides by a scaling constant (deno). This implementation uses the native fda S3 methods (minus.fd and times.fd).
+```{r}
+#' Normalize a functional data object by its mean and standard deviation.
+#'
+#' @param functional fd object (fda package). The functional data to be normalized (N samples).
+#' @param mean_functional fd object (fda package). The mean function (1 sample).
+#' @param deno Numeric scalar. The standard deviation or scaling factor.
+#' @return A new fd object containing the normalized functions.
+#' @export
+curve_normalize <- function(functional, mean_functional, deno) {
+  # Type checks
+  stopifnot(
+    "'functional' must be an 'fd' object" = inherits(functional, "fd"),
+    "'mean_functional' must be an 'fd' object" = inherits(mean_functional, "fd"),
+    "'deno' must be a single positive numeric value" = is.numeric(deno) && length(deno) == 1 && deno > 0
+  )
+  
+  # 1. Centering: functional - mean_functional
+  # fda::minus.fd handles the broadcasting of the single-sample mean_functional.
+  centered_functional <- fda::minus.fd(functional, mean_functional)
+  
+  # 2. Scaling: (1/deno) * centered_functional
+  functional_normalized <- fda::times.fd(1/deno, centered_functional)
+  
+  return(functional_normalized)
+}
+```
+
+
+
+
+```{r}
+#' 
+#' @export
+curve_normalize <- function(functional, mean_functional, deno){
+  # operation also takes care of the original_X
+
+  functional_normalized <- fd(coef =
+                                coef(functional) - coef(mean_functional) %*% matrix(1, ncol = ncol(coef(functional))),
+                              basisobj = functional$basis
+                              )#numerator
+  functional_normalized <- times.fd(1/deno, functional_normalized)
+  return(functional_normalized)
+}
+```
+
+
+
+
+
+
+
+```{r}
+curve_normalize_train_test <- function(train, test){
+  train_normalized <- train
+  test_normalized <- test
+  deno_train <- rep(NA, train@n_functional)
+  for (k in 1:train@n_functional){ # for kth functional predictor
+    mean_train <- mean.fd(train@functional_list[[k]]) # train mean function
+    centered_train <- center.fd(train@functional_list[[k]])
+    sd_train <- sd.fd(train@functional_list[[k]])
+    deno_train[k] <- sqrt(inprod(sd_train, sd_train))
+
+    train_normalized@functional_list[[k]] <- curve_normalize(
+      train_normalized@functional_list[[k]],
+      mean_train,
+      deno_train[k]
+      )
+
+    test_normalized@functional_list[[k]] <-
+      curve_normalize(
+        test_normalized@functional_list[[k]],
+        mean_train,
+        deno_train[k]
+      )
+  }
+  return( list(
+    train = train_normalized,
+    test = test_normalized,
+    deno_train = deno_train
+    ))}
+```
+
+
+```{r}
+# scalar_normalize <- function(scalar_predictor, mean, deno){
+#   scalar_predictor_normalized <- subtr_broadcast(scalar_predictor, mean) #numerator
+#   deno_mat <- matrix(rep(1,nrow(scalar_predictor))) %*% deno
+#   scalar_predictor_normalized <- scalar_predictor_normalized / deno_mat
+#   return(scalar_predictor_normalized)
+# }
+#
+# scalar_normalize_train_test <- function(predictor_train, predictor_test){
+#   predictor_train_normalized <- predictor_train
+#   predictor_test_normalized <- predictor_test
+#
+#   mean_train <- get_mean(predictor_train@Z) # train mean function
+#   sd_train <- get_sd(predictor_train@Z)
+#
+#   predictor_train_normalized@Z <-
+#     scalar_normalize(
+#       predictor_train@Z,
+#       mean_train,
+#       sd_train
+#       )
+#
+#   predictor_test_normalized@Z <-
+#     scalar_normalize(
+#       predictor_test@Z,
+#       mean_train,
+#       sd_train
+#     )
+#
+#   return(
+#     list(
+#       train = predictor_train_normalized,
+#       test = predictor_test_normalized
+#     )
+#   )
+# }
+```
+
+
+```{r}
+#
+# btwn_normalize_train_test <- function(train, test){
+#   #"Scale the scalar predictors so that the variability between the functional and scalar predictors are comparable:")
+#   Z_s <- train@Z
+#   train_normalized <- train
+#   test_normalized <- test
+#
+#   omega <- 0
+#   for (k in 1:train@n_functional){ # for kth functional predictor
+#     omega <- omega + sum(diag(inprod(
+#       train@functional_list[[k]],
+#       train@functional_list[[k]]
+#       )))
+#
+#   }
+#     omega <- omega / sum((Z_s)^2)
+#
+#     train_normalized@Z <- sqrt(omega) * (train@Z)
+#     test_normalized@Z <- sqrt(omega) * (test@Z)
+#
+#     return(
+#       list(
+#         train = train_normalized,
+#         test = test_normalized
+#       ))}
+```
+
+```{r}
+
+
+
+
+
+
+
 
 
 ### DataSplitterNormalizer
