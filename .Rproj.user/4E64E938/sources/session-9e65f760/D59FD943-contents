@@ -15,7 +15,7 @@ params:
 ## Package setup
 
 We start by specifying the information needed in the DESCRIPTION file of the R package.
-
+ 
 ```{r package-setup, message=FALSE, results='hide'}
 usethis::create_package(
   path = ".",
@@ -24,7 +24,7 @@ usethis::create_package(
     Version = "0.0.0.9000",
     Title = "A Package That Says Hello",
     Description = "This package says hello.  But its actual purpose is to show how an R package can be completely coded in a single R markdown file.",
-    Imports = "fda (>= 6.1.3), Matrix, funData, foreach",
+    Imports = "fda (>= 6.1.3), Matrix, funData, foreach, irlba, refund",
     `Authors@R` = person(
       given = "First",
       family = "Last",
@@ -1587,8 +1587,6 @@ nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
 
 functions in MFPCA packages use an internal function calcBasisIntegrals. Somehow, this function did not work well on our simulations setting. Thus we modify the codes 
 ```{r}
-#' @import funData
-NULL
 
 # define global variable j, used by the foreach package and confusing R CMD CHECK
 globalVariables('j')
@@ -1651,48 +1649,34 @@ calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
 - In particular, the elements can be defined on different (dimensional) domains.
 - The results contain the mean function, the estimated multivariate functional principal components \eqn{\hat \psi_1, \ldots, \hat \psi_M} (having the same structure as $x_i$), the associated eigenvalues $\hat \nu_1 \geq \ldots \geq \hat \nu_M > 0$ and the individual scores \eqn{\hat \rho_{im} = \widehat{<x_i, \psi_m>}}{\hat \rho_{im} = \hat{<x_i, \psi_m>}}.
 
-#'
-#'
+
+
 - Univariate Expansions
-  - The multivariate functional principal component analysis relies on a univariate basis expansion for each element $X^{(j)}$.
-  - The univariate basis representation is calculated using the univDecomp function, that passes the univariate functional observations and optional parameters to the specific function.
-  - The univariate decompositions are specified via the uniExpansions argument in the MFPCA function.
-  - It is a list of the same length as the mFData object, i.e. having one entry for each element of the multivariate functional data.
-  - For each element, uniExpansion must specify at least the type of basis functions to use.
-  - Additionally, one may add further parameters.
-  - The following basis representations are supported: \itemize{\item Given basis
-#' functions. Then \code{uniExpansions[[j]] = list(type = "given", functions,
-#' scores, ortho)}, where \code{functions} is a \code{funData} object on the
-#' same domain as \code{mFData}, containing the given basis functions. 
-The
-#' parameters \code{scores} and \code{ortho} are optional. \code{scores} is an
-#' \code{N x K} matrix containing the scores (or coefficients) of the observed
-#' functions for the given basis functions, where \code{N} is the number of
-#' observed functions and \code{K} is the number of basis functions. Note that
-#' the scores need to be demeaned to give meaningful results. If scores are not
-#' supplied, they are calculated using the given basis functions.
-The parameter
-#' \code{ortho} specifies whether the given basis functions are orthonormal
-#' \code{orhto = TRUE} or not \code{ortho = FALSE}. If \code{ortho} is not
-#' supplied, the functions are treated as non-orthogonal. \code{scores} and
-#' \code{ortho} are not checked for plausibility, use them at your own risk!
-#' \item Univariate functional principal component analysis. Then
-#' \code{uniExpansions[[j]] = list(type = "uFPCA", nbasis, pve, npc, makePD)},
-#' where \code{nbasis,pve,npc,makePD} are parameters passed to the
-#' \code{\link{PACE}} function for calculating the univariate functional
-#' principal component analysis. \item Basis functions expansions from the
-#' package \pkg{fda}. Then \code{uniExpansions[[j]] = list(type = "fda", ...)},
+    - The multivariate functional principal component analysis relies on a univariate basis expansion for each element $X^{(j)}$.
+    - The univariate basis representation is calculated using the univDecomp function, that passes the univariate functional observations and optional parameters to the specific function.
+    - The univariate decompositions are specified via the uniExpansions argument in the MFPCA function.
+    - It is a list of the same length as the mFData object, i.e. having one entry for each element of the multivariate functional data.
+    - For each element, uniExpansion must specify at least the type of basis functions to use.
+    - Additionally, one may add further parameters.
+    - The following basis representations are supported: \itemize{
+        -  Given basis functions. Then \code{uniExpansions[[j]] = list(type = "given", functions)}, where \code{functions} is a \code{funData} object on the same domain as \code{mFData}, containing the given basis functions. 
+        - Univariate functional principal component analysis. Then \code{uniExpansions[[j]] = list(type = "uFPCA", nbasis, pve, npc, makePD)}, where \code{nbasis,pve,npc,makePD} are parameters passed to the \code{\link{PACE}} function for calculating the univariate functional principal component analysis.
+        - Basis functions expansions from the
+  package \pkg{fda}. Then \code{uniExpansions[[j]] = list(type = "fda", ...)},
 #' where \code{...} are passed to \code{\link[funData]{funData2fd}}, which
 #' heavily builds on \code{\link[fda]{eval.fd}}. If \pkg{fda} is not available,
-#' a warning is thrown. \item Spline basis functions (not penalized). Then
+#' a warning is thrown.
+\item Spline basis functions (not penalized). Then
 #' \code{uniExpansions[[j]] = list(type = "splines1D", bs, m, k)}, where
 #' \code{bs,m,k} are passed to the functions \code{\link{univDecomp}} and
 #' \code{\link{univExpansion}}. For two-dimensional tensor product splines, use
-#' \code{type = "splines2D"}. \item Spline basis functions (with smoothness
+#' \code{type = "splines2D"}. 
+\item Spline basis functions (with smoothness
 #' penalty). Then \code{uniExpansions[[j]] = list(type = "splines1Dpen", bs, m,
 #' k)}, where \code{bs,m,k} are passed to the functions \code{\link{univDecomp}}
 #' and \code{\link{univExpansion}}. Analogously to the unpenalized case, use
-#' \code{type = "splines2Dpen"} for 2D penalized tensor product splines. \item
+#' \code{type = "splines2Dpen"} for 2D penalized tensor product splines. 
+\item
 #' Cosine basis functions. Use \code{uniExpansions[[j]] = list(type = "DCT2D",
 #' qThresh, parallel)} for functions one two-dimensional domains (images) and
 #' \code{type = "DCT3D"} for 3D images. The calculation is based on the discrete
@@ -1702,92 +1686,10 @@ The parameter
 #' their absolute value. If \code{parallel = TRUE}, the coefficients for
 #' different images are calculated in parallel.} See \code{\link{univDecomp}}
 #' and \code{\link{univExpansion}} for details.}
-#'
-#' @param mFData A  \code{\link[funData]{multiFunData}} object containing the
-#'   \code{N} observations.
-#' @param M The number of multivariate functional principal components to
-#'   calculate.
-#' @param uniExpansions A list characterizing the (univariate) expansion that is
-#'   calculated for each element. See Details.
-#' @param weights An optional vector of weights, defaults to \code{1} for each
-#'   element. See Details.
-#' @param fit Logical. If \code{TRUE}, a truncated multivariate Karhunen-Loeve
-#'   representation for the data is calculated based on the estimated scores and
-#'   eigenfunctions.
-#' @param approx.eigen Logical. If \code{TRUE}, the eigenanalysis problem for
-#'   the estimated covariance matrix is solved approximately using the
-#'   \pkg{irlba} package, which is much faster. If the number \code{M} of
-#'   eigenvalues to calculate is high with respect to the number of observations
-#'   in \code{mFData} or the number of estimated univariate eigenfunctions, the
-#'   approximation may be inappropriate. In this case, approx.eigen is set to
-#'   \code{FALSE} and the function throws a warning. Defaults to \code{FALSE}.
-#' @param bootstrap Logical. If \code{TRUE}, pointwise bootstrap confidence
-#'   bands are calculated for the multivariate functional principal components.
-#'   Defaults to \code{FALSE}. See Details.
-#' @param nBootstrap The number of bootstrap iterations to use. Defaults to
-#'   \code{NULL}, which leads to an error, if \code{bootstrap = TRUE}.
-#' @param bootstrapAlpha A vector of numerics (or a single number) giving the
-#'   significance level for bootstrap intervals. Defaults to \code{0.05}.
-#' @param bootstrapStrat A stratification variable for bootstrap. Must be a
-#'   factor of length \code{nObs(mFData)} or \code{NULL} (default). If
-#'   \code{NULL}, no stratification is made in the bootstrap resampling, i.e.
-#'   the curves are sampled with replacement. If \code{bootstrapStrat} is not
-#'   \code{NULL}, the curves are resampled with replacement within the groups
-#'   defined by \code{bootstrapStrat}, hence keeping the group proportions
-#'   fixed.
-#' @param verbose Logical. If \code{TRUE}, the function reports
-#'   extra-information about the progress (incl. timestamps). Defaults to
-#'   \code{options()$verbose}.
-#'
-#' @return An object of class \code{MFPCAfit} containing the following
-#'   components: \item{values}{A vector of estimated eigenvalues \eqn{\hat \nu_1
-#'   , \ldots , \hat \nu_M}.} \item{functions}{A
-#'   \code{\link[funData]{multiFunData}} object containing the estimated
-#'   multivariate functional principal components \eqn{\hat \psi_1, \ldots, \hat
-#'   \psi_M}.} \item{scores}{ A matrix of dimension \code{N x M} containing the
-#'   estimated scores \eqn{\hat \rho_{im}}.} \item{vectors}{A matrix
-#'   representing the eigenvectors associated with the combined univariate score
-#'   vectors. This might be helpful for calculating predictions.}
-#'   \item{normFactors}{The normalizing factors used for calculating the
-#'   multivariate eigenfunctions and scores. This might be helpful when
-#'   calculation predictions.} \item{meanFunction}{A multivariate functional
-#'   data object, corresponding to the mean function. The MFPCA is applied to
-#'   the de-meaned functions in \code{mFData}.}\item{fit}{A
-#'   \code{\link[funData]{multiFunData}} object containing estimated
-#'   trajectories for each observation based on the truncated Karhunen-Loeve
-#'   representation and the estimated scores and eigenfunctions.} \item{CI}{A
-#'   list of the same length as \code{bootstrapAlpha}, containing the pointwise
-#'   lower and upper bootstrap confidence bands for each eigenfunction and each
-#'   significance level in form of \code{\link[funData]{multiFunData}} objects
-#'   (only if \code{bootstrap = TRUE}).} \item{CIvalues}{A list of the same
-#'   length as \code{bootstrapAlpha}, containing the lower and upper bootstrap
-#'   confidence bands for each eigenvalue and each significance level (only if
-#'   \code{bootstrap = TRUE}).}
+
+```{r}
 #'
 #' @export MFPCA
-#'
-#' @importFrom foreach %do%
-#' @importFrom utils packageVersion
-#'
-#' @references C. Happ, S. Greven (2018): Multivariate Functional Principal
-#'   Component Analysis for Data Observed on Different (Dimensional) Domains.
-#'   Journal of the American Statistical Association, 113(522): 649-659. DOI:
-#'   \doi{10.1080/01621459.2016.1273115}
-#'
-#' @references C. Happ-Kurz (2020): Object-Oriented Software for Functional
-#'   Data. Journal of Statistical Software, 93(5): 1-38. DOI:
-#'   \doi{10.18637/jss.v093.i05}
-#'
-#' @seealso See Happ-Kurz (2020. \doi{10.18637/jss.v093.i05}) for a general
-#'   introduction to the \pkg{funData} package and it's interplay with
-#'   \pkg{MFPCA}. This file also includes a case study on how to use
-#'   \code{MFPCA}. Useful functions: \code{\link[funData]{multiFunData}},
-#'   \code{\link{PACE}}, \code{\link{univDecomp}}, \code{\link{univExpansion}},
-#'   \code{\link[=summary.MFPCAfit]{summary}},
-#'   \code{\link[=plot.MFPCAfit]{plot}},
-#'   \code{\link[=scoreplot.MFPCAfit]{scoreplot}}
-#'
-
 MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, length(mFData)), fit = FALSE, approx.eigen = FALSE,
                   bootstrap = FALSE, nBootstrap = NULL, bootstrapAlpha = 0.05, bootstrapStrat = NULL,
                   verbose = options()$verbose)
@@ -1969,176 +1871,13 @@ MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, len
     return(res)
 }
 
-
-```{r}
-#' @examples
-#' oldPar <- par(no.readonly = TRUE)
-#'
-#' set.seed(1)
-#'
-#' ### simulate data (one-dimensional domains)
-#' sim <-  simMultiFunData(type = "split", argvals = list(seq(0,1,0.01), seq(-0.5,0.5,0.02)),
-#'                         M = 5, eFunType = "Poly", eValType = "linear", N = 100)
-#'
-#' # MFPCA based on univariate FPCA
-#' uFPCA <- MFPCA(sim$simData, M = 5, uniExpansions = list(list(type = "uFPCA"),
-#'                                                                   list(type = "uFPCA")))
-
-#' summary(uFPCA)
-#' plot(uFPCA) # plot the eigenfunctions as perturbations of the mean
-#' scoreplot(uFPCA) # plot the scores
-#'
-#' # MFPCA based on univariate spline expansions
-#' splines <- MFPCA(sim$simData, M = 5, uniExpansions = list(list(type = "splines1D", k = 10),
-#'                                                           list(type = "splines1D", k = 10)),
-#'                  fit = TRUE) # calculate reconstruction, too
-#' summary(splines)
-#' plot(splines) # plot the eigenfunctions as perturbations of the mean
-#' scoreplot(splines) # plot the scores
-#'
-#' ### Compare estimates to true eigenfunctions
-#' # flip to make results more clear
-#' uFPCA$functions <- flipFuns(sim$trueFuns, uFPCA$functions)
-#' splines$functions <- flipFuns(sim$trueFuns, splines$functions)
-#'
-#' par(mfrow = c(1,2))
-#' plot(sim$trueFuns[[1]], main = "Eigenfunctions\n1st Element", lwd = 2)
-#' plot(uFPCA$functions[[1]], lty = 2, add = TRUE)
-#' plot(splines$functions[[1]], lty = 3, add = TRUE)
-#'
-#' plot(sim$trueFuns[[2]], main = "Eigenfunctions\n2nd Element", lwd = 2)
-#' plot(uFPCA$functions[[2]], lty = 2, add = TRUE)
-#' plot(splines$functions[[2]], lty = 3, add = TRUE)
-#' legend("bottomleft", c("True", "uFPCA", "splines"), lty = 1:3, lwd = c(2,1,1))
-#'
-#' # Test reconstruction for the first 10 observations
-#' plot(sim$simData[[1]], obs = 1:10, main = "Reconstruction\n1st Element", lwd = 2)
-#' plot(splines$fit[[1]], obs = 1:10, lty = 2, col = 1, add = TRUE)
-#'
-#' plot(sim$simData[[2]], obs = 1:10, main = "Reconstruction\n2nd Element", lwd = 2)
-#' plot(splines$fit[[2]], obs = 1:10, lty = 2, col = 1, add = TRUE)
-#' legend("bottomleft", c("True", "Reconstruction"), lty = c(1,2), lwd = c(2,1))
-#'
-#' # MFPCA with Bootstrap-CI for the first 2 eigenfunctions
-#' ### ATTENTION: Takes long
-#' \donttest{
-#' splinesBoot <- MFPCA(sim$simData, M = 2, uniExpansions = list(list(type = "splines1D", k = 10),
-#'                                                           list(type = "splines1D", k = 10)),
-#'                  bootstrap = TRUE, nBootstrap = 100, bootstrapAlpha = c(0.05, 0.1), verbose = TRUE)
-#' summary(splinesBoot)
-#'
-#' plot(splinesBoot$functions[[1]], ylim = c(-2,1.5))
-#' plot(splinesBoot$CI$alpha_0.05$lower[[1]], lty = 2, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.05$upper[[1]], lty = 2, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.1$lower[[1]], lty = 3, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.1$upper[[1]], lty = 3, add = TRUE)
-#' abline(h = 0, col = "gray")
-#'
-#' plot(splinesBoot$functions[[2]], ylim = c(-1,2.5))
-#' plot(splinesBoot$CI$alpha_0.05$lower[[2]], lty = 2, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.05$upper[[2]], lty = 2, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.1$lower[[2]], lty = 3, add = TRUE)
-#' plot(splinesBoot$CI$alpha_0.1$upper[[2]], lty = 3, add = TRUE)
-#' abline(h = 0, col = "gray")
-#' legend("topleft", c("Estimate", "95% CI", "90% CI"), lty = 1:3, lwd = c(2,1,1))
-#'
-#' # Plot 95% confidence bands for eigenvalues
-#' plot(1:2, splinesBoot$values, pch = 20, ylim = c(0, 1.5),
-#'      main = "Estimated eigenvalues with 95% CI",
-#'      xlab = "Eigenvalue no.", ylab = "")
-#' arrows(1:2, splinesBoot$CIvalues$alpha_0.05$lower,
-#'        1:2, splinesBoot$CIvalues$alpha_0.05$upper,
-#'        length = 0.05, angle = 90, code = 3)
-#' points(1:2, sim$trueVals[1:2], pch = 20, col = 4)
-#' legend("topright", c("Estimate", "True value"), pch = 20, col = c(1,4))
-#' }
-#'
-#' ### simulate data (two- and one-dimensional domains)
-#' ### ATTENTION: Takes long
-#' \donttest{
-#' set.seed(2)
-#' sim <-  simMultiFunData(type = "weighted",
-#'                  argvals = list(list(seq(0,1,0.01), seq(-1,1,0.02)), list(seq(-0.5,0.5,0.01))),
-#'                  M = list(c(4,5), 20), eFunType = list(c("Fourier", "Fourier"), "Poly"),
-#'                  eValType = "exponential", N = 150)
-#'
-#' # MFPCA based on univariate spline expansions (for images) and univariate FPCA (for functions)
-#' pca <- MFPCA(sim$simData, M = 10,
-#'              uniExpansions = list(list(type = "splines2D", k = c(10,12)),
-#'                              list(type = "uFPCA")))
-#' summary(pca)
-#' plot(pca) # plot the eigenfunctions as perturbations of the mean
-#' scoreplot(pca) # plot the scores
-#'
-#' ### Compare to true eigenfunctions
-#' # flip to make results more clear
-#' pca$functions <- flipFuns(sim$trueFuns[1:10], pca$functions)
-#'
-#' par(mfrow = c(5,2), mar = rep(2,4))
-#' for(m in 2:6) # for m = 1, image.plot (used in plot(funData)) produces an error...
-#' {
-#'   plot(sim$trueFuns[[1]], main = paste("True, m = ", m), obs = m)
-#'   plot(pca$functions[[1]], main = paste("Estimate, m = ", m), obs = m)
-#' }
-#'
-#' par(mfrow = c(1,1))
-#' plot(sim$trueFuns[[2]], main = "Eigenfunctions (2nd element)", lwd = 2, obs=  1:5)
-#' plot(pca$functions[[2]], lty = 2, add = TRUE, obs=  1:5)
-#' legend("bottomleft", c("True", "MFPCA"), lty = 1:2, lwd = c(2,1))
-#' }
-#' par(oldPar)
 ```
 
 
-
-
+### calcMFPCA
+```{r}
 #' Internal function that implements the MFPCA algorithm for given univariate decompositions
-#'
-#' @param N Number of observations.
-#' @param p Number of elements in multivariate functional data.
-#' @param Bchol Cholesky decomposition of B = block diagonal of Cholesky decompositions.
-#' @param M The number of multivariate functional principal components to
-#'   calculate.
-#' @param type Vector of univariate decompositions to use.
-#' @param weights Vector of weights.
-#' @param npc Vector giving the number of univariate basis functions used.
-#' @param argvals List of argument values for each of the univariate basis functions.
-#' @param uniBasis List of univariate basis functions.
-#' @param fit Logical. If \code{TRUE}, a truncated multivariate Karhunen-Loeve
-#'   representation for the data is calculated based on the estimated scores and
-#'   eigenfunctions.
-#' @param approx.eigen Logical. If \code{TRUE}, the eigenanalysis problem for
-#'   the estimated covariance matrix is solved approximately using the
-#'   \pkg{irlba} package, which is much faster. If the number \code{M} of
-#'   eigenvalues to calculate is high with respect to the number of observations
-#'   in \code{mFData} or the number of estimated univariate eigenfunctions, the
-#'   approximation may be inappropriate. In this case, approx.eigen is set to
-#'   \code{FALSE} and the function throws a warning. Defaults to \code{FALSE}.
-#'
-#' @return A list containing the following
-#'   components: \item{values}{A vector of estimated eigenvalues \eqn{\hat \nu_1
-#'   , \ldots , \hat \nu_M}.} \item{functions}{A
-#'   \code{\link[funData]{multiFunData}} object containing the estimated
-#'   multivariate functional principal components \eqn{\hat \psi_1, \ldots, \hat
-#'   \psi_M}.} \item{scores}{ A matrix of dimension \code{N x M} containing the
-#'   estimated scores \eqn{\hat \rho_{im}}.} \item{vectors}{A matrix
-#'   representing the eigenvectors associated with the combined univariate score
-#'   vectors. This might be helpful for calculating predictions.}
-#'   \item{normFactors}{The normalizing factors used for calculating the
-#'   multivariate eigenfunctions and scores. This might be helpful when
-#'   calculation predictions.} \item{meanFunction}{A multivariate functional
-#'   data object, corresponding to the mean function. The MFPCA is applied to
-#'   the de-meaned functions in \code{mFData}.}\item{fit}{A
-#'   \code{\link[funData]{multiFunData}} object containing estimated
-#'   trajectories for each observation based on the truncated Karhunen-Loeve
-#'   representation and the estimated scores and eigenfunctions.}
-#'
-#' @importFrom stats cov
-#' @importFrom Matrix t
-#' @importFrom foreach foreach
-#' @importFrom irlba irlba
-#'
-#' @keywords internal
+#' @export
 calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit = FALSE, approx.eigen = FALSE)
 {
   # combine all scores
@@ -2237,54 +1976,12 @@ calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit
 ```
 
 
+### calcMFPCA
+
 ```{r}
 #' Internal function that implements the MFPCA algorithm for given univariate decompositions
-#'
-#' @param N Number of observations.
-#' @param p Number of elements in multivariate functional data.
-#' @param Bchol Cholesky decomposition of B = block diagonal of Cholesky decompositions.
-#' @param M The number of multivariate functional principal components to
-#'   calculate.
-#' @param type Vector of univariate decompositions to use.
-#' @param weights Vector of weights.
-#' @param npc Vector giving the number of univariate basis functions used.
-#' @param argvals List of argument values for each of the univariate basis functions.
-#' @param uniBasis List of univariate basis functions.
-#' @param fit Logical. If \code{TRUE}, a truncated multivariate Karhunen-Loeve
-#'   representation for the data is calculated based on the estimated scores and
-#'   eigenfunctions.
-#' @param approx.eigen Logical. If \code{TRUE}, the eigenanalysis problem for
-#'   the estimated covariance matrix is solved approximately using the
-#'   \pkg{irlba} package, which is much faster. If the number \code{M} of
-#'   eigenvalues to calculate is high with respect to the number of observations
-#'   in \code{mFData} or the number of estimated univariate eigenfunctions, the
-#'   approximation may be inappropriate. In this case, approx.eigen is set to
-#'   \code{FALSE} and the function throws a warning. Defaults to \code{FALSE}.
-#'
-#' @return A list containing the following
-#'   components: \item{values}{A vector of estimated eigenvalues \eqn{\hat \nu_1
-#'   , \ldots , \hat \nu_M}.} \item{functions}{A
-#'   \code{\link[funData]{multiFunData}} object containing the estimated
-#'   multivariate functional principal components \eqn{\hat \psi_1, \ldots, \hat
-#'   \psi_M}.} \item{scores}{ A matrix of dimension \code{N x M} containing the
-#'   estimated scores \eqn{\hat \rho_{im}}.} \item{vectors}{A matrix
-#'   representing the eigenvectors associated with the combined univariate score
-#'   vectors. This might be helpful for calculating predictions.}
-#'   \item{normFactors}{The normalizing factors used for calculating the
-#'   multivariate eigenfunctions and scores. This might be helpful when
-#'   calculation predictions.} \item{meanFunction}{A multivariate functional
-#'   data object, corresponding to the mean function. The MFPCA is applied to
-#'   the de-meaned functions in \code{mFData}.}\item{fit}{A
-#'   \code{\link[funData]{multiFunData}} object containing estimated
-#'   trajectories for each observation based on the truncated Karhunen-Loeve
-#'   representation and the estimated scores and eigenfunctions.}
-#'
-#' @importFrom stats cov
-#' @importFrom Matrix t
-#' @importFrom foreach foreach
-#' @importFrom irlba irlba
-#'
-#' @keywords internal
+#' @export
+#' 
 calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit = FALSE, approx.eigen = FALSE)
 {
   # combine all scores
@@ -2409,6 +2106,202 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
 
 ```
 
+
+```{r}
+load("C:/Users/jongmin/Documents/GitHub/fsPLS/simul/graphical_high_correlation/graphical_data.RData")
+```
+
+```{r}
+library(refund)
+eval_point<-seq(1, 100, length.out = 100)
+n_iter_max = 40
+n_basis_predictor = 10
+n_scalar <- 9
+library(foreach)
+library(funData)
+uniExpansions <- list(
+  list(type = "uFPCA", nbasis = n_basis_predictor, npc = n_iter_max),
+  list(type = "uFPCA", nbasis = n_basis_predictor, npc = n_iter_max)
+)
+
+n_fold = 5
+n_scalar <- 9
+rmse_simul_fpca <- matrix(NA, nrow = n_rep, ncol = 3)
+colnames(rmse_simul_fpca) <- c("FPC+PC", "FPC_only", "PC_only")
+```
+
+
+
+```{r}
+
+
+
+
+for (rep_number in 1:n_rep){
+  set.seed(rep_number)
+  cat(paste0(rep_number, " th run\n"))
+
+  train_test_idx <- create_idx_train_test(n_sample, train.ratio)
+  train_test_split <- split.all(data_fun_1[[rep_number]], data_fun_2[[rep_number]], data_scalar[[rep_number]], response[[rep_number]], train_test_idx)
+  train_test_split_normalized <- normailize.all(train_test_split)
+
+  kfold_idx <- create_idx_kfold(length(train_test_idx$idx_train), n_fold)
+  cv_mat <- matrix(0, nrow = n_iter_max, ncol = n_scalar)
+  for (fold_num in 1:n_fold){
+    cat(paste0(fold_num, "th fold\n"))
+    #train-valid split (5 fold)
+    train_valid_idx <- kfold_idx[[fold_num]]
+    cv_train_valid_split <- split.all(
+      train_test_split$data_fun_1_train, train_test_split$data_fun_2_train, train_test_split$data_scalar_train, train_test_split$response_train,
+      train_valid_idx)
+
+    #normalizing
+    cv_train_valid_split_normalized <- normailize.all(cv_train_valid_split)
+
+    #format
+
+
+
+    predictor_cv_train <- multiFunData(
+      fd2funData(cv_train_valid_split_normalized$data_fun_1_train, eval_point),
+      fd2funData(cv_train_valid_split_normalized$data_fun_2_train, eval_point)
+    )
+    predictor_cv_valid <- multiFunData(
+      fd2funData(cv_train_valid_split_normalized$data_fun_1_test, eval_point),
+      fd2funData(cv_train_valid_split_normalized$data_fun_2_test, eval_point)
+    )
+
+    # train FPCA
+
+    MFPCA_fit_cv <- MFPCA(mFData = predictor_cv_train, mFData_predict = predictor_cv_valid, M = n_iter_max, uniExpansions = uniExpansions)
+
+    #train scalar PCA
+    PCA_fit_train <- prcomp(cv_train_valid_split_normalized$data_scalar_train, center=F, scale = F)
+    #validate
+    for (n_fpc in 1:n_iter_max){
+      for (n_spc in 1:n_scalar){
+        cat(paste(n_fpc, n_spc, "\n"))
+        FPC_score_cv <- (MFPCA_fit_cv$scores)[ ,(1:n_fpc)]
+        PC_score_cv <- (PCA_fit_train$x)[ , (1:n_spc)]
+        pc_score_cv_combined <- data.frame(cv_train_valid_split_normalized$response_train, FPC_score_cv, PC_score_cv)
+        colnames(pc_score_cv_combined) <- c(
+          c("response"),
+          paste0( rep("FPC", n_fpc), as.character(1:n_fpc)),
+          paste0( rep("PC", n_spc), as.character(1:n_spc))
+        )
+
+        # fit linear regression
+        rank_now <- rankMatrix(pc_score_cv_combined[,-1])[1]
+        print(rank_now)
+        cat(paste("rank deficient:", (n_fpc + n_spc)-rank_now, "\n"))
+        linear_fit_cv <- lm(response~., data = pc_score_cv_combined)
+
+
+        #validation set pc scores
+        PFC_score_valid <- (MFPCA_fit_cv$scores.pred)[ ,(1:n_fpc)]
+        PC_score_valid <- (predict(PCA_fit_train, cv_train_valid_split_normalized$data_scalar_test))[ , (1:n_spc)]
+        pc_score_valid_combined <- data.frame(PFC_score_valid, PC_score_valid)
+        colnames(pc_score_valid_combined) <- c(
+          paste0( rep("FPC", n_fpc), as.character(1:n_fpc)),
+          paste0( rep("PC", n_spc), as.character(1:n_spc))
+          )
+
+        y_pred <- predict(linear_fit_cv, pc_score_valid_combined)
+        cv_mat[n_fpc, n_spc] <- cv_mat[n_fpc, n_spc] +
+          sqrt( mean( sum( (y_pred - cv_train_valid_split_normalized$response_test)^2 ) ))
+        }
+    }
+  }
+    n_iter_best <- arrayInd(which.min(cv_mat), dim(cv_mat))
+    n_fpc_best  <- n_iter_best[1]
+    n_spc_best  <- n_iter_best[2]
+    print(n_fpc_best)
+    print(n_spc_best)
+
+    predictor_final_train <- multiFunData(
+      fd2funData(train_test_split_normalized$data_fun_1_train, eval_point),
+      fd2funData(train_test_split_normalized$data_fun_2_train, eval_point)
+    )
+    predictor_final_test <- multiFunData(
+      fd2funData(train_test_split_normalized$data_fun_1_test, eval_point),
+      fd2funData(train_test_split_normalized$data_fun_2_test, eval_point)
+    )
+
+    # train FPCA and scalar PCA
+    MFPCA_fit_final <- MFPCA(mFData = predictor_final_train, mFData_predict = predictor_final_test, M = n_fpc_best, uniExpansions = uniExpansions)
+    PCA_fit_final <- prcomp(train_test_split_normalized$data_scalar_train, center=F, scale = F)
+    PFC_score_final_train <- MFPCA_fit_final$scores
+    PC_score_final_train <- (predict(PCA_fit_final, train_test_split_normalized$data_scalar_train))[,c(1:n_spc_best)]
+    pc_score_final_train_combined <- data.frame(train_test_split_normalized$response_train, PFC_score_final_train, PC_score_final_train)
+    colnames(pc_score_final_train_combined) <- c(
+      c("response"),
+      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best)),
+      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
+    )
+    linear_fit_final <- lm(response~., data = pc_score_final_train_combined)
+
+    # test set pc scores
+    PFC_score_final_test <- MFPCA_fit_final$scores.pred
+    PC_score_final_test <- (predict(PCA_fit_final, train_test_split_normalized$data_scalar_test))[,c(1:n_spc_best)]
+    pc_score_final_test_combined <- data.frame(PFC_score_final_test, PC_score_final_test)
+    colnames(pc_score_final_test_combined) <- c(
+      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best)),
+      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
+    )
+    y_pred_final <- predict(linear_fit_final, pc_score_final_test_combined)
+    rmse_simul_fpca[rep_number,1] <- sqrt(
+      mean((y_pred_final - train_test_split_normalized$response_test)^2)
+      )
+    print(rmse_simul_fpca[rep_number,1])
+
+
+    plot(-0.2:0.2, -0.2:0.2, pch = "", xlim = c(-0.2, 0.2),  ylim = c(-0.2, 0.2))
+    plot(train_test_split_normalized$response_test, y_pred_final)
+    abline(a=0, b=1)
+
+
+    pc_score_final_train_combined_fpc_only <- data.frame(train_test_split_normalized$response_train, PFC_score_final_train)
+    colnames(pc_score_final_train_combined_fpc_only) <- c(
+      c("response"),
+      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best))
+    )
+    linear_fit_final_fpc_only <- lm(response~., data = pc_score_final_train_combined_fpc_only)
+    pc_score_final_test_combined_fpc_only <- data.frame(PFC_score_final_test)
+    colnames(pc_score_final_test_combined_fpc_only) <- c(
+      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best))
+    )
+    y_pred_final_fpc_only <- predict(linear_fit_final_fpc_only, pc_score_final_test_combined_fpc_only)
+    rmse_simul_fpca[rep_number,2] <- sqrt(
+      mean((y_pred_final_fpc_only - train_test_split_normalized$response_test)^2)
+    )
+    print(rmse_simul_fpca[rep_number,2])
+
+    pc_score_final_train_combined_spc_only <- data.frame(train_test_split_normalized$response_train, PC_score_final_train)
+    colnames(pc_score_final_train_combined_spc_only) <- c(
+      c("response"),
+      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
+    )
+    linear_fit_final_spc_only <- lm(response~., data = pc_score_final_train_combined_spc_only)
+    pc_score_final_test_combined_spc_only <- data.frame(PC_score_final_test)
+    colnames(pc_score_final_test_combined_spc_only) <- c(
+      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
+    )
+    y_pred_final_spc_only <- predict(linear_fit_final_spc_only, pc_score_final_test_combined_spc_only)
+    rmse_simul_fpca[rep_number,3] <- sqrt(
+      mean((y_pred_final_spc_only - train_test_split_normalized$response_test)^2)
+    )
+    print(rmse_simul_fpca[rep_number,3])
+}
+
+
+
+apply(rmse_simul_fpca, 2, mean)
+save(rmse_simul_fpca,
+     file = paste(datapath, paste0("rmse_simul_fpca_",trial_name,".Rdata"), sep = "/")
+)
+save.image() # creating ".RData" in current working directory
+
+```
 
 
 ## Documenting the package and building
