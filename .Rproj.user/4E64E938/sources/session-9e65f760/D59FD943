@@ -3,7 +3,7 @@
     "path": "C:/Users/jongmin/Dropbox/hybridPLS/create-FSHybridPLS.Rmd",
     "project_path": "create-FSHybridPLS.Rmd",
     "type": "r_markdown",
-    "hash": "2602702181",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1752030992941.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "1562,49",
-        "scrollLine": "1511"
+        "cursorPosition": "26,46",
+        "scrollLine": "0"
     },
-    "folds": "",
-    "lastKnownWriteTime": 1755932969,
+    "folds": "1563|12|1568|4|\n2398|39|2410|0|\n",
+    "lastKnownWriteTime": 1759869247,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1759343242712,
+    "last_content_update": 1759869247849,
     "read_only": false,
     "read_only_alternatives": []
 }
