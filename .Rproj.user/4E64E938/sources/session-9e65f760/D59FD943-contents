@@ -15,7 +15,8 @@ params:
 ## Package setup
 
 We start by specifying the information needed in the DESCRIPTION file of the R package.
- 
+ library()
+library(fda)
 ```{r package-setup, message=FALSE, results='hide'}
 usethis::create_package(
   path = ".",
@@ -24,7 +25,7 @@ usethis::create_package(
     Version = "0.0.0.9000",
     Title = "A Package That Says Hello",
     Description = "This package says hello.  But its actual purpose is to show how an R package can be completely coded in a single R markdown file.",
-    Imports = "fda (>= 6.1.3), Matrix, funData, foreach, irlba, refund",
+    Imports = "fda (>= 6.1.3), Matrix, funData, foreach, irlba, refund, R6",
     `Authors@R` = person(
       given = "First",
       family = "Last",
@@ -1596,6 +1597,19 @@ create_idx_train_test <-function(n_sample, train_ratio){
 ```
 
 
+```{r}
+#' @title Generate Train Indices
+#' @description Generates train/test split indices.
+#' @param n_sample Integer. Number of samples.
+#' @param train_ratio Numeric. Ratio of train samples.
+#' @return Vector of train indices.
+get_idx_train <- function(n_sample, train_ratio) {
+  n_train <- floor(n_sample * train_ratio)
+  idx_train <- sort(sample(n_sample, n_train, replace = FALSE))
+  return(idx_train)
+}
+```
+
 
 ```{r}
 create_idx_kfold <- function(n_sample, n_fold){
@@ -1615,6 +1629,54 @@ create_idx_kfold <- function(n_sample, n_fold){
 ```{r}
 n_sample.fd <- function(fd_obj){
   length(fd_obj$fdnames$reps)
+}
+```
+
+
+### split.all
+
+Splits functional predictors, scalar predictors, and response into train and test sets.
+
+```{r}
+#'Split Functional, Scalar, and Response Data
+#' @param data_fun_1 fd object (fda package). Functional predictor 1.
+#' @param data_fun_2 fd object (fda package). Functional predictor 2.
+#' @param data_scalar Matrix. Scalar predictors.
+#' @param response Vector. Response variable.
+#' @param train_idx Vector. Indices for train data.
+#' @return List containing split train and test sets.
+#' @export
+split.all <- function(data_fun_1, data_fun_2, data_scalar, response, train_idx) {
+  # --- Type Checks ---
+  stopifnot(
+    # Functional data checks (assuming 'fd' class from the 'fda' package)
+    inherits(data_fun_1, "fd"),
+    inherits(data_fun_2, "fd"),
+    
+    # Scalar predictor check
+    is.matrix(data_scalar),
+    
+    # Response variable check
+    is.vector(response) || is.numeric(response) || is.factor(response),
+    
+    # Training index check
+    is.vector(train_idx),
+    is.numeric(train_idx),
+    all(train_idx > 0), # Indices should be positive
+    all(train_idx == round(train_idx)) # Indices should be integers
+  )
+  # -------------------
+  
+  return(list(
+    data_fun_1_train = data_fun_1[train_idx],
+    data_fun_1_test = data_fun_1[-train_idx],
+    data_fun_2_train = data_fun_2[train_idx],
+    data_fun_2_test = data_fun_2[-train_idx],
+    data_scalar_train = data_scalar[train_idx, , drop = FALSE],
+    data_scalar_test = data_scalar[-train_idx, , drop = FALSE],
+    response_train = response[train_idx],
+    response_test = response[-train_idx]
+  ))
 }
 ```
 
@@ -1667,6 +1729,137 @@ normailize.all <- function(split.all_obj){
 ```
 
 
+### DataSplitterNormalizer
+R6 class to split functional and scalar predictors into train and test sets and apply normalization techniques including curve normalization, scalar normalization, and between-functional-scalar normalization.
+```{r}
+#' @title Dataset Splitting and Normalization
+#' @description 
+DataSplitterNormalizer <- R6::R6Class(
+  "DataSplitterNormalizer",
+
+  public = list(
+
+    data_original = NULL,  # Stores the original dataset
+    n_sample = NULL,  # Number of samples
+    train_ratio = NULL,  # Train-test split ratio
+    idx_train = NULL,  # Train indices
+    train=NULL,
+    test=NULL,
+
+    #' @title Initialize Data Splitter and Normalizer
+    #' @description Constructs the instance, splits the data into train and test sets.
+    #' Users must call `normalize_data()` separately.
+    #' @param data_original List. Contains `functional_predictors` (list of `fd` objects)
+    #' and `scalar_predictors` (matrix).
+    #' @param train_ratio Numeric. Ratio of data to use for training (e.g., 0.8).
+    #' @return An instance of `DataSplitterNormalizer`.
+    #' @export
+    initialize = function(data_original, train_ratio = 0.8) {
+      self$n_sample <- length(data_original$response)
+      self$train_ratio <- train_ratio
+      self$data_original <- data_original
+
+    },
+
+    #' @title Split Data into Train and Test Sets
+    #' @description Creates train/test indices and splits functional, scalar, and response variables.
+    #' @return None. Updates train and test variables.
+    #' @export
+    split_data = function(idx_train = NULL) {
+      # Use provided idx_train if available; otherwise, generate it
+      if (is.null(idx_train)) {
+        self$idx_train <- get_idx_train(self$n_sample, self$train_ratio)
+      } else {
+        self$idx_train <- idx_train
+      }
+
+
+      split_packed <- split.all(
+        self$data_original$functional_1,
+        self$data_original$functional_2,
+        self$data_original$scalar,
+        self$data_original$response,
+        self$idx_train
+      )
+
+      # Assign train/test sets
+      self$train <- list(
+        functional_1 = split_packed$data_fun_1_train,
+        functional_2 = split_packed$data_fun_2_train,
+        scalar = split_packed$data_scalar_train,
+        response = split_packed$response_train
+      )
+      self$test <- list(
+        functional_1 = split_packed$data_fun_1_test,
+        functional_2 = split_packed$data_fun_2_test,
+        scalar = split_packed$data_scalar_test,
+        response = split_packed$response_test
+      )
+
+
+    },
+
+    #' @title Normalize Train and Test Data
+    #' @description Applies curve, scalar, and between-functional-scalar normalization.
+    #' @return None. Updates train and test sets.
+    #' @export
+    normalize_data = function() {
+      # Initialize normalizers
+      normalizer_functional <- normalizer_functional_predictor$new()
+      normalizer_scalar <- normalizer_scalar_predictor$new()
+
+      # Normalize first functional predictor
+      normalizer_functional$normalize(self$train$functional_1, self$test$functional_1)
+      self$train$functional_1 <- normalizer_functional$get_normalized()$train_normalized
+      self$test$functional_1 <- normalizer_functional$get_normalized()$test_normalized
+
+      # Normalize second functional predictor
+      normalizer_functional$normalize(self$train$functional_2, self$test$functional_2)
+      self$train$functional_2 <- normalizer_functional$get_normalized()$train_normalized
+      self$test$functional_2 <- normalizer_functional$get_normalized()$test_normalized
+
+      # Normalize scalar predictors
+      normalizer_scalar$normalize(self$train$scalar, self$test$scalar)
+      self$train$scalar <- normalizer_scalar$get_normalized()$train_normalized
+      self$test$scalar<- normalizer_scalar$get_normalized()$test_normalized
+
+      # Apply between-functional-scalar normalization
+      self$normalize_between()
+
+      # Normalize response variable
+      self$normalize_response()
+    },
+
+    #' @title Normalize Between Functional and Scalar Predictors
+    #' @description Scales scalar predictors to ensure comparability with functional predictors.
+    #' @export
+    normalize_between = function() {
+      omega <- sum(diag(inprod(self$train$functional_1, self$train$functional_1))) +
+        sum(diag(inprod(self$train$functional_2, self$train$functional_2)))
+
+      omega <- omega / sum(self$train$scalar^2)
+
+      self$train$scalar <- sqrt(omega) * self$train$scalar
+      self$test$scalar <- sqrt(omega) * self$test$scalar
+    },
+
+    #' @title Normalize Response Variable
+    #' @description Centers response variable based on training mean.
+    #' @export
+    normalize_response = function() {
+      response_mean_train <- mean(self$train$response)
+      self$train$response <- self$train$response - response_mean_train
+      self$test$response <- self$test$response - response_mean_train
+    } #must not end with ,
+
+
+  )
+)
+
+
+
+
+```
 
 
 

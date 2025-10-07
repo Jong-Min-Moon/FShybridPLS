@@ -1,0 +1,92 @@
+"0","#' @title Dataset Splitting and Normalization"
+"0","#' @description "
+"0","DataSplitterNormalizer <- R6::R6Class("
+"0","  ""DataSplitterNormalizer"","
+"0",""
+"0","  public = list("
+"0",""
+"0","    data_original = NULL,  # Stores the original dataset"
+"0","    n_sample = NULL,  # Number of samples"
+"0","    train_ratio = NULL,  # Train-test split ratio"
+"0","    idx_train = NULL,  # Train indices"
+"0","    train=NULL,"
+"0","    test=NULL,"
+"0",""
+"0","    #' @title Initialize Data Splitter and Normalizer"
+"0","    #' @description Constructs the instance, splits the data into train and test sets."
+"0","    #' Users must call `normalize_data()` separately."
+"0","    #' @param data_original List. Contains `functional_predictors` (list of `fd` objects)"
+"0","    #' and `scalar_predictors` (matrix)."
+"0","    #' @param train_ratio Numeric. Ratio of data to use for training (e.g., 0.8)."
+"0","    #' @return An instance of `DataSplitterNormalizer`."
+"0","    #' @export"
+"0","    initialize = function(data_original, train_ratio = 0.8) {"
+"0","      self$n_sample <- length(data_original$response)"
+"0","      self$train_ratio <- train_ratio"
+"0","      self$data_original <- data_original"
+"0",""
+"0","    },"
+"0",""
+"0","    #' @title Split Data into Train and Test Sets"
+"0","    #' @description Creates train/test indices and splits functional, scalar, and response variables."
+"0","    #' @return None. Updates train and test variables."
+"0","    #' @export"
+"0","    split_data = function(idx_train = NULL) {"
+"0","      # Use provided idx_train if available; otherwise, generate it"
+"0","      if (is.null(idx_train)) {"
+"0","        self$idx_train <- get_idx_train(self$n_sample, self$train_ratio)"
+"0","      } else {"
+"0","        self$idx_train <- idx_train"
+"0","      }"
+"0",""
+"0",""
+"0","      split_packed <- split.all("
+"0","        self$data_original$functional_1,"
+"0","        self$data_original$functional_2,"
+"0","        self$data_original$scalar,"
+"0","        self$data_original$response,"
+"0","        self$idx_train"
+"0","      )"
+"0",""
+"0","      # Assign train/test sets"
+"0","      self$train <- list("
+"0","        functional_1 = split_packed$data_fun_1_train,"
+"0","        functional_2 = split_packed$data_fun_2_train,"
+"0","        scalar = split_packed$data_scalar_train,"
+"0","        response = split_packed$response_train"
+"0","      )"
+"0","      self$test <- list("
+"0","        functional_1 = split_packed$data_fun_1_test,"
+"0","        functional_2 = split_packed$data_fun_2_test,"
+"0","        scalar = split_packed$data_scalar_test,"
+"0","        response = split_packed$response_test"
+"0","      )"
+"0",""
+"0",""
+"0","    },"
+"0",""
+"2","Error: Incomplete expression: DataSplitterNormalizer <- R6::R6Class(
+  ""DataSplitterNormalizer"",
+
+  public = list(
+
+    data_original = NULL,  # Stores the original dataset
+    n_sample = NULL,  # Number of samples
+    train_ratio = NULL,  # Train-test split ratio
+    idx_train = NULL,  # Train indices
+    train=NULL,
+    test=NULL,
+
+    #' @title Initialize Data Splitter and Normalizer
+    #' @description Constructs the instance, splits the data into train and test sets.
+    #' Users must call `normalize_data()` separately.
+    #' @param data_original List. Contains `functional_predictors` (list of `fd` objects)
+    #' and `scalar_predictors` (matrix).
+    #' @param train_ratio Numeric. Ratio of data to use for training (e.g., 0.8).
+    #' @return An instance of `DataSplitterNormalizer`.
+    #' @export
+    initialize = function(data_original, train_ratio = 0.8) {
+      self$n_sample <- length(data_original$response)
+      self$train_ratio <- train_ratio
+      self$data_original <- dat
+"
