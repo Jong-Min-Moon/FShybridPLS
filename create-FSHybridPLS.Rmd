@@ -1580,6 +1580,96 @@ nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
 ```
 
 
+# Simulation tools
+
+## sample splitting
+
+```{r}
+create_idx_train_test <-function(n_sample, train_ratio){
+  n_train <- floor(n_sample*train_ratio)
+  idx_train <- sort(sample(n_sample,n_train, replace=F))
+  idx_test <- sort((1 : n_sample)[-idx_train])
+  return(list(
+    idx_train = idx_train, idx_test = idx_test
+  ))
+}
+```
+
+
+
+```{r}
+create_idx_kfold <- function(n_sample, n_fold){
+  idx_list <- caret::createFolds( (1 : n_sample), k = n_fold, list = TRUE, returnTrain = FALSE)
+  idx_list_list <- list()
+  for (i in 1:length(idx_list)){
+    valid_hyper_index <- idx_list[[i]]
+    train_hyper_index <- (1 : n_sample)[-valid_hyper_index]
+    idx_list_list[[i]] <- list("idx_train" = train_hyper_index, "idx_valid" = valid_hyper_index)
+  }
+  return(idx_list_list)
+}
+```
+
+
+
+```{r}
+n_sample.fd <- function(fd_obj){
+  length(fd_obj$fdnames$reps)
+}
+```
+
+
+```{r}
+normailize.all <- function(split.all_obj){
+  curve_normalize_result_1 <- curve_normalize_train_test_fd(
+    split.all_obj$data_fun_1_train,
+    split.all_obj$data_fun_1_test)
+  data_fun_1_train <- curve_normalize_result_1$train
+  data_fun_1_test <- curve_normalize_result_1$test
+
+  curve_normalize_result_2 <- curve_normalize_train_test_fd(
+    split.all_obj$data_fun_2_train,
+    split.all_obj$data_fun_2_test)
+  data_fun_2_train <- curve_normalize_result_2$train
+  data_fun_2_test <- curve_normalize_result_2$test
+
+  scalar_normalize_result <- scalar_normalize_train_test(
+    split.all_obj$data_scalar_train,
+    split.all_obj$data_scalar_test)
+  data_scalar_train <- scalar_normalize_result$train
+  data_scalar_test <- scalar_normalize_result$test
+
+  between_normalize_result <- btwn_normalize_train_test(
+    list(data_fun_1_train, data_fun_2_train),
+    data_scalar_train,
+    data_scalar_test
+  )
+  data_scalar_train <- between_normalize_result$train
+  data_scalar_test <- between_normalize_result$test
+
+  response_mean_train <-  mean(split.all_obj$response_train)
+  response_train <- split.all_obj$response_train - response_mean_train
+  response_test <- split.all_obj$response_test - response_mean_train
+
+  return(
+    list(
+      data_fun_1_train = data_fun_1_train,
+      data_fun_2_train = data_fun_2_train,
+      data_scalar_train= data_scalar_train,
+      response_train   = response_train,
+      data_fun_1_test  = data_fun_1_test,
+      data_fun_2_test  = data_fun_2_test,
+      data_scalar_test = data_scalar_test,
+      response_test    = response_test
+    )
+  )
+}
+```
+
+
+
+
+
 
 
 # Baseline method: FPCA regression
@@ -2137,10 +2227,6 @@ colnames(rmse_simul_fpca) <- c("FPC+PC", "FPC_only", "PC_only")
 
 
 
-for (rep_number in 1:n_rep){
-  set.seed(rep_number)
-  cat(paste0(rep_number, " th run\n"))
-
   train_test_idx <- create_idx_train_test(n_sample, train.ratio)
   train_test_split <- split.all(data_fun_1[[rep_number]], data_fun_2[[rep_number]], data_scalar[[rep_number]], response[[rep_number]], train_test_idx)
   train_test_split_normalized <- normailize.all(train_test_split)
@@ -2291,15 +2377,9 @@ for (rep_number in 1:n_rep){
       mean((y_pred_final_spc_only - train_test_split_normalized$response_test)^2)
     )
     print(rmse_simul_fpca[rep_number,3])
-}
 
 
 
-apply(rmse_simul_fpca, 2, mean)
-save(rmse_simul_fpca,
-     file = paste(datapath, paste0("rmse_simul_fpca_",trial_name,".Rdata"), sep = "/")
-)
-save.image() # creating ".RData" in current working directory
 
 ```
 
