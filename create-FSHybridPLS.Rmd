@@ -1763,6 +1763,26 @@ curve_normalize <- function(functional, mean_functional, deno) {
 ```
 
 
+
+
+```{r}
+#' 
+#' @export
+curve_normalize <- function(functional, mean_functional, deno){
+  # operation also takes care of the original_X
+
+  functional_normalized <- fd(coef =
+                                coef(functional) - coef(mean_functional) %*% matrix(1, ncol = ncol(coef(functional))),
+                              basisobj = functional$basis
+                              )#numerator
+  functional_normalized <- times.fd(1/deno, functional_normalized)
+  return(functional_normalized)
+}
+```
+
+
+
+
 ```{r}
 #' Normalize Functional Predictors in Hybrid Objects (Train/Test Split)
 #'
@@ -1836,42 +1856,9 @@ curve_normalize_train_test <- function(train, test) {
 
 ```
 
- 
 
 
 
-
-
-```{r}
-curve_normalize_train_test <- function(train, test){
-  train_normalized <- train
-  test_normalized <- test
-  deno_train <- rep(NA, train@n_functional)
-  for (k in 1:train@n_functional){ # for kth functional predictor
-    mean_train <- mean.fd(train@functional_list[[k]]) # train mean function
-    centered_train <- center.fd(train@functional_list[[k]])
-    sd_train <- sd.fd(train@functional_list[[k]])
-    deno_train[k] <- sqrt(inprod(sd_train, sd_train))
-
-    train_normalized@functional_list[[k]] <- curve_normalize(
-      train_normalized@functional_list[[k]],
-      mean_train,
-      deno_train[k]
-      )
-
-    test_normalized@functional_list[[k]] <-
-      curve_normalize(
-        test_normalized@functional_list[[k]],
-        mean_train,
-        deno_train[k]
-      )
-  }
-  return( list(
-    train = train_normalized,
-    test = test_normalized,
-    deno_train = deno_train
-    ))}
-```
 
 
 ```{r}
