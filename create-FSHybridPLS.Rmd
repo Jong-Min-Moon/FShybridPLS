@@ -1640,8 +1640,10 @@ calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
 
   return(B)
 }
+```
 
 
+```{r}
 #' Multivariate functional principal component analysis for functions on
 #' different (dimensional) domains
 #'
@@ -1948,6 +1950,11 @@ calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
 #' legend("bottomleft", c("True", "MFPCA"), lty = 1:2, lwd = c(2,1))
 #' }
 #' par(oldPar)
+```
+
+
+```{r}
+#'
 MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, length(mFData)), fit = FALSE, approx.eigen = FALSE,
                   bootstrap = FALSE, nBootstrap = NULL, bootstrapAlpha = 0.05, bootstrapStrat = NULL,
                   verbose = options()$verbose)
@@ -2017,9 +2024,6 @@ MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, len
   if(verbose)
     cat("Calculating univariate basis expansions (", format(Sys.time(), "%T"), ")\n", sep = "")
 
-
-
-########### modified by Jongmin Mun #############################
   # calculate univariate basis expansion for all components
   uniBasis <- mapply(
     function(expansion, data, data_predict){
@@ -2228,7 +2232,10 @@ MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, len
   class(res) <- "MFPCAfit"
     return(res)
 }
+```
 
+
+```{r}
 #' Internal function that implements the MFPCA algorithm for given univariate decompositions
 #'
 #' @param N Number of observations.
@@ -2371,8 +2378,14 @@ calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit
 
   return(res)
 }
+```
 
+### calcMFPCA_predict
 
+```{r}
+#' calcMFPCA_predict
+#' @export
+#' 
 calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
                               normFactors_train, vectors_train, values_train)
 {
