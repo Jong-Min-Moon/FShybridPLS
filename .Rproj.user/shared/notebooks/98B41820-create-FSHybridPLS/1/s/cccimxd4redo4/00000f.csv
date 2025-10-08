@@ -1,5 +1,4 @@
 "0","#' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)"
-"0","#'"
 "0","#' Constructs a hybrid predictor object that stores both scalar and functional predictors,"
 "0","#' and automatically computes Gram matrices (inner products of basis functions)."
 "0","#'"

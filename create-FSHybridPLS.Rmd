@@ -195,7 +195,6 @@ The class definition is a simple list that contains a matrix and a collection of
 - gram matrices are saved as a list.
 ```{r classdef:predictor_hybrid}
 #' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
-#'
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
 #' and automatically computes Gram matrices (inner products of basis functions).
 #'
@@ -1943,157 +1942,81 @@ scalar_normalize_train_test <- function(predictor_train, predictor_test){
 ```
 
 
-
-
 ```{r}
-#' --- Dependencies for Testing ---
-library(fda) # Required for mock functional data
-
-# Placeholder for a minimal predictor_hybrid constructor for testing purposes
-
-# --- Test Script Start ---
-
-# 1. Setup Mock Data
-N_train <- 100
-N_test <- 50
-N_scalar <- 2
-N_functional <- 1
-
-# Create Functional Data (Needs to be present but remain untouched)
-basis_obj <- create.bspline.basis(rangeval = c(0, 10), nbasis = 7)
-train_coefs <- matrix(rnorm(N_train * 7), nrow = 7)
-test_coefs <- matrix(rnorm(N_test * 7), nrow = 7)
-mock_fd_train <- fd(train_coefs, basis_obj)
-mock_fd_test <- fd(test_coefs, basis_obj)
-
-# Create Scalar Data (Crucial for the test)
-# Training data has a clear mean and SD
-Z_train <- matrix(rnorm(N_train * N_scalar, mean = c(5, 10), sd = c(2, 3)), 
-                  nrow = N_train, ncol = N_scalar, byrow = TRUE)
-# Testing data has different properties (must be normalized by train stats)
-Z_test <- matrix(rnorm(N_test * N_scalar, mean = c(1, 1), sd = c(10, 10)), 
-                 nrow = N_test, ncol = N_scalar, byrow = TRUE)
-
-# Create Hybrid Objects
-W_train <- predictor_hybrid(Z = Z_train, functional_list = list(mock_fd_train))
-W_test <- predictor_hybrid(Z = Z_test, functional_list = list(mock_fd_test))
-
-# Store original Z for comparison
-Z_train_original <- W_train$Z
-Z_test_original <- W_test$Z
-
-# 2. Run the Function Under Test
-W_normalized_list <- scalar_normalize_train_test(W_train, W_test)
-W_train_norm <- W_normalized_list$train
-W_test_norm <- W_normalized_list$test
-
-# 3. Verification and Assertions
-
-cat("--- Running Verification Checks ---\n")
-
-# Check 1: Training set is correctly normalized (Mean ~ 0, SD ~ 1)
-train_mean_norm <- colMeans(W_train_norm$Z)
-train_sd_norm <- apply(W_train_norm$Z, 2, sd)
-
-stopifnot(
-  "Train mean Col 1 not near 0" = all(abs(train_mean_norm[1]) < 1e-10),
-  "Train mean Col 2 not near 0" = all(abs(train_mean_norm[2]) < 1e-10),
-  "Train SD Col 1 not near 1" = all(abs(train_sd_norm[1] - 1) < 1e-10),
-  "Train SD Col 2 not near 1" = all(abs(train_sd_norm[2] - 1) < 1e-10)
-)
-cat("Check 1: Training set Z-score normalization successful (Mean~0, SD~1).\n")
-
-
-# Check 2: Functional components are untouched
-stopifnot(
-  "Functional list should not change" = isTRUE(all.equal(
-    W_train$functional_list[[1]]$coefs, 
-    W_train_norm$functional_list[[1]]$coefs
-  ))
-)
-cat("Check 2: Functional components successfully preserved.\n")
-
-
-# Check 3: Test set is normalized using TRAIN statistics (crucial consistency check)
-
-# Recalculate the training statistics
-train_mean_recalc <- get_mean(Z_train_original)
-train_sd_recalc <- get_sd(Z_train_original)
-
-# Manually normalize the test set using TRAIN stats
-Z_test_expected <- t( (t(Z_test_original) - train_mean_recalc) / train_sd_recalc)
-
-# Compare the function's output (W_test_norm$Z) against the manual calculation
-stopifnot(
-  "Test set normalization mismatch" = isTRUE(all.equal(W_test_norm$Z, Z_test_expected))
-)
-cat("Check 3: Test set correctly normalized using only Training statistics.\n")
-
-cat("--- All tests passed successfully! ---\n")
+#' Scale the scalar predictors so that the variability between the
+#' functional and scalar predictors are comparable.
+#'
+#' This method calculates a scaling factor (sqrt(omega)) from the training
+#' set, defined as the ratio of the total sum of squares (L2 norms) of all
+#' functional components to the total sum of squares of all scalar components.
+#'
+#' @param train A predictor_hybrid object representing the training data.
+#' @param test A predictor_hybrid object representing the test data.
+#'
+#' @return A list containing the normalized 'train' and 'test' predictor_hybrid objects.
+#' @export
+btwn_normalize_train_test <- function(train, test){
+  
+  # Type checks
+  stopifnot(
+    "'train' must be of class 'predictor_hybrid'" = inherits(train, "predictor_hybrid"),
+    "'test' must be of class 'predictor_hybrid'" = inherits(test, "predictor_hybrid")
+  )
+  
+  # Create copies for modification
+  train_normalized <- train
+  test_normalized <- test
+  
+  # Z_s for clarity in calculation
+  Z_s <- train$Z 
+  
+  # --- 1. Calculate the numerator of omega (Sum of L2 norms of all functional samples in train) ---
+  omega_numerator <- 0
+  
+  for (k in seq_len(train$n_functional)){ # for kth functional predictor
+    # fda::inprod(fd, fd) returns the N x N matrix of inner products.
+    # The diagonal elements are the L2 norm squared for each sample.
+    functional_inprod_matrix <- fda::inprod(
+      train$functional_list[[k]],
+      train$functional_list[[k]]
+    )
+    
+    # Sum the diagonal to get the total squared norm for this predictor k
+    omega_numerator <- omega_numerator + sum(diag(functional_inprod_matrix))
+  }
+  
+  # --- 2. Calculate the denominator of omega (Sum of squares of all scalar samples in train) ---
+  omega_denominator <- sum(Z_s^2)
+  
+  # Handle case where scalar variance is zero (prevent division by zero)
+  if (omega_denominator == 0) {
+    warning("Scalar component sum of squares is zero. No scaling applied.")
+    omega <- 1
+  } else {
+    # Calculate the scaling factor omega
+    omega <- omega_numerator / omega_denominator
+  }
+  
+  # --- 3. Apply scaling factor sqrt(omega) to both train and test scalar components ---
+  scaling_factor <- sqrt(omega)
+  
+  train_normalized$Z <- scaling_factor * (train$Z)
+  test_normalized$Z <- scaling_factor * (test$Z)
+  
+  return(
+    list(
+      train = train_normalized,
+      test = test_normalized
+    )
+  )
+}
 
 ```
 
-```{r}
-
-#
-# scalar_normalize_train_test <- function(predictor_train, predictor_test){
-#   predictor_train_normalized <- predictor_train
-#   predictor_test_normalized <- predictor_test
-#
-#   mean_train <- get_mean(predictor_train@Z) # train mean function
-#   sd_train <- get_sd(predictor_train@Z)
-#
-#   predictor_train_normalized@Z <-
-#     scalar_normalize(
-#       predictor_train@Z,
-#       mean_train,
-#       sd_train
-#       )
-#
-#   predictor_test_normalized@Z <-
-#     scalar_normalize(
-#       predictor_test@Z,
-#       mean_train,
-#       sd_train
-#     )
-#
-#   return(
-#     list(
-#       train = predictor_train_normalized,
-#       test = predictor_test_normalized
-#     )
-#   )
-# }
-```
 
 
-```{r}
-#
-# btwn_normalize_train_test <- function(train, test){
-#   #"Scale the scalar predictors so that the variability between the functional and scalar predictors are comparable:")
-#   Z_s <- train@Z
-#   train_normalized <- train
-#   test_normalized <- test
-#
-#   omega <- 0
-#   for (k in 1:train@n_functional){ # for kth functional predictor
-#     omega <- omega + sum(diag(inprod(
-#       train@functional_list[[k]],
-#       train@functional_list[[k]]
-#       )))
-#
-#   }
-#     omega <- omega / sum((Z_s)^2)
-#
-#     train_normalized@Z <- sqrt(omega) * (train@Z)
-#     test_normalized@Z <- sqrt(omega) * (test@Z)
-#
-#     return(
-#       list(
-#         train = train_normalized,
-#         test = test_normalized
-#       ))}
-```
+ 
+
 
 ```{r}
 
