@@ -197,7 +197,6 @@ The class definition is a simple list that contains a matrix and a collection of
 #' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
 #' and automatically computes Gram matrices (inner products of basis functions).
-#'
 #' @param Z A numeric matrix of dimension \code{n_sample × n_scalar} representing scalar predictors.
 #' @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
 #'
@@ -2893,7 +2892,8 @@ univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), fu
 }
 ```
 
-## end-to-end MFPCA regression method
+## fit.mfpca_regression
+Performs sample splitting, normalization, and fits models for every combination of functional and scalar principal components up to n_pc_max. Selects the best model based on test set RMSE.
 
 ```{r}
 # --- 1. MAIN FUNCTION: fit.mfpca_regression ---
@@ -2907,151 +2907,118 @@ univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), fu
 #' @param W predictor_hybrid object containing all predictors.
 #' @param y Vector. Response variable.
 #' @param train_ratio Numeric scalar between 0 and 1 for splitting data (default 0.7).
-#' @param n_fold Integer. Number of folds for cross-validation (default 5).
-#' @param n_fpc_max Integer. Max number of FPCs to consider in CV (default 10).
-#' @param n_spc_max Integer. Max number of SPCs to consider in CV (default 5).
-#' @return List containing the final model fit, optimal parameters, and test MSE.
+#' @param n_pc_max Integer. Max number of FPCs/PCs to consider (must be <= min(nbasis, n_scalar)).
+#' @return List containing the best model fit, optimal component count, and a list of all test RMSEs.
 #' @export
-fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_fold = 5, n_fpc_max = 10, n_spc_max = 5) {
+fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_pc_max = 10) {
   
   # --- 0. Setup and Initial Checks ---
   stopifnot(inherits(W, "predictor_hybrid"))
   
-  # Standard parameters
-  eval_point <- seq(0, 1, length.out = 100)
-  
-  uniExpansions <- list(
-    list(type = "uFPCA", nbasis = 10, npc = n_fpc_max), 
-    list(type = "uFPCA", nbasis = 10, npc = n_fpc_max)
-  )
-  
-  # Adjust max components
+  # Extract setup parameters
+  eval_point <- W$eval_point
+  n_basis <- W$n_basis_list[[1]]
   n_scalar <- W$n_scalar
-  if (n_spc_max > n_scalar) n_spc_max <- n_scalar
   
-  # --- 1. Split and Normalize Full Data ---
-  
-  split_obj <- split.hybrid(W, y, train_ratio)
-  split_obj_normalized <- normailize.all(split_obj)
-  
-  # Extract components
-  y_train_norm <- split_obj_normalized$response_train
-  Z_train_norm <- split_obj_normalized$data_scalar_train
-  f1_train_norm <- split_obj_normalized$data_fun_1_train
-  f2_train_norm <- split_obj_normalized$data_fun_2_train
-  N_train <- length(y_train_norm)
-  
-  # --- 2. Cross-Validation Setup ---
-  
-  cv_mat <- matrix(Inf, nrow = n_fpc_max, ncol = n_spc_max) 
-  kfold_idx <- create_idx_kfold(N_train, n_fold)
-  
-  # --- 3. Cross-Validation Loop (Find Best n_fpc, n_spc) ---
-  
-  for (fold_num in 1:n_fold) {
-    valid_idx <- kfold_idx[[fold_num]]
-    train_idx_cv <- (1:N_train)[-valid_idx]
-    
-    # 3a. Prepare CV training and validation sets
-    f1_train_cv <- f1_train_norm[train_idx_cv]
-    f2_train_cv <- f2_train_norm[train_idx_cv]
-    f1_valid_cv <- f1_train_norm[valid_idx]
-    f2_valid_cv <- f2_train_norm[valid_idx]
-    
-    # Format functional data
-    predictor_cv_train <- multiFunData(
-      fd2funData(f1_train_cv, eval_point),
-      fd2funData(f2_train_cv, eval_point)
-    )
-    predictor_cv_valid <- multiFunData(
-      fd2funData(f1_valid_cv, eval_point),
-      fd2funData(f2_valid_cv, eval_point)
-    )
-    
-    Z_train_cv <- Z_train_norm[train_idx_cv, , drop = FALSE]
-    Z_valid_cv <- Z_train_norm[valid_idx, , drop = FALSE]
-    y_train_cv <- y_train_norm[train_idx_cv]
-    y_valid_cv <- y_train_norm[valid_idx]
-    
-    # 3b. Fit PCA Models on CV Training Data
-    MFPCA_fit_cv <- MFPCA(mFData = predictor_cv_train, mFData_predict = predictor_cv_valid, 
-                          M = n_fpc_max, uniExpansions = uniExpansions)
-    PCA_fit_cv <- prcomp(Z_train_cv, center = FALSE, scale = FALSE)
-    
-    FPC_scores_train_cv <- MFPCA_fit_cv$scores
-    FPC_scores_valid_cv <- MFPCA_fit_cv$scores.pred
-    PC_scores_train_cv <- PCA_fit_cv$x
-    PC_scores_valid_cv <- predict(PCA_fit_cv, Z_valid_cv)
-    
-    # 3c. Inner Parameter Loop (Fit and Validate)
-    for (n_fpc in 1:n_fpc_max) {
-      for (n_spc in 1:n_spc_max) {
-        
-        # Select components
-        FPC_train_select <- FPC_scores_train_cv[, 1:n_fpc, drop = FALSE]
-        FPC_valid_select <- FPC_scores_valid_cv[, 1:n_fpc, drop = FALSE]
-        PC_train_select <- PC_scores_train_cv[, 1:n_spc, drop = FALSE]
-        PC_valid_select <- PC_scores_valid_cv[, 1:n_spc, drop = FALSE]
-        
-        # Combine selected scores for linear model
-        train_data_lm <- data.frame(response = y_train_cv, FPC_train_select, PC_train_select)
-        valid_data_lm <- data.frame(FPC_valid_select, PC_valid_select)
-        
-        # Fit Linear Regression Model
-        linear_fit_cv <- lm(response ~ ., data = train_data_lm)
-        
-        # Predict, Calculate MSE, and Accumulate
-        y_pred_valid <- predict(linear_fit_cv, valid_data_lm)
-        cv_mat[n_fpc, n_spc] <- cv_mat[n_fpc, n_spc] + mean((y_pred_valid - y_valid_cv)^2)
-      }
-    }
+  # Adjust max components to safe bounds
+  max_comp <- min(n_pc_max, n_basis, n_scalar)
+  if (n_pc_max != max_comp) {
+    warning(paste("n_pc_max adjusted from", n_pc_max, "to", max_comp, 
+                  "due to limits in nbasis or n_scalar."))
+    n_pc_max <- max_comp
   }
   
-  # 4. Select Optimal Parameters
-  min_idx <- arrayInd(which.min(cv_mat), dim(cv_mat))
-  n_fpc_best <- min_idx[1]
-  n_spc_best <- min_idx[2]
+  if (n_pc_max < 1) stop("n_pc_max must be at least 1.")
   
-  # --- 5. Final Model Training and Prediction (Full Training Set) ---
+  uniExpansions <- list(
+    list(type = "uFPCA", nbasis = n_basis, npc = n_pc_max), 
+    list(type = "uFPCA", nbasis = n_basis, npc = n_pc_max)
+  )
+ 
+    
+  # --- 1. Split and Normalize Full Data ---
+  split_normalize_result <- split_and_normailize.all(W, y, train_ratio)
+  f1_train <- split_normalize_result$predictor_train$functional_list[[1]]
+  f2_train <- split_normalize_result$predictor_train$functional_list[[2]]
+  f1_test <- split_normalize_result$predictor_test$functional_list[[1]]
+  f2_test <- split_normalize_result$predictor_test$functional_list[[2]]  
   
-  # Extract final components
-  Z_test_norm <- split_obj_normalized$data_scalar_test
-  f1_test_norm <- split_obj_normalized$data_fun_1_test
-  f2_test_norm <- split_obj_normalized$data_fun_2_test
-  y_test_norm <- split_obj_normalized$response_test
   
-  # Prepare final functional data
-  predictor_final_train <- multiFunData(fd2funData(f1_train_norm, eval_point), fd2funData(f2_train_norm, eval_point))
-  predictor_final_test <- multiFunData(fd2funData(f1_test_norm, eval_point), fd2funData(f2_test_norm, eval_point))
+  # Format functional data
+  predictor_train <- multiFunData(fd2funData(f1_train, eval_point), fd2funData(f2_train, eval_point))
+  predictor_test <- multiFunData(fd2funData(f1_test, eval_point), fd2funData(f2_test, eval_point))
   
-  # Fit final PCA models
-  MFPCA_fit_final <- MFPCA(mFData = predictor_final_train, mFData_predict = predictor_final_test, 
-                          M = n_fpc_best, uniExpansions = uniExpansions)
-  PCA_fit_final <- prcomp(Z_train_norm, center = FALSE, scale = FALSE)
+  y_train_norm <- split_normalize_result$response_train
+  Z_train_norm <- split_normalize_result$predictor_train$Z
+  Z_test_norm <- split_normalize_result$predictor_test$Z
+  y_test_norm <- split_normalize_result$response_test
   
-  # Extract and combine final scores
-  FPC_train_final <- MFPCA_fit_final$scores
-  FPC_test_final <- MFPCA_fit_final$scores.pred
-  PC_train_final <- PCA_fit_final$x[, 1:n_spc_best, drop = FALSE]
-  PC_test_final <- predict(PCA_fit_final, Z_test_norm)[, 1:n_spc_best, drop = FALSE]
+  # Fit MFPCA (M=n_pc_max to get max scores)
+  MFPCA_fit <- MFPCA(mFData = predictor_train, mFData_predict = predictor_test, 
+                     M = n_pc_max, uniExpansions = uniExpansions)
   
-  train_data_final_lm <- data.frame(response = y_train_norm, FPC_train_final, PC_train_final)
-  test_data_final_lm <- data.frame(FPC_test_final, PC_test_final)
+  # Fit Scalar PCA (prcomp)
+  PCA_fit <- prcomp(Z_train_norm, center = FALSE, scale = FALSE)
   
-  # Fit Final Linear Model
-  final_linear_fit <- lm(response ~ ., data = train_data_final_lm)
+  # Extract max scores
+  FPC_score_train_max <- MFPCA_fit$scores
+  FPC_score_test_max <- MFPCA_fit$scores.pred
+  PC_score_train_max <- PCA_fit$x
+  PC_score_test_max <- predict(PCA_fit, Z_test_norm)
   
-  # Predict and Evaluate
-  y_pred_test <- predict(final_linear_fit, test_data_final_lm)
-  final_test_rmse <- sqrt(mean((y_pred_test - y_test_norm)^2))
   
-  # --- 6. Return Results ---
+  # --- 3. Iterate and Fit Models (Testing FPC=npc, PC=npc) ---
+  
+  linear_fit_list <- list()
+  test_rmse_list <- numeric(n_pc_max)
+  
+  for (n_pc in 1:n_pc_max) {
+    
+    # 3a. Select required number of components
+    FPC_train_select <- FPC_score_train_max[, 1:n_pc, drop = FALSE]
+    FPC_test_select <- FPC_score_test_max[, 1:n_pc, drop = FALSE]
+    PC_train_select <- PC_score_train_max[, 1:n_pc, drop = FALSE]
+    PC_test_select <- PC_score_test_max[, 1:n_pc, drop = FALSE]
+    
+    # Create column names
+    col_names_fpc <- paste0("FPC", 1:n_pc)
+    col_names_pc <- paste0("PC", 1:n_pc)
+    
+    # 3b. Prepare data frames for linear model
+    train_data_lm <- data.frame(
+      response = y_train_norm,
+      FPC_train_select,
+      PC_train_select
+    )
+    colnames(train_data_lm)[-1] <- c(col_names_fpc, col_names_pc)
+    
+    test_data_lm <- data.frame(
+      FPC_test_select,
+      PC_test_select
+    )
+    colnames(test_data_lm) <- c(col_names_fpc, col_names_pc)
+    
+    # 3c. Fit Linear Regression
+    linear_fit_list[[n_pc]] <- lm(response ~ ., data = train_data_lm)
+    
+    # 3d. Predict and Calculate RMSE on Test Set
+    y_pred_test <- predict(linear_fit_list[[n_pc]], test_data_lm)
+    test_rmse_list[n_pc] <- sqrt(mean((y_pred_test - y_test_norm)^2))
+  }
+  
+  # --- 4. Select Best Model ---
+  n_pc_best <- which.min(test_rmse_list)
+  best_rmse <- test_rmse_list[n_pc_best]
+  best_fit <- linear_fit_list[[n_pc_best]]
+  
+  # --- 5. Return Results ---
   return(list(
-    n_fpc_best = n_fpc_best,
-    n_spc_best = n_spc_best,
-    test_rmse = final_test_rmse,
-    final_model = final_linear_fit,
-    regression_coefficients = coef(final_linear_fit)
+    n_pc_best = n_pc_best,
+    best_test_rmse = best_rmse,
+    test_rmse_by_n_pc = test_rmse_list,
+    final_model = best_fit,
+    model_list = linear_fit_list,
+    regression_coefficients = coef(best_fit)
   ))
 }
 ```
