@@ -3024,224 +3024,156 @@ fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_pc_max = 10) {
 ```
 
 
+# data generation
 
-
+## matrix normal
 ```{r}
-load("C:/Users/jongmin/Documents/GitHub/fsPLS/simul/graphical_high_correlation/graphical_data.RData")
-```
+trial_name <- "matrix_normal"
 
-```{r}
-library(refund)
-eval_point<-seq(1, 100, length.out = 100)/100
-n_iter_max = 40
-n_basis_predictor = 10
-n_scalar <- 9
-library(foreach)
-library(funData)
-f1 = fd2funData(create_mock_fd(N, 1), eval_point)
-f2 = fd2funData(create_mock_fd(N, 2), eval_point)
-uniExpansions <- list(
-  list(type = "uFPCA", nbasis = n_basis_predictor, npc = n_iter_max),
-  list(type = "uFPCA", nbasis = n_basis_predictor, npc = n_iter_max)
-)
-
-n_fold = 5
-n_scalar <- 9
-rmse_simul_fpca <- matrix(NA, nrow = n_rep, ncol = 3)
-colnames(rmse_simul_fpca) <- c("FPC+PC", "FPC_only", "PC_only")
-```
-
-```{r}
-N <- 30
-response <- c(1:N)
-TRAIN_RATIO <- 0.7
-create_mock_fd <- function(N_samples, seed) {
-  set.seed(seed)
-  mock_basis <- create.bspline.basis(rangeval = c(0, 1), nbasis = 20)
-  C <- matrix(rnorm(20 * N_samples, mean = 10), nrow = 20)
-  fd(C, mock_basis)
+setwd("~")
+if (
+  substr(getwd(), nchar(getwd())-10+1, nchar(getwd())) == "/Documents"
+){
+  wd_now <-  substr(getwd(), 1, nchar(getwd())-10)
+}else{
+  wd_now <- getwd()
 }
-# 1. Setup Mock Hybrid Input
-W_hybrid_mock <- predictor_hybrid(
-  Z = matrix(1:(10*N), ncol = 10), # Simple sequential scalar data for verification
-  functional_list = list(
-    create_mock_fd(N, 1),
-    create_mock_fd(N, 2)
-  )
+packagepath <- paste0( wd_now, "/Documents/GitHub/fsPLS") #mac
+datapath <- paste(
+  wd_now,
+  paste("Documents/GitHub/fsPLS/simul/data_generation", trial_name, sep = "/"),
+  sep = "/"
 )
 
-# 2. Split the data first
-split_obj <- split_and_normailize.all(W_hybrid_mock, response, TRAIN_RATIO)
+devtools::load_all(packagepath)
 
- 
-```
-```
+##### parameter settings by user ######
+n_rep    <- 100
+n_sample <- 100
+n_eval            <- 99
+n_predictor_scalar <- 16
+test.ratio <- 0.3
+train.ratio <- 1 - test.ratio
+# parameters for predictor generation
+ar_slope <- 0.9
+gaussian_bandwidth <- 15
+freq_1 <- 10
+freq_2 <- 20
+signal_noise_ratio <- 0.9
+scalar_signal_ratio <- 0.1
+
+n_basis_predictor <- 20
+
+# parameters for coefficient generation
+n_basis_coef      <- 30
+cycle_1 <- 5
+cycle_2 <- 1
+
+reg_coef_1_formula <- function(x){2 * sin(0.5*cycle_1*pi*x) + 4* sin(1.5*cycle_1*pi*x) + 5 * sin( 2.5 * cycle_1*pi * x)}
+reg_coef_2_formula <- function(x){
+  exp(
+    -(cycle_2*(x-0.2)^2)/(0.04^2) )-
+    exp( -(cycle_2*(x-0.4)^2)/(0.04^2) ) +
+    exp( -(cycle_2*(x-0.6)^2)/(0.04^2) ) -
+    exp(  -(cycle_2*(x-0.8)^2)/(0.04^2) )}
 
 
-```{r}
-    predictor_cv_train <- multiFunData(
-f1, f2
+
+##########################################
+##########################################
+
+# predictor generating parameters
+eval_point      <- seq(0,1, length = n_eval)
+basis_predictor <- create.bspline.basis(rangeval = c(0,1), nbasis = n_basis_predictor)
+lambda_pls_base <- max(abs(inprod(basis_predictor, basis_predictor)))/max(abs(getbasispenalty(basis_predictor)))
+
+## functional regression coefficient
+basis_reg_coef  <- create.bspline.basis(rangeval = c(0,1), nbasis = n_basis_coef)
+reg_coef_1 <- fda::Data2fd(argvals = eval_point, y = as.vector(reg_coef_1_formula(eval_point)), basisobj = basis_reg_coef)
+reg_coef_2 <- fda::Data2fd(argvals = eval_point, y = as.vector(reg_coef_2_formula(eval_point)), basisobj = basis_reg_coef)
+#
+## scalar regression coefficient
+set.seed(1); scalar_reg_coef <- round( rnorm(n_predictor_scalar, 0, 1), 1 )
+
+
+
+
+
+
+
+# part II. data generation
+data_fun_1 <- data_fun_2<- data_scalar <- signal_functional <- signal_scalar <- signal_total <- response <- list()
+U_half <- matrix(rnorm(9), nrow=3)
+#U = U_half %*% t(U_half)
+#U
+U <- matrix(
+  c(0.3585408, 0.3821649, 0.4974333,
+       0.3821649, 5.6928664, 0.2608125,
+       0.4974333, 0.2608125, 1.6703254
+       ), nrow = 3)
+for (rep_number in 1:n_rep){
+  set.seed(rep_number*10)
+  vec_1 <- matrix(NA, nrow=n_sample, ncol = n_eval)
+  vec_2 <- matrix(NA, nrow=n_sample, ncol = n_eval)
+  vec_3 <- matrix(NA, nrow=n_sample, ncol = n_eval)
+  for (obs in 1:n_sample){
+    realization <- rmatrixnorm(1,
+                               mean = matrix(0, nrow = 3, ncol = n_eval),
+                               U = U, V=solve(ar1_cov(n_eval,ar_slope,1))
     )
-    MFPCA(mFData = predictor_cv_train, mFData_predict = predictor_cv_train, M = 5, uniExpansions = uniExpansions)
-```
-
-
-```{r}
-
-
-
-
-  train_test_idx <- create_idx_train_test(n_sample, train.ratio)
-  train_test_split <- split.all(data_fun_1[[rep_number]], data_fun_2[[rep_number]], data_scalar[[rep_number]], response[[rep_number]], train_test_idx)
-  train_test_split_normalized <- split_and_normailize.all(train_test_split)
-
-  kfold_idx <- create_idx_kfold(length(train_test_idx$idx_train), n_fold)
-  cv_mat <- matrix(0, nrow = n_iter_max, ncol = n_scalar)
-  for (fold_num in 1:n_fold){
-    cat(paste0(fold_num, "th fold\n"))
-    #train-valid split (5 fold)
-    train_valid_idx <- kfold_idx[[fold_num]]
-    cv_train_valid_split <- split.all(
-      train_test_split$data_fun_1_train, train_test_split$data_fun_2_train, train_test_split$data_scalar_train, train_test_split$response_train,
-      train_valid_idx)
-
-    #normalizing
-    cv_train_valid_split_normalized <- normailize.all(cv_train_valid_split)
-
-    #format
-
-
-
-
-    predictor_cv_valid <- multiFunData(
-      fd2funData(cv_train_valid_split_normalized$data_fun_1_test, eval_point),
-      fd2funData(cv_train_valid_split_normalized$data_fun_2_test, eval_point)
-    )
-
-    # train FPCA
-
-    MFPCA_fit_cv <- MFPCA(mFData = predictor_cv_train, mFData_predict = predictor_cv_valid, M = n_iter_max, uniExpansions = uniExpansions)
-
-    #train scalar PCA
-    PCA_fit_train <- prcomp(cv_train_valid_split_normalized$data_scalar_train, center=F, scale = F)
-    #validate
-    for (n_fpc in 1:n_iter_max){
-      for (n_spc in 1:n_scalar){
-        cat(paste(n_fpc, n_spc, "\n"))
-        FPC_score_cv <- (MFPCA_fit_cv$scores)[ ,(1:n_fpc)]
-        PC_score_cv <- (PCA_fit_train$x)[ , (1:n_spc)]
-        pc_score_cv_combined <- data.frame(cv_train_valid_split_normalized$response_train, FPC_score_cv, PC_score_cv)
-        colnames(pc_score_cv_combined) <- c(
-          c("response"),
-          paste0( rep("FPC", n_fpc), as.character(1:n_fpc)),
-          paste0( rep("PC", n_spc), as.character(1:n_spc))
-        )
-
-        # fit linear regression
-        rank_now <- rankMatrix(pc_score_cv_combined[,-1])[1]
-        print(rank_now)
-        cat(paste("rank deficient:", (n_fpc + n_spc)-rank_now, "\n"))
-        linear_fit_cv <- lm(response~., data = pc_score_cv_combined)
-
-
-        #validation set pc scores
-        PFC_score_valid <- (MFPCA_fit_cv$scores.pred)[ ,(1:n_fpc)]
-        PC_score_valid <- (predict(PCA_fit_train, cv_train_valid_split_normalized$data_scalar_test))[ , (1:n_spc)]
-        pc_score_valid_combined <- data.frame(PFC_score_valid, PC_score_valid)
-        colnames(pc_score_valid_combined) <- c(
-          paste0( rep("FPC", n_fpc), as.character(1:n_fpc)),
-          paste0( rep("PC", n_spc), as.character(1:n_spc))
-          )
-
-        y_pred <- predict(linear_fit_cv, pc_score_valid_combined)
-        cv_mat[n_fpc, n_spc] <- cv_mat[n_fpc, n_spc] +
-          sqrt( mean( sum( (y_pred - cv_train_valid_split_normalized$response_test)^2 ) ))
-        }
-    }
+    vec_1[obs,] <- realization[1,]
+    vec_2[obs,] <- realization[2,]
+    vec_3[obs,] <- realization[3,]
   }
-    n_iter_best <- arrayInd(which.min(cv_mat), dim(cv_mat))
-    n_fpc_best  <- n_iter_best[1]
-    n_spc_best  <- n_iter_best[2]
-    print(n_fpc_best)
-    print(n_spc_best)
 
-    predictor_final_train <- multiFunData(
-      fd2funData(train_test_split_normalized$data_fun_1_train, eval_point),
-      fd2funData(train_test_split_normalized$data_fun_2_train, eval_point)
-    )
-    predictor_final_test <- multiFunData(
-      fd2funData(train_test_split_normalized$data_fun_1_test, eval_point),
-      fd2funData(train_test_split_normalized$data_fun_2_test, eval_point)
-    )
-
-    # train FPCA and scalar PCA
-    MFPCA_fit_final <- MFPCA(mFData = predictor_final_train, mFData_predict = predictor_final_test, M = n_fpc_best, uniExpansions = uniExpansions)
-    PCA_fit_final <- prcomp(train_test_split_normalized$data_scalar_train, center=F, scale = F)
-    PFC_score_final_train <- MFPCA_fit_final$scores
-    PC_score_final_train <- (predict(PCA_fit_final, train_test_split_normalized$data_scalar_train))[,c(1:n_spc_best)]
-    pc_score_final_train_combined <- data.frame(train_test_split_normalized$response_train, PFC_score_final_train, PC_score_final_train)
-    colnames(pc_score_final_train_combined) <- c(
-      c("response"),
-      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best)),
-      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
-    )
-    linear_fit_final <- lm(response~., data = pc_score_final_train_combined)
-
-    # test set pc scores
-    PFC_score_final_test <- MFPCA_fit_final$scores.pred
-    PC_score_final_test <- (predict(PCA_fit_final, train_test_split_normalized$data_scalar_test))[,c(1:n_spc_best)]
-    pc_score_final_test_combined <- data.frame(PFC_score_final_test, PC_score_final_test)
-    colnames(pc_score_final_test_combined) <- c(
-      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best)),
-      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
-    )
-    y_pred_final <- predict(linear_fit_final, pc_score_final_test_combined)
-    rmse_simul_fpca[rep_number,1] <- sqrt(
-      mean((y_pred_final - train_test_split_normalized$response_test)^2)
+  data_fun_1[[rep_number]] <- fda::Data2fd(argvals = eval_point,
+                                           y = t(vec_1),
+                                           basisobj = basis_predictor)
+  data_fun_2[[rep_number]] <- fda::Data2fd(argvals = eval_point,
+                                           y = t(vec_2),
+                                           basisobj = basis_predictor)
+  scalar.predictor <- matrix(NA, nrow = n_sample, ncol = n_predictor_scalar)
+  for (ii in 1:n_sample){
+    signal.mixture.chunk <-
+      scalar.predictor[ii,] <- as.numeric(
+        lapply(
+          chunk2(
+            vec_3[ii,],
+            n_predictor_scalar
+          ),
+          mean)
       )
-    print(rmse_simul_fpca[rep_number,1])
+  }
+  data_scalar[[rep_number]] <- scalar.predictor
+
+  signal_functional[[rep_number]] <- inprod(reg_coef_1, data_fun_1[[rep_number]]) + inprod(reg_coef_2, data_fun_2[[rep_number]])
+  signal_scalar[[rep_number]]  <- t(data_scalar[[rep_number]] %*% scalar_reg_coef)
+} # less than 10 seconds on laptop
 
 
-    plot(-0.2:0.2, -0.2:0.2, pch = "", xlim = c(-0.2, 0.2),  ylim = c(-0.2, 0.2))
-    plot(train_test_split_normalized$response_test, y_pred_final)
-    abline(a=0, b=1)
+signal_multiplier <- (var(unlist(signal_functional)) / var(unlist(signal_scalar)))/9
+
+for (rep_number in 1:n_rep){
+  data_scalar[[rep_number]]   <- sqrt(signal_multiplier) * data_scalar[[rep_number]]
+  signal_scalar[[rep_number]] <- sqrt(signal_multiplier) * signal_scalar[[rep_number]]
+  signal_total[[rep_number]] <- signal_functional[[rep_number]] +  signal_scalar[[rep_number]]
+}
 
 
-    pc_score_final_train_combined_fpc_only <- data.frame(train_test_split_normalized$response_train, PFC_score_final_train)
-    colnames(pc_score_final_train_combined_fpc_only) <- c(
-      c("response"),
-      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best))
-    )
-    linear_fit_final_fpc_only <- lm(response~., data = pc_score_final_train_combined_fpc_only)
-    pc_score_final_test_combined_fpc_only <- data.frame(PFC_score_final_test)
-    colnames(pc_score_final_test_combined_fpc_only) <- c(
-      paste0( rep("FPC", n_fpc_best), as.character(1:n_fpc_best))
-    )
-    y_pred_final_fpc_only <- predict(linear_fit_final_fpc_only, pc_score_final_test_combined_fpc_only)
-    rmse_simul_fpca[rep_number,2] <- sqrt(
-      mean((y_pred_final_fpc_only - train_test_split_normalized$response_test)^2)
-    )
-    print(rmse_simul_fpca[rep_number,2])
+# generate response
+noise_var <- 1/9 * var(unlist(signal_total))
+for (rep_number in 1:n_rep){
+  response[[rep_number]] <- signal_total[[rep_number]]+ sqrt(noise_var)*rnorm(n_sample, 0, 1)
+}
 
-    pc_score_final_train_combined_spc_only <- data.frame(train_test_split_normalized$response_train, PC_score_final_train)
-    colnames(pc_score_final_train_combined_spc_only) <- c(
-      c("response"),
-      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
-    )
-    linear_fit_final_spc_only <- lm(response~., data = pc_score_final_train_combined_spc_only)
-    pc_score_final_test_combined_spc_only <- data.frame(PC_score_final_test)
-    colnames(pc_score_final_test_combined_spc_only) <- c(
-      paste0( rep("PC", n_spc_best), as.character(1:n_spc_best))
-    )
-    y_pred_final_spc_only <- predict(linear_fit_final_spc_only, pc_score_final_test_combined_spc_only)
-    rmse_simul_fpca[rep_number,3] <- sqrt(
-      mean((y_pred_final_spc_only - train_test_split_normalized$response_test)^2)
-    )
-    print(rmse_simul_fpca[rep_number,3])
+save(response, data_fun_1, data_fun_2,data_scalar, response, response, eval_point, n_sample, n_basis_predictor, n_rep, lambda_pls_base, noise_var,file = "simul_data.RData")
+save.image(paste(datapath, paste0(trial_name, ".RData"), sep = "/")) # creating ".RData" in current working directory
 
 
+```
 
 
+```{r}
 ```
 
 
