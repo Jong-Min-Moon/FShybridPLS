@@ -1734,37 +1734,7 @@ normailize.all <- function(split.all_obj){
 
 
 ### curve_normalize
-Subtracts the mean function and divides by a scaling constant (deno). This implementation uses the native fda S3 methods (minus.fd and times.fd).
-```{r}
-#' Normalize a functional data object by its mean and standard deviation.
-#'
-#' @param functional fd object (fda package). The functional data to be normalized (N samples).
-#' @param mean_functional fd object (fda package). The mean function (1 sample).
-#' @param deno Numeric scalar. The standard deviation or scaling factor.
-#' @return A new fd object containing the normalized functions.
-#' @export
-curve_normalize <- function(functional, mean_functional, deno) {
-  # Type checks
-  stopifnot(
-    "'functional' must be an 'fd' object" = inherits(functional, "fd"),
-    "'mean_functional' must be an 'fd' object" = inherits(mean_functional, "fd"),
-    "'deno' must be a single positive numeric value" = is.numeric(deno) && length(deno) == 1 && deno > 0
-  )
-  
-  # 1. Centering: functional - mean_functional
-  # fda::minus.fd handles the broadcasting of the single-sample mean_functional.
-  centered_functional <- fda::minus.fd(functional, mean_functional)
-  
-  # 2. Scaling: (1/deno) * centered_functional
-  functional_normalized <- fda::times.fd(1/deno, centered_functional)
-  
-  return(functional_normalized)
-}
-```
-
-
-
-
+Subtracts the mean function and divides by a scaling constant (deno). This implementation does not use the native fda S3 methods (minus.fd and times.fd), since they do not broadcast well.
 ```{r}
 #' 
 #' @export
