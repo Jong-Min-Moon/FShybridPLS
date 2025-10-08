@@ -711,6 +711,126 @@ replace_obs_hybrid <- function(W, i, new_W) {
 }
 ```
  
+ 
+ 
+ 
+```{r}
+#' @export
+#' 
+#' 
+# --- 1. Define the S4 Generic Function ---
+# This must be run first to tell R that 'add_broadcast' is a function 
+# that can have methods defined for different classes.
+setGeneric("add_broadcast", function(input, other, alpha = 1) {
+  standardGeneric("add_broadcast")
+})
+
+# --- 2. Define the S4 Method for 'matrix' Class ---
+setMethod("add_broadcast", "matrix",
+###########################################
+function(input, other, alpha = 1){
+  
+  # 1. Structural Check: Ensure RHS is a single observation.
+  # This uses length() for vectors, and dim()[1] for matrices.
+  is_matrix_other <- is.matrix(other)
+  if (is_matrix_other && dim(other)[1] > 1) {
+    stop("RHS must have a single observation (row).")
+  }
+  
+  # 2. Conversion: Convert a single-row matrix into a vector for broadcasting.
+  # If 'other' is already a vector, this does nothing.
+  # If 'other' is a 1xP matrix, this flattens it into a length-P vector.
+  if (is_matrix_other) {
+    other <- as.vector(other) 
+  }
+  
+  # 3. Native Arithmetic: Use simple R arithmetic for high performance.
+  # R broadcasts the vector 'other' across the rows of the matrix 'input'.
+  return( t( t(input) + alpha * other))
+}
+###########################################
+)
+
+```
+
+
+```{r}
+# Test script to showcase R's built-in broadcasting (recycling) rules.
+
+# --- 1. Setup ---
+
+# An N x P matrix (4 rows, 3 columns)
+N <- 4
+P <- 3
+A <- matrix(
+  1:12, 
+  nrow = N, 
+  ncol = P, 
+  byrow = TRUE,
+  dimnames = list(paste0("Row", 1:N), paste0("Col", 1:P))
+)
+
+# CRITICAL CHANGE: Define the small operand as a VECTOR of length P.
+B_vec <- c(100, 200, 300)
+
+# A scalar multiplier
+alpha <- 0.5
+
+cat("--- R Broadcasting Demonstration (Vector Correction) ---\n\n")
+
+cat("Matrix A (4x3):\n")
+print(A)
+
+cat("\nVector B_vec (length 3, NOT a matrix):\n")
+print(B_vec)
+
+cat("\n--- Explanation of the previous error: ---\n")
+cat("When B was a 1x3 matrix, R required 4x3 + 4x3. The error was correct for matrix addition.\n")
+cat("When B is a vector, R uses the 'recycling rule' and repeats the vector row-wise.\n")
+
+
+# --- 2. Demonstration: Simple Addition (A + B_vec) ---
+
+# R automatically repeats B_vec 4 times across the rows of A. This works!
+C_sum <- A + B_vec
+
+cat("\n--- Result 1: A + B_vec (Native R Broadcasting Successful) ---\n")
+cat("Expected: B_vec added to every row of A.\n")
+print(C_sum)
+
+# Verification Test: Check the first row
+expected_row1 <- A[1, ] + B_vec
+actual_row1 <- C_sum[1, ]
+stopifnot(isTRUE(all.equal(actual_row1, expected_row1)))
+cat("\nVerification: First row matches (1 + 100, 2 + 200, 3 + 300). SUCCESS.\n")
+
+
+# --- 3. Demonstration: Addition with Scaling (A + alpha * B_vec) ---
+
+# R performs the scalar multiplication first, then broadcasts the resulting vector.
+C_scaled_sum <- add_broadcast(A, B_vec, alpha)
+ 
+cat("\n--- Result 2: A + alpha * B_vec (Native R Broadcasting) ---\n")
+cat("Expected: Scaled B_vec ([50, 100, 150]) added to every row of A.\n")
+print(C_scaled_sum)
+
+# Verification Test: Check the second row
+expected_scaled_row2 <- A[2, ] + alpha * B_vec
+actual_scaled_row2 <- C_scaled_sum[2, ]
+stopifnot(isTRUE(all.equal(actual_scaled_row2, expected_scaled_row2)))
+cat("\nVerification: Second row matches (4 + 50, 5 + 100, 6 + 150). SUCCESS.\n")
+
+
+```
+
+
+setMethod("subtr_broadcast", "matrix",
+###########################################
+function(input, other, alpha = 1){
+  return(add_broadcast(input, other, (-1*alpha)))
+  }
+###########################################
+)
 
 
 
@@ -1750,16 +1870,11 @@ curve_normalize <- function(functional, mean_functional, deno){
 }
 ```
 
-
-
+### curve_normalize_train_test
+Normalizes the functional components of both the training and testing 'predictor_hybrid' objects using the mean and standard deviation derived ONLY from the training data. The scalar components (Z) are left unchanged.
 
 ```{r}
 #' Normalize Functional Predictors in Hybrid Objects (Train/Test Split)
-#'
-#' Normalizes the functional components of both the training and testing 
-#' `predictor_hybrid` objects using the mean and standard deviation derived
-#' ONLY from the training data. The scalar components (Z) are left unchanged.
-#'
 #' @param train A `predictor_hybrid` object representing the training set.
 #' @param test A `predictor_hybrid` object representing the testing set.
 #' @return A list containing:

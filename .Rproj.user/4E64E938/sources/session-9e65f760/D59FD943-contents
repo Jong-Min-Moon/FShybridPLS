@@ -715,15 +715,38 @@ replace_obs_hybrid <- function(W, i, new_W) {
  
  
 ```{r}
+#' @export
+#' 
+#' 
+# --- 1. Define the S4 Generic Function ---
+# This must be run first to tell R that 'add_broadcast' is a function 
+# that can have methods defined for different classes.
+setGeneric("add_broadcast", function(input, other, alpha = 1) {
+  standardGeneric("add_broadcast")
+})
+
+# --- 2. Define the S4 Method for 'matrix' Class ---
 setMethod("add_broadcast", "matrix",
 ###########################################
 function(input, other, alpha = 1){
-  if(is.vector(other)){
-    other <- matrix(other, nrow = 1)
-  }else if(dim(other)[1] >1){
-      (stop("RHS must have single observation"))
-    }
-  return(input + rep(alpha, nrow(input) ) %*%  other)
+  
+  # 1. Structural Check: Ensure RHS is a single observation.
+  # This uses length() for vectors, and dim()[1] for matrices.
+  is_matrix_other <- is.matrix(other)
+  if (is_matrix_other && dim(other)[1] > 1) {
+    stop("RHS must have a single observation (row).")
+  }
+  
+  # 2. Conversion: Convert a single-row matrix into a vector for broadcasting.
+  # If 'other' is already a vector, this does nothing.
+  # If 'other' is a 1xP matrix, this flattens it into a length-P vector.
+  if (is_matrix_other) {
+    other <- as.vector(other) 
+  }
+  
+  # 3. Native Arithmetic: Use simple R arithmetic for high performance.
+  # R broadcasts the vector 'other' across the rows of the matrix 'input'.
+  return( t( t(input) + alpha * other))
 }
 ###########################################
 )
@@ -785,8 +808,8 @@ cat("\nVerification: First row matches (1 + 100, 2 + 200, 3 + 300). SUCCESS.\n")
 # --- 3. Demonstration: Addition with Scaling (A + alpha * B_vec) ---
 
 # R performs the scalar multiplication first, then broadcasts the resulting vector.
-C_scaled_sum <- t(t(A) + alpha * B_vec)
-
+C_scaled_sum <- add_broadcast(A, B_vec, alpha)
+ 
 cat("\n--- Result 2: A + alpha * B_vec (Native R Broadcasting) ---\n")
 cat("Expected: Scaled B_vec ([50, 100, 150]) added to every row of A.\n")
 print(C_scaled_sum)

@@ -124,8 +124,8 @@ Verification: First row matches (1 + 100, 2 + 200, 3 + 300). SUCCESS.
 "0","# --- 3. Demonstration: Addition with Scaling (A + alpha * B_vec) ---"
 "0",""
 "0","# R performs the scalar multiplication first, then broadcasts the resulting vector."
-"0","C_scaled_sum <- t(t(A) + alpha * B_vec)"
-"0",""
+"0","C_scaled_sum <- add_broadcast(A, B_vec, alpha)"
+"0"," "
 "0","cat(""\n--- Result 2: A + alpha * B_vec (Native R Broadcasting) ---\n"")"
 "1","
 --- Result 2: A + alpha * B_vec (Native R Broadcasting) ---
