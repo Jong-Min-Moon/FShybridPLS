@@ -1,0 +1,309 @@
+get_pre_corrcov <- function(W, y){
+  n <- W@n_sample
+  K <- W@n_functional
+
+  # building blocks
+  ## 1. C_J : C multiplied by J. Scalable to arbitrary K
+  predictor_first <- W@functional_list[[1]]
+  C_J <- t(predictor_first$coefs) %*% W@jacobian_list[[1]]
+  for (i in 2:K){
+    predictor_now <- W@functional_list[[i]]
+    C_J <- cbind(
+      C_J,
+      t(predictor_now$coefs) %*% W@jacobian_list[[i]]
+    )
+    }
+
+  ## 2. easy ones - covariance
+  J_Ct_y <- t(C_J) %*% y
+  Zt_y <- t(W@Z) %*% y
+
+  #print(J_Ct_y)
+  #print(Zt_y)
+  # V matrix
+  upper_left <- J_Ct_y %*% t(J_Ct_y)
+  upper_right <- J_Ct_y %*% t(Zt_y)
+  lower_left <- t(upper_right)
+  lower_right <- Zt_y %*% t(Zt_y)
+
+  V_star <- cbind(
+    rbind(upper_left, lower_left),
+    rbind(upper_right, lower_right)
+    )/(n^2)
+
+  return(V_star)
+  }
+
+hybrid_from_coef <- function(format, xi_star){
+  M <- dim(format@jacobian_list[[1]])[2] #number of basis
+  K <- length(format@functional_list)
+  for (ii in 1:K){
+    format@functional_list[[ii]] <- fd(
+      coef = as.matrix(xi_star[((ii-1)*M + 1): (ii*M)]),
+      basisobj = format@functional_list[[ii]]$basis
+    )
+  }
+  format@Z <- t(as.matrix(xi_star[(K * M + 1):length(xi_star)]))
+  format@n_sample <- 1
+  return(format)
+  }
+
+get_pls_comp <- function(W, y, L, verbose){
+  # W: hybrid predictor
+  # y: response vector
+  # L: regularization hyperparameter
+
+  V_star <- get_pre_corrcov(W, y)
+  if(verbose==T)cat(paste0("V_star: ",det(V_star)))
+  #Last paragraph of section 3.2. To solve (6) in practice...
+  #A <- t(solve(L, t(V_star))) # A = V* t(inv(L))
+  #E <- solve(L, A) # E = inv(L) A
+
+  invL <- Matrix::chol2inv(L)
+  A <- V_star %*% t(invL) # A = V* t(inv(L))
+  E <- invL %*% A # E = inv(L) A
+
+
+  eigen_result <- eigen(E)
+  #cat("eigenvalues: ", eigen_result$values)
+  e <- eigen_result$vectors[, 1]
+  if(is.complex(e)){
+    return("stop")
+  }
+  #e <- e / Matrix::norm(e, "2") #normalize; omitted by request of Dr. Jang
+  #xi_star <- solve(t(L), e) # t(L) xi* = e, basis coefficient of estimated PLS component
+  xi_star <- t(invL) %*% e
+  xi_hat <- hybrid_from_coef(format = W, xi_star = xi_star) #estimated PLS component
+  return(
+    list(
+      xi_hat = xi_hat,
+      E = E,
+      V_star = V_star,
+      eigen_val = eigen_result$values[1]
+      )
+  )
+  }
+
+get_jacobian_hybrid <- function(W){
+  J_star <- bdiag(W@jacobian_list)
+  J_star <- bdiag(J_star, diag(W@n_scalar))
+  return(J_star)
+  }
+
+get_penalty_hybrid <- function(W){
+  J_dotdot_star <- getbasispenalty(W@functional_list[[1]]$basis)
+  for (ii in 2:(W@n_functional)){
+    J_dotdot_star <- bdiag(
+      J_dotdot_star,
+      getbasispenalty(W@functional_list[[ii]]$basis)
+    )
+    }
+  J_dotdot_star <- bdiag(
+    J_dotdot_star,
+    matrix(0, nrow = W@n_scalar, ncol = W@n_scalar)
+    )
+  return(J_dotdot_star)
+  }
+
+get_smoothing_param_hybrid <- function(W, lambda){
+  #lambda: list of length K (=n_functional)
+  lambda_mat <- lambda[1] * diag(W@functional_list[[1]]$basis$nbasis)
+  for (ii in 2:(W@n_functional)){
+    n_basis_now <- dim(W@jacobian_list[[ii]])[2]
+    lambda_mat <- bdiag(
+      lambda_mat,
+      lambda[ii] * diag(W@functional_list[[ii]]$basis$nbasis)
+    )
+      }
+  lambda_mat <- bdiag(
+    lambda_mat,
+    matrix(0, nrow = W@n_scalar, ncol = W@n_scalar)
+  )
+}
+
+LSE_ptws <- function(input, rho) {
+            rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
+            nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
+            return(nu)
+}
+
+LSE_hybrid <- function(W, rho, tau) {
+  C_star_J_star <- matrix(NA, nrow = W@n_sample, ncol = sum(W@n_basis_list) + W@n_scalar)
+  for (ii in (1 : W@n_functional)){
+    cumsum_n_basis_now <- sum(W@n_basis_list[1:ii])
+    n_basis_now <- W@n_basis_list[ii]
+    C_star_J_star[, (cumsum_n_basis_now - n_basis_now + 1) :cumsum_n_basis_now] <-
+      t(W@functional_list[[ii]]$coefs) %*% W@jacobian_list[[ii]]
+  }
+  C_star_J_star[ ,(sum(W@n_basis_list) + 1) : ncol(C_star_J_star)] <- W@Z
+  rho_t_C_star_J_star <- t(rho) %*% C_star_J_star
+
+  # matrices in the statement of Proposition 4
+  J_star <-as.matrix(get_jacobian_hybrid(W))
+  d_hat_star <- t( #basis coefficient of hybrid regression coefficient
+    solve(
+      t((norm(rho, type="2"))^2 * J_star),
+      t(rho_t_C_star_J_star)
+      )
+    )
+  delta_hat <- hybrid_from_coef(W, d_hat_star) #hybrid regression coefficient
+  return(delta_hat)
+  }
+# inputs:
+#   W = centered predictor
+#   y = response
+#   L = number of iterations
+#   lambda = hyperparameter
+#   tau = hyperparmeter
+#
+# outputs:
+#   rho[[l]]   = lth estimated pls score (=inner product. scalar.)
+#   xi[[l]]    = lth estimated pls component
+#   delta[[l]] = lth LSE of regression coefficient for predictor residualization
+#   nu[[l]]    = lth LSE of regression coefficient for response residualization
+#
+nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
+  # 1. initialize the storage
+  rho <- xi <- delta <- nu  <- sigma <- eta <- list()
+  E <- V_star <- eigen_val <-list()
+  fitted_value_W <- fitted_value_y <-list()
+  resid_y <- W_now <- list() #data for iteration
+  first_eigen_val <- mse_W <- mse_y <-rep(NA, n_iter)
+
+
+  # 2. constraint matrix is the same at every iteration
+  J_star          <- get_jacobian_hybrid(W)
+  J_dotdot_star   <- get_penalty_hybrid(W)
+  lambda_mat      <- get_smoothing_param_hybrid(W, lambda)
+  constr_mat      <- J_star + (lambda_mat %*% J_dotdot_star) # denominator in the equation (6)
+  constr_mat_chol <- t(chol(constr_mat))
+
+  W_now[[1]] <- W
+  y_now <- y
+  final_succesful_iteration <- 0
+  for (l in 1:n_iter) {
+    #cat(paste("#############################################", "\n"))
+    if(verbose==T)cat(paste(l, "th component", "\n"))
+
+    # STEP 1. calculate pls score
+    pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
+    if(!is.list(pls_result_now)){break}
+
+    xi[[l]] <- pls_result_now$xi # pls component. Section 3.2
+    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]]) # pls scores : n_sample * 1 matrix
+
+    # STEP 2. residulize
+    # residualize predictor: hybrid (W) on scalar (rho) linear regression with n_sample observations
+    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]]) #single obs of hybrid predictor
+
+    fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
+    W_now[[l+1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
+    # residualize resoponse
+    nu[[l]] <- LSE_ptws(y_now, rho[[l]]) #scalar on scalar linear regression with n_sample observations
+    fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
+    y_now <- y_now - fitted_value_y[[l]]
+    resid_y[[l]] <- y_now
+
+    #check mean norm
+    #mse_W[l] <- mean_sum_sqrd(W_now[[l]])
+    #mse_y[l] <- norm(y_now,"2")
+
+    #cat("W:", mse_W[l], "\n")
+    #cat("y:",  mse_y[l], "\n\n")
+
+    # STEP 3.
+    sigma[[l]] <- xi[[l]]
+    if (l == 1) {
+      eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+    }else{ # if l > 1
+      for (u in 1:(l - 1)){
+        sigma[[l]] <- subtr( sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]) )
+      } #end of u-loop
+      eta[[l]] <- add(eta[[l-1]], sigma[[l]], nu[[l]])
+    }#if statement
+
+    # just for records.
+    E[[l]] <- pls_result_now$E # for monitoring symetricity
+    V_star[[l]] <- pls_result_now$V_star
+    eigen_val[[l]] <- pls_result_now$eigen_val
+    first_eigen_val[l] <- eigen_val[[l]][1]
+    final_succesful_iteration <- l
+  }# for loop: l
+
+pls_object <- new(
+  "hybrid_pls_result",
+                    eta = eta,
+                    xi = xi,
+                    nu = nu,
+                    rho = rho,
+                    delta = delta,
+                    L_mat = constr_mat_chol,
+                    V_star = V_star,
+                    E = E,
+                    eigen_val = eigen_val,
+                    first_eigen_val = first_eigen_val,
+                    J_Lambda_Jpp = constr_mat,
+                    #mse_W = mse_W,
+                    #mse_y = mse_y,
+                    resid_y = resid_y,
+                    fitted_value_W = fitted_value_W,
+                    fitted_value_y = fitted_value_y,
+                    W_now = W_now,
+                    final_succesful_iteration = final_succesful_iteration
+)
+  return(pls_object)
+  #cat(paste("#############################################", "\n"))
+}#end of the function
+
+
+
+
+
+
+
+
+setClass(
+  "hybrid_pls_result",
+  representation(
+    eta = "list", #estimated regression coefficient function
+    xi = "list",
+    nu = "list",
+    rho = "list",
+    delta = "list",
+    E = "list",
+    V_star = "list",
+    eigen_val = "list",
+    first_eigen_val = "vector",
+    J_Lambda_Jpp = "dgCMatrix",
+    L_mat= "dtCMatrix",
+    resid_y = "list",
+    #mse_W = 'vector',
+    #mse_y = 'vector',
+    fitted_value_W = "list",
+    fitted_value_y = "list",
+    W_now = "list",
+    final_succesful_iteration = "numeric"
+  ))
+
+setMethod("predict", signature(object = "hybrid_pls_result"),
+######################################################
+function(object, ...){
+  max_iter = length(object@eta)
+  dots <- list(...)
+  if (length(dots) == 0){ # i.e. dots are not provided - just give fitted values
+    return(
+      hybrid_inner_prod(
+        (object@W_now)[[1]], (object@eta)[[max_iter]])
+      )
+    }else{
+      new_data <- dots[[1]]
+      iter <- min(object@final_succesful_iteration, dots[[2]])
+      if (iter==0){return(Inf)}else{
+        return(
+          hybrid_inner_prod(new_data, (object@eta)[[iter]])      )
+      }
+
+
+    }
+  }
+)

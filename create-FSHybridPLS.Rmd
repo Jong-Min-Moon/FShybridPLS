@@ -203,7 +203,7 @@ The class definition is a simple list that contains a matrix and a collection of
 #'
 #' @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #' @export
-predictor_hybrid <- function(Z, functional_list) {
+predictor_hybrid <- function(Z, functional_list, eval_point) {
   stopifnot(is.matrix(Z), is.numeric(Z))
   stopifnot(is.list(functional_list))
 
@@ -237,6 +237,7 @@ predictor_hybrid <- function(Z, functional_list) {
     list(
       Z = Z,
       functional_list = functional_list,
+      eval_point = eval_point,
       gram_list = gram_list,
       gram_deriv2_list = gram_deriv2_list, # Store the new list
       n_basis_list = n_basis_list,
@@ -2614,7 +2615,7 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
 ```
 
 
-
+### .PACE
 
 ```{r}
 .PACE <- function(X, Y, Y.pred = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
@@ -2705,6 +2706,7 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
 }
 ```
 
+### PACE
 
 ```{r}
 PACE <- function(funDataObject, predData = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
@@ -2763,6 +2765,7 @@ PACE <- function(funDataObject, predData = NULL, nbasis = 10, pve = 0.99, npc = 
 }
 ```
 
+### expandBasisFunction
 
 ```{r}
 expandBasisFunction <- function(scores, argvals = functions@argvals, functions)
@@ -2807,6 +2810,7 @@ expandBasisFunction <- function(scores, argvals = functions@argvals, functions)
 ```
 
 
+### univExpansion
 
 ```{r}
 univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), functions@argvals, NULL), functions, params = NULL)
@@ -2888,6 +2892,172 @@ univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), fu
   return(res)
 }
 ```
+
+## end-to-end MFPCA regression method
+
+```{r}
+# --- 1. MAIN FUNCTION: fit.mfpca_regression ---
+
+#' End-to-End MFPCA Regression Pipeline
+#'
+#' Performs sample splitting, normalization, cross-validation (CV) to select
+#' optimal functional (FPC) and scalar (SPC) components, linear regression fitting,
+#' and test set prediction.
+#'
+#' @param W predictor_hybrid object containing all predictors.
+#' @param y Vector. Response variable.
+#' @param train_ratio Numeric scalar between 0 and 1 for splitting data (default 0.7).
+#' @param n_fold Integer. Number of folds for cross-validation (default 5).
+#' @param n_fpc_max Integer. Max number of FPCs to consider in CV (default 10).
+#' @param n_spc_max Integer. Max number of SPCs to consider in CV (default 5).
+#' @return List containing the final model fit, optimal parameters, and test MSE.
+#' @export
+fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_fold = 5, n_fpc_max = 10, n_spc_max = 5) {
+  
+  # --- 0. Setup and Initial Checks ---
+  stopifnot(inherits(W, "predictor_hybrid"))
+  
+  # Standard parameters
+  eval_point <- seq(0, 1, length.out = 100)
+  
+  uniExpansions <- list(
+    list(type = "uFPCA", nbasis = 10, npc = n_fpc_max), 
+    list(type = "uFPCA", nbasis = 10, npc = n_fpc_max)
+  )
+  
+  # Adjust max components
+  n_scalar <- W$n_scalar
+  if (n_spc_max > n_scalar) n_spc_max <- n_scalar
+  
+  # --- 1. Split and Normalize Full Data ---
+  
+  split_obj <- split.hybrid(W, y, train_ratio)
+  split_obj_normalized <- normailize.all(split_obj)
+  
+  # Extract components
+  y_train_norm <- split_obj_normalized$response_train
+  Z_train_norm <- split_obj_normalized$data_scalar_train
+  f1_train_norm <- split_obj_normalized$data_fun_1_train
+  f2_train_norm <- split_obj_normalized$data_fun_2_train
+  N_train <- length(y_train_norm)
+  
+  # --- 2. Cross-Validation Setup ---
+  
+  cv_mat <- matrix(Inf, nrow = n_fpc_max, ncol = n_spc_max) 
+  kfold_idx <- create_idx_kfold(N_train, n_fold)
+  
+  # --- 3. Cross-Validation Loop (Find Best n_fpc, n_spc) ---
+  
+  for (fold_num in 1:n_fold) {
+    valid_idx <- kfold_idx[[fold_num]]
+    train_idx_cv <- (1:N_train)[-valid_idx]
+    
+    # 3a. Prepare CV training and validation sets
+    f1_train_cv <- f1_train_norm[train_idx_cv]
+    f2_train_cv <- f2_train_norm[train_idx_cv]
+    f1_valid_cv <- f1_train_norm[valid_idx]
+    f2_valid_cv <- f2_train_norm[valid_idx]
+    
+    # Format functional data
+    predictor_cv_train <- multiFunData(
+      fd2funData(f1_train_cv, eval_point),
+      fd2funData(f2_train_cv, eval_point)
+    )
+    predictor_cv_valid <- multiFunData(
+      fd2funData(f1_valid_cv, eval_point),
+      fd2funData(f2_valid_cv, eval_point)
+    )
+    
+    Z_train_cv <- Z_train_norm[train_idx_cv, , drop = FALSE]
+    Z_valid_cv <- Z_train_norm[valid_idx, , drop = FALSE]
+    y_train_cv <- y_train_norm[train_idx_cv]
+    y_valid_cv <- y_train_norm[valid_idx]
+    
+    # 3b. Fit PCA Models on CV Training Data
+    MFPCA_fit_cv <- MFPCA(mFData = predictor_cv_train, mFData_predict = predictor_cv_valid, 
+                          M = n_fpc_max, uniExpansions = uniExpansions)
+    PCA_fit_cv <- prcomp(Z_train_cv, center = FALSE, scale = FALSE)
+    
+    FPC_scores_train_cv <- MFPCA_fit_cv$scores
+    FPC_scores_valid_cv <- MFPCA_fit_cv$scores.pred
+    PC_scores_train_cv <- PCA_fit_cv$x
+    PC_scores_valid_cv <- predict(PCA_fit_cv, Z_valid_cv)
+    
+    # 3c. Inner Parameter Loop (Fit and Validate)
+    for (n_fpc in 1:n_fpc_max) {
+      for (n_spc in 1:n_spc_max) {
+        
+        # Select components
+        FPC_train_select <- FPC_scores_train_cv[, 1:n_fpc, drop = FALSE]
+        FPC_valid_select <- FPC_scores_valid_cv[, 1:n_fpc, drop = FALSE]
+        PC_train_select <- PC_scores_train_cv[, 1:n_spc, drop = FALSE]
+        PC_valid_select <- PC_scores_valid_cv[, 1:n_spc, drop = FALSE]
+        
+        # Combine selected scores for linear model
+        train_data_lm <- data.frame(response = y_train_cv, FPC_train_select, PC_train_select)
+        valid_data_lm <- data.frame(FPC_valid_select, PC_valid_select)
+        
+        # Fit Linear Regression Model
+        linear_fit_cv <- lm(response ~ ., data = train_data_lm)
+        
+        # Predict, Calculate MSE, and Accumulate
+        y_pred_valid <- predict(linear_fit_cv, valid_data_lm)
+        cv_mat[n_fpc, n_spc] <- cv_mat[n_fpc, n_spc] + mean((y_pred_valid - y_valid_cv)^2)
+      }
+    }
+  }
+  
+  # 4. Select Optimal Parameters
+  min_idx <- arrayInd(which.min(cv_mat), dim(cv_mat))
+  n_fpc_best <- min_idx[1]
+  n_spc_best <- min_idx[2]
+  
+  # --- 5. Final Model Training and Prediction (Full Training Set) ---
+  
+  # Extract final components
+  Z_test_norm <- split_obj_normalized$data_scalar_test
+  f1_test_norm <- split_obj_normalized$data_fun_1_test
+  f2_test_norm <- split_obj_normalized$data_fun_2_test
+  y_test_norm <- split_obj_normalized$response_test
+  
+  # Prepare final functional data
+  predictor_final_train <- multiFunData(fd2funData(f1_train_norm, eval_point), fd2funData(f2_train_norm, eval_point))
+  predictor_final_test <- multiFunData(fd2funData(f1_test_norm, eval_point), fd2funData(f2_test_norm, eval_point))
+  
+  # Fit final PCA models
+  MFPCA_fit_final <- MFPCA(mFData = predictor_final_train, mFData_predict = predictor_final_test, 
+                          M = n_fpc_best, uniExpansions = uniExpansions)
+  PCA_fit_final <- prcomp(Z_train_norm, center = FALSE, scale = FALSE)
+  
+  # Extract and combine final scores
+  FPC_train_final <- MFPCA_fit_final$scores
+  FPC_test_final <- MFPCA_fit_final$scores.pred
+  PC_train_final <- PCA_fit_final$x[, 1:n_spc_best, drop = FALSE]
+  PC_test_final <- predict(PCA_fit_final, Z_test_norm)[, 1:n_spc_best, drop = FALSE]
+  
+  train_data_final_lm <- data.frame(response = y_train_norm, FPC_train_final, PC_train_final)
+  test_data_final_lm <- data.frame(FPC_test_final, PC_test_final)
+  
+  # Fit Final Linear Model
+  final_linear_fit <- lm(response ~ ., data = train_data_final_lm)
+  
+  # Predict and Evaluate
+  y_pred_test <- predict(final_linear_fit, test_data_final_lm)
+  final_test_rmse <- sqrt(mean((y_pred_test - y_test_norm)^2))
+  
+  # --- 6. Return Results ---
+  return(list(
+    n_fpc_best = n_fpc_best,
+    n_spc_best = n_spc_best,
+    test_rmse = final_test_rmse,
+    final_model = final_linear_fit,
+    regression_coefficients = coef(final_linear_fit)
+  ))
+}
+```
+
+
+
 
 ```{r}
 load("C:/Users/jongmin/Documents/GitHub/fsPLS/simul/graphical_high_correlation/graphical_data.RData")
