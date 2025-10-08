@@ -1,5 +1,0 @@
-"0","result <- normailize.all(split_obj)
-"
-"2","Error in curve_normalize_train_test(split.all_obj$data_fun_1_train, split.all_obj$data_fun_1_test) : 
-  'train' must be of class 'predictor_hybrid'
-"

@@ -1777,9 +1777,9 @@ Normalizes the functional components of both the training and testing 'predictor
 #' @param train A `predictor_hybrid` object representing the training set.
 #' @param test A `predictor_hybrid` object representing the testing set.
 #' @return A list containing:
-#'   \item{train}{The normalized training `predictor_hybrid` object.}
-#'   \item{test}{The normalized testing `predictor_hybrid` object.}
-#'   \item{deno_train}{A numeric vector of scaling factors used for each functional predictor.}
+#'   train: The normalized training `predictor_hybrid` object.}
+#'   test: The normalized testing `predictor_hybrid` object.}
+#'   deno_train: A numeric vector of scaling factors used for each functional predictor.}
 #' @export
 curve_normalize_train_test <- function(train, test) {
   # --- Type Checks ---
@@ -1820,20 +1820,19 @@ curve_normalize_train_test <- function(train, test) {
       mean_train[[k]],
       deno_train[k]
     )
-
+    
     # 3. Normalize the TEST set (using train factors to prevent leakage)
     test_normalized$functional_list[[k]] <-
       curve_normalize(
         test$functional_list[[k]], # Use original test data
-        mean_train, # Centered by training mean
+        mean_train[[k]], # Centered by training mean
         deno_train[k] # Scaled by training SD
       )
   }
-  
   # Return the modified hybrid objects and the scaling factors
   return( list(
-    train = train_normalized,
-    test = test_normalized,
+    predictor_train = train_normalized,
+    predictor_test = test_normalized,
     mean_train = mean_train,
     deno_train = deno_train
   ))
@@ -1895,8 +1894,8 @@ scalar_normalize_train_test <- function(predictor_train, predictor_test){
   
   return(
     list(
-      train = predictor_train_normalized,
-      test = predictor_test_normalized,
+      predictor_train = predictor_train_normalized,
+      predictor_test = predictor_test_normalized,
       mean_train = mean_train,
       sd_train = sd_train
     )
@@ -1968,8 +1967,8 @@ btwn_normalize_train_test <- function(train, test){
   
   return(
     list(
-      train = train_normalized,
-      test = test_normalized,
+      predictor_train = train_normalized,
+      predictor_test = test_normalized,
       scaling_factor = scaling_factor
     )
   )
@@ -1983,47 +1982,50 @@ btwn_normalize_train_test <- function(train, test){
 ```{r}
 #' 
 #' @export
-normailize.all <- function(split.all_obj){
-  curve_normalize_result_1 <- curve_normalize_train_test(
-    split.all_obj$data_fun_1_train,
-    split.all_obj$data_fun_1_test)
-  data_fun_1_train <- curve_normalize_result_1$train
-  data_fun_1_test <- curve_normalize_result_1$test
-
-  curve_normalize_result_2 <- curve_normalize_train_test(
-    split.all_obj$data_fun_2_train,
-    split.all_obj$data_fun_2_test)
-  data_fun_2_train <- curve_normalize_result_2$train
-  data_fun_2_test <- curve_normalize_result_2$test
-
-  scalar_normalize_result <- scalar_normalize_train_test(
-    split.all_obj$data_scalar_train,
-    split.all_obj$data_scalar_test)
-  data_scalar_train <- scalar_normalize_result$train
-  data_scalar_test <- scalar_normalize_result$test
-
-  between_normalize_result <- btwn_normalize_train_test(
-    list(data_fun_1_train, data_fun_2_train),
-    data_scalar_train,
-    data_scalar_test
+split_and_normailize.all <- function(W_hybrid, response, train_ratio){
+  
+  
+# $W_hybrid =  W_hybrid_mock
+#$ response
+ 
+# train_ratio = TRAIN_RATIO
+  
+ # split.result <- split.all(W_hybrid, response, train_ratio)
+  
+ #     predictor_train = W_train,
+ #   predictor_test = W_test ,
+ #   response_train = response[train_idx],
+ #   response_test = response[test_idx]
+  
+ # list(
+ #   train = train_normalized,
+ #   test = test_normalized,
+ #   mean_train = mean_train,
+ #   deno_train = deno_train
+#  ))
+   
+  curve_normalize_result <- curve_normalize_train_test(split.result$predictor_train, split.result$predictor_test)
+  scalar_normalize_result <- scalar_normalize_train_test(curve_normalize_result$predictor_train, curve_normalize_result$predictor_test)
+  btwn_normalize_result <- btwn_normalize_train_test(
+    scalar_normalize_result$predictor_train,
+    scalar_normalize_result$predictor_test
   )
-  data_scalar_train <- between_normalize_result$train
-  data_scalar_test <- between_normalize_result$test
-
-  response_mean_train <-  mean(split.all_obj$response_train)
-  response_train <- split.all_obj$response_train - response_mean_train
-  response_test <- split.all_obj$response_test - response_mean_train
-
+  
+  response_mean_train <-  mean(split.result$response_train)
+  response_sd_train <-  sd(split.result$response_train)
+  response_train <- (split.result$response_train - response_mean_train)/response_sd_train
+  response_test <- (split.result$response_test - response_mean_train)/response_sd_train
+  response_normalize_result = list(mean_train = response_mean_train, sd_train = response_sd_train)
   return(
     list(
-      data_fun_1_train = data_fun_1_train,
-      data_fun_2_train = data_fun_2_train,
-      data_scalar_train= data_scalar_train,
-      response_train   = response_train,
-      data_fun_1_test  = data_fun_1_test,
-      data_fun_2_test  = data_fun_2_test,
-      data_scalar_test = data_scalar_test,
-      response_test    = response_test
+      predictor_train = btwn_normalize_result$predictor_train,
+      predictor_test = btwn_normalize_result$predictor_test,
+      response_train = response_train,
+      response_test = response_test,
+      curve_normalize_result = curve_normalize_result,
+      scalar_normalize_result = scalar_normalize_result,
+      btwn_normalize_result = btwn_normalize_result,
+      response_normalize_result = response_normalize_result
     )
   )
 }
@@ -2035,7 +2037,12 @@ normailize.all <- function(split.all_obj){
 N <- 30
 response <- c(1:N)
 TRAIN_RATIO <- 0.7
-
+create_mock_fd <- function(N_samples, seed) {
+  set.seed(seed)
+  mock_basis <- create.bspline.basis(rangeval = c(0, 1), nbasis = 5)
+  C <- matrix(rnorm(5 * N_samples, mean = 10), nrow = 5)
+  fd(C, mock_basis)
+}
 # 1. Setup Mock Hybrid Input
 W_hybrid_mock <- predictor_hybrid(
   Z = matrix(1:(10*N), ncol = 10), # Simple sequential scalar data for verification
@@ -2046,48 +2053,9 @@ W_hybrid_mock <- predictor_hybrid(
 )
 
 # 2. Split the data first
-split_obj <- split.all(W_hybrid_mock, response, TRAIN_RATIO)
+split_obj <- split_and_normailize.all(W_hybrid_mock, response, TRAIN_RATIO)
 
-result <- normailize.all(split_obj)
-
-
-
-# Store initial scalar data for verification BEFORE normailize.all
-initial_scalar_train <- split_obj$data_scalar_train
-initial_scalar_test <- split_obj$data_scalar_test
-initial_response_train_mean <- mean(split_obj$response_train)
-
-# 3. Run the orchestration function
-
-
-
-# --- Verification Checks ---
-cat("--- Verification Checks ---\n")
-
-# V1. Functional Data Processing (using mock coefficient check)
-# Check: Coefficients should be replaced by the mock values (1000, 2000)
-expect_equal(result$data_fun_1_train$coefs[1, 1], 1000)
-expect_equal(result$data_fun_1_test$coefs[1, 1], 2000)
-cat("Functional data integrity check: OK\n")
-
-# V2. Scalar Data Processing (MOCK: (Initial + 10) * 2.5)
-# Check: Scalar data underwent both sequential mock operations
-expected_scalar_train <- (initial_scalar_train + 10) * 2.5
-expected_scalar_test <- (initial_scalar_test + 10) * 2.5
-
-expect_equal(result$data_scalar_train, expected_scalar_train)
-expect_equal(result$data_scalar_test, expected_scalar_test)
-cat("Scalar data transformation check: OK\n")
-
-# V3. Response Centering
-# Check: Response data is centered by the training mean
-expected_response_train <- split_obj$response_train - initial_response_train_mean
-expected_response_test <- split_obj$response_test - initial_response_train_mean
-
-expect_equal(result$response_train, expected_response_train)
-expect_equal(result$response_test, expected_response_test)
-cat("Response data centering check: OK\n")
-cat("--- All Tests Passed Successfully ---\n")
+ 
 ```
 
 

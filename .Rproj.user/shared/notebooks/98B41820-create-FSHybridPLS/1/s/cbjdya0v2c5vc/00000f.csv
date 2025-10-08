@@ -1,0 +1,8 @@
+"0","#'"
+"0","#' @export"
+"0","scalar_normalize <- function(scalar_predictor, mean, deno){"
+"0","   scalar_predictor_normalized <- subtr_broadcast(scalar_predictor, mean) #numerator"
+"0","   deno_mat <- matrix(rep(1,nrow(scalar_predictor))) %*% deno"
+"0","   scalar_predictor_normalized <- scalar_predictor_normalized / deno_mat"
+"0","   return(scalar_predictor_normalized)"
+"0"," }"
