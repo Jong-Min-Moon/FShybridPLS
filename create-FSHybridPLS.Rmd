@@ -1,6 +1,6 @@
 ---
 title: "Creating the ``r params$package_name`` R package"
-author: "Your Name"
+author: "Jongmin Mun"
 date: "The Date"
 knit: litr::render
 output: litr::litr_html_document
@@ -15,17 +15,17 @@ params:
 ## Package setup
 
 We start by specifying the information needed in the DESCRIPTION file of the R package.
- library()
-library(fda)
+ 
+ 
 ```{r package-setup, message=FALSE, results='hide'}
 usethis::create_package(
   path = ".",
   fields = list(
     Package = params$package_name,
     Version = "0.0.0.9000",
-    Title = "A Package That Says Hello",
-    Description = "This package says hello.  But its actual purpose is to show how an R package can be completely coded in a single R markdown file.",
-    Imports = "fda (>= 6.1.3), Matrix, funData, foreach, irlba, refund, R6",
+Title = "Hybrid Penalized Partial Least Squares for Functional and Scalar Data",
+    Description = "Implements a Penalized Partial Least Squares (PLS) regression framework designed for hybrid predictors that combine both functional (infinite-dimensional) and scalar (finite-dimensional) covariates. The algorithm maximizes the covariance between the hybrid predictors and a scalar response variable while incorporating a roughness penalty to ensure the smoothness of the estimated functional coefficient curves. The package includes tools for data simulation using matrix-normal distributions, two-step data normalization, and cross-validated model fitting.",
+    Imports = "fda (>= 6.1.3), Matrix, funData, foreach, irlba, refund, mvnfast, R6",
     `Authors@R` = person(
       given = "First",
       family = "Last",
@@ -37,41 +37,102 @@ usethis::create_package(
 usethis::use_mit_license(copyright_holder = "F. Last")
 ```
 
+#### Table of Contents
+- [Helper Functions](#helper)
+ 
 
-# helper functions
+# Helper Functions {#helper}
+
+### compute_gram_matrix
+
+**Description:**
+Calculates the Gram matrix for a given functional basis. The Gram matrix $G$ is a symmetric positive semi-definite matrix containing the inner products of the basis functions. Specifically, the entry $(i, j)$ corresponds to the integral of the product of the $i$-th and $j$-th basis functions over the domain:
+$$G_{ij} = \langle b_i, b_j \rangle = \int b_i(t) b_j(t) \, dt$$
+
+**Inputs:**
+
+- `basis`: A basis object of class `basisfd` (typically created using the `fda` package).
+
+**Output:**
+
+- Returns a square numeric matrix where the entry at row $i$ and column $j$ is the inner product of basis functions $i$ and $j$.
+
+```{r}
+#' Compute the Gram matrix for a basis object
+#'
+#' This function calculates the inner product of a basis with itself to form
+#' the Gram matrix.
+#'
+#' @param basis A basis object of class `basisfd` from the `fda` package.
+#' @return A square matrix where entry (i,j) is the inner product of basis functions i and j.
+#' @export
+compute_gram_matrix <- function(basis) {
+  # Ensure the input is a valid basis object from the fda package
+  stopifnot(inherits(basis, "basisfd"))
+  
+  # Compute the inner product of the basis with itself
+  # This calculates the integral of b_i(t) * b_j(t) using the metric defined on the basis
+  fda::inprod(basis, basis) 
+}
+```
+
+ 
+
 
 ### is_same_basis
+
+**Description:**
+Checks if two composite functional data objects (represented as lists containing functional data) share the exact same basis functions. It verifies that both lists have the same length and that the basis for every corresponding element is identical.
+
+**Inputs:**
+
+- `input`: A list containing functional data objects (expected to have a `$functional_list` structure).
+- `other`: Another list containing functional data objects to compare against.
+
+**Output:**
+
+- Returns `TRUE` if both lists have the same length and every corresponding basis is equivalent; otherwise returns `FALSE`.
+
 ```{r}
+#' Check if two functional data lists share the same basis
+#'
+#' @description
+#' Checks if two composite functional data objects share the exact same basis functions
+#' by comparing their internal list structures.
+#'
+#' @param input A list containing functional data objects (expected to have a `$functional_list` structure).
+#' @param other Another list containing functional data objects to compare against.
+#' @return `TRUE` if both lists have the same length and every corresponding basis is equivalent; otherwise `FALSE`.
 #' @export
 is_same_basis <- function(input, other) {
   all(
+    # Check if both lists have the same number of functional elements
     length(input$functional_list) == length(other$functional_list),
+    
+    # Check if the basis for each corresponding element is identical
     all(
-      mapply(function(fd1, fd2) fda::is.eqbasis(fd1$basis, fd2$basis),
-             input$functional_list, other$functional_list)
+      mapply(function(fd1, fd2) {
+        # Use fda package function to check basis equality
+        fda::is.eqbasis(fd1$basis, fd2$basis)
+      }, input$functional_list, other$functional_list)
     )
   )
 }
 ```
 
+### are_all_gram_matrices_identical
 
-### compute_gram_matrix
-```{r}
-#' Compute the Gram matrix for a basis object
-#'
-#' @param basis A basis object of class `basisfd` from the `fda` package
-#' @return A square matrix where entry (i,j) is the inner product of basis functions i and j
-#' @export
-compute_gram_matrix <- function(basis) {
-  stopifnot(inherits(basis, "basisfd"))
-  inprod(basis, basis)  # computes ∫ b_i(t) b_j(t) dt
-}
+**Description:**
+Iterates through a list of matrices to verify if they are all numerically identical to the first matrix in the list. This function handles floating-point inaccuracies by using a tolerance parameter.
 
-```
+**Inputs:**
 
+- `gram_list`: A list containing matrix objects to be compared.
+- `tolerance` (Optional): A numeric value defining the tolerance for floating-point comparison. Defaults to the square root of machine epsilon.
 
+**Output:**
 
-
+- Returns `TRUE` if the list is empty, has one element, or if all matrices are identical to the first. Returns `FALSE` if any matrix differs.
 
 ```{r}
 #' Check if all matrices in a list are identical (with tolerance for numeric comparison)
@@ -96,24 +157,24 @@ are_all_gram_matrices_identical <- function(gram_list, tolerance = sqrt(.Machine
     message("The input list contains only one matrix. Returning TRUE.")
     return(TRUE)
   }
-
+  
   # Get the first matrix as the reference
   first_matrix <- gram_list[[1]]
-
+  
   # Ensure the first element is a matrix
   if (!is.matrix(first_matrix)) {
     stop("The first element of 'gram_list' is not a matrix.")
   }
-
+  
   # Iterate from the second matrix onwards and compare with the first
   for (i in 2:length(gram_list)) {
     current_matrix <- gram_list[[i]]
-
+    
     # Ensure current element is a matrix
     if (!is.matrix(current_matrix)) {
       stop(paste("Element", i, "of 'gram_list' is not a matrix."))
     }
-
+    
     # Compare the current matrix with the first matrix
     # all.equal returns TRUE if identical, or a character string describing differences
     # We convert the result to a logical TRUE/FALSE
@@ -123,18 +184,26 @@ are_all_gram_matrices_identical <- function(gram_list, tolerance = sqrt(.Machine
       return(FALSE)
     }
   }
-
+  
   # If the loop completes, all matrices are identical
   return(TRUE)
 }
 ```
 
-
  
-
-## helpers for functional data objects
-
 ### rep_fd
+
+**Description:**
+Takes a list of functional data objects (where each object represents a single sample/curve) and broadcasts them by replicating their coefficients. This creates new functional objects containing $n$ identical copies of the original curve.
+
+**Inputs:**
+
+- `fd_list`: A list of `fd` objects (functional data objects). Each object must have exactly one column of coefficients (a single sample).
+- `n`: An integer specifying the number of replications desired.
+
+**Output:**
+
+- Returns a list of `fd` objects, where each object now contains $n$ replications of the original coefficients.
 
 ```{r}
 #' Replicate a list of single-sample fd objects multiple times
@@ -148,97 +217,106 @@ are_all_gram_matrices_identical <- function(gram_list, tolerance = sqrt(.Machine
 #' @return A list of `fd` objects, each with `n` replications.
 #' @export
 rep_fd <- function(fd_list, n) {
+  # Validate input: must be a list of 'fd' objects
   if (!is.list(fd_list) || any(!vapply(fd_list, inherits, logical(1), "fd"))) {
     stop("Input must be a list of 'fd' objects.")
   }
-
+  
   lapply(fd_list, function(fd_obj) {
     coef_mat <- fd_obj$coefs
+    
+    # Ensure the object represents a single sample (one column of coefficients)
     if (is.null(dim(coef_mat)) || ncol(coef_mat) != 1) {
       stop("Each fd object in the list must have one column of coefficients.")
     }
-
+    
+    # Create a new coefficient matrix by repeating the column 'n' times
     new_coefs <- matrix(rep(coef_mat, n), nrow = nrow(coef_mat), ncol = n)
+    
+    # Return a new fd object with the replicated coefficients and original basis
     fd(coef = new_coefs, basisobj = fd_obj$basis)
   })
 }
 ```
 
-| Case | Description                            | Input Type               | Expected Output                        | Notes                                            |
-|------|----------------------------------------|--------------------------|----------------------------------------|--------------------------------------------------|
-| 1    | Correct replication                    | List of single-sample fd | List of `fd` objects with `n` columns | All columns identical to original coefficients   |
-| 2    | Each fd has one sample                 | List of fd               | No error                               | Verifies structure and content                  |
-| 3    | One fd has multiple samples            | fd with >1 columns       | Error                                   | Should raise informative error                  |
-| 4    | Non-fd object in list                  | List of non-`fd` items   | Error                                   | Validates class-checking robustness             |
+# Hybrid predictor class
 
+## Class definition and constructor
+### predictor_hybrid
 
- 
+**Description:**
+The `predictor_hybrid` class represents a hybrid random object $\mathbf{W} = (X, \mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
 
-# Class predictor_hybrid
-- Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit hypercube domains $\mathcal{T}_k := [0,1]^{d_k}$ ($d_k \in \mathbb{N})$; i.e., $X^{(k)}: \mathcal{T}_k \rightarrow \mathbb{R}$.
+- **Functional Part:** Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit interval $\mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $\mathcal{F} = L^2([0,1]) \times \cdots \times L^2([0,1])$.
+- **Hybrid Object:** We define the hybrid object $\mathbf{W} = (X, \mathbf{Z})$, where $\mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.
+- **Vector Notation:** The object can be evaluated at a multi-dimensional argument $\mathbf{t}$ as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$.
+- **Implementation:** The class is implemented as an S3 object containing a matrix for scalar parts, a list of `fd` objects for functional parts, and pre-computed Gram matrices to facilitate Hilbert space operations.
 
-- Assume that each $X^{(k)}$ is in $L^2(\mathcal{T}_k)$, a Hilbert space of square integrable functions with respect to Lebesgue measure $dt_k$ on $\mathcal{T}_k$. 
+**Inputs:**
 
-- Write  $X=(X^{(1)}, \ldots, X^{(K)})$ as a multivariate functional object that belongs to $\mathcal{F} = L^2(\mathcal{T}_1) \times \cdots \times L^2(\mathcal{T}_K)$---a cartesian product of individual $L^2(\mathcal{T}_k)$ spaces. 
+- `Z`: A numeric matrix of dimension $n\_sample \times n\_scalar$ representing the scalar predictors.
+- `functional_list`: A list of functional predictors (typically `fd` objects from the `fda` package).
+- `eval_point`: A specification for evaluation points (stored as metadata).
 
-- We can also express the functional object $X$ evaluated on the multi-dimensional argument $\mathbf{t} = (t_1, \ldots, t_k)^\top \in \mathcal{T} = \mathcal{T}_1 \times \cdots \times \mathcal{T}_K$ as a $K$-dimensional vector $X(\mathbf{t})=(X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top$. 
+**Output:**
 
-- **Our strategy is to formulate a hybrid random object**, $\mathbf{W} = (X, \mathbf{Z})$, which combines $X$ and $p$-dimensional scalar covariate $\mathbf{Z}$ into an ordered pair belonging to $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.  
+- Returns an object of class `predictor_hybrid`, which includes the original data, pre-computed Gram matrices, and roughness penalty matrices.
 
-- An alternative notation for the hybrid object can be obtained by evaluating its functional part on $\mathbf{t}$ and expressing it as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$, with $X(\mathbf{t}) = (X^{(1)}(t_1), \ldots, X^{(K)}(t_K))^\top \in \mathbb{R}^K$ and $\mathbf{Z} = (Z_1, \ldots, Z_p)^\top  \in \mathbb{R}^p$.
-
-- The hybrid object forms a Hilbert space, characterized by well-defined addition, scalar multiplication, and inner product operations. 
-
-- We define an S3 object `predictor_hybrid` that represent this structure, and implement Hilbert space operations for this class, and our algorithm is built on these foundational operations.
-
-The class definition is a simple list that contains a matrix and a collection of \code{fd} objects from the \code{fda} package, along with the necessary metadata.
-- gram matrices are saved as a list.
-```{r classdef:predictor_hybrid}
+```{r}
 #' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
+#'
 #' Constructs a hybrid predictor object that stores both scalar and functional predictors,
 #' and automatically computes Gram matrices (inner products of basis functions).
-#' @param Z A numeric matrix of dimension \code{n_sample × n_scalar} representing scalar predictors.
+#'
+#' @param Z A numeric matrix of dimension \code{n_sample x n_scalar} representing scalar predictors.
 #' @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
+#' @param eval_point Points at which the functions are evaluated (stored as metadata).
 #'
 #' @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #' @export
 predictor_hybrid <- function(Z, functional_list, eval_point) {
+  # Validate scalar input
   stopifnot(is.matrix(Z), is.numeric(Z))
+  
+  # Validate functional input
   stopifnot(is.list(functional_list))
-
+  
   n_sample <- nrow(Z)
   n_scalar <- ncol(Z)
   n_functional <- length(functional_list)
-
+  
+  # Initialize lists for storing matrices and metadata
   gram_list <- gram_deriv2_list <- vector("list", n_functional)
   n_basis_list <- numeric(n_functional)
-
+  
+  # Iterate through each functional predictor to compute necessary matrices
   for (i in seq_len(n_functional)) {
     fd_i <- functional_list[[i]]
     stopifnot(inherits(fd_i, "fd"))
-
+    
+    # Ensure the number of functional samples matches the scalar samples
     n_fd_sample <- ncol(coef(fd_i))
     if (n_fd_sample != n_sample) {
       stop(sprintf("Functional predictor %d has %d replicates, but Z has %d rows.",
                    i, n_fd_sample, n_sample))
     }
-
+    
+    # Extract basis and compute inner product matrices
     basis_i <- fd_i$basis
     gram_list[[i]] <- compute_gram_matrix(basis_i)
-    gram_deriv2_list[[i]] <- fda::getbasispenalty(basis_i) # New  
-      
- 
-
+    gram_deriv2_list[[i]] <- fda::getbasispenalty(basis_i) # Compute roughness penalty matrix
+    
     n_basis_list[i] <- basis_i$nbasis
   }
-
+  
+  # Construct the S3 object
   structure(
     list(
       Z = Z,
       functional_list = functional_list,
       eval_point = eval_point,
       gram_list = gram_list,
-      gram_deriv2_list = gram_deriv2_list, # Store the new list
+      gram_deriv2_list = gram_deriv2_list, # Store the penalty matrices
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
@@ -249,30 +327,34 @@ predictor_hybrid <- function(Z, functional_list, eval_point) {
 }
 ```
 
- 
 
 
 ### predictor_hybrid_from_coef
-An alternative constructor for a predictor_hybrid object based on a flat numeric coefficient vector. It reconstructs both the functional and scalar components for a single-sample hybrid predictor object. The function reads the basis information from the template `format` object.
 
-- Inputs
-  - **`format`**: A `predictor_hybrid` object containing:
-    - `functional_list`: List of `fd` objects with basis info
-    - `gram_list`: List of Gram matrices
-    - `n_scalar`: Number of scalar predictors
-  - **`coef`**: Numeric vector of length `K * M + d`, where:
-    - `K` = number of functional predictors  
-    - `M` = number of basis functions (assumed same across predictors)  
-    - `d` = number of scalar predictors
+**Description:**
+An alternative constructor that creates a single-sample `predictor_hybrid` object from a flat numeric coefficient vector. It reconstructs both the functional and scalar components by mapping the coefficients back onto the basis functions defined in a template `format` object.
 
-- Output
-  - A `predictor_hybrid` object with:
-    - Functional predictors rebuilt from the first `K * M` coefficients
-    - Scalar predictor `Z` from the remaining `d` coefficients
-    - `n_sample` set to 1
+**Important:** This function strictly assumes that all functional predictors in the `format` object share the same number of basis functions (). It verifies this assumption before proceeding.
+
+**Inputs:**
+
+- `format`: A `predictor_hybrid` object serving as a template. It must contain the necessary basis information (`functional_list`) and structural metadata (`n_scalar`, `n_functional`).
+- `coef`: A numeric vector of length , where:
+-  is the number of functional predictors.
+-  is the number of basis functions (strictly enforced to be identical across all functional predictors).
+-  is the number of scalar predictors.
+
+
+
+**Output:**
+
+- Returns a `predictor_hybrid` object representing a single sample (`n_sample = 1`), containing:
+- Functional predictors rebuilt from the first  coefficients.
+- A scalar predictor matrix `Z` derived from the remaining  coefficients.
 
 ```{r}
 #' Construct a Single-Sample Predictor Hybrid Object from Coefficients
+#'
 #' Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
 #' coefficient vector. This alternative constructor maps the coefficients back into their functional
 #' and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
@@ -281,142 +363,182 @@ An alternative constructor for a predictor_hybrid object based on a flat numeric
 #' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
 #'
 #' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
-#'
-#'
 #' @export
-predictor_hybrid_from_coef <- function(format, coef){
-  M <- format$n_basis_list[1] # number of basis functions
-  K <- format$n_functional # number of functional predictors
-  for (ii in 1:K){
+predictor_hybrid_from_coef <- function(format, coef) {
+  # Extract metadata from the template
+  basis_counts <- format$n_basis_list
+  
+  # Check if all functional predictors have the same number of basis functions
+  if (length(unique(basis_counts)) != 1) {
+    stop("All functional predictors must have the same number of basis functions (M).")
+  }
+  
+  M <- basis_counts[1]  # Number of basis functions (identical across predictors)
+  K <- format$n_functional # Number of functional predictors
+  
+  # Reconstruct each functional predictor
+  for (ii in 1:K) {
+    # Calculate indices for the current functional predictor in the flat vector
+    start_idx <- (ii - 1) * M + 1
+    end_idx   <- ii * M
+    
+    # Create a new fd object using the sliced coefficients and original basis
     format$functional_list[[ii]] <- fd(
-      coef = as.matrix(coef[((ii-1)*M + 1):(ii*M)]),
+      coef = as.matrix(coef[start_idx:end_idx]),
       basisobj = format$functional_list[[ii]]$basis
     )
   }
-  format$Z <- t(as.matrix(coef[(K * M + 1):length(coef)]))
+  
+  # Reconstruct the scalar predictor part (Z)
+  # The remaining coefficients after K*M belong to the scalar predictors
+  scalar_start_idx <- K * M + 1
+  format$Z <- t(as.matrix(coef[scalar_start_idx:length(coef)]))
+  
+  # Update sample count to 1 as this constructor creates a single observation
   format$n_sample <- 1
+  
   return(format)
 }
 ```
+
+
  
+
 ## Basic arithmetic
 
 ### add.predictor_hybrid
-Performs element-wise addition of two `predictor_hybrid` objects.  Functional predictors are combined using `plus.fd()` and `times.fd()` from the `fda` package.
 
-- Usage
+**Description:**
+Performs element-wise addition of two `predictor_hybrid` objects. Functional predictors are combined using `plus.fd()` and `times.fd()` from the `fda` package.
 
+**Usage:**
 ```r
 add.predictor_hybrid(input, other, alpha = 1)
 ```
 
-- Arguments:
+**Arguments:**
 
-  - `input`: A `predictor_hybrid` object.
-  - `other`: Another `predictor_hybrid` object to be added.
-  - `alpha`: A scalar multiplier applied to `other` before addition (default is 1).
+- `input`: A `predictor_hybrid` object.
+- `other`: Another `predictor_hybrid` object to be added.
+- `alpha`: A scalar multiplier applied to `other` before addition (default is 1).
 
-- Value:
-Returns a new `predictor_hybrid` object representing the result of the addition.
+**Value:**
 
-- Details: 
-  - This function assumes both objects have the same number and structure of functional and scalar predictors.  
-  - Functional parts are scaled by `alpha` using `times.fd()` and then summed using `plus.fd()`.  
-  - Scalar predictors are added using standard matrix addition.
+- Returns a new `predictor_hybrid` object representing the result of the addition.
+
+**Details:**
+
+- This function assumes both objects have the same number and structure of functional and scalar predictors.
+- Functional parts are scaled by `alpha` using `times.fd()` and then summed using `plus.fd()`.
+- Scalar predictors are added using standard matrix addition.
+- Supports broadcasting if one object represents a single sample (`n_sample = 1`) and the other represents multiple samples.
 
 ```{r}
+#' Add two predictor_hybrid objects
+#'
+#' Performs element-wise addition of two \code{predictor_hybrid} objects. 
+#' Supports broadcasting if one object is a single sample.
+#'
+#' @param xi_1 A \code{predictor_hybrid} object.
+#' @param xi_2 Another \code{predictor_hybrid} object to be added.
+#' @param alpha A scalar multiplier applied to \code{xi_2} before addition (default is 1).
+#'
+#' @return A new \code{predictor_hybrid} object representing the result of the addition.
+#' @export
 add.predictor_hybrid <- function(xi_1, xi_2, alpha = 1) {
-  # Safe access to is.eqbasis()
+  # Safe access to is.eqbasis() from the fda namespace
   is_eqbasis <- getFromNamespace("is.eqbasis", "fda")
-
-  for (i in seq_len(xi_1$n_functional)) {
-    if (!is_eqbasis(xi_1$functional_list[[i]]$basis, xi_2$functional_list[[i]]$basis)) {
-      stop("Functional predictors must have the same basis.")
-    }
-  }
   
-   # Type checks
+  # Type checks
   if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
     stop("Both inputs must be of class 'predictor_hybrid'.")
   }
-
-  # Structural checks
+  
+  # Structural checks: Number of functional and scalar predictors must match
   if (xi_1$n_functional != xi_2$n_functional) {
     stop("Mismatch in number of functional predictors.")
   }
   if (xi_1$n_scalar != xi_2$n_scalar) {
     stop("Mismatch in number of scalar predictors.")
   }
-
-  # Swap so that broadcasting always applies to xi_2
+  
+  # Basis checks: Ensure corresponding functional predictors share the same basis
+  for (i in seq_len(xi_1$n_functional)) {
+    if (!is_eqbasis(xi_1$functional_list[[i]]$basis, xi_2$functional_list[[i]]$basis)) {
+      stop("Functional predictors must have the same basis.")
+    }
+  }
+  
+  # Broadcasting Logic:
+  # Ensure xi_1 is always the larger object (or equal) to simplify broadcasting
   if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
     tmp <- xi_1
     xi_1 <- xi_2
     xi_2 <- tmp
   }
-
+  
   n1 <- xi_1$n_sample
   n2 <- xi_2$n_sample
-
+  
+  # Validate sample compatibility
   if (!(n1 == n2 || n2 == 1)) {
     stop("Sample sizes are incompatible for broadcasting.")
   }
-
+  
   # Prepare components
   f1 <- xi_1$functional_list
   f2 <- xi_2$functional_list
   Z1 <- xi_1$Z
   Z2 <- xi_2$Z
-
-  # Replicate fd and Z if needed
-  if (n2 == 1) {
+  
+  # Replicate fd and Z if broadcasting is needed (n2 == 1)
+  if (n2 == 1 && n1 > 1) {
     f2 <- rep_fd(f2, n1)
     Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
   }
-
-  # Combine functional predictors
+  
+  # Combine functional predictors: f1 + alpha * f2
   new_functional_list <- Map(
-    function(f1, f2) plus.fd(f1, times.fd(alpha, f2)),
+    function(fd1, fd2) plus.fd(fd1, times.fd(alpha, fd2)),
     f1,
     f2
   )
- 
-
-  # Compute scalar inner products
-  inprod_scalar <- rowSums(Z1 * Z2) 
-  # Combine scalar predictors
+  
+  # Combine scalar predictors: Z1 + alpha * Z2
   new_Z <- Z1 + alpha * Z2
-
-
-  # Construct new object
-  predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+  
+  # Construct and return the new predictor_hybrid object
+  # Note: eval_point is carried over from the first object
+  predictor_hybrid(Z = new_Z, functional_list = new_functional_list, eval_point = xi_1$eval_point)
 }
 ```
 
- 
 ### subtr.predictor_hybrid
-Performs element-wise subtraction of two `predictor_hybrid` objects.   Internally uses `add.predictor_hybrid(input, other, alpha = -1)` to compute the result by negating the second operand.
 
-- Usage
+**Description:**
+Performs element-wise subtraction of two `predictor_hybrid` objects. Internally uses `add.predictor_hybrid` to compute the result by negating the second operand.
 
+**Usage:**
 ```r
 subtr.predictor_hybrid(input, other, alpha = 1)
 ```
 
-- Arguments:
+**Arguments:**
 
-  - `input`: A `predictor_hybrid` object.
-  - `other`: Another `predictor_hybrid` object to be subtracted.
-  - `alpha`: A scalar multiplier applied to `other` before subtraction (default is 1).
+- `input`: A `predictor_hybrid` object.
+- `other`: Another `predictor_hybrid` object to be subtracted.
+- `alpha`: A scalar multiplier applied to `other` before subtraction (default is 1).
 
-- Value:  
-Returns a new `predictor_hybrid` object representing the result of the subtraction.
+**Value:**
 
-- Details:  
-  - This function assumes both objects have the same number and structure of functional and scalar predictors.  
-  - It performs subtraction by internally calling `add.predictor_hybrid()` with `-alpha`.  
-  - Functional parts are scaled using `times.fd()` and subtracted via `plus.fd()` with a negated factor.  
-  - Scalar predictors are subtracted using standard matrix arithmetic.
+- Returns a new `predictor_hybrid` object representing the result of the subtraction.
+
+**Details:**
+
+- This function assumes both objects have the same number and structure of functional and scalar predictors.
+- It performs subtraction by internally calling `add.predictor_hybrid()` with `-alpha`.
+- Functional parts are scaled using `times.fd()` and subtracted via `plus.fd()` with a negated factor.
+- Scalar predictors are subtracted using standard matrix arithmetic.
 
 ```{r}
 #' Subtract two predictor_hybrid objects
@@ -433,37 +555,40 @@ Returns a new `predictor_hybrid` object representing the result of the subtracti
 subtr.predictor_hybrid <- function(input, other, alpha = 1) {
   add.predictor_hybrid(input, other, alpha = -alpha)
 }
-
 ```
-We skip the unit test for this function.
 
+ 
 
 ### scalar_mul.predictor_hybrid
+
+**Description:**
 Multiplies all components of a `predictor_hybrid` object by a scalar. Functional components are scaled using `times.fd()` from the `fda` package, and scalar predictors are multiplied directly using matrix operations.
 
-- Usage
-
+**Usage:**
 ```r
 scalar_mul.predictor_hybrid(input, scalar)
+
 ```
 
-- Arguments:
+**Arguments:**
 
-  - `input`: A `predictor_hybrid` object.
-  - `scalar`: A numeric value used to scale both scalar and functional components.
+- `input`: A `predictor_hybrid` object.
+- `scalar`: A numeric value used to scale both scalar and functional components.
 
-- Value:  
-Returns a new `predictor_hybrid` object with all components scaled by `scalar`.
+**Value:**
 
-- Details:  
-  - Functional predictors are scaled using `times.fd(scalar, fd_obj)` for each element.  
-  - Scalar predictors (the matrix `Z`) are scaled elementwise using matrix multiplication.
+- Returns a new `predictor_hybrid` object with all components scaled by `scalar`.
+
+**Details:**
+
+- Functional predictors are scaled using `times.fd(scalar, fd_obj)` for each element.
+- Scalar predictors (the matrix `Z`) are scaled elementwise using matrix multiplication.
 
 ```{r}
 #' Multiply a predictor_hybrid object by a scalar
 #'
 #' Performs scalar multiplication on both the scalar and functional components
-#' of a `predictor_hybrid` object. Functional predictors are scaled using 
+#' of a `predictor_hybrid` object. Functional predictors are scaled using
 #' `times.fd()` from the `fda` package.
 #'
 #' @param input A `predictor_hybrid` object.
@@ -488,44 +613,34 @@ scalar_mul.predictor_hybrid <- function(input, scalar) {
   new_Z <- scalar * input$Z
 
   # Reconstruct hybrid object
+  # Passing eval_point from the original input to maintain metadata
   predictor_hybrid(
     Z = new_Z,
-    functional_list = new_functional_list
+    functional_list = new_functional_list,
+    eval_point = input$eval_point
   )
 }
 ```
- 
+
+
 ### inprod.predictor_hybrid
-- The inner product of $f_1=(f_1^{(1)}, \ldots,f_1^{(K)})$ and $f_2=(f_2^{(1)}, \ldots,f_2^{(K)})$ in $\mathcal{F}$ is defined as 
-$$\langle f_1, f_2\rangle_\mathcal{F} =  \sum_{k=1}^K \langle f_1^{(k)}, f_2^{(k)}\rangle_{L^2} = \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k,$$ with norm 
-$$\Vert f_1 \Vert_\mathcal{F} = \langle f_1,f_1 \rangle_\mathcal{F}^{1/2} = \{ \sum_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k)^2 dt_k\}^{1/2}.$$
-- We define the inner product between any two hybrid objects, $\mathbf{h}_1 = (f_1, \mathbf{v}_1)$ and $\mathbf{h}_2 = (f_2, \mathbf{v}_2)$, as
-$$
-    \langle \mathbf{h}_1, \mathbf{h}_2\rangle_{\mathcal{H}} = \langle f_1, f_2\rangle_\mathcal{F} +  \langle  \mathbf{v_1}, \mathbf{v_2} \rangle = \sum \limits_{k=1}^K \int_{\mathcal{T}_k} f_1^{(k)}(t_k) f_2^{(k)}(t_k) dt_k + \sum \limits_{r=1}^p v_{1r}v_{2r}, 
-$$
-with norm $\Vert \cdot \Vert_\mathcal{H} = \langle \cdot,\cdot \rangle_\mathcal{H}^{1/2}$. 
 
-- The method `inprod.predictor_hybrid` computes the inner product between two `predictor_hybrid` objects. It supports broadcasting when one of the inputs has a single observation.
+**Description:**
+Computes the inner product between two `predictor_hybrid` objects. The inner product in the hybrid space  is defined as the sum of the inner products of the functional components in  and the scalar components in :
 
+**Inputs:**
 
-- Usage
+- `xi_1`: A `predictor_hybrid` object.
+- `xi_2`: (Optional) Another `predictor_hybrid` object. Defaults to `xi_1` (computes norm squared if `xi_1` is a single sample).
 
-```r
-inprod.predictor_hybrid(xi_1, xi_2)
-```
+**Output:**
 
-- Arguments:
+- A numeric vector of inner products. If both inputs are single samples, returns a scalar.
 
-  - `xi_1`: A `predictor_hybrid` object.
-  - `xi_2`: Another `predictor_hybrid` object. If omitted, defaults to xi_1 (computes self-inner product).
+**Details:**
 
-- Value:  A numeric vector of inner products (or a scalar if both inputs are single observations).
-
-- Details:  
-  - Functional components are summed using inprod() from the fda package.
-  - Scalar components are handled via matrix multiplication.
-  - Broadcasting is supported: if either xi_1 or xi_2 has only one sample, its values are broadcast across all rows of the other.
-  - Ensures compatibility in the number of functional and scalar predictors before computing the result.
+- Supports broadcasting: if one input has a single observation (`n_sample = 1`) and the other has multiple, the single observation is broadcast across the others.
+- Uses `fda::inprod` for functional integration and matrix multiplication for scalar parts.
 ```{r}
 #' Inner product between two predictor_hybrid objects (with broadcasting)
 #'
@@ -540,8 +655,8 @@ inprod.predictor_hybrid(xi_1, xi_2)
 #' @export
 inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
   # Handle self-inner product
-  if (is.null(xi_2)) xi_2 <- xi_1 
-  
+  if (is.null(xi_2)) xi_2 <- xi_1
+
   # Type checks
   if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
     stop("Both inputs must be of class 'predictor_hybrid'.")
@@ -555,7 +670,7 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
     stop("Mismatch in number of scalar predictors.")
   }
 
-  # Swap so that broadcasting always applies to xi_2
+  # Swap so that broadcasting always applies to xi_2 (the smaller one)
   if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
     tmp <- xi_1
     xi_1 <- xi_2
@@ -575,68 +690,99 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
   Z1 <- xi_1$Z
   Z2 <- xi_2$Z
 
-  # Replicate fd and Z if needed
-  if (n2 == 1) {
+  # Replicate fd and Z if needed for broadcasting
+  if (n2 == 1 && n1 > 1) {
     f2 <- rep_fd(f2, n1)
     Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
   }
 
   # Compute functional inner products
+  # Iterates over samples (i) and sums the inner products of all functional predictors (j)
   inprod_functional <- vapply(seq_len(n1), function(i) {
     sum(vapply(seq_along(f1), function(j) {
       fda::inprod(f1[[j]][i], f2[[j]][i])
     }, numeric(1)))
   }, numeric(1))
- 
 
-  # Compute scalar inner products
-  inprod_scalar <- rowSums(Z1 * Z2) 
- 
-  # Combine results
+  # Compute scalar inner products using row-wise summation
+  inprod_scalar <- rowSums(Z1 * Z2)
+
+  # Combine functional and scalar results
   result <- inprod_functional + inprod_scalar
+  
+  # Return scalar if both inputs were single samples
   if (n1 == 1 && n2 == 1) as.numeric(result) else result
 }
 ```
 
+ 
+### inprod_pen.predictor_hybrid
+
+**Description:**
+Computes the penalized inner product between two `predictor_hybrid` objects. This adds a roughness penalty term to the standard inner product, typically used for regularization.
+
+
+**Inputs:**
+
+- `xi_1`: A `predictor_hybrid` object.
+- `xi_2`: (Optional) Another `predictor_hybrid` object.
+- `lambda`: A numeric vector of length  (number of functional predictors) specifying the smoothing parameter for each function.
+
+**Output:**
+
+- A numeric vector (or scalar) representing the penalized inner product.
 ```{r}
-#' Inner product between two predictor_hybrid objects (with broadcasting)
+#' Penalized Inner product between two predictor_hybrid objects
 #'
 #' Computes the inner product between two `predictor_hybrid` objects,
-#' including both functional and scalar components. Supports broadcasting
-#' when one of the inputs has a single observation.
+#' adding a roughness penalty term based on the second derivative.
 #'
 #' @param xi_1 A `predictor_hybrid` object.
 #' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
+#' @param lambda A numeric vector of smoothing parameters (one for each functional predictor).
 #'
-#' @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
+#' @return A numeric vector of inner products.
 #' @export
 inprod_pen.predictor_hybrid <- function(xi_1, xi_2 = NULL, lambda) {
-
-  inprod <- inprod.predictor_hybrid(xi_1, xi_2)
-  # Prepare components
+  
+  # Compute the standard inner product first
+  base_inprod <- inprod.predictor_hybrid(xi_1, xi_2)
+  
+  # Handle self-reference for xi_2
+  if (is.null(xi_2)) xi_2 <- xi_1
   
   f1 <- xi_1$functional_list
-
   f2 <- xi_2$functional_list
-  for (j in 1:xi_1$n_functional){
-    inprod <- inprod + lambda[j] * fda::inprod(
-        fdobj1 = f1[[j]], 
-        fdobj2 = f2[[j]], 
-        Lfdobj1 = 2,
-        Lfdobj2 = 2
-        )
-   
-    }
   
-
- 
-
-  # Combine results
-   return(as.numeric(inprod))
+  # Add penalty terms for each functional predictor
+  # The penalty is lambda * <D^2 f1, D^2 f2>
+  for (j in seq_len(xi_1$n_functional)) {
+    base_inprod <- base_inprod + lambda[j] * fda::inprod(
+      fdobj1 = f1[[j]],
+      fdobj2 = f2[[j]],
+      Lfdobj1 = 2, # Second derivative
+      Lfdobj2 = 2  # Second derivative
+    )
+  }
+  
+  return(as.numeric(base_inprod))
 }
 ```
 
+
 ### subset_predictor_hybrid
+
+**Description:**
+Extracts a specific observation from a multi-sample `predictor_hybrid` object and returns it as a new, single-sample `predictor_hybrid` object.
+
+**Inputs:**
+
+- `W`: A `predictor_hybrid` object containing multiple samples.
+- `i`: Integer index of the sample to extract.
+
+**Output:**
+
+- A `predictor_hybrid` object containing only the -th observation.
 
 ```{r}
 #' Extract a single observation from a predictor_hybrid object
@@ -644,17 +790,43 @@ inprod_pen.predictor_hybrid <- function(xi_1, xi_2 = NULL, lambda) {
 #' @param W A predictor_hybrid object with multiple samples.
 #' @param i Integer index of the sample to extract.
 #' @return A single-sample predictor_hybrid object.
+#' @export
 subset_predictor_hybrid <- function(W, i) {
+  # Extract the i-th row of the scalar matrix
   new_Z <- matrix(W$Z[i, ], nrow = 1)
+  
+  # Extract the i-th column of coefficients for each functional object
   new_functional_list <- lapply(W$functional_list, function(fdobj) {
     fd(coef = matrix(coef(fdobj)[, i], ncol = 1), basisobj = fdobj$basis)
   })
-  new_predictor <- predictor_hybrid(Z = new_Z, functional_list = new_functional_list)
+  
+  # Construct new object
+  new_predictor <- predictor_hybrid(
+    Z = new_Z, 
+    functional_list = new_functional_list,
+    eval_point = W$eval_point
+  )
+  
   return(new_predictor)
 }
 ```
 
+
+
 ### replace_obs_hybrid
+
+**Description:**
+Replaces a specific observation within a `predictor_hybrid` object with a new single-sample hybrid object. This effectively updates the -th row of the scalar matrix and the -th column of the functional coefficients.
+
+**Inputs:**
+
+- `W`: The target `predictor_hybrid` object.
+- `i`: The integer index of the observation to replace.
+- `new_W`: The source `predictor_hybrid` object (must be a single sample).
+
+**Output:**
+
+- The modified `W` object.
 
 ```{r}
 #' Replace a single observation in a predictor_hybrid object
@@ -685,7 +857,7 @@ replace_obs_hybrid <- function(W, i, new_W) {
   if (W$n_functional != new_W$n_functional) {
     stop("Mismatch in number of functional predictors.")
   }
-  
+
   # Check for compatible basis objects
   is_eqbasis <- getFromNamespace("is.eqbasis", "fda")
   for (j in seq_len(W$n_functional)) {
@@ -703,1134 +875,1315 @@ replace_obs_hybrid <- function(W, i, new_W) {
     W$functional_list[[j]]$coefs[, i] <- new_W$functional_list[[j]]$coefs[, 1]
   }
 
-  # The number of samples remains the same
   return(W)
 }
 ```
- 
 
 
-### add_broadcast(for matrix) 
- 
+### add_broadcast (Matrix)
+
+**Description:**
+A function that performs row-wise addition of a vector to a matrix. It broadcasts a single observation (vector) across all rows of the target matrix, verifying that the input is a matrix and the operand is a single observation.
+
+**Inputs:**
+
+- `input`: A numeric matrix.
+- `other`: A numeric vector or a 1-row matrix to be added to every row of `input`.
+- `alpha`: A scalar multiplier applied to `other` before addition.
+
+**Output:**
+
+- A matrix of the same dimensions as `input`.
+
 ```{r}
+#' Broadcast Addition for Matrices
+#'
+#' Adds a single observation (vector) to every row of a matrix.
+#' Checks that the input is a matrix and the operand is a single observation.
+#'
+#' @param input A numeric matrix.
+#' @param other A numeric vector or a 1-row matrix.
+#' @param alpha A scalar multiplier (default 1).
+#' @return A matrix with the broadcasted addition applied.
 #' @export
-#' 
-#' 
-# --- 1. Define the S4 Generic Function ---
-# This must be run first to tell R that 'add_broadcast' is a function 
-# that can have methods defined for different classes.
-setGeneric("add_broadcast", function(input, other, alpha = 1) {
-  standardGeneric("add_broadcast")
-})
-
-# --- 2. Define the S4 Method for 'matrix' Class ---
-setMethod("add_broadcast", "matrix",
-###########################################
-function(input, other, alpha = 1){
+add_broadcast <- function(input, other, alpha = 1) {
   
-  # 1. Structural Check: Ensure RHS is a single observation.
+  # 1. Type Check: Ensure input is a matrix
+  if (!is.matrix(input)) {
+    stop("Argument 'input' must be a matrix.")
+  }
+
+  # 2. Structural Check: Ensure RHS is a single observation.
   # This uses length() for vectors, and dim()[1] for matrices.
   is_matrix_other <- is.matrix(other)
   if (is_matrix_other && dim(other)[1] > 1) {
-    stop("RHS must have a single observation (row).")
+    stop("Argument 'other' must be a vector or a single-row matrix.")
   }
-  
-  # 2. Conversion: Convert a single-row matrix into a vector for broadcasting.
-  # If 'other' is already a vector, this does nothing.
-  # If 'other' is a 1xP matrix, this flattens it into a length-P vector.
-  if (is_matrix_other) {
-    other <- as.vector(other) 
-  }
-  
-  # 3. Native Arithmetic: Use simple R arithmetic for high performance.
-  # R broadcasts the vector 'other' across the rows of the matrix 'input'.
-  return( t( t(input) + alpha * other))
-}
-###########################################
-)
 
+  # 3. Conversion: Convert a single-row matrix into a vector for broadcasting.
+  # If 'other' is already a vector, this does nothing.
+  if (is_matrix_other) {
+    other <- as.vector(other)
+  }
+  
+  # 4. Dimension Check: Ensure vector length matches matrix columns
+  if (length(other) != ncol(input)) {
+    stop("Length of 'other' must match number of columns in 'input'.")
+  }
+
+  # 5. Native Arithmetic: Use simple R arithmetic for high performance.
+  # R broadcasts the vector 'other' across the rows of the matrix 'input'.
+  # Transposing twice (t(t(...) ...)) ensures correct column-wise recycling 
+  # logic is applied to rows.
+  return(t(t(input) + alpha * other))
+}
 ```
-### subtr_broadcast (for matrix)
+ 
+
+### subtr_broadcast (Matrix)
+
+**Description:**
+A function that performs row-wise subtraction of a vector from a matrix. It is a wrapper around `add_broadcast` that applies a negative multiplier.
+
+**Inputs:**
+
+- `input`: A numeric matrix.
+- `other`: A numeric vector or a 1-row matrix to subtract from every row of `input`.
+- `alpha`: A scalar multiplier applied to `other` (default 1).
+
+**Output:**
+
+- A matrix of the same dimensions as `input`.
 
 ```{r}
-#' @export
-#' 
+#' Broadcast Subtraction for Matrices
 #'
-setGeneric("subtr_broadcast", function(input, other, alpha = 1) {
-  standardGeneric("subtr_broadcast")
-})
-setMethod("subtr_broadcast", "matrix",
-###########################################
-function(input, other, alpha = 1){
-  return(add_broadcast(input, other, (-1*alpha)))
-  }
-###########################################
-)
-
+#' Subtracts a single observation (vector) from every row of a matrix.
+#'
+#' @param input A numeric matrix.
+#' @param other A numeric vector or a 1-row matrix.
+#' @param alpha A scalar multiplier (default 1).
+#' @return A matrix with the broadcasted subtraction applied.
+#' @export
+subtr_broadcast <- function(input, other, alpha = 1) {
+  # Reuse add_broadcast with negated alpha
+  add_broadcast(input, other, (-1 * alpha))
+}
 ```
-
-
-
 
 # One iteration
 
 ## small functions
 
-
-
-## penalty matrix construction
-In this section, we provide an R function `get_constraint_matrix` that constructs the penalty matrix
-$$J^*+\Lambda \ddot{J}^\ast,$$
-as defined in Proposition 2 and used in the PLS component computation step of our proposed algorithm. We present functions  for computing $J^\ast$, $\Lambda$ and $\ddot{J}^\ast$ in sequence, and use these functions to define `get_constraint_matrix`.
-
 ### get_gram_matrix_block
-Constructs a block-diagonal Gram matrix for a hybrid predictor object, defined as 
-$$
-    J^*=\mathrm{blkdiag}(J, I_p) \in \mathbb{R}^{(MK+p) \times (MK+p)}
-$$
-where
- $J = \mathrm{blkdiag}(J^{(1)}, \cdots, J^{(K)}) \in \mathbb{R}^{MK \times MK}$, and 
-$$
-J^{(k)} = \left[ \int_{\mathcal{T}k} b_m^{(k)}(t) , b_n^{(k)}(t) , dt \right]_{m,n=1}^M,
-$$
-as defined in \eqref{def:gram_basis} and \eqref{def:J_and_J_star}.
 
-- Arguments
-  - obj: A `predictor_hybrid` object containing both functional and scalar components.
-
-- Value
-  - A Matrix::bdiag sparse matrix representing the block-diagonal structure of the combined Gram matrix.
-
-- Details: This function builds a block-diagonal matrix by:
-  - Stacking the Gram matrices of each functional component (from obj$gram_list),
-  - Appending an identity matrix of size equal to the number of scalar predictors (to represent unpenalized scalar covariates).
-  The resulting matrix has size $(\texttt{total_dim} \times \texttt{total_dim})$, where total_dim = \sum_k M_k + p, with $M_k$ the number of basis functions for the $k$-th functional predictor and $p$ the number of scalar covariates.
-  
-- Usage
-```r
-block_gram <- get_gram_matrix_block(my_predictor)
-```
+**Description:**
+Constructs the block-diagonal Gram matrix  for a hybrid predictor object. This matrix represents the inner product structure of the combined functional and scalar space. It is defined as:
 
 
-**Code**
+
+where:
+
+-  is the Gram matrix of the basis functions for the -th functional predictor, with entries .
+-  is the identity matrix corresponding to the  scalar predictors (implying a standard Euclidean inner product for the scalar part).
+
+**Inputs:**
+
+- `obj`: A `predictor_hybrid` object containing the pre-computed Gram matrices (`gram_list`) and metadata.
+
+**Output:**
+
+- A sparse block-diagonal matrix (class `dgCMatrix` from the `Matrix` package) representing the global Gram matrix.
 ```{r}
 #' Construct block-diagonal Gram matrix for hybrid predictor
 #'
-#' Returns a block-diagonal matrix containing the Gram  matrices for
-#' each functional component and an identity matrix for the scalar part.
+#' Creates a unified Gram matrix by placing the pre-computed functional Gram matrices
+#' and a scalar identity matrix into a block-diagonal structure.
 #'
 #' @param obj A `predictor_hybrid` object.
 #'
-#' @return A block-diagonal matrix of size `(total_dim × total_dim)` where
-#' functional and scalar components are arranged in order.
+#' @return A sparse block-diagonal matrix of size `(total_dim x total_dim)`, where
+#' `total_dim` is the sum of all functional basis sizes plus the number of scalar predictors.
 #' @export
 get_gram_matrix_block <- function(obj) {
+  # Input validation
   if (!inherits(obj, "predictor_hybrid")) {
     stop("Input must be of class 'predictor_hybrid'.")
   }
 
-  gram_blocks <- c(obj$gram_list, list(diag(obj$n_scalar)))
+  # 1. Retrieve the list of functional Gram matrices (pre-computed in the object)
+  #    These correspond to the J^(k) blocks.
+  gram_blocks <- obj$gram_list
+  
+  # 2. Append the Identity matrix for the scalar components
+  #    This corresponds to the I_p block.
+  #    We use 'diag' to create an Identity matrix of size n_scalar x n_scalar.
+  gram_blocks[[length(gram_blocks) + 1]] <- diag(obj$n_scalar)
+  
+  # 3. Construct the sparse block-diagonal matrix
+  #    Matrix::bdiag efficiently handles the block construction.
   Matrix::bdiag(gram_blocks)
 }
-
 ```
 
-**Unit test**
-```{r}
-testthat::test_that("get_gram_matrix_block constructs correct block-diagonal matrix", {
-  suppressPackageStartupMessages(library(fda))
-  suppressPackageStartupMessages(library(Matrix))
 
-  # Construct hybrid predictor with two functional and three scalar predictors
-  basis1 <- create.bspline.basis(c(0, 1), nbasis = 4)
-  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)  # was 3; now valid
-
-  fd1 <- fd(coef = matrix(1, 4, 2), basisobj = basis1)
-  fd2 <- fd(coef = matrix(2, 4, 2), basisobj = basis2)
-  Z <- matrix(rnorm(2 * 3), nrow = 2, ncol = 3)
-
-  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
-
-  # Extract the block-diagonal Gram matrix
-  G <- get_gram_matrix_block(obj)
-
-  # Expected block sizes
-  nb1 <- 4
-  nb2 <- 4
-  ns <- 3
-  total_dim <- nb1 + nb2 + ns
-
-  # Check matrix properties
-  testthat::expect_equal(dim(G), c(total_dim, total_dim))
-
-  # Check sub-block structure
-  # Top-left: Gram matrix 1
-  testthat::expect_equal(sum(G[1:nb1, 1:nb1]-obj$gram_list[[1]]), 0)
-
-  # Next block: Gram matrix 2
-  testthat::expect_equal(sum( G[(nb1 + 1):(nb1 + nb2), (nb1 + 1):(nb1 + nb2)]-obj$gram_list[[2]]),0 )
-
-  # Final block: identity matrix for scalar part
-  testthat::expect_equal( sum( G[(nb1 + nb2 + 1):total_dim, (nb1 + nb2 + 1):total_dim]  - diag(ns)), 0)
-})
-
-```
 ### get_smoothing_param_hybrid
-Constructs a block-diagonal smoothing parameter matrix for use in penalized estimation involving hybrid predictors, denoted $\Lambda \in \mathbb{R}^{(MK+p) \times (MK+p)}$,  defined in \eqref{def:Lambda} as
-$$
-   \Lambda = \mathrm{blkdiag}(\lambda_1 I_M, \cdots, \lambda_K I_M, 0_{p \times p}) , 
-$$
 
-- Arguments
-  - W: A predictor_hybrid object.
-  - lambda: A numeric vector of length equal to the number of functional predictors. Each entry corresponds to a smoothing penalty weight.
-- Value: A sparse block-diagonal matrix combining scaled identity matrices for the functional parts and a zero matrix for the scalar part.
-- Details: This function generates a matrix used in regularized regression for functional predictors. Each functional component is penalized using a scaled identity matrix of its basis dimension. Scalar predictors are unpenalized.
-- Usage:
-```r
-lambda_mat <- get_smoothing_param_hybrid(my_predictor, c(0.1, 0.2))
-```
-**code** 
+**Description:**
+Constructs the block-diagonal smoothing parameter matrix . This matrix defines the regularization penalties applied to the coefficients. It is defined as:
+
+
+
+where:
+
+-  is the smoothing parameter for the -th functional predictor.
+-  is the identity matrix of size  (the number of basis functions for predictor ).
+-  is a zero matrix, indicating that the scalar predictors are not penalized in this step.
+
+**Inputs:**
+
+- `W`: A `predictor_hybrid` object providing dimension information.
+- `lambda`: A numeric vector of length  (number of functional predictors). Each entry represents the penalty weight .
+
+**Output:**
+
+- A sparse block-diagonal matrix where the diagonal blocks contain the penalty weights for functional parts and zeros for the scalar part.
 ```{r}
 #' Construct block-diagonal smoothing parameter matrix
 #'
-#' Generates a block-diagonal matrix with smoothing parameters applied to each 
-#' functional component. Each block is a scaled identity matrix, where the scaling 
-#' factor corresponds to the regularization parameter for that functional component. 
-#' The scalar components are not penalized and thus contribute a zero matrix block.
+#' Generates a block-diagonal matrix containing regularization parameters. 
+#' Functional coefficients are penalized by scaled identity matrices, while 
+#' scalar coefficients receive zero penalty.
 #'
 #' @param W A `predictor_hybrid` object.
-#' @param lambda A numeric vector of length equal to the number of functional components (`W$n_functional`), containing the smoothing parameters for each functional predictor.
+#' @param lambda A numeric vector of smoothing parameters, one for each functional predictor.
 #'
-#' @return A block-diagonal matrix of size `(total_dim × total_dim)`, where the top-left blocks are scaled identity matrices for functional predictors and the bottom-right block is a zero matrix for scalar covariates.
+#' @return A sparse block-diagonal matrix. The top-left blocks are `lambda[k] * I`, 
+#' and the bottom-right block is a zero matrix for scalar covariates.
 #' @export
 get_smoothing_param_hybrid <- function(W, lambda) {
+  # Input validation
   if (!inherits(W, "predictor_hybrid")) {
     stop("Input W must be of class 'predictor_hybrid'.")
   }
-
   if (length(lambda) != W$n_functional) {
     stop("Length of lambda must match the number of functional predictors.")
   }
 
+  # 1. Create penalty blocks for functional predictors
+  #    For each predictor k, create a scaled identity matrix: lambda[k] * I_Mk
   lambda_blocks <- lapply(seq_len(W$n_functional), function(ii) {
     nb <- W$functional_list[[ii]]$basis$nbasis
     lambda[ii] * diag(nb)
   })
 
+  # 2. Create zero block for scalar predictors
+  #    Scalar predictors are not penalized in this matrix, so we append a p x p zero matrix.
   lambda_blocks[[W$n_functional + 1]] <- matrix(0, nrow = W$n_scalar, ncol = W$n_scalar)
 
+  # 3. Construct the sparse block-diagonal matrix
   Matrix::bdiag(lambda_blocks)
 }
 ```
 
-**unit test**
-```{r}
-testthat::test_that("get_smoothing_param_hybrid returns correct block-diagonal structure", {
-  suppressPackageStartupMessages(library(fda))
-  basis1 <- create.bspline.basis(c(0, 1), nbasis = 5)
-  basis2 <- create.bspline.basis(c(0, 1), nbasis = 4)
-
-  fd1 <- fd(coef = matrix(1, 5, 3), basisobj = basis1)
-  fd2 <- fd(coef = matrix(2, 4, 3), basisobj = basis2)
-
-  Z <- matrix(1, nrow = 3, ncol = 2)
-
-  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
-  lambda <- c(0.5, 2)
-
-  lambda_mat <- get_smoothing_param_hybrid(obj, lambda)
-
-  # Check overall dimension
-  expected_dim <- sum(obj$n_basis_list) + obj$n_scalar
-  testthat::expect_equal(dim(lambda_mat), c(expected_dim, expected_dim))
-
-  # Check diagonal entries
-  testthat::expect_equal(Matrix::diag(lambda_mat)[1:5], rep(0.5, 5))
-  testthat::expect_equal(Matrix::diag(lambda_mat)[6:9], rep(2, 4))
-  testthat::expect_equal(Matrix::diag(lambda_mat)[10:11], rep(0, 2))  # scalar part
-})
-
-```
-
-
-### get_penalty_hybrid
-Constructs a matrix defined in \label{def:J_dotdot_ast}
-$$
-    \ddot{J}^\ast=\mathrm{blkdiag}(\ddot{J}^{(1)}, \cdots, \ddot{J}^{(K)}, 0_{p \times p}) \in \mathbb{R}^{(MK+p) \times (MK+p)},
-$$
-where
- $\ddot{J}^{(k)}$ is  a $M \times M$ matrix defined in \label{def:dodot_J_k} as the gram matrix formed by the second derivativ of the basis functions
-$$
-\ddot{J}^{(k)} = \left[ \int_{\mathcal{T}_k} \ddot{b}^{(k)}_m(t) \ddot{b}^{(k)}_n(t) \, dt \right]_{m,n=1}^M.
-$$
-
-
-
-```{r}
-testthat::test_that("get_penalty_hybrid computes correct dimensions and structure", {
-  suppressPackageStartupMessages(library(fda))
-
-  # Setup
-  basis <- fda::create.bspline.basis(c(0, 1), nbasis = 5)
-  n_sample <- 3
-  n_scalar <- 2
-
-  fd1 <- fda::fd(coef = matrix(1, 5, n_sample), basisobj = basis)
-  fd2 <- fda::fd(coef = matrix(2, 5, n_sample), basisobj = basis)
-  Z <- matrix(rnorm(n_sample * n_scalar), n_sample, n_scalar)
-  obj <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
-
-  # Run
-  penalty <- get_penalty_hybrid(obj)
-
-  # Expected dimensions
-  total_dim <- sum(obj$n_basis_list) + obj$n_scalar
-  testthat::expect_equal(dim(penalty), c(total_dim, total_dim))
-
-  # Check block diagonal structure: bottom-right should be zero matrix
-  scalar_block <- as.matrix(penalty[
-    (total_dim - n_scalar + 1):total_dim,
-    (total_dim - n_scalar + 1):total_dim
-  ])
-  testthat::expect_equal(scalar_block, matrix(0, n_scalar, n_scalar))
-
-  # Check that the upper blocks are positive semidefinite
-  eigenvalues <- eigen(as.matrix(penalty[1:(total_dim - n_scalar), 1:(total_dim - n_scalar)]))$values
-  testthat::expect_true(all(eigenvalues >= -1e-8))  # Numerical tolerance
-})
-
-```
-
-### get_constraint_matrix
-
-```r
-W <- predictor_hybrid(Z = Z, functional_list = list(fd1, fd2))
-lambda <- c(0.1, 0.2)
-constraint_matrix <- get_constraint_matrix_hybrid(W, lambda)
-```
-
-**code**
-```{r}
-#' Construct penalized constraint matrix for hybrid predictors
-#'
-#' Computes the denominator matrix used in penalized estimation for hybrid predictors,
-#' combining the Gram matrix, smoothing parameter matrix, and penalty matrix.
-#'
-#' Specifically, this function returns the matrix:
-#' \deqn{J^\ast + \Lambda \ddot{J}^\ast}
-#' where \eqn{J^\ast} is the block-diagonal Gram matrix,
-#' \eqn{\Lambda} is the block-diagonal smoothing parameter matrix,
-#' and \eqn{\ddot{J}^\ast} is the block-diagonal penalty matrix of second derivative inner products.
-#'
-#' @param W A `predictor_hybrid` object.
-#' @param lambda A numeric vector of smoothing parameters, one for each functional predictor.
-#'
-#' @return A matrix representing the penalized constraint matrix used in estimation.
-#' @export
-get_constraint_matrix_hybrid <- function(W, lambda) {
-  J_star <- get_gram_matrix_block(W)
-  J_dotdot_star <- get_penalty_hybrid(W)
-  lambda_mat <- get_smoothing_param_hybrid(W, lambda)
-
-  J_star + lambda_mat %*% J_dotdot_star
-}
-
-```
-
-## PLS component computation
-
-### Spectral method
-The old implementation that computes the leading eigenvector of 
-
-### helper: get_CJ
-```{r}
-get_CJ <- function(W){
-  n <- W$n_sample
-  K <- W$n_functional
-  ## C_J : C multiplied by J. Scalable to arbitrary K
-  predictor_first <- W$functional_list[[1]]
-  C_J <- t(predictor_first$coefs) %*% W$gram_list[[1]]
-  for (i in 2:K){
-    predictor_now <- W$functional_list[[i]]
-    C_J <- cbind(
-      C_J,
-      t(predictor_now$coefs) %*% W$gram_list[[i]]
-    )
-    }
-    return(C_J)
-}
-```
-
-
-
-### helper: get_pre_corrcov 
-construct the matrix V_star:
-$$
-    V^\ast = n^{-2}\begin{bmatrix}
-         J \widetilde{C}^\top \mathbf{y}\mathbf{y}^\top \widetilde{C} J & J \widetilde{C}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z} \\
-        \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C} J &   \widetilde{Z}^\top \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{Z}
-    \end{bmatrix} = n^{-2} J^* \widetilde{C}^{*\top} \widetilde{\mathbf{y}} \widetilde{\mathbf{y}}^\top \widetilde{C}^{*} J^*
-    \in \mathbb{R}^{(MK+p) \times (MK+p)},
-$$
-where $J$ is defined in `get_gram_matrix_block`
-equation (7), 
-```{r}
-#' Compute V matrix (pre-corrected covariance estimator)
-#'
-#' Constructs the V matrix involving inner products of functional predictors
-#' (weighted by their Gram matrices) and scalar predictors against response y.
-#'
-#' @param W A `predictor_hybrid` object.
-#' @param y A numeric response vector of length equal to number of samples.
-#'
-#' @return A matrix representing the corrected cross-covariance structure.
-#' @export
-get_pre_corrcov <- function(W, y){
-  n <- W$n_sample
-  K <- W$n_functional
-
-  # building blocks
-  ## C_J : C multiplied by J. Scalable to arbitrary K
-  C_J <- get_CJ(W)
-
-  
-  ## covariance
-  J_Ct_y <- t(C_J) %*% y
-  Zt_y <- t(W$Z) %*% y
-
-  # V matrix
-  upper_left <- J_Ct_y %*% t(J_Ct_y)
-  upper_right <- J_Ct_y %*% t(Zt_y)
-  lower_left <- t(upper_right)
-  lower_right <- Zt_y %*% t(Zt_y)
-
-  V_star <- cbind(
-    rbind(upper_left, lower_left),
-    rbind(upper_right, lower_right)
-    )/(n^2)
-
-  return(V_star)
-  }
-```
-
-
-
-
-### main function (wrapper: get_pls_comp
-Computes the first PLS component from a hybrid predictor and response vector using regularization.
-
-- Inputs
-  - **`W`**: A `predictor_hybrid` object with functional and scalar predictors.
-  - **`y`**: A numeric response vector of length equal to `W$n_sample`.
-  - **`L`**: A Cholesky decomposition of a positive definite regularization matrix.
-- Output: 
-  - `xi_hat`: The first PLS component as a `predictor_hybrid` object
-  - `E`: The matrix `inv(L) %*% V_star %*% t(inv(L))`
-  - `V_star`: Cross-covariance matrix between predictors and response
-  - `eigen_val`: Leading eigenvalue of `E`
-```{r}
-#' Compute the First PLS Component from a Hybrid Predictor
-#'
-#' Computes the coefficients of the first Partial Least Squares (PLS) component based on 
-#' a hybrid predictor object and a response vector, using a regularized generalized eigenvalue problem.
-#'
-#' @param W A predictor_hybrid object containing both functional and scalar predictors.
-#' @param y A numeric response vector of length equal to the number of samples in W.
-#' @param L cholesky decompisition of a regularization matrix (typically positive definite) used in the generalized eigenproblem.
-#'
-#' @return A list with the following elements:
-#'
-#'   xi_hat: The estimated first PLS component as a predictor_hybrid object.
-#'   E: The generalized eigenvalue problem matrix E = inv(L) V* t(inv(L)).
-#'   V_star: The cross-covariance matrix between predictors and response.}
-#'   eigen_val: The leading eigenvalue of E.
-#' 
-#'
-#' @export
-get_pls_comp <- function(W, y, L){
-
-  
-  V_star <- get_pre_corrcov(W, y)
-
-  #invL <- Matrix::chol2inv(L)
-  invL <- solve(L)
-  A <- V_star %*% t(invL)       # A = V* × t(inv(L))
-  E <- invL %*% A               # E = inv(L) × A
-
-  eigen_result <- eigen(E)
-  e <- eigen_result$vectors[, 1]
-  if (is.complex(e)){
-    print("stop")
-    return("stop")
-  } 
-
-
-  xi_star <- t(invL) %*% e      # xi_star solves t(L) xi = e
-  xi_hat <- predictor_hybrid_from_coef(format = W, coef = xi_star)
-  return(xi_hat)
-}
-```
-
-## linear system method
-
-### helper: get_xi_hat_linear
-```{r}
-get_xi_hat_linear_pen <- function(W, y, lambda){
-  # new
-  ## step 1: inner products
-    n <- W$n_sample
-  K <- W$n_functional
-  u <- gamma <- list()
-  
-  v <- t(W$Z) %*% y
-  q <- sum(v^2)
-  for (j in 1:K){
-    Theta_t <- W$functional_list[[j]]$coefs
-    B <- W$gram_list[[j]]
-    u[[j]] <- B %*% Theta_t %*% y
-    
-
-    # linear system
-    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
-    gamma[[j]] <- solve(R, u[[j]])
-    
-     #q
-    q <- q + sum( gamma[[j]] * ( R %*% gamma[[j]] ))
-  }
-  d_vec <- c(do.call(c, gamma), v)  # or: unlist(d)
-  ## step 2: squared norm
-  d_vec <- d_vec/ sqrt(q)
-  xi_hat <- predictor_hybrid_from_coef(format = W, coef = d_vec)
-  return(xi_hat)
-}
-```
-
-
-the full vector of PLS scores $$\hat{\boldsymbol{\rho}}  = (\hat{\rho}_1, \ldots, \hat{\rho}_n)^\top$$
-	is computed through the following matrix multiplication:
-$$
-		\hat{\boldsymbol{\rho}}^\top = \sum_{k=1}^K ( \hat{\boldsymbol{\gamma}}_j )^\top B \, \Theta_j^\top + \boldsymbol{\zeta}^\top \mathbf{Z}^\top.
-$$	
-```{r}
-get_rho <- function(d_vec, W){
-  K <- W$n_functional
-  M <- W$n_basis_list[[1]]
-  n_scalar <- W$n_scalar
-  n <- W$n_sample
-  rho <- rep(0, n)
-  
-  #functional part
-  for (j in 1:K){
-    start_index <- (j-1)*M + 1
-    end_index <- j*M
-    gamma_j <- d_vec[ start_index : end_index]
-    Theta_j  <- t(W$functional_list[[j]]$coefs)
-    B <- W$gram_list[[j]]
-    rho <- rho + Theta_j %*% B %*% gamma_j
-  }
-      
-  #scalar part
-  rho <- rho + W$Z %*% d_vec[(K * M + 1):length(d_vec)]
-  return (as.vector(rho))
-}
-```
-
-
-```{r}
-library(fda)
-
-# --- Step 1: Simulate Data ---
-set.seed(111)
-
-n_sample <- 100
-n_scalar <- 2
-n_basis <- 20
-n_functional <- 2
-
-# Scalar predictors Z (centered)
-Z <- matrix(rnorm(n_sample * n_scalar), ncol = n_scalar)
-Z <- scale(Z, center = TRUE, scale = FALSE)
-
-# Create functional predictors (centered)
-basis <- create.bspline.basis(c(0, 1), nbasis = n_basis)
-functional_list <- list()
-for (j in 1:n_functional) {
-  coefs <- matrix(rnorm(n_basis * n_sample), nrow = n_basis)
-  fdobj <- fd(coef = coefs, basisobj = basis)
-  mean_fd <- mean.fd(fdobj)
-  mean_coef <- coef(mean_fd)
-  centered_coefs <- coefs - matrix(mean_coef, nrow = n_basis, ncol = n_sample)
-  functional_list[[j]] <- fd(coef = centered_coefs, basisobj = basis)
-}
-
-# --- Step 2: Construct hybrid object ---
-W <- predictor_hybrid(Z = Z, functional_list = functional_list)
-
-# --- Step 3: Simulate and center response ---
-total_coef_len <- sum(W$n_basis_list) + W$n_scalar
-true_coef <- rnorm(total_coef_len)
-
-# Flatten design matrix
-Xmat <- matrix(NA, n_sample, total_coef_len)
-for (i in 1:n_sample) {
-  W_i <- subset_predictor_hybrid(W, i)
-  func_coefs <- do.call(c, lapply(W_i$functional_list, function(fdobj) as.vector(coef(fdobj))))
-  Xmat[i, ] <- c(func_coefs, W_i$Z)
-}
-
-y <- Xmat %*% true_coef + rnorm(n_sample, sd = 0.1)
-y <- as.vector(scale(y, center = TRUE, scale = FALSE))
-
-# --- Step 4: Compute constraint matrix ---
-lambda <- rep(0, W$n_functional)
-#constr_mat <- get_constraint_matrix_hybrid(W, lambda)
-#L <- chol(constr_mat)
-
-# --- Step 5: Run eigen-based PLS ---
-W_template <- W  # prevent mutation
-
-
-pls_eig_result <- get_pls_comp(W, y, L)
-xi_hat_eig <- pls_eig_result$xi_hat
-
-xi_hat_pen <- get_xi_hat_linear_pen(W, y, lambda)
-xi_hat_lin_new <- get_xi_hat_linear_new(W, y)
-# Wrap into predictor_hybrid object using format template
-xi_hat_direct <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin)
-norm_val <- sqrt(inprod.predictor_hybrid(xi_hat_direct))
-xi_hat_direct <- scalar_mul.predictor_hybrid(xi_hat_direct,  1 / norm_val)
-xi_hat_direct_new <- predictor_hybrid_from_coef(format = W_template, coef = xi_hat_lin_new)
-
-cat(xi_hat_direct_new$functional_list[[1]]$coefs- xi_hat_direct$functional_list[[1]]$coefs)
-cat(xi_hat_direct_new$functional_list[[2]]$coefs- xi_hat_direct$functional_list[[2]]$coefs)
-
-
-```
-
+## PLS component computation 
  
 
-## Residualization
+### get_xi_hat_linear_pen
 
-### response residualization
+**Description:**
+Computes the penalized PLS weight vector (direction) , represented as a `predictor_hybrid` object. This function solves for the coefficients that maximize the covariance between the predictor and the response , subject to a roughness penalty.
+
+The optimization problem leads to a system of linear equations for each functional component :
+
+
+
+where:
+
+-  is the Gram matrix (`gram_list`).
+-  is the penalty matrix (`gram_deriv2_list`).
+-  are the basis coefficients of the functional data.
+-  are the coefficients for the -th functional weight.
+
+For the scalar part, the weights are simply the inner products . The final coefficient vector is normalized by the -norm (defined by the penalized inner product structure).
+
+**Inputs:**
+
+- `W`: A `predictor_hybrid` object containing the predictors.
+- `y`: A numeric vector of response values (length ).
+- `lambda`: A numeric vector of smoothing parameters (one for each functional predictor).
+
+**Output:**
+
+- A single-sample `predictor_hybrid` object representing the estimated direction .
 
 ```{r}
-get_nu <- function(y, rho){
-            nu <- sum(y*rho) / sum(rho*rho)
-            return(nu)  
+#' Compute Penalized PLS Weight Vector (Linear)
+#'
+#' Solves for the PLS weight direction xi that maximizes the covariance with y,
+#' subject to roughness penalties on the functional components.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param y A numeric vector of response values.
+#' @param lambda A numeric vector of smoothing parameters.
+#'
+#' @return A single-sample `predictor_hybrid` object representing the weight direction xi.
+#' @export
+get_xi_hat_linear_pen <- function(W, y, lambda) {
+  
+  n <- W$n_sample
+  K <- W$n_functional
+  u <- gamma <- list()
+
+  # --- Scalar Component ---
+  # Compute scalar weights: v = Z^T * y
+  v <- t(W$Z) %*% y
+  
+  # Initialize squared norm q with scalar part contribution
+  # q = ||xi||^2_pen = sum(v^2) + functional_parts
+  q <- sum(v^2)
+
+  # --- Functional Components ---
+  for (j in 1:K) {
+    # Theta_t: coefficient matrix of the functional data (basis x samples)
+    Theta_t <- W$functional_list[[j]]$coefs
+    
+    # B: Gram matrix for the j-th basis
+    B <- W$gram_list[[j]]
+    
+    # Compute RHS of the linear system: u = B * Theta * y
+    # This represents the unpenalized gradient term
+    u[[j]] <- B %*% Theta_t %*% y
+
+    # Linear System Matrix: R = Gram + lambda * Penalty
+    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
+    
+    # Solve for gamma_j: (Gram + Penalty) * gamma = Gram * Theta * y
+    gamma[[j]] <- solve(R, u[[j]])
+
+    # Update squared norm q:
+    # Add contribution gamma^T * R * gamma (penalized norm of functional weight)
+    q <- q + sum(gamma[[j]] * (R %*% gamma[[j]]))
+  }
+  
+  # --- Combine and Normalize ---
+  # Flatten gamma list and append scalar weights v
+  d_vec <- c(do.call(c, gamma), v)
+  
+  # Normalize the vector to have unit penalized norm
+  d_vec <- d_vec / sqrt(q)
+  
+  # Reconstruct the result as a predictor_hybrid object
+  xi_hat <- predictor_hybrid_from_coef(format = W, coef = d_vec)
+  
+  return(xi_hat)
+}
+```
+ 
+
+### get_rho
+
+**Description:**
+Computes the vector of PLS scores  by projecting the hybrid predictor data  onto the weight direction vector  (which represents ).
+
+The projection is computed as:
+
+
+
+where:
+
+-  is the coefficient matrix for the -th functional predictor ().
+-  is the Gram matrix ().
+-  are the coefficients for the -th functional weight.
+-  are the coefficients for the scalar weight.
+
+**Inputs:**
+
+- `d_vec`: A numeric vector containing the concatenated coefficients for all functional and scalar weights.
+- `W`: A `predictor_hybrid` object providing the data and Gram matrices.
+
+**Output:**
+
+- A numeric vector of length  containing the PLS scores.
+
+```{r}
+#' Compute PLS Scores
+#'
+#' Projects the hybrid predictor data W onto the weight direction defined by d_vec
+#' to calculate the PLS scores.
+#'
+#' @param d_vec A numeric vector of concatenated coefficients (functional basis coeffs + scalar weights).
+#' @param W A `predictor_hybrid` object containing the data.
+#'
+#' @return A numeric vector of PLS scores (length n).
+#' @export
+get_rho <- function(d_vec, W) {
+  K <- W$n_functional
+  M <- W$n_basis_list[[1]] # Assumes same number of basis functions for all K
+  n_scalar <- W$n_scalar
+  n <- W$n_sample
+  
+  # Initialize rho vector
+  rho <- rep(0, n)
+
+  # --- Functional Part ---
+  # Iterate over functional predictors to compute inner products <X^(k), gamma^(k)>
+  for (j in 1:K) {
+    # Extract coefficients for the j-th functional weight
+    start_index <- (j - 1) * M + 1
+    end_index <- j * M
+    gamma_j <- d_vec[start_index:end_index]
+    
+    # Get data coefficients (samples x basis)
+    Theta_j <- t(W$functional_list[[j]]$coefs)
+    
+    # Gram matrix
+    B <- W$gram_list[[j]]
+    
+    # Update scores: rho += Theta * B * gamma
+    # (samples x basis) * (basis x basis) * (basis x 1) -> (samples x 1)
+    rho <- rho + Theta_j %*% (B %*% gamma_j)
+    
+  }
+
+  # --- Scalar Part ---
+  # Extract scalar weights (the remaining coefficients in d_vec)
+  scalar_indices <- (K * M + 1):length(d_vec)
+  scalar_weights <- d_vec[scalar_indices]
+  
+  # Update scores: rho += Z * weights
+  rho <- rho + W$Z %*% scalar_weights
+  
+  return(as.vector(rho))
 }
 ```
 
+
+ 
+ 
+
+## Response Residualization
+
+### get_nu
+
+**Description:**
+Calculates the scalar regression coefficient  obtained by regressing the response vector  onto the PLS score vector . This minimizes the least squares error .
+
+
+**Inputs:**
+
+- `y`: A numeric vector of response values.
+- `rho`: A numeric vector of PLS scores.
+
+**Output:**
+
+- A scalar value .
 ```{r}
-residualize_y <- function(y, rho, nu){
+#' Compute scalar regression coefficient (nu)
+#'
+#' Calculates the projection coefficient of the response vector y onto the score vector rho.
+#'
+#' @param y A numeric vector of response values.
+#' @param rho A numeric vector of PLS scores.
+#'
+#' @return A scalar regression coefficient.
+#' @export
+get_nu <- function(y, rho) {
+  # Compute numerator: inner product of y and rho
+  # Compute denominator: squared norm of rho
+  nu <- sum(y * rho) / sum(rho * rho)
+  return(nu)
+}
+```
+ 
+
+### residualize_y
+
+**Description:**
+Computes the residual of the response vector  after removing the component explained by the current PLS score .
+
+
+**Inputs:**
+
+- `y`: The current response vector.
+- `rho`: The current PLS score vector.
+- `nu`: The regression coefficient computed by `get_nu`.
+
+**Output:**
+
+- A numeric vector of residuals.
+
+```{r}
+#' Residualize the response vector
+#'
+#' Subtracts the projection of y onto rho from y.
+#'
+#' @param y The current response vector.
+#' @param rho The current PLS score vector.
+#' @param nu The regression coefficient.
+#'
+#' @return The residualized response vector.
+#' @export
+residualize_y <- function(y, rho, nu) {
   y_next <- y - nu * rho
   return(y_next)
 }
 ```
-
+ 
  
 
+## Predictor Residualization
 
+### get_delta
+
+**Description:**
+Computes the hybrid regression coefficient  for regressing the predictor  onto the PLS scores .  is a single-sample `predictor_hybrid` object representing the direction in the predictor space that corresponds to .
+
+
+**Inputs:**
+
+- `W`: A `predictor_hybrid` object containing  samples.
+- `rho`: A numeric vector of PLS scores (length ).
+
+**Output:**
+
+- A single-sample `predictor_hybrid` object .
 ```{r}
-LSE_ptws <- function(input, rho) {
-  # old implementation
-            rho_norm_sq <- (Matrix::norm(rho, type = "2"))^2
-            nu <- as.numeric(t(rho) %*% input) / rho_norm_sq
-            return(nu)
-}
-
-```
-
-###  predictor residualization
-
-$$
-\widetilde{W}_i^{[l+1]} 
-			:= 	\widetilde{W}_i^{[l]}  - 
-			\widehat{\rho}_i^{[l]}
-			\hat{\delta}^{[l]},~\text{where}~
-			\delta^{[l]}
-			:= 
-			\frac{1}{\| 	\hat{\boldsymbol{\rho}}^{[l]}\|_2^2}
-			\sum_{i=1}^n 
-			\widehat{\rho}_i^{[l]}
-			\widetilde{W}_i^{[l]},
-$$
-
-
-```{r}
-get_delta <- function(W, rho){
+#' Compute hybrid regression coefficient (delta)
+#'
+#' Calculates the weighted average of the predictor observations W_i,
+#' weighted by the scores rho_i.
+#'
+#' @param W A `predictor_hybrid` object.
+#' @param rho A numeric vector of PLS scores.
+#'
+#' @return A single-sample `predictor_hybrid` object representing delta.
+#' @export
+get_delta <- function(W, rho) {
+  # Initialize delta with the first weighted observation: rho[1] * W[1]
   delta <- scalar_mul.predictor_hybrid(subset_predictor_hybrid(W, 1), rho[1])
-   for (i in 2:length(rho)) {
-  delta <- add.predictor_hybrid(delta, subset_predictor_hybrid(W, i),  rho[i]) 
-   } 
-  delta <- scalar_mul.predictor_hybrid(delta, 1/sum(rho*rho))
+  
+  # Iteratively add the remaining weighted observations: delta += rho[i] * W[i]
+  for (i in 2:length(rho)) {
+    W_i <- subset_predictor_hybrid(W, i)
+    delta <- add.predictor_hybrid(delta, W_i, rho[i])
+  }
+  
+  # Normalize by the squared norm of rho
+  delta <- scalar_mul.predictor_hybrid(delta, 1 / sum(rho * rho))
+  
   return(delta)
 }
 ```
 
 
+
+### residualize_predictor
+
+**Description:**
+Computes the residuals of the predictor object  by subtracting the component explained by .
+
+
+**Inputs:**
+
+- `W`: The current `predictor_hybrid` object.
+- `rho`: The current PLS score vector.
+- `delta`: The hybrid regression coefficient (from `get_delta`).
+
+**Output:**
+
+- A `predictor_hybrid` object containing the residualized predictors.
 ```{r}
-residualize_predictor <- function(W, rho, delta){
+#' Residualize the hybrid predictor
+#'
+#' Updates each observation in W by subtracting the projection onto rho (rho_i * delta).
+#'
+#' @param W The current `predictor_hybrid` object.
+#' @param rho The current PLS score vector.
+#' @param delta The hybrid regression coefficient (single-sample object).
+#'
+#' @return The residualized `predictor_hybrid` object.
+#' @export
+residualize_predictor <- function(W, rho, delta) {
   n <- length(rho)
   W_res <- W
-  for (i in 1:n){
+  
+  # Iterate through each sample to compute residuals
+  for (i in 1:n) {
+    # Extract the i-th observation
     W_i <- subset_predictor_hybrid(W, i)
-    W_res_i <-subtr.predictor_hybrid(W_i, delta,  rho[i]) 
+    
+    # Calculate residual: W_i_new = W_i - rho[i] * delta
+    W_res_i <- subtr.predictor_hybrid(W_i, delta, rho[i])
+    
+    # Replace the observation in the result object
     W_res <- replace_obs_hybrid(W_res, i, W_res_i)
   }
+  
   return(W_res)
 }
 ```
 
  
+# Main algorithm
 
+### fit.hybridPLS
 
-### LSE_hybrid
+**Description:**
+Implements the Hybrid Penalized Partial Least Squares (PLS) algorithm. This function iteratively extracts latent components that maximize the covariance between the hybrid predictors and the response, subject to roughness penalties.
+
+**Algorithm Steps:**
+For each iteration :
+
+1. **Weight Direction ():** Computes the penalized weight vector that maximizes covariance with the current response residual .
+2. **Scores ():** Projects the current predictor residuals  onto the weight direction to obtain PLS scores.
+3. **loadings ():** Computes the regression coefficients for projecting  and  onto the scores .
+4. **Deflation:** Updates the predictor  and response  by removing the variance explained by the current component (residualization).
+5. **Coefficient Update:** Computes the "whitened" direction  (transforming weights back to the original predictor space) and updates the cumulative regression coefficient .
+
+**Inputs:**
+
+- `W`: Initial `predictor_hybrid` object.
+- `y`: Numeric vector of response values.
+- `n_iter`: Integer specifying the number of PLS components to extract.
+- `lambda`: Numeric vector of smoothing parameters (one for each functional predictor).
+
+**Output:**
+
+- A list containing:
+- `rho`: List of score vectors for each component.
+- `xi`: List of weight directions (hybrid objects).
+- `W`: List of residualized predictor objects at each step.
+- `beta`: List of cumulative regression coefficients (hybrid objects) at each step.
 
 ```{r}
-LSE_hybrid <- function(W, rho) {
-  # old implementation
-  C_star_J_star <- matrix(NA, nrow = W$n_sample, ncol = sum(W$n_basis_list) + W$n_scalar)
-  for (ii in (1 : W$n_functional)){
-    cumsum_n_basis_now <- sum(W$n_basis_list[1:ii])
-    n_basis_now <- W$n_basis_list[ii]
-    C_star_J_star[, (cumsum_n_basis_now - n_basis_now + 1) :cumsum_n_basis_now] <-
-      t(W$functional_list[[ii]]$coefs) %*% W$jacobian_list[[ii]]
-  }
-  C_star_J_star[ ,(sum(W$n_basis_list) + 1) : ncol(C_star_J_star)] <- W$Z
-  rho_t_C_star_J_star <- t(rho) %*% C_star_J_star
-
-  # matrices in the statement of Proposition 4
-  J_star <-as.matrix(get_jacobian_hybrid(W))
-  d_hat_star <- t( #basis coefficient of hybrid regression coefficientdelta
-    solve(
-      t((norm(rho, type="2"))^2 * J_star),
-      t(rho_t_C_star_J_star)
-      )
-    )
-  delta_hat <- hybrid_from_coef(W, d_hat_star) #hybrid regression coefficient
-  return(delta_hat)
-  }
-```
-
- 
-
-# main algorithm
-
-```{r eval=FALSE, include=FALSE}
+#' Fit Hybrid Penalized PLS with Optional Validation
+#'
+#' Runs the iterative PLS algorithm. If 'validation_data' is provided,
+#' it computes and stores the RMSE on the validation set for each component.
+#'
+#' @param W Initial `predictor_hybrid` object (Training).
+#' @param y Numeric vector of response values (Training).
+#' @param n_iter Integer, number of components to extract.
+#' @param lambda Numeric vector of smoothing parameters.
+#' @param validation_data (Optional) A list containing `W_test` (predictor_hybrid) and `y_test`.
+#'
+#' @return A list containing the model (rho, xi, beta) and optional `validation_rmse`.
 #' @export
-fit.hybridPLS <- function(W, y, n_iter, lambda) {
+fit.hybridPLS <- function(W, y, n_iter, lambda, validation_data = NULL) {
   # 1. Initialize storage
-  W_now <- rho <- xi <- delta <- nu  <- iota <- beta <- list()
- 
-  # 3. Initialize residuals
-  W_now[[1]] <- W
-  y_now <- y
-  for (l in 1:n_iter) {
-    cat(paste(l, "th component", "\n"))
-
-    xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
-    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
-    delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
-    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
-    nu[[l]] <- get_nu(y_now, rho[[l]]); y_now <- residualize_y(y_now, rho[[l]], nu[[l]]) # response residual
- 
-    iota[[l]] <- xi[[l]]
-    if (l == 1) {
-      beta[[l]] <- scalar_mul.predictor_hybrid( iota[[l]], nu[[l]] )
-    } else {
-      for (u in 1:(l - 1)) iota[[l]] <- subtr.predictor_hybrid( iota[[l]], iota[[u]], inprod.predictor_hybrid(delta[[u]], xi[[l]]))
-      beta[[l]] <- add.predictor_hybrid(beta[[l - 1]], iota[[l]], nu[[l]])
-    }
-  }
-  return (list(
-    rho = rho,
-    xi = xi,
-    W = W_now,
-    beta = beta
-  ))
-}
-
-```
-
-
-```{r eval=FALSE, include=FALSE}
-#' @export
-fit.hybridPLS_eigen <- function(W, y, n_iter, lambda) {
-  # 1. Initialize storage
-  W_now <- rho <- xi <- delta <- nu  <- sigma <- eta <- list()
- 
-  # 3. Initialize residuals
-  W_now[[1]] <- W
-  y_now <- y
-  final_succesful_iteration <- 0
-  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
-  constr_mat_chol <- t(chol(constr_mat))
-  for (l in 1:n_iter) {
-    cat(paste(l, "th component", "\n"))
-
-    #xi[[l]]  <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda) # PLS direction
-    xi[[l]]  <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol) # PLS direction
-    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]]) #PLS score
-    delta[[l]] <- get_delta(W_now[[l]], rho[[l]]);  
-    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]]) # predictor residual
-    nu[[l]] <- get_nu(y_now, rho[[l]]); y_now <- residualize_y(y_now, rho[[l]], nu[[l]]) # response residual
- 
-    # Step 3: Orthogonalize and update prediction
-    #sigma[[l]] <- xi[[l]]
-    #if (l == 1) {
-    #  eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
-    #} else {
-    #  for (u in 1:(l - 1)) {
-    #    sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
-    #  }
-    #  eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
-    #}
-  }
-  return (list(
-    rho = rho,
-    xi = xi,
-    W = W_now
-  ))
-}
-
-```
-
-```{r}
-inprod.predictor_hybrid(res$W[[5]], res$xi[[3]])
-
-sum(y * inprod.predictor_hybrid(res$W[[5]], res$xi[[3]]))
-
-inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], lambda)
-inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], 10*lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], 10*lambda)
-inprod_pen.predictor_hybrid(res$xi[[1]], res$xi[[8]], lambda/10) - inprod_pen.predictor_hybrid(res_eigen$xi[[1]], res_eigen$xi[[8]], lambda/10)
-sum(y * inprod.predictor_hybrid(res$W[[8]], res$xi[[1]])) - sum(y * inprod.predictor_hybrid(res_eigen$W[[8]], res_eigen$xi[[1]]))
-
-
-
-
-
-
-inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[3]], res_eigen$xi[[4]], lambda)
-inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], 10*lambda) - inprod_pen.predictor_hybrid(res_eigen$xi[[3]], res_eigen$xi[[4]], 10*lambda)
-inprod_pen.predictor_hybrid(res$xi[[3]], res$xi[[4]], lambda/10)
-sum(y * inprod.predictor_hybrid(res$W[[3]], res$xi[[1]]))
-
-
-inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], lambda)
-inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], 10*lambda)
-inprod_pen.predictor_hybrid(res$xi[[5]], res$xi[[10]], lambda/10)
-sum(y * inprod.predictor_hybrid(res$W[[5]], res$xi[[1]]))
-
-inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], lambda)
-inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], lambda/10)
-inprod_pen.predictor_hybrid(res$xi[[4]], res$xi[[4]], 10*lambda )
-
-```
-
-
-
-
-```{r}
-lambda <- c(0.5,0.5)
-L=8
-res <- fit.hybridPLS(W,y,L, lambda)
-res_eigen <- fit.hybridPLS_eigen(W,y,L, lambda)
-```
-
-
-### nipals_pen_hybrid
-
-
-- depends on:
-  - 'get_constraint_matrix_hybrid'
-  - 'get_pls_comp'
-  - 'hybrid_inner_prod'
-  - 'LSE_hybrid'
+  W_now <- rho <- xi <- delta <- nu <- iota <- beta <- list()
+  validation_rmse <- numeric(n_iter)
   
-```{r eval=FALSE, include=FALSE}
-#' Iterative Penalized NIPALS Algorithm for Hybrid PLS
-#'
-#' Performs iterative extraction of PLS components using a penalized NIPALS algorithm
-#' for hybrid predictor objects that include both scalar and functional data.
-#'
-#' At each iteration:
-#' \enumerate{
-#'   \item Computes the first penalized PLS component using \code{get_pls_comp}.
-#'   \item Computes PLS scores via hybrid inner products.
-#'   \item Residualizes both predictors and response with respect to the extracted scores.
-#'   \item Orthogonalizes and accumulates loading vectors to construct final linear predictors.
-#' }
-#' The same constraint matrix (computed once) is used across all iterations.
-#'
-#' @param W A \code{predictor_hybrid} object containing scalar and functional predictors.
-#' @param y A numeric response vector of length equal to \code{W$n_sample}.
-#' @param n_iter An integer specifying the number of PLS components (iterations) to compute.
-#' @param lambda A numeric vector of smoothing parameters (length = number of functional predictors).
-#' @param verbose Logical; if \code{TRUE}, prints progress for each component.
-#'
-#' @return This function operates by side effects. Internally, it constructs and updates:
-#' \itemize{
-#'   \item \code{xi}, \code{rho}, \code{delta}, \code{nu}: component vectors and regression effects,
-#'   \item \code{sigma}, \code{eta}: orthogonalized components and accumulated prediction functions,
-#'   \item \code{W_now}, \code{resid_y}: residualized predictor and response at each iteration,
-#'   \item \code{E}, \code{V_star}, \code{eigen_val}: matrices for monitoring stability and eigenvalue progress.
-#' }
-#' The final number of successful iterations is tracked via \code{final_succesful_iteration}.
-#'
-#' @export
-nipals_pen_hybrid <- function(W, y, n_iter, lambda, verbose) {
-  # 1. Initialize storage
-  rho <- xi <- delta <- nu  <- sigma <- eta <- list()
-  E <- V_star <- eigen_val <- list()
-  fitted_value_W <- fitted_value_y <- list()
-  resid_y <- W_now <- list()
-  first_eigen_val <- mse_W <- mse_y <- rep(NA, n_iter)
-
-  # 2. Compute and store the constraint matrix once
-  constr_mat <- get_constraint_matrix_hybrid(W, lambda)
-  constr_mat_chol <- t(chol(constr_mat))
-
-  # 3. Initialize residuals
+  # 2. Initialize current state
   W_now[[1]] <- W
   y_now <- y
-  final_succesful_iteration <- 0
-
+  
+  # 3. Main PLS Loop
   for (l in 1:n_iter) {
-    if (verbose) cat(paste(l, "th component", "\n"))
-
-    # Step 1: Compute penalized PLS direction and score
-    pls_result_now <- get_pls_comp(W_now[[l]], y_now, constr_mat_chol, verbose)
-    if (!is.list(pls_result_now)) break
-
-    xi[[l]] <- pls_result_now$xi
-    rho[[l]] <- hybrid_inner_prod(W_now[[l]], xi[[l]])
-
-    # Step 2: Residualize predictor and response
-    delta[[l]] <- LSE_hybrid(W_now[[l]], rho[[l]])
-    fitted_value_W[[l]] <- fitted_value(delta[[l]], rho[[l]])
-    W_now[[l + 1]] <- subtr(W_now[[l]], fitted_value_W[[l]])
-
-    nu[[l]] <- LSE_ptws(y_now, rho[[l]])
-    fitted_value_y[[l]] <- nu[[l]] * rho[[l]]
-    y_now <- y_now - fitted_value_y[[l]]
-    resid_y[[l]] <- y_now
-
-    # Step 3: Orthogonalize and update prediction
-    sigma[[l]] <- xi[[l]]
+    # --- Step A: Weight Direction (xi) ---
+    xi[[l]] <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda)
+    
+    # --- Step B: Scores (rho) ---
+    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]])
+    
+    # --- Step C: Loadings (delta, nu) ---
+    delta[[l]] <- get_delta(W_now[[l]], rho[[l]])
+    nu[[l]] <- get_nu(y_now, rho[[l]])
+    
+    # --- Step D: Deflation ---
+    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]])
+    y_now <- residualize_y(y_now, rho[[l]], nu[[l]])
+    
+    # --- Step E: Cumulative Coefficient (Beta) ---
+    iota[[l]] <- xi[[l]]
+    
     if (l == 1) {
-      eta[[l]] <- scalar_mul(sigma[[l]], nu[[l]])
+      beta[[l]] <- scalar_mul.predictor_hybrid(iota[[l]], nu[[l]])
     } else {
       for (u in 1:(l - 1)) {
-        sigma[[l]] <- subtr(sigma[[l]], sigma[[u]], hybrid_inner_prod(delta[[u]], xi[[l]]))
+        adjustment <- inprod.predictor_hybrid(delta[[u]], xi[[l]])
+        iota[[l]] <- subtr.predictor_hybrid(iota[[l]], iota[[u]], adjustment)
       }
-      eta[[l]] <- add(eta[[l - 1]], sigma[[l]], nu[[l]])
+      beta[[l]] <- add.predictor_hybrid(beta[[l - 1]], iota[[l]], nu[[l]])
     }
+    
+    # --- Step F: Validation (Optional) ---
+    if (!is.null(validation_data)) {
+      # Predict on test set using the current cumulative beta
+      y_pred_test <- inprod.predictor_hybrid(validation_data$W_test, beta[[l]])
+      
+      # Compute RMSE (standardized scale usually, but here just raw RMSE)
+      validation_rmse[l] <- sqrt(mean((validation_data$y_test - y_pred_test)^2))
+    }
+  }
+  
+  return(list(
+    rho = rho,
+    xi = xi,
+    beta = beta,
+    validation_rmse = if (!is.null(validation_data)) validation_rmse else NULL
+  ))
+}
+```
 
-    # Record diagnostics
-    E[[l]] <- pls_result_now$E
-    V_star[[l]] <- pls_result_now$V_star
-    eigen_val[[l]] <- pls_result_now$eigen_val
-    first_eigen_val[l] <- eigen_val[[l]][1]
-    final_succesful_iteration <- l
+
+```{r}
+# ==============================================================================
+# TEST SCRIPT FOR HYBRID PLS
+# ==============================================================================
+
+# Prerequisites
+library(fda)
+library(Matrix)
+
+# 1. DATA SIMULATION
+# ------------------------------------------------------------------------------
+set.seed(2025)
+n_sample <- 50
+n_scalar <- 3
+
+# --- Create Functional Predictor 1 (B-Spline Basis) ---
+nbasis1 <- nbasis2 <-  10
+basis1 <- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis1)
+# Generate random coefficients (nbasis x n_sample)
+coefs1 <- matrix(rnorm(nbasis1 * n_sample), nrow = nbasis1, ncol = n_sample)
+fd1 <- fd(coef = coefs1, basisobj = basis1)
+
+# --- Create Functional Predictor 2 (Fourier Basis) ---
+
+ # Generate random coefficients
+coefs2 <- matrix(rnorm(nbasis2 * n_sample), nrow = nbasis2, ncol = n_sample)
+fd2 <- fd(coef = coefs2, basisobj = basis1)
+
+# --- Create Scalar Predictors ---
+Z <- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
+
+# --- Construct the True Hybrid Predictor Object ---
+# (We need this to generate a 'true' y for testing)
+W_train <- predictor_hybrid(
+  Z = Z, 
+  functional_list = list(fd1, fd2), 
+  eval_point = seq(0, 1, length.out = 100)
+)
+
+# --- Generate Synthetic Response y ---
+# Let's create a random 'true' beta to generate y
+# True beta is just a random instance of a hybrid object
+true_beta_coefs <- rnorm(nbasis1 + nbasis2 + n_scalar)
+true_beta <- predictor_hybrid_from_coef(W_train, true_beta_coefs) # Create a single-sample hybrid beta
+
+# Calculate y = <W, beta> + noise
+y_clean <- inprod.predictor_hybrid(W_train, true_beta)
+y <- y_clean + rnorm(n_sample, sd = 0.5)
+
+message("Data generation complete.")
+message(paste("Samples:", n_sample))
+message(paste("Functional Predictors: 2 (Basis sizes:", nbasis1, ",", nbasis2, ")"))
+message(paste("Scalar Predictors:", n_scalar))
+
+# 2. RUNNING FIT.HYBRIDPLS
+# ------------------------------------------------------------------------------
+n_components <- 3
+# Lambda: Small smoothing penalty for demonstration (one per functional predictor)
+lambda_vec <- c(0.01, 0.01) 
+
+message("\nRunning fit.hybridPLS...")
+start_time <- Sys.time()
+
+fit_result <- fit.hybridPLS(
+  W = W_train, 
+  y = y, 
+  n_iter = n_components, 
+  lambda = lambda_vec
+)
+
+end_time <- Sys.time()
+message(paste("Fitting complete in:", round(end_time - start_time, 4), "seconds."))
+
+# 3. VERIFICATION & INSPECTION
+# ------------------------------------------------------------------------------
+
+# --- A. Check Structure ---
+message("\n--- Structure Verification ---")
+if (length(fit_result$rho) == n_components && length(fit_result$beta) == n_components) {
+  message("PASS: Output list lengths match n_iter.")
+} else {
+  stop("FAIL: Output list lengths do not match n_iter.")
+}
+
+# --- B. Check Beta Dimensions ---
+final_beta <- fit_result$beta[[n_components]]
+if (inherits(final_beta, "predictor_hybrid")) {
+  message("PASS: Final beta is a 'predictor_hybrid' object.")
+}
+
+# --- C. Prediction & Accuracy ---
+# Calculate fitted values using the beta from the last component
+# y_hat = <W_train, beta_final>
+y_hat <- inprod.predictor_hybrid(W_train, final_beta)
+
+# Calculate MSE and Correlation
+mse <- mean((y - y_hat)^2)
+cor_y <- cor(y, y_hat)
+
+message("\n--- Model Performance ---")
+message(paste("Mean Squared Error (MSE):", round(mse, 4)))
+message(paste("Correlation (y vs y_hat):", round(cor_y, 4)))
+
+# --- D. Visual Check (Optional Plotting) ---
+if(interactive()) {
+  plot(y, y_hat, main = "Observed vs Fitted", xlab = "Observed y", ylab = "Fitted y")
+  abline(0, 1, col = "red", lty = 2)
+  text(min(y), max(y_hat), paste("Cor =", round(cor_y, 3)), adj = c(0, 1))
+}
+
+# 4. COMPONENT ANALYSIS (SCORES)
+# ------------------------------------------------------------------------------
+message("\n--- Component Analysis ---")
+# Check orthogonality of scores (approximate, due to deflation method)
+rho_matrix <- do.call(cbind, fit_result$rho)
+cor_scores <- cor(rho_matrix)
+print(round(cor_scores, 2))
+message("(Note: Scores might not be perfectly orthogonal depending on the specific PLS deflation scheme used, but off-diagonals should be relatively low or structured.)")
+
+message("\nTest script completed successfully.")
+```
+
+```{r}
+# ==============================================================================
+# TEST: ORTHOGONALITY PROPERTIES OF HYBRID PLS (Shared Basis)
+# ==============================================================================
+
+# Prerequisites
+library(fda)
+library(Matrix)
+
+# 1. SETUP & DATA SIMULATION
+# ------------------------------------------------------------------------------
+set.seed(2025) # Fixed seed for reproducibility
+
+# Dimensions
+n_sample <- 50
+n_scalar <- 5
+nbasis   <- 5 
+
+# --- Create Shared Basis (B-spline) ---
+# Using the same basis for both functional predictors as requested
+basis_shared <- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis)
+
+# --- Generate Functional Predictors ---
+# Functional Predictor 1
+coefs1 <- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
+fd1 <- fd(coef = coefs1, basisobj = basis_shared)
+
+# Functional Predictor 2 (Using same basis, different coefficients)
+coefs2 <- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
+fd2 <- fd(coef = coefs2, basisobj = basis_shared)
+
+# --- Generate Scalar Predictors ---
+Z <- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
+
+# --- Construct Hybrid Object ---
+W <- predictor_hybrid(
+  Z = Z, 
+  functional_list = list(fd1, fd2), 
+  eval_point = seq(0, 1, length.out = 100)
+)
+
+# --- Generate Response ---
+# Random response is sufficient to test orthogonality mechanics
+y <- rnorm(n_sample) 
+
+# --- Parameters ---
+n_comp <- 6
+lambda <- c(0.5, 2) # Smoothing penalties for the two functional predictors
+
+# 2. RUN PLS ALGORITHM
+# ------------------------------------------------------------------------------
+message(paste("Running fit.hybridPLS with", n_comp, "components..."))
+fit <- fit.hybridPLS(W, y, n_iter = n_comp, lambda = lambda)
+
+# 3. VERIFY PROPOSITION 1: Orthonormality of Directions (xi)
+#    Note: For NIPALS (Predictor Deflation), we expect this to FAIL.
+# ------------------------------------------------------------------------------
+message("\n--- Testing Proposition 1: Orthonormality of Directions (xi) ---")
+
+xi_orth_matrix <- matrix(0, n_comp, n_comp)
+
+for (i in 1:n_comp) {
+  for (j in 1:n_comp) {
+    xi_orth_matrix[i, j] <- inprod_pen.predictor_hybrid(
+      fit$xi[[i]], 
+      fit$xi[[j]], 
+      lambda
+    )
   }
 }
 
-```
+print(round(xi_orth_matrix, 4))
 
+# Check against Identity matrix
+is_orthonormal_xi <- all.equal(xi_orth_matrix, diag(n_comp), tolerance = 5e-2)
+
+if (isTRUE(is_orthonormal_xi)) {
+  message("✅ PASS: Directions are Orthonormal.")
+} else {
+  message("❌ FAIL: Directions are NOT orthonormal (Expected for NIPALS algorithm).")
+  message("   (The off-diagonal values indicate correlation between weight vectors.)")
+}
+
+
+# 4. VERIFY PROPOSITION 2: Orthogonality of Scores (rho)
+#    Note: For NIPALS, we expect this to PASS.
+# ------------------------------------------------------------------------------
+message("\n--- Testing Proposition 2: Orthogonality of Scores (rho) ---")
+
+# Combine list of score vectors into a matrix (n_sample x n_comp)
+rho_matrix <- do.call(cbind, fit$rho)
+
+# Compute Correlation Matrix
+rho_cor_matrix <- cor(rho_matrix)
+
+# Print rounded correlation matrix
+print(round(rho_cor_matrix, 4))
+
+# Check off-diagonals (exclude diagonal 1s)
+off_diag_vals <- rho_cor_matrix[upper.tri(rho_cor_matrix)]
+off_diag_max <- max(abs(off_diag_vals))
+
+# Tolerance check
+if (off_diag_max < 5e-2) {
+  message("✅ PASS: Scores are Orthogonal (Max correlation ~ 0).")
+  message("   This confirms the algorithm correctly implements Predictor Deflation.")
+} else {
+  message(paste("⚠️  NOTE: Max off-diagonal correlation is", round(off_diag_max, 6)))
+  message("          This is higher than expected. Check deflation logic.")
+}
+
+# Optional: Visual check of score orthogonality
+if (interactive()) {
+  image(1:n_comp, 1:n_comp, abs(rho_cor_matrix), 
+        main = "Abs(Correlation) of PLS Scores",
+        xlab = "Component", ylab = "Component",
+        col = hcl.colors(12, "Blues", rev = TRUE))
+}
+```
 
 # Simulation tools
 
-## sample splitting and normalization
+## sample splitting
+
+### create_idx_train_test
+
+**Description:**
+Randomly splits the indices of a dataset into training and testing sets based on a specified ratio. This function ensures that the indices are sorted and returned as a list containing both sets.
+
+**Usage:**
+
+```r
+create_idx_train_test(n_sample, train_ratio)
+
+```
+
+**Arguments:**
+
+- `n_sample`: Integer. The total number of samples in the dataset.
+- `train_ratio`: Numeric. The proportion of samples to include in the training set (between 0 and 1).
+
+**Value:**
+
+- A list containing:
+  - `idx_train`: A sorted integer vector of training indices.
+  - `idx_test`: A sorted integer vector of testing indices.
 
 ```{r}
-create_idx_train_test <-function(n_sample, train_ratio){
-  n_train <- floor(n_sample*train_ratio)
-  idx_train <- sort(sample(n_sample,n_train, replace=F))
-  idx_test <- sort((1 : n_sample)[-idx_train])
+#' Split Sample Indices into Train and Test Sets
+#'
+#' Randomly partitions the indices of a dataset into training and testing sets.
+#'
+#' @param n_sample Integer. The total number of samples.
+#' @param train_ratio Numeric. The proportion of samples for the training set (0 to 1).
+#'
+#' @return A list with named elements `idx_train` and `idx_test`.
+#' @export
+create_idx_train_test <- function(n_sample, train_ratio) {
+  # Calculate number of training samples
+  n_train <- floor(n_sample * train_ratio)
+  
+  # Sample indices without replacement
+  idx_train <- sort(sample(seq_len(n_sample), n_train, replace = FALSE))
+  
+  # The remaining indices form the test set
+  idx_test <- sort(setdiff(seq_len(n_sample), idx_train))
+  
   return(list(
-    idx_train = idx_train, idx_test = idx_test
+    idx_train = idx_train,
+    idx_test = idx_test
   ))
 }
 ```
 
 
+
+
+### get_idx_train
+
+**Description:**
+A simplified version of the splitting function that returns only the training indices. Useful when the testing set is defined implicitly as the complement or not immediately needed.
+
+**Usage:**
+
+```r
+get_idx_train(n_sample, train_ratio)
+
+```
+
+**Arguments:**
+
+- `n_sample`: Integer. The total number of samples.
+- `train_ratio`: Numeric. The proportion of samples for the training set.
+
+**Value:**
+
+- A sorted integer vector of training indices.
+
 ```{r}
-#' @title Generate Train Indices
-#' @description Generates train/test split indices.
+#' Generate Train Indices
+#'
+#' Randomly generates a sorted vector of indices for a training set.
+#'
 #' @param n_sample Integer. Number of samples.
 #' @param train_ratio Numeric. Ratio of train samples.
-#' @return Vector of train indices.
+#' @return Vector of sorted train indices.
+#' @export
 get_idx_train <- function(n_sample, train_ratio) {
   n_train <- floor(n_sample * train_ratio)
-  idx_train <- sort(sample(n_sample, n_train, replace = FALSE))
+  idx_train <- sort(sample(seq_len(n_sample), n_train, replace = FALSE))
   return(idx_train)
 }
 ```
 
 
+
+### create_idx_kfold
+
+**Description:**
+Generates indices for K-fold cross-validation. It relies on the `caret` package to create balanced folds and organizes them into pairs of training and validation indices for each fold.
+
+**Usage:**
+
+```r
+create_idx_kfold(n_sample, n_fold)
+
+```
+
+**Arguments:**
+
+- `n_sample`: Integer. The total number of samples.
+- `n_fold`: Integer. The number of folds to create.
+
+**Value:**
+
+- A list of length `n_fold`. Each element is a list containing:
+  - `idx_train`: Indices for training in this fold.
+  - `idx_valid`: Indices for validation in this fold.
+
+
 ```{r}
-create_idx_kfold <- function(n_sample, n_fold){
-  idx_list <- caret::createFolds( (1 : n_sample), k = n_fold, list = TRUE, returnTrain = FALSE)
-  idx_list_list <- list()
-  for (i in 1:length(idx_list)){
+#' Generate K-Fold Cross-Validation Indices
+#'
+#' Creates a list of training and validation indices for K-fold cross-validation.
+#' Uses `caret::createFolds` to ensure stratified or random splitting.
+#'
+#' @param n_sample Integer. The total number of samples.
+#' @param n_fold Integer. The number of folds.
+#'
+#' @return A list of lists, where each sub-list contains `idx_train` and `idx_valid`.
+#' @export
+create_idx_kfold <- function(n_sample, n_fold) {
+  # Generate folds using caret (returns validation indices by default)
+  idx_list <- caret::createFolds(seq_len(n_sample), k = n_fold, list = TRUE, returnTrain = FALSE)
+  
+  idx_list_list <- vector("list", length(idx_list))
+  
+  for (i in seq_along(idx_list)) {
     valid_hyper_index <- idx_list[[i]]
-    train_hyper_index <- (1 : n_sample)[-valid_hyper_index]
-    idx_list_list[[i]] <- list("idx_train" = train_hyper_index, "idx_valid" = valid_hyper_index)
+    # Training set is the complement of the validation set
+    train_hyper_index <- setdiff(seq_len(n_sample), valid_hyper_index)
+    
+    idx_list_list[[i]] <- list(
+      "idx_train" = train_hyper_index, 
+      "idx_valid" = valid_hyper_index
+    )
   }
+  
   return(idx_list_list)
 }
 ```
 
 
 
+### n_sample.fd
+
+**Description:**
+Extracts the number of samples (replications) from a functional data object (`fd` class from the `fda` package). This implementation robustly checks the dimensions of the coefficient matrix.
+
+**Usage:**
+
+```r
+n_sample.fd(fd_obj)
+
+```
+
+**Arguments:**
+
+- `fd_obj`: An object of class `fd`.
+
+**Value:**
+
+- Integer. The number of samples (curves) in the object.
+
 ```{r}
-n_sample.fd <- function(fd_obj){
-  length(fd_obj$fdnames$reps)
+#' Get Number of Samples from an fd Object
+#'
+#' Extracts the number of observations (replications) stored in a functional data object.
+#'
+#' @param fd_obj An object of class `fd`.
+#' @return Integer representing the number of samples.
+#' @export
+n_sample.fd <- function(fd_obj) {
+  if (!inherits(fd_obj, "fd")) {
+    stop("Input must be of class 'fd'.")
+  }
+  # The coefficient matrix has dimensions (nbasis x n_sample)
+  return(ncol(fd_obj$coefs))
 }
 ```
 
-
+ 
 ### split.all
 
-Splits functional predictors, scalar predictors, and response into train and test sets.
+**Description:**
+Splits a `predictor_hybrid` object and a corresponding response vector into training and testing sets based on a specified ratio. This function ensures that both the scalar matrix and the list of functional predictors are subsetted consistently.
+
+**Inputs:**
+
+- `W_hybrid`: A `predictor_hybrid` object containing the covariates.
+- `response`: A numeric vector of response values.
+- `train_ratio`: A numeric scalar (0 < ratio < 1) determining the size of the training set.
+
+**Output:**
+
+- A list containing:
+  - `predictor_train`: The `predictor_hybrid` object for training.
+  - `predictor_test`: The `predictor_hybrid` object for testing.
+  - `response_train`: The response vector for training.
+  - `response_test`: The response vector for testing.
+
 
 ```{r}
 #' Split Hybrid Predictor and Response Data
 #'
-#' Splits the hybrid predictor object and the response vector into training and
-#' testing sets based on a given training ratio.
+#' Randomly partitions the hybrid predictor object and response vector into 
+#' training and testing sets based on a given ratio. Handles any number of 
+#' functional predictors.
 #'
-#' @param W_hybrid predictor_hybrid object containing all functional and scalar data.
-#' @param response Vector. The response variable corresponding to the samples in W_hybrid.
-#' @param train_ratio Numeric scalar between 0 and 1 indicating the proportion of data to use for training.
-#' @return List containing split train and test sets for all components.
+#' @param W_hybrid A `predictor_hybrid` object containing all functional and scalar data.
+#' @param response A numeric vector. The response variable corresponding to the samples in W_hybrid.
+#' @param train_ratio A numeric scalar between 0 and 1 indicating the proportion of data to use for training.
+#'
+#' @return A list containing split train and test sets for predictors and response.
 #' @export
 split.all <- function(W_hybrid, response, train_ratio) {
-  # --- Type and Ratio Checks ---
-  stopifnot(
-    "'W_hybrid' must be a predictor_hybrid object" = inherits(W_hybrid, "predictor_hybrid"),
-    "'response' must be a vector" = is.vector(response),
-    "Response length must match hybrid sample size" = length(response) == W_hybrid$n_sample,
-    "'train_ratio' must be between 0 and 1" = is.numeric(train_ratio) && train_ratio > 0 && train_ratio < 1
-  )
+  # --- Input Validation ---
+  if (!inherits(W_hybrid, "predictor_hybrid")) {
+    stop("'W_hybrid' must be a predictor_hybrid object.")
+  }
+  if (!is.vector(response) && !is.factor(response)) {
+    stop("'response' must be a vector.")
+  }
+  if (length(response) != W_hybrid$n_sample) {
+    stop("Response length must match the number of samples in W_hybrid.")
+  }
+  if (!is.numeric(train_ratio) || train_ratio <= 0 || train_ratio >= 1) {
+    stop("'train_ratio' must be a numeric value strictly between 0 and 1.")
+  }
 
   N <- W_hybrid$n_sample
   N_train <- floor(N * train_ratio)
 
-  # Generate random indices for training set
-  # Using 1:N ensures indices are always valid
-  train_idx <- sample(1:N, N_train)
-  test_idx <- (1:N)[-train_idx]
-  
-  W_train <- predictor_hybrid(
-    W_hybrid$Z[train_idx, , drop = FALSE],
-    list(
-      W_hybrid$functional_list[[1]][train_idx],
-      W_hybrid$functional_list[[2]][train_idx]
-    )
-  )
- 
-  W_test <- predictor_hybrid(
-    W_hybrid$Z[test_idx, , drop = FALSE],
-    list(
-      data_fun_1_test = W_hybrid$functional_list[[1]][test_idx],
-    data_fun_2_test = W_hybrid$functional_list[[2]][test_idx]
-    )
-  )
-  
-  return( 
-    list(
+  # Generate random indices
+  # set.seed() should be called by the user before this function if reproducibility is needed
+  train_idx <- sort(sample(seq_len(N), N_train))
+  test_idx  <- sort(setdiff(seq_len(N), train_idx))
+
+  # --- Subset Scalar Predictors ---
+  Z_train <- W_hybrid$Z[train_idx, , drop = FALSE]
+  Z_test  <- W_hybrid$Z[test_idx,  , drop = FALSE]
+
+  # --- Subset Functional Predictors ---
+  # Use lapply to handle any number of functional predictors (K)
+  # The '[' operator on an fd object subsets the samples (replicates)
+  fun_list_train <- lapply(W_hybrid$functional_list, function(fd_obj) fd_obj[train_idx])
+  fun_list_test  <- lapply(W_hybrid$functional_list, function(fd_obj) fd_obj[test_idx])
+
+  # --- Reconstruct Hybrid Objects ---
+  # We reuse the original evaluation points
+  W_train <- predictor_hybrid(Z = Z_train, functional_list = fun_list_train, eval_point = W_hybrid$eval_point)
+  W_test  <- predictor_hybrid(Z = Z_test,  functional_list = fun_list_test,  eval_point = W_hybrid$eval_point)
+
+  return(list(
     predictor_train = W_train,
-    predictor_test = W_test ,
-    response_train = response[train_idx],
-    response_test = response[test_idx]
+    predictor_test  = W_test,
+    response_train  = response[train_idx],
+    response_test   = response[test_idx],
+    train_idx       = train_idx, # Useful to return indices for reference
+    test_idx        = test_idx
   ))
 }
 ```
 
+## normalization
 
-
+ The goal is to perform a two-step standardization: first normalizing *within* each data type (functional vs. scalar) to account for unit differences, and second normalizing *between* the two types to balance their variances for the PLS framework.
 
 ### curve_normalize
-Subtracts the mean function and divides by a scaling constant (deno). This implementation does not use the native fda S3 methods (minus.fd and times.fd), since they do not broadcast well.
-```{r}
-#' 
-#' @export
-curve_normalize <- function(functional, mean_functional, deno){
-  # operation also takes care of the original_X
 
-  functional_normalized <- fd(coef =
-                                coef(functional) - coef(mean_functional) %*% matrix(1, ncol = ncol(coef(functional))),
-                              basisobj = functional$basis
-                              )#numerator
-  functional_normalized <- times.fd(1/deno, functional_normalized)
+**Description:**
+Performs pointwise centering and scalar scaling on a functional data object. It subtracts a mean function and divides by a scaling constant (denominator). This implementation manually broadcasts the mean subtraction to ensure compatibility with `fda` objects where standard `minus.fd` can sometimes struggle with broadcasting single mean functions across multiple samples.
+
+**Usage:**
+
+```r
+curve_normalize(functional, mean_functional, deno)
+
+```
+
+**Arguments:**
+
+- `functional`: The `fd` object to be normalized.
+- `mean_functional`: An `fd` object representing the mean (centroid) to subtract.
+- `deno`: A numeric scalar scaling factor (e.g., total standard deviation).
+
+**Value:**
+
+- A normalized `fd` object.
+
+```{r}
+#' Normalize a functional data object
+#'
+#' Subtracts a mean function and divides by a scalar constant.
+#' Manual broadcasting is used to ensure robust subtraction across samples.
+#'
+#' @param functional An `fd` object to normalize.
+#' @param mean_functional An `fd` object representing the mean.
+#' @param deno A numeric scalar for scaling (division).
+#'
+#' @return A normalized `fd` object.
+#' @export
+curve_normalize <- function(functional, mean_functional, deno) {
+  # Replicate the mean coefficients to match the number of samples in 'functional'
+  # This creates a matrix of identical mean columns for broadcasting
+  mean_coefs_matrix <- coef(mean_functional) %*% matrix(1, ncol = ncol(coef(functional)))
+  
+  # Subtract mean and create new fd object
+  functional_normalized <- fd(
+    coef = coef(functional) - mean_coefs_matrix,
+    basisobj = functional$basis
+  )
+  
+  # Apply scaling factor
+  # times.fd usually handles scalar multiplication well
+  functional_normalized <- times.fd(1 / deno, functional_normalized)
+  
   return(functional_normalized)
 }
 ```
 
+
+
 ### curve_normalize_train_test
-Normalizes the functional components of both the training and testing 'predictor_hybrid' objects using the mean and standard deviation derived ONLY from the training data. The scalar components (Z) are left unchanged.
+
+**Description:**
+Standardizes the *functional* components of hybrid predictors. It centers them to have mean zero and scales them to have unit integrated variance. Crucially, the mean and standard deviation are derived **only from the training data** to prevent data leakage. These training statistics are then applied to normalize the test set.
+
+**Usage:**
+
+```r
+curve_normalize_train_test(train, test)
+
+```
+
+**Arguments:**
+
+- `train`: A `predictor_hybrid` object (training set).
+- `test`: A `predictor_hybrid` object (test set).
+
+**Value:**
+
+- A list containing the normalized training and testing objects, along with the scaling factors used.
 
 ```{r}
-#' Normalize Functional Predictors in Hybrid Objects (Train/Test Split)
+#' Normalize Functional Predictors (Train/Test Split)
+#'
+#' Standardizes functional predictors to have mean zero and unit integrated variance.
+#' Statistics (mean and SD) are computed from the training set and applied to the test set.
+#'
 #' @param train A `predictor_hybrid` object representing the training set.
 #' @param test A `predictor_hybrid` object representing the testing set.
+#'
 #' @return A list containing:
-#'   train: The normalized training `predictor_hybrid` object.}
-#'   test: The normalized testing `predictor_hybrid` object.}
-#'   deno_train: A numeric vector of scaling factors used for each functional predictor.}
+#'   \item{predictor_train}{The normalized training object.}
+#'   \item{predictor_test}{The normalized testing object.}
+#'   \item{mean_train}{List of mean functions used for centering.}
+#'   \item{deno_train}{Vector of scaling factors used.}
 #' @export
 curve_normalize_train_test <- function(train, test) {
-  # --- Type Checks ---
   stopifnot(
-    "'train' must be of class 'predictor_hybrid'" = inherits(train, "predictor_hybrid"),
-    "'test' must be of class 'predictor_hybrid'" = inherits(test, "predictor_hybrid"),
-    "Mismatch in number of functional predictors" = train$n_functional == test$n_functional
+    inherits(train, "predictor_hybrid"),
+    inherits(test, "predictor_hybrid"),
+    train$n_functional == test$n_functional
   )
 
   train_normalized <- train
   test_normalized <- test
   deno_train <- numeric(train$n_functional)
   mean_train <- list()
-  
-  # Iterate through each functional predictor (k)
-  for (k in seq_len(train$n_functional)) { 
-    # 1. Determine centering and scaling factors from the TRAINING data only
+
+  # Iterate through each functional predictor
+  for (k in seq_len(train$n_functional)) {
+    # 1. Compute Statistics from TRAINING data
     train_fd <- train$functional_list[[k]]
     
-    # Calculate the mean function for centering
-    mean_train[[k]] <- fda::mean.fd(train_fd) 
-    
-    # Calculate the standard deviation function
+    mean_train[[k]] <- fda::mean.fd(train_fd)
     sd_train <- fda::sd.fd(train_fd)
     
-    # Calculate the scaling factor (L2 norm of the standard deviation function)
+    # Scaling factor is the L2 norm of the standard deviation function
     deno_train[k] <- sqrt(fda::inprod(sd_train, sd_train))
-    
-    # Ensure scaling factor is positive
+
+    # Safety check for zero variance
     if (deno_train[k] <= 1e-10) {
-      warning(paste("Scaling factor for functional predictor", k, "is near zero. Skipping normalization for this predictor."))
-      deno_train[k] <- 1 # Set to 1 to prevent division by zero, effectively no normalization
+      warning(paste("Functional predictor", k, "has near-zero variance. Skipping scaling."))
+      deno_train[k] <- 1 
     }
 
-    # 2. Normalize the TRAINING set
+    # 2. Normalize TRAINING set
     train_normalized$functional_list[[k]] <- curve_normalize(
-      train_fd, # Use original train data
-      mean_train[[k]],
+      train_fd, 
+      mean_train[[k]], 
       deno_train[k]
     )
-    
-    # 3. Normalize the TEST set (using train factors to prevent leakage)
-    test_normalized$functional_list[[k]] <-
-      curve_normalize(
-        test$functional_list[[k]], # Use original test data
-        mean_train[[k]], # Centered by training mean
-        deno_train[k] # Scaled by training SD
-      )
+
+    # 3. Normalize TEST set using TRAIN stats
+    test_normalized$functional_list[[k]] <- curve_normalize(
+      test$functional_list[[k]], 
+      mean_train[[k]], 
+      deno_train[k]
+    )
   }
-  # Return the modified hybrid objects and the scaling factors
-  return( list(
+
+  return(list(
     predictor_train = train_normalized,
     predictor_test = test_normalized,
     mean_train = mean_train,
@@ -1840,203 +2193,316 @@ curve_normalize_train_test <- function(train, test) {
 ```
 
 
+
+### scalar_normalize
+
+**Description:**
+Helper function to normalize a scalar matrix. It subtracts a mean vector and divides by a standard deviation vector.
+
+**Usage:**
+
+```r
+scalar_normalize(scalar_predictor, mean, deno)
+
+```
+
+**Arguments:**
+
+- `scalar_predictor`: A numeric matrix ().
+- `mean`: A numeric vector of length  (means).
+- `deno`: A numeric vector of length  (standard deviations).
+
+**Value:**
+
+- A normalized numeric matrix.
+
 ```{r}
+#' Normalize a scalar predictor matrix
 #'
+#' Centers columns by 'mean' and scales them by 'deno'.
+#'
+#' @param scalar_predictor Numeric matrix.
+#' @param mean Numeric vector of column means.
+#' @param deno Numeric vector of column standard deviations.
+#' @return Normalized matrix.
 #' @export
-scalar_normalize <- function(scalar_predictor, mean, deno){
-   scalar_predictor_normalized <- subtr_broadcast(scalar_predictor, mean) #numerator
-   deno_mat <- matrix(rep(1,nrow(scalar_predictor))) %*% deno
-   scalar_predictor_normalized <- scalar_predictor_normalized / deno_mat
-   return(scalar_predictor_normalized)
- }
+scalar_normalize <- function(scalar_predictor, mean, deno) {
+  # Subtract mean from each row (broadcasted)
+  # Uses the helper subtr_broadcast function defined previously
+  scalar_predictor_normalized <- subtr_broadcast(scalar_predictor, mean)
+  
+  # Create a matrix of denominators matching the dimensions of the predictor
+  deno_mat <- matrix(rep(deno, each = nrow(scalar_predictor)), 
+                     nrow = nrow(scalar_predictor), 
+                     ncol = length(deno))
+  
+  # Element-wise division
+  scalar_predictor_normalized <- scalar_predictor_normalized / deno_mat
+  return(scalar_predictor_normalized)
+}
 ```
 
 
+
+### scalar_normalize_train_test
+
+**Description:**
+Standardizes the *scalar* components () of the hybrid predictors. It ensures each scalar covariate has mean zero and unit variance. As with the functional part, statistics are derived solely from the training set.
+
+**Usage:**
+
+```r
+scalar_normalize_train_test(predictor_train, predictor_test)
+
+```
+
+**Arguments:**
+
+- `predictor_train`: A `predictor_hybrid` object (train set).
+- `predictor_test`: A `predictor_hybrid` object (test set).
+
+**Value:**
+
+- A list containing the normalized hybrid objects and the statistics used.
+
 ```{r}
-#' Normalize the scalar component (Z) of hybrid predictors using training set statistics.
+#' Normalize Scalar Predictors (Train/Test Split)
 #'
-#' @param predictor_train A `predictor_hybrid` object (train set).
-#' @param predictor_test A `predictor_hybrid` object (test set).
-#' @return A list containing the normalized 'train' and 'test' hybrid objects.
+#' Standardizes scalar predictors (Z) to have mean zero and unit variance.
+#' Statistics are computed from the training set.
+#'
+#' @param predictor_train A `predictor_hybrid` object (train).
+#' @param predictor_test A `predictor_hybrid` object (test).
+#'
+#' @return A list containing normalized objects and statistics.
 #' @export
-scalar_normalize_train_test <- function(predictor_train, predictor_test){
-  
-  # Type and structure checks
+scalar_normalize_train_test <- function(predictor_train, predictor_test) {
   stopifnot(
     inherits(predictor_train, "predictor_hybrid"),
     inherits(predictor_test, "predictor_hybrid"),
     predictor_train$n_scalar == predictor_test$n_scalar
   )
-  
-  # Create copies for modification
+
   predictor_train_normalized <- predictor_train
   predictor_test_normalized <- predictor_test
-  
-  # 1. Calculate statistics from the TRAINING set only
+
+  # 1. Compute Statistics from TRAINING data
   mean_train <- colMeans(predictor_train$Z)
   sd_train <- apply(predictor_train$Z, 2, sd)
   
-  # 2. Apply normalization to the TRAINING set
-  predictor_train_normalized$Z <-
-    scalar_normalize(
-      predictor_train$Z,
-      mean_train,
-      sd_train
-    )
-  
-  # 3. Apply normalization to the TEST set using TRAIN statistics
-  predictor_test_normalized$Z <-
-    scalar_normalize(
-      predictor_test$Z,
-      mean_train, # IMPORTANT: Use train mean
-      sd_train    # IMPORTANT: Use train SD
-    )
-  
-  return(
-    list(
-      predictor_train = predictor_train_normalized,
-      predictor_test = predictor_test_normalized,
-      mean_train = mean_train,
-      sd_train = sd_train
-    )
+  # Handle zero variance columns
+  sd_train[sd_train == 0] <- 1
+
+  # 2. Normalize TRAINING set
+  predictor_train_normalized$Z <- scalar_normalize(
+    predictor_train$Z,
+    mean_train,
+    sd_train
   )
+
+  # 3. Normalize TEST set using TRAIN stats
+  predictor_test_normalized$Z <- scalar_normalize(
+    predictor_test$Z,
+    mean_train,
+    sd_train
+  )
+
+  return(list(
+    predictor_train = predictor_train_normalized,
+    predictor_test = predictor_test_normalized,
+    mean_train = mean_train,
+    sd_train = sd_train
+  ))
 }
 ```
 
 
+
+### btwn_normalize_train_test
+
+**Description:**
+Performs the second step of standardization: balancing the variance *between* functional and scalar predictors. It scales the scalar component  by a factor  so that the total variance of the scalar part matches the total variance of the functional parts.
+
+The weight  is calculated as:
+
+
+
+where the numerator is the sum of squared  norms of all functional predictors, and the denominator is the sum of squared Euclidean norms of the scalar predictors (calculated on the training set).
+
+**Usage:**
+
+```r
+btwn_normalize_train_test(train, test)
+
+```
+
+**Arguments:**
+
+- `train`: A `predictor_hybrid` object (train set).
+- `test`: A `predictor_hybrid` object (test set).
+
+**Value:**
+
+- A list containing the scaled hybrid objects and the scaling factor .
+
 ```{r}
-#' Scale the scalar predictors so that the variability between the
-#' functional and scalar predictors are comparable.
+#' Inter-Modality Normalization (Between Functional and Scalar)
 #'
-#' This method calculates a scaling factor (sqrt(omega)) from the training
-#' set, defined as the ratio of the total sum of squares (L2 norms) of all
-#' functional components to the total sum of squares of all scalar components.
+#' Scales the scalar predictors (Z) so that their total variability is comparable
+#' to the total variability of the functional predictors. This addresses the 
+#' scale invariance issue in PLS by weighting the scalar part.
 #'
-#' @param train A predictor_hybrid object representing the training data.
-#' @param test A predictor_hybrid object representing the test data.
+#' @param train A `predictor_hybrid` object (train).
+#' @param test A `predictor_hybrid` object (test).
 #'
-#' @return A list containing the normalized 'train' and 'test' predictor_hybrid objects.
+#' @return A list containing normalized objects and the scaling factor.
 #' @export
-btwn_normalize_train_test <- function(train, test){
-  
-  # Type checks
-  stopifnot(
-    "'train' must be of class 'predictor_hybrid'" = inherits(train, "predictor_hybrid"),
-    "'test' must be of class 'predictor_hybrid'" = inherits(test, "predictor_hybrid")
-  )
-  
-  # Create copies for modification
+btwn_normalize_train_test <- function(train, test) {
+  stopifnot(inherits(train, "predictor_hybrid"), inherits(test, "predictor_hybrid"))
+
   train_normalized <- train
   test_normalized <- test
-  
-  # Z_s for clarity in calculation
-  Z_s <- train$Z 
-  
-  # --- 1. Calculate the numerator of omega (Sum of L2 norms of all functional samples in train) ---
+  Z_s <- train$Z
+
+  # --- 1. Calculate Numerator (Total Variance of Functional Parts) ---
   omega_numerator <- 0
-  
-  for (k in seq_len(train$n_functional)){ # for kth functional predictor
-    # fda::inprod(fd, fd) returns the N x N matrix of inner products.
-    # The diagonal elements are the L2 norm squared for each sample.
+  for (k in seq_len(train$n_functional)) {
+    # Compute inner product matrix <X_i, X_j>
+    # The diagonal elements <X_i, X_i> represent the squared L2 norm ||X_i||^2
     functional_inprod_matrix <- fda::inprod(
       train$functional_list[[k]],
       train$functional_list[[k]]
     )
-    
-    # Sum the diagonal to get the total squared norm for this predictor k
     omega_numerator <- omega_numerator + sum(diag(functional_inprod_matrix))
   }
-  
-  # --- 2. Calculate the denominator of omega (Sum of squares of all scalar samples in train) ---
+
+  # --- 2. Calculate Denominator (Total Variance of Scalar Part) ---
   omega_denominator <- sum(Z_s^2)
-  
-  # Handle case where scalar variance is zero (prevent division by zero)
+
+  # --- 3. Compute Weight omega ---
   if (omega_denominator == 0) {
-    warning("Scalar component sum of squares is zero. No scaling applied.")
+    warning("Scalar component has zero variance. Skipping inter-modality scaling.")
     omega <- 1
   } else {
-    # Calculate the scaling factor omega
     omega <- omega_numerator / omega_denominator
   }
-  
-  # --- 3. Apply scaling factor sqrt(omega) to both train and test scalar components ---
+
+  # --- 4. Apply Scaling (sqrt(omega)) ---
+  # This effectively weights the scalar inner product by omega
   scaling_factor <- sqrt(omega)
   
-  train_normalized$Z <- scaling_factor * (train$Z)
-  test_normalized$Z <- scaling_factor * (test$Z)
-  
-  return(
-    list(
-      predictor_train = train_normalized,
-      predictor_test = test_normalized,
-      scaling_factor = scaling_factor
-    )
-  )
-}
+  train_normalized$Z <- scaling_factor * train$Z
+  test_normalized$Z  <- scaling_factor * test$Z
 
+  return(list(
+    predictor_train = train_normalized,
+    predictor_test = test_normalized,
+    scaling_factor = scaling_factor
+  ))
+}
 ```
 
 
-### normailize.all
+
+### split_and_normalize.all
+
+**Description:**
+A wrapper function that orchestrates the entire data preprocessing pipeline. It performs the following steps in order:
+
+1. **Splitting:** divides predictors and response into training and testing sets.
+2. **Within-Normalization (Functional):** Standardizes functional predictors (mean 0, unit integrated var).
+3. **Within-Normalization (Scalar):** Standardizes scalar predictors (mean 0, unit var).
+4. **Between-Normalization:** Balances variance between functional and scalar components.
+5. **Response Normalization:** Standardizes the response variable  (mean 0, unit var).
+
+**Usage:**
+
+```r
+split_and_normalize.all(W_hybrid, response, train_ratio)
+
+```
+
+**Arguments:**
+
+- `W_hybrid`: The full `predictor_hybrid` dataset.
+- `response`: The full response vector.
+- `train_ratio`: Ratio for training data split.
+
+**Value:**
+
+- A comprehensive list containing processed training/testing sets for predictors and response, along with all normalization statistics.
 
 ```{r}
-#' 
+#' Split and Preprocess Hybrid Data
+#'
+#' Executes the full preprocessing pipeline: splitting data, standardizing within
+#' modalities (functional/scalar), balancing variance between modalities, and 
+#' standardizing the response.
+#'
+#' @param W_hybrid The full `predictor_hybrid` object.
+#' @param response The numeric response vector.
+#' @param train_ratio Numeric scalar (0-1) for train/test split.
+#'
+#' @return A list containing processed datasets and normalization parameters.
 #' @export
-split_and_normailize.all <- function(W_hybrid, response, train_ratio){
+split_and_normalize.all <- function(W_hybrid, response, train_ratio) {
   
-  
-# $W_hybrid =  W_hybrid_mock
-#$ response
- 
-# train_ratio = TRAIN_RATIO
-  
- # split.result <- split.all(W_hybrid, response, train_ratio)
-  
- #     predictor_train = W_train,
- #   predictor_test = W_test ,
- #   response_train = response[train_idx],
- #   response_test = response[test_idx]
-  
- # list(
- #   train = train_normalized,
- #   test = test_normalized,
- #   mean_train = mean_train,
- #   deno_train = deno_train
-#  ))
-   
-  curve_normalize_result <- curve_normalize_train_test(split.result$predictor_train, split.result$predictor_test)
-  scalar_normalize_result <- scalar_normalize_train_test(curve_normalize_result$predictor_train, curve_normalize_result$predictor_test)
-  btwn_normalize_result <- btwn_normalize_train_test(
-    scalar_normalize_result$predictor_train,
-    scalar_normalize_result$predictor_test
+  # 1. Split Data
+  # Note: Requires the previously defined split.all function
+  split_result <- split.all(W_hybrid, response, train_ratio)
+
+  # 2. Normalize Functional Predictors (Within)
+  curve_norm <- curve_normalize_train_test(
+    split_result$predictor_train, 
+    split_result$predictor_test
   )
   
-  response_mean_train <-  mean(split.result$response_train)
-  response_sd_train <-  sd(split.result$response_train)
-  response_train <- (split.result$response_train - response_mean_train)/response_sd_train
-  response_test <- (split.result$response_test - response_mean_train)/response_sd_train
-  response_normalize_result = list(mean_train = response_mean_train, sd_train = response_sd_train)
-  return(
-    list(
-      predictor_train = btwn_normalize_result$predictor_train,
-      predictor_test = btwn_normalize_result$predictor_test,
-      response_train = response_train,
-      response_test = response_test,
-      curve_normalize_result = curve_normalize_result,
-      scalar_normalize_result = scalar_normalize_result,
-      btwn_normalize_result = btwn_normalize_result,
-      response_normalize_result = response_normalize_result
+  # 3. Normalize Scalar Predictors (Within)
+  scalar_norm <- scalar_normalize_train_test(
+    curve_norm$predictor_train, 
+    curve_norm$predictor_test
+  )
+  
+  # 4. Normalize Between Modalities (Balance Variances)
+  btwn_norm <- btwn_normalize_train_test(
+    scalar_norm$predictor_train,
+    scalar_norm$predictor_test
+  )
+  
+  # 5. Normalize Response Variable
+  response_mean_train <- mean(split_result$response_train)
+  response_sd_train   <- sd(split_result$response_train)
+  
+  # Prevent division by zero if response is constant
+  if (response_sd_train == 0) response_sd_train <- 1
+  
+  response_train_std <- (split_result$response_train - response_mean_train) / response_sd_train
+  response_test_std  <- (split_result$response_test  - response_mean_train) / response_sd_train
+  
+  response_norm <- list(mean_train = response_mean_train, sd_train = response_sd_train)
+
+  # Return comprehensive results
+  return(list(
+    predictor_train = btwn_norm$predictor_train,
+    predictor_test  = btwn_norm$predictor_test,
+    response_train  = response_train_std,
+    response_test   = response_test_std,
+    
+    # Store intermediate results and statistics for reference/reconstruction
+    details = list(
+      curve_normalize_result  = curve_norm,
+      scalar_normalize_result = scalar_norm,
+      btwn_normalize_result   = btwn_norm,
+      response_normalize_result = response_norm,
+      split_indices = list(train = split_result$train_idx, test = split_result$test_idx)
     )
-  )
+  ))
 }
 ```
 
 
 
-
-
  
-
 
 
 # Baseline method: FPCA regression
@@ -2051,9 +2517,47 @@ The multivariate functional principal component analysis inherently relies on a 
 
 ### MFPCA
 
+The main driver function. I have updated the description to explicitly detail the "Simultaneous Training and Prediction" modification.
+
 ```{r}
+#' Multivariate Functional Principal Component Analysis (Modified)
 #'
-#' @export MFPCA
+#' @description
+#' Computes Multivariate Functional Principal Component Analysis (MFPCA) for functions
+#' defined on different domains.
+#'
+#' \strong{Modification:} This version has been modified to accept an additional input,
+#' \code{mFData_predict}. This allows the function to calculate PCA scores for both
+#' the training data and a test/validation set simultaneously. This bypasses the
+#' limitation of the standard \code{predict.MFPCAfit} function, which often does not
+#' support out-of-sample prediction for this specific implementation.
+#'
+#' The function utilizes univariate basis expansions for each functional element
+#' and combines them via PCA on the weighted concatenated scores.
+#'
+#' @param mFData A \code{multiFunData} object containing the training functional data.
+#' @param mFData_predict A \code{multiFunData} object containing the test/validation functional data.
+#' @param M Integer. The number of multivariate functional principal components to calculate.
+#' @param uniExpansions A list of the same length as \code{mFData}, specifying the univariate basis expansion method for each element (e.g., "uFPCA").
+#' @param weights Numeric vector. Weights for each functional element (defaults to 1).
+#' @param fit Logical. If \code{TRUE}, returns the truncated Karhunen-Loève representation.
+#' @param approx.eigen Logical. If \code{TRUE}, uses \code{irlba} for approximate singular value decomposition (faster for large M).
+#' @param bootstrap Logical. If \code{TRUE}, computes bootstrap confidence bands.
+#' @param nBootstrap Integer. Number of bootstrap iterations (required if \code{bootstrap = TRUE}).
+#' @param bootstrapAlpha Numeric. Significance level for bootstrap confidence bands.
+#' @param bootstrapStrat Factor. Stratification factor for bootstrapping.
+#' @param verbose Logical. If \code{TRUE}, prints progress messages.
+#'
+#' @return An object of class \code{MFPCAfit} containing:
+#' \item{values}{Eigenvalues of the principal components.}
+#' \item{functions}{The estimated multivariate functional principal component functions.}
+#' \item{scores}{A matrix of scores for the \code{mFData} (training) objects.}
+#' \item{scores.pred}{A matrix of scores for the \code{mFData_predict} (test) objects.}
+#' \item{vectors}{The eigenvectors associated with the combined scores.}
+#' \item{normFactors}{Normalization factors used during calculation.}
+#' \item{meanFunction}{The estimated mean function.}
+#'
+#' @export 
 MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, length(mFData)), fit = FALSE, approx.eigen = FALSE,
                   bootstrap = FALSE, nBootstrap = NULL, bootstrapAlpha = 0.05, bootstrapStrat = NULL,
                   verbose = options()$verbose)
@@ -2125,21 +2629,22 @@ MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, len
 
 
 
-########### Below is modified by Jongmin Mun #############################
+  ########### Below is modified by Jongmin Mun #############################
   # calculate univariate basis expansion for all components
+  # Modification: Passes both training (data) and test (data_predict) to univDecomp
   uniBasis <- mapply(
     function(expansion, data, data_predict){
       do.call(univDecomp, c(
         list(funDataObject = data, funDataObject_predict = data_predict),
         expansion)
-        )
-      },
+      )
+    },
     expansion = uniExpansions,
     data = mFData,
     data_predict = mFData_predict,
     SIMPLIFY = FALSE
-    )
-########### Above is modified by Jongmin Mun #############################
+  )
+  ########### Above is modified by Jongmin Mun #############################
 
 
 
@@ -2213,39 +2718,58 @@ MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, len
 
     if(fit)
       for(i in seq_len(p))
-        names(res$fit[[i]]) <- namesList[[1]]
+      names(res$fit[[i]]) <- namesList[[1]]
   }
 
 
   if(type[1] == "uFPCA"){
     scores.pred<-calcMFPCA_predict(N = nObs(mFData_predict),
-                      p = p,
-                      M = M,
-                      weights = weights,
-                      npc = npc,
-                      uniBasis = uniBasis,
-                      normFactors = res$normFactors,
-                      vectors_train=res$vectors,
-                      values_train=res$values
+                                   p = p,
+                                   M = M,
+                                   weights = weights,
+                                   npc = npc,
+                                   uniBasis = uniBasis,
+                                   normFactors = res$normFactors,
+                                   vectors_train=res$vectors,
+                                   values_train=res$values
     )
   }
   res$scores.pred <- scores.pred
 
   class(res) <- "MFPCAfit"
-    return(res)
+  return(res)
 }
 
 ```
 
-
 ### fpcaBasis
 
 ```{r}
+#' Calculate Functional PCA Basis for Training and Prediction Data
+#'
+#' @description
+#' A wrapper around the PACE (Principal Analysis by Conditional Expectation) algorithm.
+#' It computes FPCA scores and eigenfunctions for the training data and simultaneously
+#' computes projected scores for a prediction dataset.
+#'
+#' @param funDataObject The training functional data object.
+#' @param funDataObject_predict The prediction functional data object.
+#' @param nbasis Number of basis functions to use for smoothing.
+#' @param pve Proportion of Variance Explained.
+#' @param npc Number of Principal Components.
+#' @param makePD Logical. Enforce positive definiteness of covariance.
+#' @param cov.weight.type Weighting scheme for covariance estimation.
+#'
+#' @return A list containing training scores, prediction scores, orthogonality status, functions, and the mean.
+#' @export  
 ################# modified by Jongmin Mun #####################
 fpcaBasis <- function(funDataObject, funDataObject_predict, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
 {
+  # Calculate FPCA for training data
   FPCA <- PACE(funDataObject, predData = NULL, nbasis, pve, npc, makePD, cov.weight.type)
+  # Calculate FPCA scores for prediction data using the training parameters (implicit in PACE call structure)
   FPCA_pred <- PACE(funDataObject = funDataObject, predData = funDataObject_predict, nbasis, pve, npc, makePD, cov.weight.type)
+
   return(list(scores = FPCA$scores,
               scores.pred = FPCA_pred$scores,
               ortho = TRUE,
@@ -2253,11 +2777,28 @@ fpcaBasis <- function(funDataObject, funDataObject_predict, nbasis = 10, pve = 0
               meanFunction = FPCA$mu
   ))
 }
+
 ```
 
-
 ### univDecomp
+
 ```{r}
+#' Univariate Decomposition
+#'
+#' @description
+#' Calculates the univariate basis decomposition for each element of a multivariate
+#' functional object.
+#'
+#' \strong{Modification:} Accepts \code{funDataObject_predict} to facilitate
+#' the pass-through of test data to the specific decomposition method (e.g., uFPCA).
+#'
+#' @param type Character string specifying the decomposition method (e.g., "uFPCA").
+#' @param funDataObject The training functional data.
+#' @param funDataObject_predict The prediction functional data.
+#' @param ... Additional arguments passed to the specific decomposition function.
+#'
+#' @return A list containing the basis decomposition results.
+#' @export 
 univDecomp <- function(type, funDataObject, funDataObject_predict, ...)
 {
   # Parameter checking
@@ -2292,6 +2833,7 @@ univDecomp <- function(type, funDataObject, funDataObject_predict, ...)
   params$funDataObject <- funDataObject # add funDataObject (-> make sure is evaluated in correct env.)
 
   ############### modified by Jongmin Mun ######################
+  # Add prediction object to parameters if uFPCA is selected
   if (type == "uFPCA"){params$funDataObject_predict <- funDataObject_predict}
   ############### modified by Jongmin Mun ######################
 
@@ -2315,35 +2857,34 @@ univDecomp <- function(type, funDataObject, funDataObject_predict, ...)
 
   return(res)
 }
+
 ```
-
-
 
 ## Unmodified functions
 
 ### calcBasisIntegrals
+
 ```{r}
-
 # define global variable j, used by the foreach package and confusing R CMD CHECK
-globalVariables('j')
+#globalVariables('j')
 
-#' Utility function that calculates matrix of basis-scalar products (one dimension)
+#' Calculate Matrix of Basis Inner Products
 #'
-#' If the element \eqn{X^{(j)}}{X^{(j)}} is expanded in basis functions \eqn{b_i^{(j)}(t),~ i = 1, \ldots, K_j}{b_i(t)},
-#' this function calculates the \eqn{K_j \times K_j}{K_j  \times K_j} matrix \eqn{B^{(jj)}}{B^{(jj)}} with entries
-#' \deqn{B^{(jj)}_{mn} = \int_{\mathcal{T_j}} b_m^{(j)}(t) b_n^{(j)}(t) \mathrm{d} t}.
+#' @description
+#' Calculates the Gram matrix (matrix of scalar products) for a given set of basis functions.
+#' If the element \eqn{X^{(j)}} is expanded in basis functions \eqn{b_i^{(j)}(t)},
+#' this function returns the matrix \eqn{B^{(j)}} with entries:
+#' \deqn{B^{(j)}_{mn} = \int_{\mathcal{T}_j} b_m^{(j)}(t) b_n^{(j)}(t) \mathrm{d} t}
 #'
-#' @section Warning: This function is implemented only for functions on one- or two-dimensional domains.
+#' @section Warning:
+#' This function is implemented only for functions on one- or two-dimensional domains.
 #'
-#' @param basisFunctions Array of \code{npc} basis functions of dimensions \code{npc x M1} or \code{npc x M1 x M2}.
-#' @param dimSupp dimension of the support of the basis functions (1 or 2)
-#' @param argvals List of corresponding x-values.
+#' @param basisFunctions Array of basis functions of dimensions \code{npc x M1} or \code{npc x M1 x M2}.
+#' @param dimSupp Dimension of the support of the basis functions (1 or 2).
+#' @param argvals List of corresponding x-values (domain points).
 #'
-#' @return A matrix containing the scalar product of all combinations of basis functions (matrix \eqn{B^{(j)}})
-#'
-#' @seealso \code{\link{MFPCA}}, \code{\link[funData]{dimSupp}}
-#'
-#' @keywords internal
+#' @return A matrix containing the inner products of all combinations of basis functions.
+#' @export 
 calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
 {
   npc <- dim(basisFunctions)[1]
@@ -2376,14 +2917,32 @@ calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
 
   return(B)
 }
+
 ```
 
-
-
-
 ### calcMFPCA
+
 ```{r}
-#' Internal function that implements the MFPCA algorithm for given univariate decompositions
+#' Internal Calculation of MFPCA
+#'
+#' @description
+#' Implements the core MFPCA algorithm. It combines the univariate scores from
+#' each functional element, applies weights, and performs PCA on the weighted
+#' concatenated scores to extract the multivariate functional principal components.
+#'
+#' @param N Number of observations.
+#' @param p Number of functional elements.
+#' @param Bchol Cholesky decomposition of the basis integral matrix (or NULL if orthogonal).
+#' @param M Number of multivariate components to calculate.
+#' @param type Vector of character strings specifying the univariate expansion types.
+#' @param weights Vector of weights for each functional element.
+#' @param npc Vector containing the number of univariate basis functions for each element.
+#' @param argvals List of argument values.
+#' @param uniBasis List containing the univariate basis decompositions.
+#' @param fit Logical. If TRUE, computes the fitted values (reconstruction).
+#' @param approx.eigen Logical. If TRUE, uses approximate eigen decomposition.
+#'
+#' @return A list containing eigenvalues, eigenfunctions, scores, vectors, and normalization factors.
 #' @export
 calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit = FALSE, approx.eigen = FALSE)
 {
@@ -2480,118 +3039,30 @@ calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit
 
   return(res)
 }
-```
 
-
-### calcMFPCA
-
-```{r}
-#' Internal function that implements the MFPCA algorithm for given univariate decompositions
-#' @export
-#' 
-calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit = FALSE, approx.eigen = FALSE)
-{
-  # combine all scores
-  allScores <- foreach::foreach(j = seq_len(p), .combine = "cbind")%do%{uniBasis[[j]]$scores}
-
-  # block vector of weights
-  allWeights <- foreach::foreach(j = seq_len(p), .combine = "c")%do%{rep(sqrt(weights[j]), npc[j])}
-
-  Z <- allScores %*% Matrix::Diagonal(x = allWeights) / sqrt(N-1)
-
-  # check if approximation is appropriate (cf. irlba)
-  if(approx.eigen & (M > min(N, sum(npc))/2))
-  {
-    warning("Calculating a large percentage of principal components, approximation may not be appropriate.
-            'approx.eigen' set to FALSE.")
-    approx.eigen = FALSE
-  }
-
-  # check if non-orthonormal basis functions used and calculate PCA on scores
-  if(is.null(Bchol))
-  {
-    if(approx.eigen)
-    {
-      tmpSVD <- irlba::irlba(as.matrix(Z), nv = M)
-
-      vectors <- tmpSVD$v
-      values <- tmpSVD$d[seq_len(M)]^2
-    }
-    else
-    {
-      if(sum(npc) > 1000)
-        warning("MFPCA with > 1000 univariate eigenfunctions and approx.eigen = FALSE. This may take some time...")
-
-      e <- eigen(stats::cov(allScores) * outer(allWeights, allWeights, "*"))
-
-      values <- e$values[seq_len(M)]
-      vectors <- e$vectors[,seq_len(M)]
-    }
-  }
-  else
-  {
-    if(approx.eigen)
-    {
-      tmpSVD <- irlba::irlba(as.matrix(Matrix::tcrossprod(Z, Bchol)), nv = M)
-
-      vectors <- Matrix::crossprod(Bchol, tmpSVD$v)
-      values <- tmpSVD$d[seq_len(M)]^2
-    }
-    else
-    {
-      if(sum(npc) > 1000)
-        warning("MFPCA with > 1000 univariate eigenfunctions and approx.eigen = FALSE. This may take some time...")
-
-      e <- eigen(Matrix::crossprod(Bchol) %*% (stats::cov(allScores) * outer(allWeights, allWeights, "*")))
-
-      values <- Re(e$values[seq_len(M)])
-      vectors <- Re(e$vectors[,seq_len(M)])
-    }
-  }
-
-  # normalization factors
-  normFactors <- 1/sqrt(diag(as.matrix(Matrix::crossprod(Z %*% vectors))))
-
-  ### Calculate scores
-  scores <- Z %*% vectors * sqrt(N-1) # see defintion of Z above!
-  scores <- as.matrix(scores %*% diag(sqrt(values) * normFactors, nrow = M, ncol = M)) # normalization
-
-  ### Calculate eigenfunctions (incl. normalization)
-  npcCum <- cumsum(c(0, npc)) # indices for blocks (-1)
-
-  tmpWeights <- as.matrix(Matrix::crossprod(Z, Z %*%vectors))
-  eFunctions <- foreach::foreach(j = seq_len(p)) %do% {
-    univExpansion(type = type[j],
-                  scores = 1/sqrt(weights[j] * values) * normFactors * t(tmpWeights[npcCum[j]+seq_len(npc[j]), , drop = FALSE]),
-                  argvals = argvals[[j]],
-                  functions = uniBasis[[j]]$functions,
-                  params = uniBasis[[j]]$settings)
-  }
-
-  res <- list(values = values,
-              functions = multiFunData(eFunctions),
-              scores = scores,
-              vectors = vectors,
-              values = values,
-              normFactors = normFactors,
-              uniBasis = uniBasis,
-              uniExpansions = uniExpansions
-  )
-
-  # calculate truncated Karhunen-Loeve representation (no mean here)
-  if(fit)
-    res$fit <- multivExpansion(multiFuns = res$functions, scores = scores)
-
-  return(res)
-}
 ```
 
 ### calcMFPCA_predict
 
 ```{r}
-#' calcMFPCA_predict
+#' Prediction of MFPCA Scores
+#'
+#' @description
+#' Calculates Multivariate Functional PCA scores for new (prediction) data based on
+#' the eigenvectors and normalization factors derived from the training data.
+#'
+#' @param N Number of observations in the prediction set.
+#' @param p Number of functional elements.
+#' @param M Number of multivariate components.
+#' @param weights Weights for each functional element.
+#' @param npc Vector containing the number of univariate basis functions.
+#' @param uniBasis List containing univariate basis decompositions for the prediction data.
+#' @param normFactors Normalization factors derived from training.
+#' @param vectors_train Eigenvectors derived from training.
+#' @param values_train Eigenvalues derived from training.
+#'
+#' @return A matrix of MFPCA scores for the prediction data.
 #' @export
-#' 
 calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
                               normFactors_train, vectors_train, values_train)
 {
@@ -2605,6 +3076,7 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
 
 
   ### Calculate scores
+  # Project the prediction Z matrix onto the training eigenvectors
   scores <- Z %*% vectors_train * sqrt(N-1) # see defintion of Z above!
   scores <- as.matrix(scores %*% diag(sqrt(values_train) * normFactors_train, nrow = M, ncol = M)) # normalization
 
@@ -2613,10 +3085,27 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
 
 ```
 
-
 ### .PACE
 
 ```{r}
+#' Principal Analysis by Conditional Expectation (Internal)
+#'
+#' @description
+#' Implements the PACE method (Yao et al., 2005) for univariate Functional Principal
+#' Component Analysis. This handles sparse or irregular functional data by smoothing
+#' covariance surfaces.
+#'
+#' @param X Argument values (domain).
+#' @param Y Matrix of functional data (observations).
+#' @param Y.pred Matrix of functional data for prediction (optional).
+#' @param nbasis Number of basis functions for smoothing.
+#' @param pve Proportion of variance explained.
+#' @param npc Number of principal components.
+#' @param makePD Logical. Enforce positive definiteness.
+#' @param cov.weight.type Weighting type for covariance smoothing.
+#'
+#' @return A list containing fitted components (mu, values, efunctions, scores, etc.).
+#' @export 
 .PACE <- function(X, Y, Y.pred = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
 {
   if (is.null(Y.pred))
@@ -2703,11 +3192,28 @@ calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
   ret$estVar <- diag(cov.hat)
   return(ret)
 }
+
 ```
 
-### PACE
+### PACE (Wrapper)
 
 ```{r}
+#' PACE Wrapper for funData Objects
+#'
+#' @description
+#' A wrapper function that applies the PACE algorithm (via \code{.PACE}) to
+#' \code{funData} or \code{irregFunData} objects.
+#'
+#' @param funDataObject Training functional data object.
+#' @param predData Prediction functional data object (optional).
+#' @param nbasis Number of basis functions.
+#' @param pve Proportion of variance explained.
+#' @param npc Number of principal components.
+#' @param makePD Logical. Enforce positive definiteness.
+#' @param cov.weight.type Weighting type.
+#'
+#' @return A list containing the FPCA results formatted as \code{funData} objects.
+#' @export 
 PACE <- function(funDataObject, predData = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
 {
   # check inputs
@@ -2762,11 +3268,24 @@ PACE <- function(funDataObject, predData = NULL, nbasis = 10, pve = 0.99, npc = 
               estVar = funData(funDataObject@argvals, matrix(res$estVar, nrow = 1))
   ))
 }
+
 ```
 
 ### expandBasisFunction
 
 ```{r}
+#' Reconstruct Functions from Scores and Basis
+#'
+#' @description
+#' Calculates the linear combination of basis functions based on provided scores.
+#' Used to reconstruct the approximated functions.
+#'
+#' @param scores Matrix of scores (coefficients).
+#' @param argvals Argument values (domain).
+#' @param functions Basis functions.
+#'
+#' @return A \code{funData} object containing the reconstructed functions.
+#' @export 
 expandBasisFunction <- function(scores, argvals = functions@argvals, functions)
 {
   if(dim(scores)[2] != nObs(functions))
@@ -2775,94 +3294,108 @@ expandBasisFunction <- function(scores, argvals = functions@argvals, functions)
   # collapse higher-dimensional functions, multiply with scores and resize the result
   d <- dim(functions@X)
   nd <- length(d)
-  
+
   if(nd == 2)
     resX <- scores %*% functions@X
-  
+
   if(nd == 3)
   {
     resX <- array(NA, dim = c(dim(scores)[1], d[-1]))
-    
+
     for(i in seq_len(d[2]))
       resX[,i,] <- scores %*% functions@X[,i,]
   }
-  
+
   if(nd == 4)
   {
     resX <- array(NA, dim = c(dim(scores)[1], d[-1]))
-    
+
     for(i in seq_len(d[2]))
       for(j in seq_len(d[3]))
-          resX[,i,j,] <- scores %*% functions@X[,i,j,]
+        resX[,i,j,] <- scores %*% functions@X[,i,j,]
   }
-    
+
   if(nd > 4) # slow solution due to aperm
   {
-    resX <- aperm(plyr::aaply(.data = functions@X, .margins = 3:nd, 
-                        .fun = function(x,y){y %*% x}, y = scores), 
+    resX <- aperm(plyr::aaply(.data = functions@X, .margins = 3:nd,
+                              .fun = function(x,y){y %*% x}, y = scores),
                   c(nd-1,nd, seq_len((nd-2))))
     dimnames(resX) <- NULL
-  }  
-  
+  }
+
   return( funData(argvals, resX) )
 }
-```
 
+```
 
 ### univExpansion
 
 ```{r}
+#' Calculate Univariate Basis Expansion
+#'
+#' @description
+#' Wrapper function that calls specific basis reconstruction methods (e.g., splines,
+#' FPCA) to reconstruct functions from scores.
+#'
+#' @param type Decomposition type (e.g., "uFPCA", "splines1D").
+#' @param scores Matrix of scores.
+#' @param argvals Argument values.
+#' @param functions Basis functions.
+#' @param params Additional parameters.
+#'
+#' @return A \code{funData} object.
+#' @export 
 univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), functions@argvals, NULL), functions, params = NULL)
 {
   # Parameter checking
   if(is.null(type))
     stop("Parameter 'type' is missing.")
   else
- {
-   if(!is.character(type))
-     stop("Parameter 'type' must be a character string. See ?univExpansion for details.")
- }   
-  
+  {
+    if(!is.character(type))
+      stop("Parameter 'type' must be a character string. See ?univExpansion for details.")
+  }
+
   if(is.null(scores))
     stop("Parameter 'scores' is missing.")
   else
-    {
-      if(!is.matrix(scores))
+  {
+    if(!is.matrix(scores))
       stop("Parameter 'scores' must be passed as a matrix.")
-    }
-  
+  }
+
   if(is.numeric(argvals))
   {
     argvals <- list(argvals)
     warning("Parameter 'argvals' was passed as a vector and transformed to a list.")
-  }  
-  
+  }
+
   if(is.null(functions))
   {
     if(is.null(argvals))
       stop("Must pass 'argvals' if 'functions' is NULL.")
     else
-      {
-        if(!is.list(argvals)) 
-          stop("Parameter 'argvals' must be passed as a list.")
-      }
+    {
+      if(!is.list(argvals))
+        stop("Parameter 'argvals' must be passed as a list.")
+    }
   }
   else
   {
     if(class(functions) != "funData")
       stop("Parameter 'functions' must be a funData object.")
-    
+
     # check interaction with other parameters
     if(nObs(functions) != NCOL(scores))
       stop("Number of scores per curve does not match the number of basis functions.")
-    
+
     if(!is.null(argvals) & !isTRUE(all.equal(argvals, functions@argvals)))
       stop("The parameter 'argvals' does not match the argument values of 'functions'.")
   }
-  
+
   if(!is.null(params) & !is.list(params))
     stop("The parameter 'params' must be passed as a list.")
-  
+
   # start calculations
   params$scores <- scores
   params$functions <- functions
@@ -2890,291 +3423,364 @@ univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), fu
 
   return(res)
 }
+
 ```
 
-## fit.mfpca_regression
-Performs sample splitting, normalization, and fits models for every combination of functional and scalar principal components up to n_pc_max. Selects the best model based on test set RMSE.
+## FPCA+PCA regression
 
-```{r}
-# --- 1. MAIN FUNCTION: fit.mfpca_regression ---
+### fit.mfpca_regression
 
+**Description:**
+This function implements an end-to-end regression pipeline using Multivariate Functional Principal Component Analysis (MFPCA) for functional predictors and standard Principal Component Analysis (PCA) for scalar predictors.
+
+The workflow proceeds as follows:
+
+1. **Preprocessing:** Splits the data into training and testing sets and applies two-step normalization (within-modality and between-modality balancing).
+2. **Dimension Reduction:**
+* **Functional:** Applies MFPCA to the functional components to extract functional principal component (FPC) scores. It uses the modified `MFPCA` function to simultaneously compute scores for the test set.
+* **Scalar:** Applies standard PCA to the scalar components () to extract scalar principal component (SPC) scores.
+
+
+3. **Model Selection:** Iteratively fits linear regression models using an increasing number of components ().
+4. **Validation:** Selects the optimal model complexity () that minimizes the Root Mean Squared Error (RMSE) on the test set.
+
+**Usage:**
+
+```r
+fit.mfpca_regression(W, y, train_ratio = 0.7, n_pc_max = 10)
+
+```
+
+**Arguments:**
+
+- `W`: A `predictor_hybrid` object containing all functional and scalar predictors.
+- `y`: A numeric vector representing the response variable.
+- `train_ratio`: Numeric (0-1). The proportion of data used for training (default 0.7).
+- `n_pc_max`: Integer. The maximum number of principal components to evaluate.
+
+**Value:**
+
+- A list containing the optimal number of components, the best test RMSE, the final linear model, and the sequence of RMSE values.
+
+```{r fit.mfpca_regression}
 #' End-to-End MFPCA Regression Pipeline
 #'
-#' Performs sample splitting, normalization, cross-validation (CV) to select
-#' optimal functional (FPC) and scalar (SPC) components, linear regression fitting,
-#' and test set prediction.
+#' Performs sample splitting, normalization, and dimension reduction via MFPCA (functional)
+#' and PCA (scalar). Selects the optimal number of components by minimizing test set RMSE.
 #'
-#' @param W predictor_hybrid object containing all predictors.
+#' @param W A `predictor_hybrid` object containing all predictors.
 #' @param y Vector. Response variable.
 #' @param train_ratio Numeric scalar between 0 and 1 for splitting data (default 0.7).
 #' @param n_pc_max Integer. Max number of FPCs/PCs to consider (must be <= min(nbasis, n_scalar)).
+#'
 #' @return List containing the best model fit, optimal component count, and a list of all test RMSEs.
 #' @export
 fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_pc_max = 10) {
-  
-  # --- 0. Setup and Initial Checks ---
-  stopifnot(inherits(W, "predictor_hybrid"))
-  
-  # Extract setup parameters
+
+  # --- 1. Input Validation and Setup ---
+  if (!inherits(W, "predictor_hybrid")) {
+    stop("'W' must be a predictor_hybrid object.")
+  }
+
   eval_point <- W$eval_point
+  # Check basis size from the first functional predictor (assuming same basis for all)
   n_basis <- W$n_basis_list[[1]]
   n_scalar <- W$n_scalar
-  
-  # Adjust max components to safe bounds
-  max_comp <- min(n_pc_max, n_basis, n_scalar)
-  if (n_pc_max != max_comp) {
-    warning(paste("n_pc_max adjusted from", n_pc_max, "to", max_comp, 
-                  "due to limits in nbasis or n_scalar."))
-    n_pc_max <- max_comp
+
+  # Safety check: Ensure n_pc_max does not exceed available dimensions
+  # We need at least n_pc_max basis functions and n_pc_max scalar variables
+  max_comp_safe <- min(n_pc_max, n_basis, n_scalar)
+  if (n_pc_max > max_comp_safe) {
+    warning(paste("n_pc_max adjusted from", n_pc_max, "to", max_comp_safe,
+                  "due to dimensionality constraints (nbasis or n_scalar)."))
+    n_pc_max <- max_comp_safe
   }
-  
   if (n_pc_max < 1) stop("n_pc_max must be at least 1.")
-  
-  uniExpansions <- list(
-    list(type = "uFPCA", nbasis = n_basis, npc = n_pc_max), 
+
+  # Define univariate expansion parameters for MFPCA
+  # We construct a list of settings for each functional predictor
+  uniExpansions <- lapply(seq_len(W$n_functional), function(x) {
     list(type = "uFPCA", nbasis = n_basis, npc = n_pc_max)
-  )
- 
-    
-  # --- 1. Split and Normalize Full Data ---
-  split_normalize_result <- split_and_normailize.all(W, y, train_ratio)
-  f1_train <- split_normalize_result$predictor_train$functional_list[[1]]
-  f2_train <- split_normalize_result$predictor_train$functional_list[[2]]
-  f1_test <- split_normalize_result$predictor_test$functional_list[[1]]
-  f2_test <- split_normalize_result$predictor_test$functional_list[[2]]  
-  
-  
-  # Format functional data
-  predictor_train <- multiFunData(fd2funData(f1_train, eval_point), fd2funData(f2_train, eval_point))
-  predictor_test <- multiFunData(fd2funData(f1_test, eval_point), fd2funData(f2_test, eval_point))
-  
-  y_train_norm <- split_normalize_result$response_train
-  Z_train_norm <- split_normalize_result$predictor_train$Z
-  Z_test_norm <- split_normalize_result$predictor_test$Z
-  y_test_norm <- split_normalize_result$response_test
-  
-  # Fit MFPCA (M=n_pc_max to get max scores)
-  MFPCA_fit <- MFPCA(mFData = predictor_train, mFData_predict = predictor_test, 
-                     M = n_pc_max, uniExpansions = uniExpansions)
-  
-  # Fit Scalar PCA (prcomp)
-  PCA_fit <- prcomp(Z_train_norm, center = FALSE, scale = FALSE)
-  
-  # Extract max scores
-  FPC_score_train_max <- MFPCA_fit$scores
-  FPC_score_test_max <- MFPCA_fit$scores.pred
-  PC_score_train_max <- PCA_fit$x
-  PC_score_test_max <- predict(PCA_fit, Z_test_norm)
-  
-  
-  # --- 3. Iterate and Fit Models (Testing FPC=npc, PC=npc) ---
-  
+  })
+
+  # --- 2. Split and Normalize Data ---
+  # Uses the split_and_normalize.all function defined previously
+  processed_data <- split_and_normalize.all(W, y, train_ratio)
+
+  # Extract processed components
+  W_train <- processed_data$predictor_train
+  W_test  <- processed_data$predictor_test
+  y_train <- processed_data$response_train
+  y_test  <- processed_data$response_test
+
+  # --- 3. Format Functional Data for MFPCA ---
+  # Convert 'fd' objects to 'funData' objects required by the MFPCA package
+  # We use lapply to handle any number of functional predictors
+  funData_train_list <- lapply(W_train$functional_list, function(fd_obj) {
+    funData::fd2funData(fd_obj, eval_point)
+  })
+  funData_test_list <- lapply(W_test$functional_list, function(fd_obj) {
+    funData::fd2funData(fd_obj, eval_point)
+  })
+
+  # Create multiFunData objects
+  mFData_train <- funData::multiFunData(funData_train_list)
+  mFData_test  <- funData::multiFunData(funData_test_list)
+
+  # --- 4. Dimension Reduction ---
+
+  # A. Functional Part: MFPCA
+  # Compute max components (n_pc_max) once, then subset later
+  MFPCA_fit <- MFPCA(mFData = mFData_train,
+                     mFData_predict = mFData_test,
+                     M = n_pc_max,
+                     uniExpansions = uniExpansions)
+
+  # Extract scores
+  scores_fun_train <- MFPCA_fit$scores
+  scores_fun_test  <- MFPCA_fit$scores.pred
+
+  # B. Scalar Part: Standard PCA
+  # Using prcomp on the normalized scalar matrix Z
+  PCA_fit <- prcomp(W_train$Z, center = FALSE, scale. = FALSE)
+
+  # Extract scores (first n_pc_max components)
+  # Note: predicting on test set projects Z_test onto training rotation
+  scores_scalar_train <- PCA_fit$x[, 1:n_pc_max, drop = FALSE]
+  scores_scalar_test  <- predict(PCA_fit, newdata = W_test$Z)[, 1:n_pc_max, drop = FALSE]
+
+  # --- 5. Model Selection (CV Loop) ---
   linear_fit_list <- list()
-  test_rmse_list <- numeric(n_pc_max)
-  
-  for (n_pc in 1:n_pc_max) {
-    
-    # 3a. Select required number of components
-    FPC_train_select <- FPC_score_train_max[, 1:n_pc, drop = FALSE]
-    FPC_test_select <- FPC_score_test_max[, 1:n_pc, drop = FALSE]
-    PC_train_select <- PC_score_train_max[, 1:n_pc, drop = FALSE]
-    PC_test_select <- PC_score_test_max[, 1:n_pc, drop = FALSE]
-    
-    # Create column names
-    col_names_fpc <- paste0("FPC", 1:n_pc)
-    col_names_pc <- paste0("PC", 1:n_pc)
-    
-    # 3b. Prepare data frames for linear model
-    train_data_lm <- data.frame(
-      response = y_train_norm,
-      FPC_train_select,
-      PC_train_select
+  test_rmse_list  <- numeric(n_pc_max)
+
+  for (k in 1:n_pc_max) {
+    # a. Subset scores for current complexity k
+    X_train <- data.frame(
+      scores_fun_train[, 1:k, drop = FALSE],
+      scores_scalar_train[, 1:k, drop = FALSE]
     )
-    colnames(train_data_lm)[-1] <- c(col_names_fpc, col_names_pc)
-    
-    test_data_lm <- data.frame(
-      FPC_test_select,
-      PC_test_select
+    X_test <- data.frame(
+      scores_fun_test[, 1:k, drop = FALSE],
+      scores_scalar_test[, 1:k, drop = FALSE]
     )
-    colnames(test_data_lm) <- c(col_names_fpc, col_names_pc)
-    
-    # 3c. Fit Linear Regression
-    linear_fit_list[[n_pc]] <- lm(response ~ ., data = train_data_lm)
-    
-    # 3d. Predict and Calculate RMSE on Test Set
-    y_pred_test <- predict(linear_fit_list[[n_pc]], test_data_lm)
-    test_rmse_list[n_pc] <- sqrt(mean((y_pred_test - y_test_norm)^2))
+
+    # Set consistent column names to ensure predict() works correctly
+    col_names <- c(paste0("FPC", 1:k), paste0("SPC", 1:k))
+    colnames(X_train) <- col_names
+    colnames(X_test)  <- col_names
+
+    # Add response for training
+    train_df <- cbind(response = y_train, X_train)
+
+    # b. Fit Linear Model
+    linear_fit_list[[k]] <- lm(response ~ ., data = train_df)
+
+    # c. Prediction & Evaluation
+    y_pred <- predict(linear_fit_list[[k]], newdata = X_test)
+    test_rmse_list[k] <- sqrt(mean((y_test - y_pred)^2))
   }
-  
-  # --- 4. Select Best Model ---
-  n_pc_best <- which.min(test_rmse_list)
-  best_rmse <- test_rmse_list[n_pc_best]
-  best_fit <- linear_fit_list[[n_pc_best]]
-  
-  # --- 5. Return Results ---
+
+  # --- 6. Final Results ---
+  best_idx <- which.min(test_rmse_list)
+
   return(list(
-    n_pc_best = n_pc_best,
-    best_test_rmse = best_rmse,
+    n_pc_best = best_idx,
+    best_test_rmse = test_rmse_list[best_idx],
     test_rmse_by_n_pc = test_rmse_list,
-    final_model = best_fit,
-    model_list = linear_fit_list,
-    regression_coefficients = coef(best_fit)
+    final_model = linear_fit_list[[best_idx]],
+    all_models = linear_fit_list,
+    # Return normalization stats to allow back-transformation of predictions if needed
+    normalization_details = processed_data$details
   ))
 }
 ```
+ 
 
+# PFR
 
-# data generation
+Here is the `PFRModel` class code, preserving your specific structure (`eval(parse(...))`, string concatenation for formulas, and `presmooth = "fpca.sc"`) while cleaning up the descriptions and ensuring correct integration with the previously defined `split_and_normalize.all` function.
 
-## matrix normal
+### PFRModel
+
+**Description:**
+An R6 class wrapper for `refund::pfr`. It handles data preparation, model fitting via dynamic formula construction, and error evaluation. It specifically uses the `fpca.sc` presmoothing option within the linear functional terms (`lf`).
+
+**Usage:**
+
+```r
+pfr_handler <- PFRModel$new(W, y, n_eval, train_ratio)
+pfr_handler$fit(option = "all")
+errors <- pfr_handler$computeError()
+
+```
+
 ```{r}
-trial_name <- "matrix_normal"
+#' @title PFR Model Handler
+#' @description R6 class to prepare data, fit, and evaluate a Penalized Functional Regression (PFR) model.
+#'
+#' @importFrom R6 R6Class
+#' @importFrom refund pfr
+#' @export
+PFRModel <- R6::R6Class(
+  "PFRModel",
 
-setwd("~")
-if (
-  substr(getwd(), nchar(getwd())-10+1, nchar(getwd())) == "/Documents"
-){
-  wd_now <-  substr(getwd(), 1, nchar(getwd())-10)
-}else{
-  wd_now <- getwd()
-}
-packagepath <- paste0( wd_now, "/Documents/GitHub/fsPLS") #mac
-datapath <- paste(
-  wd_now,
-  paste("Documents/GitHub/fsPLS/simul/data_generation", trial_name, sep = "/"),
-  sep = "/"
+  public = list(
+    # --- Public Fields ---
+    trainData = NULL,
+    testData = NULL,
+    model = NULL,
+    n_scalar_predictor = NULL,
+    n_basis = NULL,
+    eval_point = NULL,
+    
+    # Prediction storage
+    y_train_pred = NULL,
+    y_test_pred = NULL,
+    
+    # Normalization factors for error reporting (optional usage)
+    response_range_train = 1, # Default to 1 (standardized data usually implies scale ~1)
+    response_range_test = 1,
+
+    #' @title Initialize PFR Model
+    #' @description Constructs the instance, splits/normalizes data, and formats it for `refund::pfr`.
+    #'
+    #' @param W A `predictor_hybrid` object containing all predictors.
+    #' @param y Vector. Response variable.
+    #' @param n_eval Integer. Number of evaluation points for functional predictors.
+    #' @param train_ratio Numeric. Split ratio for training data.
+    initialize = function(W, y, n_eval, train_ratio) {
+      
+      # 1. Run Preprocessing Pipeline (Split & Normalize)
+      # Assumes `split_and_normalize.all` is available in the environment
+      processed <- split_and_normalize.all(W, y, train_ratio)
+      
+      # 2. Set Metadata
+      self$n_scalar_predictor <- W$n_scalar
+      # Assume all functional predictors share the same basis size
+      self$n_basis <- W$n_basis_list[1]
+      self$eval_point <- W$eval_point # Use the points from the object directly
+      
+      # If n_eval is different from W$eval_point length, you might need interpolation.
+      # Here we assume W$eval_point is sufficient, but if you strictly need a new grid:
+      # eval_min <- min(W$eval_point)
+      # eval_max <- max(W$eval_point)
+      # self$eval_point <- seq(eval_min, eval_max, length.out = n_eval)
+
+      # 3. Prepare Training Data
+      # PFR works best with lists or data frames. We use a list to allow matrix columns easily.
+      self$trainData <- list()
+      
+      # Add Scalar Predictors (X1, X2, ...)
+      # We extract columns from Z and name them explicitly
+      for(i in 1:self$n_scalar_predictor) {
+        self$trainData[[paste0("X", i)]] <- processed$predictor_train$Z[, i]
+      }
+      
+      self$trainData$response <- processed$response_train
+      
+      # Add Functional Predictors (F1, F2) converted to dense matrices (Sample x Time)
+      # Transpose is needed because eval.fd returns (Time x Sample)
+      self$trainData$F1 <- t(fda::eval.fd(self$eval_point, processed$predictor_train$functional_list[[1]]))
+      self$trainData$F2 <- t(fda::eval.fd(self$eval_point, processed$predictor_train$functional_list[[2]]))
+      
+      # 4. Prepare Test Data
+      self$testData <- list()
+      for(i in 1:self$n_scalar_predictor) {
+        self$testData[[paste0("X", i)]] <- processed$predictor_test$Z[, i]
+      }
+      self$testData$response <- processed$response_test
+      self$testData$F1 <- t(fda::eval.fd(self$eval_point, processed$predictor_test$functional_list[[1]]))
+      self$testData$F2 <- t(fda::eval.fd(self$eval_point, processed$predictor_test$functional_list[[2]]))
+      
+      # Store response ranges if needed for normalized error calculation
+      # Since data is already standardized, ranges might be small.
+      self$response_range_train <- diff(range(self$trainData$response))
+      self$response_range_test  <- diff(range(self$testData$response))
+    },
+
+    #' @title Generate PFR Model Formula
+    #' @description Constructs the formula string dynamically based on the selected option.
+    #' Uses `presmooth = 'fpca.sc'` for functional terms.
+    #'
+    #' @param option Character. "all", "functional_only", or "scalar_only".
+    #' @return A character string representing the PFR call.
+    get_model_string = function(option = "all") {
+      
+      # Validate option
+      if (!option %in% c("all", "functional_only", "scalar_only")) {
+        stop("Error: 'option' must be one of 'all', 'functional_only', or 'scalar_only'.")
+      }
+
+      # 1. Build Scalar Predictor String
+      scalar_part <- ""
+      if (option != "functional_only") {
+        # "X1 + X2 + ... + Xp"
+        scalar_part <- paste0(paste0("X", 1:self$n_scalar_predictor), collapse = " + ")
+        # Add leading " + " if needed later
+        if (option == "all") scalar_part <- paste0(" + ", scalar_part)
+      }
+
+      # 2. Build Functional Predictor String
+      functional_part <- ""
+      if (option != "scalar_only") {
+        # Note: self$eval_point is injected directly via string interpolation requires it to be available in scope
+        # Or we rely on the data object. 'lf' usually needs 'argvals' passed explicitly if not in data.
+        # Since we use eval(parse()), we reference 'self$eval_point'.
+        
+        term_f1 <- paste0(
+          "lf(F1, argvals = self$eval_point, presmooth = 'fpca.sc', presmooth.opts = list(nbasis = ", 
+          self$n_basis, "))"
+        )
+        term_f2 <- paste0(
+          "lf(F2, argvals = self$eval_point, presmooth = 'fpca.sc', presmooth.opts = list(nbasis = ", 
+          self$n_basis, "))"
+        )
+        functional_part <- paste(term_f1, term_f2, sep = " + ")
+      }
+
+      # 3. Combine into Full Formula
+      # Result: "pfr(response ~ lf(...) + lf(...) + X1 + ..., data = self$trainData)"
+      full_formula <- paste0("refund::pfr(response ~ ", functional_part, scalar_part, ", data = self$trainData)")
+      
+      return(full_formula)
+    },
+
+    #' @title Fit PFR Model
+    #' @description Evaluates the formula string to fit the model.
+    #' @param option Character. Model configuration option.
+    fit = function(option = "all") {
+      # Get the command string
+      cmd <- self$get_model_string(option)
+      
+      # Execute the command in the current environment
+      self$model <- eval(parse(text = cmd))
+    },
+
+    #' @title Compute Prediction Error
+    #' @description Predicts on training and testing sets and computes normalized RMSE.
+    #' @return A list with `train_error` and `test_error`.
+    computeError = function() {
+      if (is.null(self$model)) stop("Model not fitted. Run fit() first.")
+
+      # Predict
+      self$y_train_pred <- predict(self$model, newdata = self$trainData)
+      self$y_test_pred  <- predict(self$model, newdata = self$testData)
+
+      # Compute RMSE (Normalized by range, as per original code)
+      # Note: Ensure ranges are non-zero to avoid division by zero
+      r_train <- if(self$response_range_train > 0) self$response_range_train else 1
+      r_test  <- if(self$response_range_test > 0)  self$response_range_test  else 1
+
+      train_rmse <- sqrt(mean((self$trainData$response - self$y_train_pred)^2)) / r_train
+      test_rmse  <- sqrt(mean((self$testData$response - self$y_test_pred)^2))  / r_test
+
+      return(list(train_error = train_rmse, test_error = test_rmse))
+    }
+  )
 )
-
-devtools::load_all(packagepath)
-
-##### parameter settings by user ######
-n_rep    <- 100
-n_sample <- 100
-n_eval            <- 99
-n_predictor_scalar <- 16
-test.ratio <- 0.3
-train.ratio <- 1 - test.ratio
-# parameters for predictor generation
-ar_slope <- 0.9
-gaussian_bandwidth <- 15
-freq_1 <- 10
-freq_2 <- 20
-signal_noise_ratio <- 0.9
-scalar_signal_ratio <- 0.1
-
-n_basis_predictor <- 20
-
-# parameters for coefficient generation
-n_basis_coef      <- 30
-cycle_1 <- 5
-cycle_2 <- 1
-
-reg_coef_1_formula <- function(x){2 * sin(0.5*cycle_1*pi*x) + 4* sin(1.5*cycle_1*pi*x) + 5 * sin( 2.5 * cycle_1*pi * x)}
-reg_coef_2_formula <- function(x){
-  exp(
-    -(cycle_2*(x-0.2)^2)/(0.04^2) )-
-    exp( -(cycle_2*(x-0.4)^2)/(0.04^2) ) +
-    exp( -(cycle_2*(x-0.6)^2)/(0.04^2) ) -
-    exp(  -(cycle_2*(x-0.8)^2)/(0.04^2) )}
-
-
-
-##########################################
-##########################################
-
-# predictor generating parameters
-eval_point      <- seq(0,1, length = n_eval)
-basis_predictor <- create.bspline.basis(rangeval = c(0,1), nbasis = n_basis_predictor)
-lambda_pls_base <- max(abs(inprod(basis_predictor, basis_predictor)))/max(abs(getbasispenalty(basis_predictor)))
-
-## functional regression coefficient
-basis_reg_coef  <- create.bspline.basis(rangeval = c(0,1), nbasis = n_basis_coef)
-reg_coef_1 <- fda::Data2fd(argvals = eval_point, y = as.vector(reg_coef_1_formula(eval_point)), basisobj = basis_reg_coef)
-reg_coef_2 <- fda::Data2fd(argvals = eval_point, y = as.vector(reg_coef_2_formula(eval_point)), basisobj = basis_reg_coef)
-#
-## scalar regression coefficient
-set.seed(1); scalar_reg_coef <- round( rnorm(n_predictor_scalar, 0, 1), 1 )
-
-
-
-
-
-
-
-# part II. data generation
-data_fun_1 <- data_fun_2<- data_scalar <- signal_functional <- signal_scalar <- signal_total <- response <- list()
-U_half <- matrix(rnorm(9), nrow=3)
-#U = U_half %*% t(U_half)
-#U
-U <- matrix(
-  c(0.3585408, 0.3821649, 0.4974333,
-       0.3821649, 5.6928664, 0.2608125,
-       0.4974333, 0.2608125, 1.6703254
-       ), nrow = 3)
-for (rep_number in 1:n_rep){
-  set.seed(rep_number*10)
-  vec_1 <- matrix(NA, nrow=n_sample, ncol = n_eval)
-  vec_2 <- matrix(NA, nrow=n_sample, ncol = n_eval)
-  vec_3 <- matrix(NA, nrow=n_sample, ncol = n_eval)
-  for (obs in 1:n_sample){
-    realization <- rmatrixnorm(1,
-                               mean = matrix(0, nrow = 3, ncol = n_eval),
-                               U = U, V=solve(ar1_cov(n_eval,ar_slope,1))
-    )
-    vec_1[obs,] <- realization[1,]
-    vec_2[obs,] <- realization[2,]
-    vec_3[obs,] <- realization[3,]
-  }
-
-  data_fun_1[[rep_number]] <- fda::Data2fd(argvals = eval_point,
-                                           y = t(vec_1),
-                                           basisobj = basis_predictor)
-  data_fun_2[[rep_number]] <- fda::Data2fd(argvals = eval_point,
-                                           y = t(vec_2),
-                                           basisobj = basis_predictor)
-  scalar.predictor <- matrix(NA, nrow = n_sample, ncol = n_predictor_scalar)
-  for (ii in 1:n_sample){
-    signal.mixture.chunk <-
-      scalar.predictor[ii,] <- as.numeric(
-        lapply(
-          chunk2(
-            vec_3[ii,],
-            n_predictor_scalar
-          ),
-          mean)
-      )
-  }
-  data_scalar[[rep_number]] <- scalar.predictor
-
-  signal_functional[[rep_number]] <- inprod(reg_coef_1, data_fun_1[[rep_number]]) + inprod(reg_coef_2, data_fun_2[[rep_number]])
-  signal_scalar[[rep_number]]  <- t(data_scalar[[rep_number]] %*% scalar_reg_coef)
-} # less than 10 seconds on laptop
-
-
-signal_multiplier <- (var(unlist(signal_functional)) / var(unlist(signal_scalar)))/9
-
-for (rep_number in 1:n_rep){
-  data_scalar[[rep_number]]   <- sqrt(signal_multiplier) * data_scalar[[rep_number]]
-  signal_scalar[[rep_number]] <- sqrt(signal_multiplier) * signal_scalar[[rep_number]]
-  signal_total[[rep_number]] <- signal_functional[[rep_number]] +  signal_scalar[[rep_number]]
-}
-
-
-# generate response
-noise_var <- 1/9 * var(unlist(signal_total))
-for (rep_number in 1:n_rep){
-  response[[rep_number]] <- signal_total[[rep_number]]+ sqrt(noise_var)*rnorm(n_sample, 0, 1)
-}
-
-save(response, data_fun_1, data_fun_2,data_scalar, response, response, eval_point, n_sample, n_basis_predictor, n_rep, lambda_pls_base, noise_var,file = "simul_data.RData")
-save.image(paste(datapath, paste0(trial_name, ".RData"), sep = "/")) # creating ".RData" in current working directory
-
-
 ```
 
-
-```{r}
-```
+ 
 
 
 ## Documenting the package and building

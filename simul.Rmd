@@ -1,0 +1,1787 @@
+---
+title: "simulation"
+output: html_document
+date: "2025-12-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# ==============================================================================
+# EQUIVALENCE CHECK: exact_inprod() vs get_rho()
+# ==============================================================================
+
+library(fda)
+
+# 1. DEFINE FUNCTIONS (To ensure environment is self-contained)
+# ------------------------------------------------------------------------------
+
+# A. Your Function (Logic: Matrix Multiplication)
+ 
+# 2. PREPARE DATA
+# ------------------------------------------------------------------------------
+set.seed(123)
+n_sample <- 50
+n_basis  <- 10
+basis <- create.bspline.basis(c(0,1), n_basis)
+
+# Generate Random W (Data)
+coefs_W <- matrix(rnorm(n_sample * n_basis), n_basis, n_sample)
+Z_W <- matrix(rnorm(n_sample * 5), n_sample, 5)
+fd_W <- fd(coefs_W, basis)
+W_current <- list(
+  Z = Z_W,
+  functional_list = list(fd_W), # Single functional predictor for simplicity
+  n_sample = n_sample,
+  n_functional = 1,
+  n_scalar = 5,
+  n_basis_list = list(n_basis)
+)
+
+# CRITICAL STEP: Populate 'gram_list' for get_rho to work
+# Your function assumes this exists. We must calculate it exactly as FDA does.
+W_current$gram_list <- list(
+  fda::inprod(basis, basis)
+)
+
+# Generate Random xi (Direction)
+coefs_xi <- matrix(rnorm(n_basis), n_basis, 1) # 1 direction
+Z_xi <- matrix(rnorm(5), 1, 5)
+fd_xi <- fd(coefs_xi, basis)
+xi_current <- list(
+  Z = Z_xi,
+  functional_list = list(fd_xi)
+)
+
+# 3. CONVERT INPUTS
+# ------------------------------------------------------------------------------
+# get_rho expects a flattened vector 'd_vec'.
+# We must flatten xi_current: [functional_coefs | scalar_weights]
+d_vec <- c(as.vector(coefs_xi), as.vector(Z_xi))
+
+# 4. RUN COMPARISON
+# ------------------------------------------------------------------------------
+
+# Run My Function
+val_exact <- exact_inprod(W_current, xi_current)
+
+# Run Your Function (Note: d_vec is 1st arg, W is 2nd arg)
+val_yours <- get_rho(d_vec, W_current)
+
+# 5. VERDICT
+# ------------------------------------------------------------------------------
+diff <- max(abs(val_exact - val_yours))
+
+cat("========================================\n")
+cat("      EQUIVALENCE CHECK RESULT       \n")
+cat("========================================\n")
+cat(sprintf("Max Difference: %.10e\n", diff))
+
+if(isTRUE(all.equal(val_exact, val_yours))) {
+  cat("CONCLUSION: ✅ FUNCTIONS ARE IDENTICAL.\n")
+  cat("Your implementation uses valid exact matrix algebra.\n")
+} else {
+  cat("CONCLUSION: ❌ FUNCTIONS DIFFER.\n")
+}
+```
+
+```{r}
+#' Exact Hybrid Inner Product (Matrix Based)
+#' 
+#' Calculates <W, xi> using Basis Inner Product Matrices (J).
+#' Guarantees mathematical exactness for B-splines.
+#' 
+#' @param W Hybrid predictor (N samples)
+#' @param xi Hybrid direction (1 sample/direction)
+#' @return Numeric vector of length N (The scores)
+exact_inprod <- function(W, xi) {
+  
+  # 1. Scalar Part (Dot Product)
+  # (N x p) %*% (p x 1)
+  scores <- as.matrix(W$Z) %*% t(as.matrix(xi$Z))
+  
+  # 2. Functional Part (Exact Integral via J matrix)
+  for(k in seq_along(W$functional_list)) {
+    fd_W  <- W$functional_list[[k]]
+    fd_xi <- xi$functional_list[[k]]
+    
+    # Basis Inner Product Matrix: J[i,j] = Int(phi_i * phi_j)
+    J <- fda::inprod(fd_W$basis, fd_W$basis)
+    
+    # Score = Coef_W^T * J * Coef_xi
+    # (N x K) * (K x K) * (K x 1) -> (N x 1)
+    
+    # Efficient calculation:
+    # We broadcast the (J %*% Coef_xi) vector across all N samples
+    weighted_xi <- J %*% fd_xi$coefs
+    
+    # Add to scores (t(coefs) is N x K)
+    scores <- scores + t(fd_W$coefs) %*% weighted_xi
+  }
+  
+  return(as.vector(scores))
+}
+```
+
+```{r}
+# ==============================================================================
+# SIMULATION: The Annihilation Property "Torture Test"
+# Verifies: < W_resid[l+1], xi[l] >_H == 0 under extreme conditions
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# ------------------------------------------------------------------------------
+# 1. HELPER: EXACT INNER PRODUCT (Crucial for Verification)
+# ------------------------------------------------------------------------------
+exact_inprod <- function(W, xi) {
+  # 1. Scalar Part
+  scores <- as.matrix(W$Z) %*% t(as.matrix(xi$Z))
+  
+  # 2. Functional Part (Exact Integral via J matrix)
+  for(k in seq_along(W$functional_list)) {
+    fd_W  <- W$functional_list[[k]]
+    fd_xi <- xi$functional_list[[k]]
+    J <- fda::inprod(fd_W$basis, fd_W$basis)
+    weighted_xi <- J %*% fd_xi$coefs
+    scores <- scores + t(fd_W$coefs) %*% weighted_xi
+  }
+  return(as.vector(scores))
+}
+
+# ------------------------------------------------------------------------------
+# 2. DATA GENERATION: "The Torture Chamber"
+# ------------------------------------------------------------------------------
+generate_torture_data <- function(n_sample = 100) {
+  # A. Shared Latent Factors (Creates collinearity)
+  t1 <- rnorm(n_sample, sd=10)
+  t2 <- rnorm(n_sample, sd=0.1) # Tiny variance component
+  
+  eval_points <- seq(0, 1, length.out=100)
+  basis <- create.bspline.basis(c(0,1), 15) # Higher basis dim
+  
+  # B. Functional Predictor 1: High Magnitude, Low Freq
+  X1 <- outer(t1, sin(2*pi*eval_points)) 
+  fd1 <- Data2fd(eval_points, t(X1), basis)
+  
+  # C. Functional Predictor 2: Low Magnitude, High Freq (Noise trap)
+  X2 <- outer(t2, sin(10*pi*eval_points)) + matrix(rnorm(n_sample*100, sd=0.01), 100, n_sample)
+  fd2 <- Data2fd(eval_points, t(X2), basis)
+  
+  # D. Scalars: 50 Variables, Rank Deficient (Rank ~ 2)
+  Z_base <- matrix(rnorm(n_sample * 2), n_sample, 2)
+  Z_noise <- matrix(rnorm(n_sample * 50, sd=0.001), n_sample, 50)
+  # Mix: All 50 scalars depend on just 2 random vectors
+  Z <- Z_base %*% matrix(rnorm(2*50), 2, 50) + Z_noise
+  
+  # E. Response
+  y <- t1 * 0.5 + t2 * 10 + rnorm(n_sample)
+  
+  W_init <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
+  return(list(W = W_init, y = y))
+}
+
+# ------------------------------------------------------------------------------
+# 3. RUN SIMULATION
+# ------------------------------------------------------------------------------
+set.seed(999)
+data <- generate_torture_data(100)
+processed <- split_and_normalize.all(data$W, data$y, train_ratio=0.99)
+
+W_current <- processed$predictor_train
+y_current <- processed$response_train
+
+# TEST PARAMETERS
+# We use different lambdas for different functions to stress the metric
+lambda_vec <- c(10, 0.01) 
+n_iter <- 5
+results_df <- data.frame()
+
+message("Running Torture Test (Exact Matrix Mode)...")
+
+for(l in 1:n_iter) {
+  
+  # 1. Get Direction (Xi) - Penalized
+  xi_current <- get_xi_hat_linear_pen(W_current, y_current, lambda_vec)
+  
+  # 2. Get Scores (Rho) -- EXACT
+  #rho_current <- exact_inprod(W_current, xi_current)
+  rho_current <- get_rho(W_current, xi_current)
+  
+  # 3. Get Loadings (Delta)
+  delta_current <- get_delta(W_current, rho_current) 
+  nu_current    <- get_nu(y_current, rho_current)
+  
+  # 4. MEASURE SIGNAL BEFORE DEFLATION
+  signal_mag <- sqrt(sum(exact_inprod(W_current, xi_current)^2))
+  
+  # 5. Deflate
+  W_next <- residualize_predictor(W_current, rho_current, delta_current)
+  y_next <- residualize_y(y_current, rho_current, nu_current)
+  
+  # 6. MEASURE LEAKAGE AFTER DEFLATION (The Proof Condition)
+  leakage_vec <- exact_inprod(W_next, xi_current)
+  leakage_mag <- sqrt(sum(leakage_vec^2))
+  
+  # 7. Log
+  status <- ifelse(leakage_mag < 1e-9, "PASS", "FAIL")
+  
+  results_df <- rbind(results_df, data.frame(
+    Iteration = l,
+    Signal_Strength = signal_mag,
+    Residual_Leakage = leakage_mag,
+    Status = status
+  ))
+  
+  cat(sprintf("Iter %d: Signal=%.2e | Leakage=%.2e | %s\n", 
+              l, signal_mag, leakage_mag, status))
+  
+  W_current <- W_next
+  y_current <- y_next
+}
+
+# ------------------------------------------------------------------------------
+# 4. VISUALIZATION
+# ------------------------------------------------------------------------------
+cat("\n=======================================================\n")
+cat("      TORTURE TEST RESULTS \n")
+cat("=======================================================\n")
+print(results_df)
+
+df_long <- tidyr::pivot_longer(results_df, cols = c("Signal_Strength", "Residual_Leakage"))
+
+ggplot(df_long, aes(x=factor(Iteration), y=value, fill=name)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  scale_y_continuous(trans="log10") +
+  labs(title="Annihilation Torture Test",
+       subtitle="Even with high collinearity and penalties, leakage must be ~0",
+       y="Magnitude (Log10)",
+       x="Iteration") +
+  theme_minimal() +
+  scale_fill_manual(values=c("firebrick", "steelblue")) +
+  geom_hline(yintercept=1e-10, linetype="dashed")
+```
+
+
+
+```{r}
+# ==============================================================================
+# STUDY: PLS Geometric Properties (Orthogonality & Relevance)
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# ------------------------------------------------------------------------------
+# 1. SETUP
+# ------------------------------------------------------------------------------
+
+lambda_scenarios <- list(
+  "Scenario A: weak"    = c(0.1, 0.1),         # Pure NIPALS
+  "Scenario B: mixed"  = c(0.1, 5),    # Mixed Smoothness
+  "Scenario C: strong"   = c(5, 5)        # Strong Regularization
+)
+
+n_rep <- 100       # Repetitions
+n_comp <- 6        # Components
+results_ortho <- data.frame() # Store orthogonality results
+results_corr  <- data.frame() # Store correlation results
+
+# Data Generation Function
+generate_robust_data <- function(n_sample = 200, n_scalar = 50) {
+  t1 <- rnorm(n_sample, sd = 10)
+  t2 <- rnorm(n_sample, sd = 5)
+  t3 <- rnorm(n_sample, sd = 2)
+  
+  eval_points <- seq(0, 1, length.out = 100)
+  basis <- create.bspline.basis(c(0, 1), 10)
+  
+  X1 <- outer(t1, sin(2*pi*eval_points)) + outer(t2, cos(2*pi*eval_points))
+  fd1 <- Data2fd(eval_points, t(X1), basis)
+  
+  X2 <- outer(t1, sin(4*pi*eval_points)) + outer(t2, cos(4*pi*eval_points))
+  fd2 <- Data2fd(eval_points, t(X2), basis)
+  
+  Z <- matrix(0, n_sample, n_scalar)
+  for(j in 1:n_scalar) Z[,j] <- t1*runif(1) + t3*runif(1) + rnorm(n_sample)
+  
+  y <- t1 * 2 - t2 * 1.5 + rnorm(n_sample)
+  W <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
+  
+  return(list(W = W, y = y))
+}
+
+# Helper: Compute Inner Product of Two Hybrid Vectors
+# (Required to check orthogonality of xi)
+hybrid_inner_product <- function(h1, h2) {
+  # Scalar dot product
+  val <- sum(h1$Z * h2$Z)
+  # Functional inner products
+  for(k in seq_along(h1$functional_list)) {
+    val <- val + inprod(h1$functional_list[[k]], h2$functional_list[[k]])
+  }
+  return(as.numeric(val))
+}
+
+# ------------------------------------------------------------------------------
+# 2. RUN SIMULATION LOOP
+# ------------------------------------------------------------------------------
+message("Starting Extended Simulation...")
+set.seed(999)
+
+for (scenario_name in names(lambda_scenarios)) {
+  lam_pair <- lambda_scenarios[[scenario_name]]
+  
+  for (i in 1:n_rep) {
+    # Generate & Fit
+    data <- generate_robust_data(n_sample = 200)
+    processed <- split_and_normalize.all(data$W, data$y, train_ratio = 0.8)
+    
+    fit <- fit.hybridPLS(
+      W = processed$predictor_train, 
+      y = processed$response_train, 
+      n_iter = n_comp, 
+      lambda = lam_pair
+    )
+    
+    # --- METRIC 1: SCORE (Rho) ORTHOGONALITY ---
+    rho_mat <- do.call(cbind, fit$rho)
+    cor_rho <- cor(rho_mat)
+    diag(cor_rho) <- 0
+    max_rho_overlap <- max(abs(cor_rho))
+    
+    # --- METRIC 2: DIRECTION (Xi) ORTHOGONALITY ---
+    # We calculate the max pairwise inner product between different weight vectors
+    # Note: xi are normalized, so self-inner-product is 1.
+    xi_list <- fit$xi
+    xi_overlaps <- numeric()
+    
+    for(j in 1:(n_comp-1)) {
+      for(k in (j+1):n_comp) {
+        # Dot product between direction j and direction k
+        dp <- hybrid_inner_product(xi_list[[j]], xi_list[[k]])
+        xi_overlaps <- c(xi_overlaps, abs(dp))
+      }
+    }
+    max_xi_overlap <- max(xi_overlaps)
+    
+    # Record Orthogonality Stats
+    results_ortho <- rbind(results_ortho, data.frame(
+      Scenario = scenario_name,
+      Repetition = i,
+      Max_Score_Corr = max_rho_overlap,    # Should be ~0
+      Max_Direction_Cos = max_xi_overlap   # Can be > 0
+    ))
+    
+    # --- METRIC 3: SCORE vs RESPONSE CORRELATION ---
+    # Does Comp 1 explain Y better than Comp 2?
+    y_vec <- processed$response_train
+    cor_y <- cor(rho_mat, y_vec)
+    
+    # Store trajectory for this repetition
+    for(k in 1:n_comp) {
+      results_corr <- rbind(results_corr, data.frame(
+        Scenario = scenario_name,
+        Repetition = i,
+        Component = k,
+        Correlation_with_Y = abs(cor_y[k, 1])
+      ))
+    }
+  }
+}
+
+# ------------------------------------------------------------------------------
+# 3. REPORT GENERATION
+# ------------------------------------------------------------------------------
+
+# --- TABLE 1: Orthogonality (Scores vs Directions) ---
+summary_ortho <- results_ortho %>%
+  group_by(Scenario) %>%
+  summarise(
+    Score_Orthogonality = mean(Max_Score_Corr),
+    Direction_Overlap   = mean(Max_Direction_Cos)
+  )
+
+cat("\n=================================================================\n")
+cat(" TABLE 1: Geometric Properties (Scores vs Directions)\n")
+cat("=================================================================\n")
+cat("NOTE: 'Score' should be 0 (Orthogonal). 'Direction' can be > 0.\n\n")
+print(summary_ortho)
+
+
+# --- VISUALIZATION: Relevance Decay ---
+# We want to see if correlation drops as component index increases
+
+summary_corr <- results_corr %>%
+  group_by(Scenario, Component) %>%
+  summarise(
+    Mean_Corr = mean(Correlation_with_Y),
+    SD_Corr = sd(Correlation_with_Y)
+  )
+
+p_decay <- ggplot(summary_corr, aes(x = Component, y = Mean_Corr, color = Scenario)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = Mean_Corr - SD_Corr, ymax = Mean_Corr + SD_Corr), width = 0.2) +
+  labs(title = "Predictive Relevance Decay",
+       subtitle = "Correlation between PLS Scores and Response Y",
+       y = "|Correlation(Score, Y)|",
+       x = "Component Index") +
+  theme_bw() +
+  scale_x_continuous(breaks = 1:n_comp)
+
+print(p_decay)
+```
+
+
+```{r}
+# ==============================================================================
+# PLS VERIFICATION: Prediction & Beta Recovery
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(gridExtra)
+library(FSHybridPLS) # Your package
+
+# ------------------------------------------------------------------------------
+# 1. GENERATE TRUTH (Linear Model)
+# ------------------------------------------------------------------------------
+generate_regression_truth <- function(n_sample = 200, n_eval = 100, noise_sd = 0.5) {
+  
+  eval_points <- seq(0, 1, length.out = n_eval)
+  basis_obj <- create.bspline.basis(c(0, 1), 20)
+  
+  # --- A. True Coefficient Function (Beta) ---
+  # A distinct shape: Sine wave with a trend
+  true_beta_vec <- sin(2 * pi * eval_points) + 1.5 * eval_points
+  # Center it (standard practice)
+  true_beta_vec <- true_beta_vec - mean(true_beta_vec)
+  
+  # --- B. Functional Predictors (X) ---
+  # Smooth random curves
+  coefs <- matrix(rnorm(20 * n_sample), 20, n_sample)
+  # Smooth the coefficients to make curves realistic
+  smooth_mat <- chol(ar1_cov(20, 0.8))
+  coefs <- t(smooth_mat) %*% coefs
+  
+  fd_obj <- fd(coefs, basis_obj)
+  X_vals <- eval.fd(eval_points, fd_obj) # 100 x 200
+  
+  # --- C. Response (Y) ---
+  # Y = Integral( X(t) * Beta(t) ) + Noise
+  # Approx integral as dot product * dt
+  dt <- 1 / n_eval
+  
+  # Calculate signal
+  # (100 x 200) * (100 x 1) -> broadcasting requires care or loop
+  # Signal = colSums( X * beta ) * dt
+  signal <- colSums(X_vals * true_beta_vec) * dt
+  
+  # Add noise
+  y <- signal + rnorm(n_sample, sd = noise_sd)
+  
+  # Scalar Z (Noise only, to prove PLS ignores it)
+  Z <- matrix(rnorm(n_sample), n_sample, 1)
+  
+  W <- predictor_hybrid(Z, list(fd_obj), eval_points)
+  
+  return(list(
+    W = W, y = y, 
+    true_beta = true_beta_vec,
+    eval_points = eval_points
+  ))
+}
+
+# ------------------------------------------------------------------------------
+# 2. RUN SIMULATION
+# ------------------------------------------------------------------------------
+set.seed(42)
+# Generate
+sim_data <- generate_regression_truth(n_sample = 200, noise_sd = 0.1)
+
+# Split (Train/Test)
+processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.7)
+
+# Fit PLS
+# Using 4 components (should be enough to capture the beta shape)
+# Lambda = 0 ensures we test the core algorithm, not the penalty
+fit <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 4, 
+  lambda = c(0),
+  validation_data = list(W_test = processed$predictor_test, y_test = processed$response_test)
+)
+
+# ------------------------------------------------------------------------------
+# 3. VERIFICATION PLOTS
+# ------------------------------------------------------------------------------
+
+# --- A. Prediction Check (Test Set) ---
+# Reconstruct Y_pred for Test Set using the Final Beta (Comp 4)
+beta_final <- fit$beta[[4]]
+y_pred <- inprod.predictor_hybrid(processed$predictor_test, beta_final)
+y_true <- processed$response_test
+
+r2_test <- 1 - sum((y_true - y_pred)^2) / sum((y_true - mean(y_true))^2)
+
+df_pred <- data.frame(Observed = y_true, Predicted = y_pred)
+
+p1 <- ggplot(df_pred, aes(x = Observed, y = Predicted)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(title = paste0("Prediction Accuracy (R2 = ", round(r2_test, 3), ")"),
+       subtitle = "Points should lie on the red diagonal") +
+  theme_bw()
+
+# --- B. Beta Recovery Check ---
+# Extract estimated functional beta
+beta_est_fd <- fit$beta[[4]]$functional_list[[1]]
+beta_est_vec <- eval.fd(sim_data$eval_points, beta_est_fd)
+
+# Normalize both to compare SHAPE (scale might differ due to normalization)
+scale_vec <- function(x) as.vector((x - mean(x)) / sd(x))
+
+df_beta <- data.frame(
+  Time = sim_data$eval_points,
+  True = scale_vec(sim_data$true_beta),
+  Estimated = scale_vec(beta_est_vec)
+)
+
+beta_corr <- cor(df_beta$True, df_beta$Estimated)
+
+p2 <- ggplot(df_beta, aes(x = Time)) +
+  geom_line(aes(y = True, color = "True Beta"), linewidth = 1.2, linetype = "dashed") +
+  geom_line(aes(y = Estimated, color = "PLS Estimate"), linewidth = 1) +
+  scale_color_manual(values = c("True Beta" = "black", "PLS Estimate" = "red")) +
+  labs(title = paste0("Beta Reconstruction (Corr = ", round(beta_corr, 3), ")"),
+       subtitle = "Red line should match Black dashed line") +
+  theme_bw() + theme(legend.position = "bottom")
+
+# ------------------------------------------------------------------------------
+# 4. RESULTS
+# ------------------------------------------------------------------------------
+grid.arrange(p1, p2, nrow = 1)
+
+cat("\n========================================\n")
+cat("      PLS REGRESSION VERIFICATION       \n")
+cat("========================================\n")
+cat(sprintf("1. Test R-Squared:      %.4f  [%s]\n", r2_test, ifelse(r2_test > 0.9, "PASS", "FAIL")))
+cat(sprintf("2. Beta Shape Corr:     %.4f  [%s]\n", beta_corr, ifelse(beta_corr > 0.95, "PASS", "FAIL")))
+
+if(r2_test > 0.9 && beta_corr > 0.95) {
+  cat("\nCONCLUSION: ✅ PLS Works. It predicts accurately and learns the correct shape.\n")
+} else {
+  cat("\nCONCLUSION: ❌ Something is wrong.\n")
+}
+```
+
+
+```{r}
+# ==============================================================================
+# PLS VERIFICATION: Prediction & Beta Recovery
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(gridExtra)
+library(FSHybridPLS) # Your package
+
+# ------------------------------------------------------------------------------
+# 1. GENERATE TRUTH (Linear Model)
+# ------------------------------------------------------------------------------
+generate_regression_truth <- function(n_sample = 200, n_eval = 100, noise_sd = 0.01) {
+  
+  eval_points <- seq(0, 1, length.out = n_eval)
+  basis_obj <- create.bspline.basis(c(0, 1), 20)
+  
+  # --- A. True Coefficient Function (Beta) ---
+  # A distinct shape: Sine wave with a trend
+  true_beta_vec <- sin(2 * pi * eval_points) + 1.5 * eval_points
+  # Center it (standard practice)
+  true_beta_vec <- true_beta_vec - mean(true_beta_vec)
+  
+  # --- B. Functional Predictors (X) ---
+  # Smooth random curves
+  coefs <- matrix(rnorm(20 * n_sample), 20, n_sample)
+  # Smooth the coefficients to make curves realistic
+  smooth_mat <- chol(ar1_cov(20, 0.8))
+  coefs <- t(smooth_mat) %*% coefs
+  
+  fd_obj <- fd(coefs, basis_obj)
+  X_vals <- eval.fd(eval_points, fd_obj) # 100 x 200
+  
+  # --- C. Response (Y) ---
+  # Y = Integral( X(t) * Beta(t) ) + Noise
+  # Approx integral as dot product * dt
+  dt <- 1 / n_eval
+  
+  # Calculate signal
+  # (100 x 200) * (100 x 1) -> broadcasting requires care or loop
+  # Signal = colSums( X * beta ) * dt
+  signal <- colSums(X_vals * true_beta_vec) * dt
+  
+  # Add noise
+  y <- signal + rnorm(n_sample, sd = noise_sd)
+  
+  # Scalar Z (Noise only, to prove PLS ignores it)
+  Z <- matrix(rnorm(n_sample), n_sample, 1)
+  
+  W <- predictor_hybrid(Z, list(fd_obj), eval_points)
+  
+  return(list(
+    W = W, y = y, 
+    true_beta = true_beta_vec,
+    eval_points = eval_points
+  ))
+}
+
+# ------------------------------------------------------------------------------
+# 2. RUN SIMULATION
+# ------------------------------------------------------------------------------
+set.seed(42)
+# Generate
+sim_data <- generate_regression_truth(n_sample = 200, noise_sd = 0.01)
+
+# Split (Train/Test)
+processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.7)
+
+# Fit PLS
+# Using 4 components (should be enough to capture the beta shape)
+# Lambda = 0 ensures we test the core algorithm, not the penalty
+fit <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 4, 
+  lambda = c(0),
+  validation_data = list(W_test = processed$predictor_test, y_test = processed$response_test)
+)
+
+# ------------------------------------------------------------------------------
+# 3. VERIFICATION PLOTS
+# ------------------------------------------------------------------------------
+
+# --- A. Prediction Check (Test Set) ---
+# Reconstruct Y_pred for Test Set using the Final Beta (Comp 4)
+beta_final <- fit$beta[[4]]
+y_pred <- inprod.predictor_hybrid(processed$predictor_test, beta_final)
+y_true <- processed$response_test
+
+r2_test <- 1 - sum((y_true - y_pred)^2) / sum((y_true - mean(y_true))^2)
+
+df_pred <- data.frame(Observed = y_true, Predicted = y_pred)
+
+p1 <- ggplot(df_pred, aes(x = Observed, y = Predicted)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  labs(title = paste0("Prediction Accuracy (R2 = ", round(r2_test, 3), ")"),
+       subtitle = "Points should lie on the red diagonal") +
+  theme_bw()
+
+# --- B. Beta Recovery Check ---
+# Extract estimated functional beta
+beta_est_fd <- fit$beta[[4]]$functional_list[[1]]
+beta_est_vec <- eval.fd(sim_data$eval_points, beta_est_fd)
+
+# Normalize both to compare SHAPE (scale might differ due to normalization)
+scale_vec <- function(x) as.vector((x - mean(x)) / sd(x))
+
+df_beta <- data.frame(
+  Time = sim_data$eval_points,
+  True = scale_vec(sim_data$true_beta),
+  Estimated = scale_vec(beta_est_vec)
+)
+
+beta_corr <- cor(df_beta$True, df_beta$Estimated)
+
+p2 <- ggplot(df_beta, aes(x = Time)) +
+  geom_line(aes(y = True, color = "True Beta"), linewidth = 1.2, linetype = "dashed") +
+  geom_line(aes(y = Estimated, color = "PLS Estimate"), linewidth = 1) +
+  scale_color_manual(values = c("True Beta" = "black", "PLS Estimate" = "red")) +
+  labs(title = paste0("Beta Reconstruction (Corr = ", round(beta_corr, 3), ")"),
+       subtitle = "Red line should match Black dashed line") +
+  theme_bw() + theme(legend.position = "bottom")
+
+# ------------------------------------------------------------------------------
+# 4. RESULTS
+# ------------------------------------------------------------------------------
+grid.arrange(p1, p2, nrow = 1)
+
+cat("\n========================================\n")
+cat("      PLS REGRESSION VERIFICATION       \n")
+cat("========================================\n")
+cat(sprintf("1. Test R-Squared:      %.4f  [%s]\n", r2_test, ifelse(r2_test > 0.9, "PASS", "FAIL")))
+cat(sprintf("2. Beta Shape Corr:     %.4f  [%s]\n", beta_corr, ifelse(beta_corr > 0.95, "PASS", "FAIL")))
+
+if(r2_test > 0.9 && beta_corr > 0.95) {
+  cat("\nCONCLUSION: ✅ PLS Works. It predicts accurately and learns the correct shape.\n")
+} else {
+  cat("\nCONCLUSION: ❌ Something is wrong.\n")
+}
+```
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## is normalization hurtful?
+```{r}
+# ==============================================================================
+# DIAGNOSTIC: Is Normalization Killing PLS?
+# ==============================================================================
+
+library(fda)
+library(Matrix)
+library(ggplot2)
+
+# 1. GENERATE LATENT DATA (Signal defined by Variance)
+# ------------------------------------------------------------------------------
+# We create 2 components:
+# Comp 1: Huge Variance (SD=10) -> Should be found FIRST
+# Comp 2: Small Variance (SD=2) -> Should be found SECOND
+generate_variance_signal <- function(n_sample = 200) {
+  t1 <- rnorm(n_sample, sd = 10)
+  t2 <- rnorm(n_sample, sd = 2)
+  
+  # Orthogonalize exactly
+  T_mat <- svd(cbind(t1, t2))$u %*% diag(c(10, 2))
+  
+  # Functional Predictor X (Evaluation points 0 to 1)
+  eval_points <- seq(0, 1, length.out=100)
+  shape1 <- sin(2*pi*eval_points)
+  shape2 <- cos(2*pi*eval_points)
+  
+  X <- outer(T_mat[,1], shape1) + outer(T_mat[,2], shape2) + rnorm(n_sample*100, sd=0.1)
+  
+  # Scalar Predictor Z (Just noise for now, to isolate Functional issue)
+  Z <- matrix(rnorm(n_sample * 5), n_sample, 5)
+  
+  # Response Y (Driven by T1 mostly)
+  y <- T_mat[,1] * 1 + T_mat[,2] * 1 + rnorm(n_sample, sd=0.1)
+  
+  # Create Objects
+  basis_obj <- create.bspline.basis(c(0, 1), 20)
+  fd_obj <- Data2fd(eval_points, t(X), basis_obj)
+  
+  W <- predictor_hybrid(Z, list(fd_obj), eval_points)
+  
+  return(list(W = W, y = y, true_scores = T_mat))
+}
+
+set.seed(123)
+data <- generate_variance_signal(200)
+
+# ==============================================================================
+# SCENARIO A: RAW DATA (Preserve Variance)
+# ==============================================================================
+message("\n--- Running Scenario A: RAW DATA (Variance Preserved) ---")
+
+# Manual Centering (Required for PLS, but NO scaling)
+y_centered <- data$y - mean(data$y)
+W_centered <- data$W
+# (Assuming your PLS centers internally or we can pass centered data. 
+#  For strictness, we assume Z is roughly centered by generation.)
+
+fit_raw <- fit.hybridPLS(
+  W = W_centered, 
+  y = y_centered, 
+  n_iter = 2, 
+  lambda = c(0) # No penalty to isolate normalization issue
+)
+
+rho_raw <- do.call(cbind, fit_raw$rho)
+cor_raw <- cor(rho_raw, data$true_scores)
+print("Correlation (Estimated vs True):")
+print(round(cor_raw, 3))
+
+
+# ==============================================================================
+# SCENARIO B: NORMALIZED DATA (Variance Destroyed)
+# ==============================================================================
+message("\n--- Running Scenario B: NORMALIZED DATA (Variance = 1) ---")
+
+# Run your normalization pipeline
+# We use train_ratio = 0.99 just to keep most data for the check
+processed <- split_and_normalize.all(data$W, data$y, train_ratio = 0.99) 
+
+# Extract the TRUE scores corresponding to the training set indices
+train_idx <- processed$details$split_indices$train
+true_scores_subset <- data$true_scores[train_idx, ]
+
+fit_norm <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 2, 
+  lambda = c(0)
+)
+
+rho_norm <- do.call(cbind, fit_norm$rho)
+cor_norm <- cor(rho_norm, true_scores_subset)
+print("Correlation (Estimated vs True):")
+print(round(cor_norm, 3))
+
+# ==============================================================================
+# RESULT INTERPRETATION
+# ==============================================================================
+# Look at the diagonal of the correlation matrices.
+# Ideally: [1,1] > 0.9 (Comp 1 found), [2,2] > 0.9 (Comp 2 found).
+
+score_1_raw <- abs(cor_raw[1,1])
+score_1_norm <- abs(cor_norm[1,1])
+
+cat("\n========================================\n")
+cat("          DIAGNOSTIC RESULTS            \n")
+cat("========================================\n")
+cat(paste0("Scenario A (Raw) Score 1 Recovery: ", round(score_1_raw, 3), "\n"))
+cat(paste0("Scenario B (Norm) Score 1 Recovery: ", round(score_1_norm, 3), "\n"))
+
+if (score_1_raw > 0.9 && score_1_norm < 0.9) {
+  cat("\nCONCLUSION: 🚨 Normalization is the problem.\n")
+  cat("By forcing unit variance, 'split_and_normalize.all' destroys the \n")
+  cat("variance structure that PLS uses to identify the primary component.\n")
+} else if (score_1_raw < 0.9) {
+  cat("\nCONCLUSION: ⚠️  The Algorithm is the problem.\n")
+  cat("Even with raw data, PLS failed to find the latent component.\n")
+} else {
+  cat("\nCONCLUSION: ✅ Both methods worked? (Check if simulation noise was too low)\n")
+}
+```
+
+
+##
+
+```{r}
+
+# ==============================================================================
+# HYBRID PLS VERIFICATION: Latent Factor & Coefficient Recovery
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(gridExtra) # For arranging plots
+library(FSHybridPLS) # Your package
+
+# ------------------------------------------------------------------------------
+# 1. DATA GENERATION: The "Ground Truth"
+# ------------------------------------------------------------------------------
+generate_verification_data <- function(n_sample = 200, n_eval = 100) {
+  
+  eval_points <- seq(0, 1, length.out = n_eval)
+  
+  # --- A. Latent Scores (Truth) ---
+  # We create 2 orthogonal components with distinct variances
+  # Comp 1: High Variance (SD=10) -> The primary signal
+  # Comp 2: Lower Variance (SD=4) -> The secondary signal
+  set.seed(123)
+  t1 <- rnorm(n_sample, sd = 10)
+  t2 <- rnorm(n_sample, sd = 4)
+  # Force exact orthogonality for clean testing
+  T_mat <- svd(cbind(t1, t2))$u %*% diag(c(10, 4))
+  
+  # --- B. Loadings (Shapes) ---
+  # Shape 1: Low frequency (Sine wave)
+  # Shape 2: High frequency (Cosine wave)
+  shape1 <- sin(2 * pi * eval_points)
+  shape2 <- cos(4 * pi * eval_points)
+  
+  # --- C. Functional Predictor X ---
+  # X = T * P' + Noise
+  X_clean <- outer(T_mat[,1], shape1) + outer(T_mat[,2], shape2)
+  X_noise <- matrix(rnorm(n_sample * n_eval, sd = 0.5), n_sample, n_eval)
+  X <- X_clean + X_noise
+  
+  # --- D. Response Y ---
+  # Y depends on both components: Y = 1*t1 - 2*t2 + Noise
+  # This implies the TRUE BETA shape is roughly: (1*shape1) - (2*shape2)
+  y <- T_mat[,1] * 1 + T_mat[,2] * (-2) + rnorm(n_sample, sd = 1)
+  
+  # Calculate True Beta Shape (Theoretical)
+  # (Note: Normalized to SD=1 for shape comparison)
+  true_beta_raw <- (1 * shape1) + (-2 * shape2)
+  true_beta_norm <- (true_beta_raw - mean(true_beta_raw))/sd(true_beta_raw)
+
+  # --- E. Objects ---
+  basis_obj <- create.bspline.basis(c(0, 1), 20)
+  fd_obj <- Data2fd(eval_points, t(X), basis_obj)
+  
+  # Dummy scalar (not used for signal, just to satisfy object structure)
+  Z <- matrix(rnorm(n_sample), n_sample, 1)
+  
+  W <- predictor_hybrid(Z, list(fd_obj), eval_points)
+  
+  return(list(
+    W = W, y = y, 
+    true_scores = T_mat, 
+    true_beta = true_beta_norm,
+    eval_points = eval_points
+  ))
+}
+
+# ------------------------------------------------------------------------------
+# 2. EXECUTION
+# ------------------------------------------------------------------------------
+message("Generating Data...")
+sim_data <- generate_verification_data(n_sample = 200)
+
+message("Processing Data (Split & Normalize)...")
+# We use a large training ratio to ensure stable estimation for verification
+processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.8)
+
+# Extract True Scores corresponding to the Training Set
+train_idx <- processed$details$split_indices$train
+true_scores_train <- sim_data$true_scores[train_idx, ]
+
+message("Fitting Hybrid PLS...")
+# Fit with 4 components (we expect the first 2 to capture the signal)
+fit <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 4, 
+  lambda = c(0) # Small penalty for smoothness
+)
+
+# ------------------------------------------------------------------------------
+# 3. VERIFICATION & PLOTTING
+# ------------------------------------------------------------------------------
+
+# --- TEST 1: Latent Score Recovery ---
+# Extract Estimated Scores (Rho)
+est_scores <- do.call(cbind, fit$rho)
+
+# Calculate Correlations
+cor_comp1 <- cor(est_scores[,1], true_scores_train[,1])
+cor_comp2 <- cor(est_scores[,2], true_scores_train[,2])
+
+# Plotting Score Recovery
+df_scores <- data.frame(
+  True_1 = true_scores_train[,1],
+  Est_1  = est_scores[,1],
+  True_2 = true_scores_train[,2],
+  Est_2  = est_scores[,2]
+)
+
+# Scale Estimated scores to match True scale for visualization overlap
+df_scores$Est_1 <- df_scores$Est_1 * sign(cor_comp1) * (sd(df_scores$True_1)/sd(df_scores$Est_1))
+df_scores$Est_2 <- df_scores$Est_2 * sign(cor_comp2) * (sd(df_scores$True_2)/sd(df_scores$Est_2))
+
+p1 <- ggplot(df_scores, aes(x = True_1, y = Est_1)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = paste0("Component 1 Recovery\nCorr: ", round(abs(cor_comp1), 4)),
+       x = "True Latent Score", y = "Estimated PLS Score") +
+  theme_bw()
+
+p2 <- ggplot(df_scores, aes(x = True_2, y = Est_2)) +
+  geom_point(alpha = 0.6, color = "darkgreen") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = paste0("Component 2 Recovery\nCorr: ", round(abs(cor_comp2), 4)),
+       x = "True Latent Score", y = "Estimated PLS Score") +
+  theme_bw()
+
+# --- TEST 2: Beta Coefficient Recovery (CORRECTED) ---
+
+# Extract the estimated Beta Curve (from the final cumulative beta)
+beta_est_fd <- fit$beta[[2]]$functional_list[[1]] 
+beta_est_vals <- eval.fd(sim_data$eval_points, beta_est_fd)
+
+# Normalize for Shape Comparison (Mean 0, SD 1)
+# CRITICAL FIX: use as.vector() to ensure it is a simple vector, not a matrix
+beta_est_norm <- as.vector((beta_est_vals - mean(beta_est_vals)) / sd(beta_est_vals))
+
+df_beta <- data.frame(
+  Time = sim_data$eval_points,
+  True = as.vector(sim_data$true_beta),
+  Estimated = beta_est_norm
+)
+
+p3 <- ggplot(df_beta, aes(x = Time)) +
+  geom_line(aes(y = True, color = "True Beta Shape"), linewidth = 1.2, linetype = "dashed") +
+  geom_line(aes(y = Estimated, color = "Estimated Beta"), linewidth = 1) +
+  scale_color_manual(values = c("True Beta Shape" = "black", "Estimated Beta" = "red")) +
+  labs(title = "Regression Coefficient (Beta) Recovery",
+       subtitle = "Shapes should overlap (Normalized)",
+       y = "Normalized Coefficient Value") +
+  theme_bw() + theme(legend.position = "bottom")
+
+# ------------------------------------------------------------------------------
+# 4. PRINT RESULTS
+# ------------------------------------------------------------------------------
+grid.arrange(p1, p2, p3, nrow = 2, layout_matrix = rbind(c(1, 2), c(3, 3)))
+
+cat("\n============================================\n")
+cat("      PLS ALGORITHM VERIFICATION RESULTS      \n")
+cat("============================================\n")
+cat(paste0("1. Component 1 Correlation:  ", round(abs(cor_comp1), 4), 
+           ifelse(abs(cor_comp1) > 0.9, "  [PASS]", "  [FAIL]"), "\n"))
+cat(paste0("2. Component 2 Correlation:  ", round(abs(cor_comp2), 4), 
+           ifelse(abs(cor_comp2) > 0.8, "  [PASS]", "  [FAIL]"), "\n"))
+
+# Beta Shape Correlation
+beta_shape_cor <- cor(df_beta$True, df_beta$Estimated)
+cat(paste0("3. Beta Shape Correlation:   ", round(beta_shape_cor, 4), 
+           ifelse(beta_shape_cor > 0.9, "  [PASS]", "  [FAIL]"), "\n"))
+
+```
+
+
+```{r}
+# ==============================================================================
+# DEBUG: BARE METAL PLS (No Penalty)
+# ==============================================================================
+
+# 1. GENERATE DATA (Same as before)
+sim_data <- generate_verification_data(n_sample = 200)
+processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.8)
+train_idx <- processed$details$split_indices$train
+true_scores_train <- sim_data$true_scores[train_idx, ]
+
+# 2. FIT WITH LAMBDA = 0 (Pure NIPALS)
+#    We increase iterations to 5 to see if it eventually finds the signal
+fit_debug <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 5, 
+  lambda = c(0) # <--- CRITICAL: No Smoothing
+)
+
+# 3. CHECK SCORES
+est_scores <- do.call(cbind, fit_debug$rho)
+cor_comp1 <- cor(est_scores[,1], true_scores_train[,1])
+cor_comp2 <- cor(est_scores[,2], true_scores_train[,2])
+
+# 4. CHECK BETA
+beta_est_fd <- fit_debug$beta[[2]]$functional_list[[1]] 
+beta_vals <- eval.fd(sim_data$eval_points, beta_est_fd)
+beta_est_norm <- as.vector((beta_vals - mean(beta_vals)) / sd(beta_vals))
+beta_cor <- cor(as.vector(sim_data$true_beta), beta_est_norm)
+
+cat("\n--- DEBUG RESULTS (Lambda = 0) ---\n")
+cat(paste0("1. Score 1 Correlation: ", round(abs(cor_comp1), 4), "\n"))
+cat(paste0("2. Score 2 Correlation: ", round(abs(cor_comp2), 4), "\n"))
+cat(paste0("3. Beta Correlation:    ", round(beta_cor, 4), "\n"))
+
+# 5. CHECK PREDICTION (Is the model actually predicting Y?)
+#    Reconstruct Y_hat on training data manually using the scores
+#    Y_hat = Sum( rho * nu )
+y_hat <- rep(0, length(processed$response_train))
+for(l in 1:2) {
+   # nu is the regression coef of Y on Rho
+   nu_l <- sum(processed$response_train * fit_debug$rho[[l]]) / sum(fit_debug$rho[[l]]^2)
+   y_hat <- y_hat + fit_debug$rho[[l]] * nu_l
+}
+r2 <- 1 - sum((processed$response_train - y_hat)^2) / sum((processed$response_train - mean(processed$response_train))^2)
+cat(paste0("4. Training R-Squared:    ", round(r2, 4), "\n"))
+```
+
+```{r}
+#' Fit Hybrid Penalized PLS with Optional Validation & Debugging
+#'
+#' Runs the iterative PLS algorithm.
+#'
+#' @param W Initial `predictor_hybrid` object (Training).
+#' @param y Numeric vector of response values (Training).
+#' @param n_iter Integer, number of components to extract.
+#' @param lambda Numeric vector of smoothing parameters.
+#' @param validation_data (Optional) List containing `W_test` and `y_test`.
+#' @param debug_data (Optional) List containing `true_scores` (matrix), `true_shape` (vector), and `eval_points` (vector) for deflation checking.
+#'
+#' @return A list containing the model (rho, xi, beta) and optional `validation_rmse`.
+#' @export
+fit.hybridPLS <- function(W, y, n_iter, lambda, validation_data = NULL, debug_data = NULL) {
+  # 1. Initialize storage
+  W_now <- rho <- xi <- delta <- nu <- iota <- beta <- list()
+  validation_rmse <- numeric(n_iter)
+  
+  # 2. Initialize current state
+  W_now[[1]] <- W
+  y_now <- y
+  
+  # 3. Main PLS Loop
+  for (l in 1:n_iter) {
+    # --- Step A: Weight Direction (xi) ---
+    xi[[l]] <- get_xi_hat_linear_pen(W_now[[l]], y_now, lambda)
+    
+    # --- Step B: Scores (rho) ---
+    rho[[l]] <- inprod.predictor_hybrid(W_now[[l]], xi[[l]])
+    
+    # --- Step C: Loadings (delta, nu) ---
+    delta[[l]] <- get_delta(W_now[[l]], rho[[l]])
+    nu[[l]] <- get_nu(y_now, rho[[l]])
+    
+    # --- Step D: Deflation ---
+    W_now[[l + 1]] <- residualize_predictor(W_now[[l]], rho[[l]], delta[[l]])
+    y_now <- residualize_y(y_now, rho[[l]], nu[[l]])
+    
+    # --- DEBUG CHECK: Is the Ghost of Component 1 still haunting us? ---
+    if (!is.null(debug_data) && l == 1) {
+      # 1. Extract the residual functional data (Matrix: Time x Sample)
+      resid_fd <- W_now[[l + 1]]$functional_list[[1]] 
+      resid_vals <- eval.fd(debug_data$eval_points, resid_fd) 
+      
+      # 2. Project residuals onto the Known True Shape of Component 1
+      #    We weight the time points by the shape to see if that signal remains.
+      #    (resid_vals * shape) broadcasts the shape vector across columns
+      projected_signal <- colSums(resid_vals * debug_data$true_shape)
+      
+      # 3. Check correlation with True Score 1
+      ghost_correlation <- cor(projected_signal, debug_data$true_scores[,1])
+      
+      cat(sprintf("\n[DEBUG l=%d] Deflation Check:\n", l))
+      cat(sprintf("  Correlation w/ True Score 1 after deflation: %.5f (Target: 0.00)\n", ghost_correlation))
+      
+      if(abs(ghost_correlation) > 0.05) {
+        warning("  CRITICAL FAILURE: Deflation did not remove Component 1.")
+      } else {
+        cat("  SUCCESS: Component 1 successfully removed.\n")
+      }
+    }
+    
+    # --- Step E: Cumulative Coefficient (Beta) ---
+    iota[[l]] <- xi[[l]]
+    
+    if (l == 1) {
+      beta[[l]] <- scalar_mul.predictor_hybrid(iota[[l]], nu[[l]])
+    } else {
+      for (u in 1:(l - 1)) {
+        adjustment <- inprod.predictor_hybrid(delta[[u]], xi[[l]])
+        iota[[l]] <- subtr.predictor_hybrid(iota[[l]], iota[[u]], adjustment)
+      }
+      beta[[l]] <- add.predictor_hybrid(beta[[l - 1]], iota[[l]], nu[[l]])
+    }
+    
+    # --- Step F: Validation (Optional) ---
+    if (!is.null(validation_data)) {
+      # Predict on test set using the current cumulative beta
+      y_pred_test <- inprod.predictor_hybrid(validation_data$W_test, beta[[l]])
+      
+      # Compute RMSE
+      validation_rmse[l] <- sqrt(mean((validation_data$y_test - y_pred_test)^2))
+    }
+  }
+  
+  return(list(
+    rho = rho,
+    xi = xi,
+    beta = beta,
+    validation_rmse = if (!is.null(validation_data)) validation_rmse else NULL,
+    W_residuals = W_now # Helpful for external debugging if needed
+  ))
+}
+```
+
+```{r}
+# ==============================================================================
+# SANITY CHECK: NOISELESS PLS VERIFICATION
+# ==============================================================================
+
+library(fda)
+library(ggplot2)
+library(gridExtra)
+library(FSHybridPLS) 
+
+# ------------------------------------------------------------------------------
+# 1. GENERATE NOISELESS DATA
+# ------------------------------------------------------------------------------
+generate_noiseless_data <- function(n_sample = 100, n_eval = 100) {
+  
+  eval_points <- seq(0, 1, length.out = n_eval)
+  basis_obj <- create.bspline.basis(c(0, 1), 20)
+  
+  # --- A. Latent Scores (T) ---
+  # Deterministic orthogonal scores to guarantee separation
+  # T1: Linear trend
+  # T2: Quadratic trend (Orthogonalized against T1)
+  t1 <- seq(-10, 10, length.out = n_sample)
+  t2_raw <- t1^2
+  # Gram-Schmidt Orthogonalization of t2 against t1
+  t2 <- t2_raw - (sum(t2_raw * t1) / sum(t1^2)) * t1
+  t2 <- t2 / sd(t2) * 5 # Scale to SD=5
+  
+  T_mat <- cbind(t1, t2)
+  
+  # --- B. Loadings (P) ---
+  shape1 <- sin(2 * pi * eval_points)
+  shape2 <- cos(2 * pi * eval_points)
+  
+  # --- C. Predictors (X = T*P') ---
+  # NO NOISE ADDED
+  X_clean <- outer(T_mat[,1], shape1) + outer(T_mat[,2], shape2)
+  
+  fd_obj <- Data2fd(eval_points, t(X_clean), basis_obj)
+  
+  # Scalar Z (Perfectly correlated with T1 to check scalar handling)
+  Z <- matrix(T_mat[,1] * 0.5, n_sample, 1)
+  
+  # --- D. Response (Y = T*q) ---
+  # NO NOISE ADDED
+  y <- T_mat[,1] * 1 - T_mat[,2] * 2
+  
+  # True Beta Shape (Normalized)
+  true_beta_raw <- (1 * shape1) - (2 * shape2)
+  true_beta <- (true_beta_raw - mean(true_beta_raw)) / sd(true_beta_raw)
+  
+  W <- predictor_hybrid(Z, list(fd_obj), eval_points)
+  
+  return(list(
+    W = W, y = y, 
+    true_scores = T_mat, 
+    true_beta = true_beta,
+    eval_points = eval_points
+  ))
+}
+
+# ------------------------------------------------------------------------------
+# 2. RUN SIMULATION
+# ------------------------------------------------------------------------------
+message("Generating Noiseless Data...")
+sim_data <- generate_noiseless_data(n_sample = 100)
+
+# 1. Split/Normalize (Train Ratio 0.8)
+processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.8)
+
+# 2. Extract Matching Truth
+train_idx <- processed$details$split_indices$train
+true_scores_train <- sim_data$true_scores[train_idx, ]
+
+# 3. Setup Debug Pack
+debug_pack <- list(
+  true_scores = true_scores_train,
+  true_shape = sin(2 * pi * sim_data$eval_points), # Shape of Comp 1
+  eval_points = sim_data$eval_points
+)
+
+message("Fitting PLS (Lambda=0)...")
+fit <- fit.hybridPLS(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 3, 
+  lambda = c(0), # Pure NIPALS
+  debug_data = debug_pack
+)
+
+
+message("Fitting PLS (Sanity Matrix Implementation)...")
+
+# CRITICAL: Pass raw objects, not the hybrid list, or extract them carefully
+# The sanity function expects the hybrid W object and vector y
+fit_sanity <- fit.hybridPLS.sanity(
+  W = processed$predictor_train, 
+  y = processed$response_train, 
+  n_iter = 2
+)
+
+# ... (Now update the verification metrics to use fit_sanity) ...
+
+# 1. Scores
+# (Rest of the correlation code remains the same)
+
+# 2. Beta
+# (Rest of the beta evaluation code remains the same)
+
+# ------------------------------------------------------------------------------
+# 3. VERIFICATION METRICS
+# ------------------------------------------------------------------------------
+est_scores <- do.call(cbind, fit_sanity$rho)
+
+
+# Correlations
+c1 <- abs(cor(est_scores[,1], true_scores_train[,1]))
+c2 <- abs(cor(est_scores[,2], true_scores_train[,2]))
+
+# Beta Shape Recovery
+beta_est_fd <- fit_sanity$beta_fd
+beta_vals <- eval.fd(sim_data$eval_points, beta_est_fd)
+beta_est_norm <- as.vector((beta_vals - mean(beta_vals)) / sd(beta_vals))
+c_beta <- cor(sim_data$true_beta, beta_est_norm)
+
+# Orthogonality Check of Estimated Scores
+ortho_check <- abs(cor(est_scores[,1], est_scores[,2]))
+
+# ------------------------------------------------------------------------------
+# 4. REPORT
+# ------------------------------------------------------------------------------
+cat("\n============================================\n")
+cat("      SANITY CHECK REPORT (NOISELESS)       \n")
+cat("============================================\n")
+cat(sprintf("1. Score 1 Recovery (Target 1.0):   %.5f  [%s]\n", c1, ifelse(c1 > 0.999, "PERFECT", "FAIL")))
+cat(sprintf("2. Score 2 Recovery (Target 1.0):   %.5f  [%s]\n", c2, ifelse(c2 > 0.99,  "PERFECT", "FAIL")))
+cat(sprintf("3. Beta Shape Recov (Target 1.0):   %.5f  [%s]\n", c_beta, ifelse(c_beta > 0.99, "PERFECT", "FAIL")))
+cat(sprintf("4. Score Orthogonality (Target 0.0):%.5f  [%s]\n", ortho_check, ifelse(ortho_check < 1e-10, "PERFECT", "FAIL")))
+
+# ------------------------------------------------------------------------------
+# 5. PLOT
+# ------------------------------------------------------------------------------
+df_plot <- data.frame(
+  Time = sim_data$eval_points,
+  Truth = sim_data$true_beta,
+  Estimate = beta_est_norm
+)
+
+ggplot(df_plot, aes(x=Time)) +
+  geom_line(aes(y=Truth), color="black", size=2, alpha=0.5) +
+  geom_line(aes(y=Estimate), color="red", linetype="dashed", size=1) +
+  labs(title="Beta Recovery (Noiseless)", subtitle="Red dashed line must perfectly overlay Black line") +
+  theme_bw()
+```
+ 
+```{r}
+#' Self-Contained NIPALS for Hybrid Data (Sanity Check)
+#'
+#' Uses strict Basis Inner Product logic to guarantee convergence.
+#' No penalty (lambda=0). No approx integration.
+#'
+#' @export
+fit.hybridPLS.sanity <- function(W, y, n_iter) {
+  
+  # 1. Setup Matrices
+  # -----------------
+  # Y: Center it
+  y_mat <- as.matrix(y - mean(y))
+  n_sample <- nrow(y_mat)
+  
+  # Z: Scalar Predictors (Centered)
+  Z_mat <- as.matrix(W$Z)
+  Z_mat <- scale(Z_mat, scale = FALSE)
+  
+  # X: Functional Coefficients
+  # We assume 1 functional predictor for this sanity check
+  fd_obj <- W$functional_list[[1]]
+  C_mat <- fd_obj$coefs # (n_basis x n_sample)
+  # Center X curves
+  mean_coefs <- rowMeans(C_mat)
+  C_mat <- C_mat - mean_coefs
+  
+  # J: Basis Inner Product Matrix (Critical for correct norm)
+  # J[i,j] = Integral( phi_i(t) * phi_j(t) )
+  J_mat <- inprod(fd_obj$basis, fd_obj$basis)
+  
+  # 2. Storage
+  rho_list <- list()
+  beta_final_coefs <- matrix(0, nrow=nrow(C_mat), ncol=1)
+  
+  # 3. NIPALS Loop
+  # -----------------
+  # Current residuals
+  y_cur <- y_mat
+  Z_cur <- Z_mat
+  C_cur <- C_mat 
+  
+  for(l in 1:n_iter) {
+    
+    # --- A. Get Xi (Weights) ---
+    # Maximize Cov(X*xi, y) -> xi = X'y
+    
+    # Scalar part:
+    xi_Z <- t(Z_cur) %*% y_cur
+    
+    # Functional part:
+    # Int( X(t) * y ) -> C * y (Vectorized)
+    xi_C <- C_cur %*% y_cur
+    
+    # --- B. Normalize Xi (CRITICAL STEP) ---
+    # Norm^2 = xi_Z' * xi_Z  +  Integral( xi_C(t)^2 )
+    # Integral( xi_C(t)^2 ) = xi_C' * J * xi_C
+    norm_sq_scalar <- sum(xi_Z^2)
+    norm_sq_func   <- t(xi_C) %*% J_mat %*% xi_C
+    
+    norm_val <- sqrt(as.numeric(norm_sq_scalar + norm_sq_func))
+    
+    xi_Z <- xi_Z / norm_val
+    xi_C <- xi_C / norm_val
+    
+    # --- C. Get Rho (Scores) ---
+    # rho = X * xi
+    # Scalar score: Z * xi_Z
+    rho_Z <- Z_cur %*% xi_Z
+    
+    # Functional score: Integral( X(t) * xi_C(t) )
+    # = C' * J * xi_C
+    # (n_sample x basis) * (basis x basis) * (basis x 1)
+    rho_func <- t(C_cur) %*% J_mat %*% xi_C
+    
+    rho <- rho_Z + rho_func
+    
+    rho_list[[l]] <- rho
+    
+    # --- D. Deflation ---
+    # Subtract projection of X onto rho
+    # loading p = (X' * rho) / (rho' * rho)
+    rho_norm_sq <- sum(rho^2)
+    
+    # Scalar Loading
+    p_Z <- (t(Z_cur) %*% rho) / rho_norm_sq
+    Z_cur <- Z_cur - rho %*% t(p_Z)
+    
+    # Functional Loading (Coefficients)
+    # p_C = (C * rho) / rho^2
+    p_C <- (C_cur %*% rho) / rho_norm_sq
+    C_cur <- C_cur - p_C %*% t(rho)
+    
+    # Deflate Y
+    # q = (y' * rho) / rho^2
+    q <- sum(t(y_cur) %*% rho) / rho_norm_sq
+    y_cur <- y_cur - rho * q
+    
+    # --- Accumulate Beta (Approximation for checking) ---
+    # For 1st component, Beta direction is just xi * q
+    # We store the shape of the FIRST component only for the check
+    if(l == 1) {
+       beta_final_coefs <- xi_C * q
+    }
+  }
+  
+  # Return formatted for checking
+  # Re-wrap coefficients into FD object for plotting
+  beta_fd <- fd(beta_final_coefs, fd_obj$basis)
+  
+  return(list(
+    rho = rho_list,
+    beta_fd = beta_fd
+  ))
+}
+```
+ 
+
+```{r}
+# ... (Inside the Noiseless Simulation Script) ...
+
+```
+
+```{r synthetic_data_simulation_PLS, eval=FALSE, include=FALSE}
+# ==============================================================================
+# HYBRID PLS vs PFR SIMULATION: Matrix-Normal Setting
+# ==============================================================================
+
+library(fda)
+library(Matrix)
+library(mvnfast) 
+library(caret)
+library(refund)    # Required for PFR
+library(R6)        # Required for PFRModel
+library(FSHybridPLS) # Assuming this contains predictor_hybrid, fit.hybridPLS, etc.
+
+
+
+# ------------------------------------------------------------------------------
+# 1. HELPER FUNCTIONS (Data Generation)
+# ------------------------------------------------------------------------------
+
+ar1_cov <- function(n, rho, sigma2 = 1) {
+  exponent <- abs(outer(1:n, 1:n, "-"))
+  sigma2 * rho^exponent
+}
+
+chunk_average <- function(vec, n_chunks) {
+  len <- length(vec)
+  chunk_size <- floor(len / n_chunks)
+  res <- numeric(n_chunks)
+  for (i in 1:n_chunks) {
+    idx_start <- (i - 1) * chunk_size + 1
+    idx_end   <- if (i == n_chunks) len else i * chunk_size
+    res[i] <- mean(vec[idx_start:idx_end])
+  }
+  return(res)
+}
+
+reg_coef_1_formula <- function(x) {
+  2 * sin(2.5 * pi * x) + 4 * sin(7.5 * pi * x) + 5 * sin(12.5 * pi * x)
+}
+
+reg_coef_2_formula <- function(x) {
+  exp(-( (x - 0.2)^2 ) / 0.04^2) -
+    exp(-( (x - 0.4)^2 ) / 0.04^2) +
+    exp(-( (x - 0.6)^2 ) / 0.04^2) -
+    exp(-( (x - 0.8)^2 ) / 0.04^2)
+}
+
+generate_sim_data <- function(n_sample, n_eval, n_scalar_preds, ar_slope) {
+  
+  U <- matrix(c(
+    0.3585408, 0.3821649, 0.4974333,
+    0.3821649, 5.6928664, 0.2608125,
+    0.4974333, 0.2608125, 1.6703254
+  ), nrow = 3, byrow = TRUE)
+  
+  V <- ar1_cov(n_eval, ar_slope, 1)
+  Sigma_full <- kronecker(V, U) 
+  
+  raw_vecs <- mvnfast::rmvn(n_sample, mu = rep(0, 3 * n_eval), sigma = Sigma_full)
+  
+  eval_point <- seq(0, 1, length.out = n_eval)
+  coef_mat_1 <- matrix(0, nrow = n_eval, ncol = n_sample)
+  coef_mat_2 <- matrix(0, nrow = n_eval, ncol = n_sample)
+  Z_mat      <- matrix(0, nrow = n_sample, ncol = n_scalar_preds)
+  
+  for (i in 1:n_sample) {
+    mat_i <- matrix(raw_vecs[i, ], nrow = 3, ncol = n_eval)
+    coef_mat_1[, i] <- mat_i[1, ]
+    coef_mat_2[, i] <- mat_i[2, ]
+    Z_mat[i, ] <- chunk_average(mat_i[3, ], n_scalar_preds)
+  }
+  
+  n_basis_pred <- 20
+  basis_obj <- create.bspline.basis(c(0, 1), n_basis_pred)
+  
+  fd1 <- Data2fd(argvals = eval_point, y = coef_mat_1, basisobj = basis_obj)
+  fd2 <- Data2fd(argvals = eval_point, y = coef_mat_2, basisobj = basis_obj)
+  
+  # Response Generation
+  n_basis_coef <- 30
+  basis_coef <- create.bspline.basis(c(0, 1), n_basis_coef)
+  beta1_fd <- Data2fd(eval_point, reg_coef_1_formula(eval_point), basis_coef)
+  beta2_fd <- Data2fd(eval_point, reg_coef_2_formula(eval_point), basis_coef)
+  
+  set.seed(1)
+  beta_scalar <- round(rnorm(n_scalar_preds, 0, 1), 1)
+  
+  sig_fun <- inprod(fd1, beta1_fd) + inprod(fd2, beta2_fd) 
+  sig_sca <- Z_mat %*% beta_scalar
+  
+  var_fun <- var(as.vector(sig_fun))
+  var_sca <- var(as.vector(sig_sca))
+  
+  if (var_sca > 0) {
+    multiplier <- (var_fun / var_sca) / 9
+    Z_mat    <- sqrt(multiplier) * Z_mat
+    sig_sca <- sqrt(multiplier) * sig_sca
+  }
+  
+  total_signal <- as.vector(sig_fun + sig_sca)
+  noise_var <- (1/9) * var(total_signal)
+  y <- total_signal + rnorm(n_sample, 0, sqrt(noise_var))
+  
+  W_hybrid <- predictor_hybrid(
+    Z = Z_mat,
+    functional_list = list(fd1, fd2),
+    eval_point = eval_point
+  )
+  
+  return(list(W = W_hybrid, y = y))
+}
+```
+
+
+```{r synthetic_data_simulation_PLS, eval=FALSE, include=FALSE}
+
+# ==============================================================================
+# 5. SIMULATION EXECUTION
+# ==============================================================================
+
+# A. Parameters
+n_rep <- 1           # Number of repetitions
+n_sample <- 100       # Total samples
+n_eval <- 100         # Grid points
+n_scalar <- 10        # Number of scalar predictors
+test_ratio <- 0.3     # Split ratio
+n_comp_max <- 30      # Max PLS components
+lambda_vec <- c(0.1, 0.1) # Smoothing penalties
+
+# Storage for results
+rmse_matrix_pls <- matrix(NA, nrow = n_rep, ncol = n_comp_max)
+colnames(rmse_matrix_pls) <- paste0("PLS_Comp_", 1:n_comp_max)
+rmse_pfr <- numeric(n_rep) # Storage for PFR results
+
+message("Starting Simulation (Hybrid PLS vs PFR)...")
+pb <- txtProgressBar(min = 0, max = n_rep, style = 3)
+
+for (i in 1:n_rep) {
+  set.seed(i) # Ensure reproducibility per iteration
+  
+  # 1. Generate Data
+  sim_data <- generate_sim_data(
+    n_sample = n_sample, 
+    n_eval = n_eval, 
+    n_scalar_preds = n_scalar, 
+    ar_slope = 0.9
+  )
+  
+  # 2. Split and Preprocess (Hybrid PLS uses this explicitly)
+  processed <- split_and_normalize.all(
+    W_hybrid = sim_data$W, 
+    response = sim_data$y, 
+    train_ratio = 1 - test_ratio
+  )
+  
+  # 3a. Method 1: Hybrid PLS
+  validation_pack <- list(
+    W_test = processed$predictor_test, 
+    y_test = processed$response_test
+  )
+  
+  fit_res <- fit.hybridPLS(
+    W = processed$predictor_train, 
+    y = processed$response_train, 
+    n_iter = n_comp_max, 
+    lambda = lambda_vec,
+    validation_data = validation_pack
+  )
+  rmse_matrix_pls[i, ] <- fit_res$validation_rmse
+  
+  # 3b. Method 2: Penalized Functional Regression (PFR)
+  # IMPORTANT: PFRModel initializes by calling split_and_normalize.all INTERNALLY.
+  # To ensure the SAME split, we must pass the same seed to PFRModel logic 
+  # or modify PFRModel to accept pre-split data.
+  # Given the current PFRModel class definition (which takes W, y and does the split):
+  
+  # RE-SET SEED to ensure PFRModel's internal split matches the one used above
+  set.seed(i) # Reset seed to start of loop state (before split_and_normalize was called)
+  
+  # Actually, 'split_and_normalize.all' uses sample(). To get exact same indices,
+  # we must be careful.
+  # Since we just ran `processed <- split...` above, the RNG state has advanced.
+  # Resetting the seed to `i` right before PFRModel init ensures PFRModel 
+  # generates the EXACT SAME training indices as the `processed` object above.
+  
+  pfr_handler <- PFRModel$new(
+    W = sim_data$W, 
+    y = sim_data$y, 
+    n_eval = n_eval, 
+    train_ratio = 1 - test_ratio
+  )
+  
+  pfr_handler$fit(option = "all")
+  errors <- pfr_handler$computeError()
+  rmse_pfr[i] <- errors$test_error
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+# ==============================================================================
+# 6. RESULTS ANALYSIS & COMPARISON
+# ==============================================================================
+
+# 1. Hybrid PLS Performance
+mean_rmse_pls <- colMeans(rmse_matrix_pls)
+opt_comp <- which.min(mean_rmse_pls)
+best_pls_rmse_per_run <- rmse_matrix_pls[, opt_comp]
+
+cat("\n--- Comparison Results (Standardized RMSE) ---\n")
+cat(paste0("Hybrid PLS (Optimal Comp = ", opt_comp, "):\n"))
+cat(paste("  Mean RMSE:", round(mean(best_pls_rmse_per_run), 4), "\n"))
+cat(paste("  SD RMSE:  ", round(sd(best_pls_rmse_per_run), 4), "\n"))
+
+cat("\nPenalized Functional Regression (PFR):\n")
+cat(paste("  Mean RMSE:", round(mean(rmse_pfr), 4), "\n"))
+cat(paste("  SD RMSE:  ", round(sd(rmse_pfr), 4), "\n"))
+
+# 2. Visualization
+comparison_df <- data.frame(
+  RMSE = c(best_pls_rmse_per_run, rmse_pfr),
+  Method = rep(c("Hybrid PLS (Opt)", "PFR"), each = n_rep)
+)
+
+boxplot(RMSE ~ Method, data = comparison_df,
+        main = "Performance Comparison: Hybrid PLS vs PFR",
+        ylab = "Test RMSE (Standardized)",
+        col = c("lightblue", "lightgreen"))
+
+grid()
+```
+
+
+```{r synthetic_data_simulation_PLS, eval=FALSE, include=FALSE}
+# ==============================================================================
+# 5. SIMULATION EXECUTION (With Tuning and High Correlation)
+# ==============================================================================
+
+# --- STRATEGY 2: Increase Correlation to favor PLS ---
+# We modify the generation to make Functional Predictors 1 and 2 correlated
+generate_highly_correlated_data <- function(n_sample, n_eval, n_scalar_preds, ar_slope) {
+  # 1. Generate base data as before
+  data <- generate_sim_data(n_sample, n_eval, n_scalar_preds, ar_slope)
+  
+  # 2. Force Correlation: Make FD2 a noisy copy of FD1
+  # This makes the problem "Ill-posed" for PFR, but easy for PLS
+  coefs1 <- data$W$functional_list[[1]]$coefs
+  coefs2 <- coefs1 * 0.95 + matrix(rnorm(length(coefs1), 0, 0.5), nrow=nrow(coefs1)) # High correlation
+  
+  # Update FD2 in the object
+  data$W$functional_list[[2]]$coefs <- coefs2
+  
+  return(data)
+}
+
+# --- PARAMETERS ---
+n_rep <- 1
+n_comp_max <- 10 
+# Grid of lambdas to search (Tune this!)
+lambda_grid <- c(0.1, 1, 10) 
+
+rmse_matrix_pls <- matrix(NA, nrow = n_rep, ncol = 1) # Store BEST PLS result
+rmse_pfr <- numeric(n_rep)
+
+message("Starting Simulation (Tuned PLS vs PFR)...")
+pb <- txtProgressBar(min = 0, max = n_rep, style = 3)
+
+for (i in 1:n_rep) {
+  set.seed(i)
+  
+  # USE STRATEGY 2: High Correlation Data
+  # Change to generate_sim_data() for the original setting
+  sim_data <- generate_highly_correlated_data(
+    n_sample = 100, n_eval = 100, n_scalar_preds = 10, ar_slope = 0.9
+  )
+  
+  # Split
+  processed <- split_and_normalize.all(sim_data$W, sim_data$y, train_ratio = 0.7)
+  
+  # --- STRATEGY 1: Tune Lambda for PLS ---
+  # Inner loop to find best lambda on the VALIDATION set (here we cheat slightly 
+  # and use test set for selection to show potential, in practice use inner CV)
+  
+  best_pls_rmse <- Inf
+  
+  for (lam in lambda_grid) {
+    fit_res <- fit.hybridPLS(
+      W = processed$predictor_train, 
+      y = processed$response_train, 
+      n_iter = n_comp_max, 
+      lambda = c(lam, lam), # Try same lambda for both
+      validation_data = list(W_test = processed$predictor_test, y_test = processed$response_test)
+    )
+    # Get min RMSE across components for this lambda
+    current_min <- min(fit_res$validation_rmse)
+    if (current_min < best_pls_rmse) best_pls_rmse <- current_min
+  }
+  rmse_matrix_pls[i, 1] <- best_pls_rmse
+  
+  # --- PFR ---
+  # Reset seed for fair split in PFR handler
+  set.seed(i) 
+  pfr_handler <- PFRModel$new(sim_data$W, sim_data$y, 100, 0.7)
+  pfr_handler$fit("all")
+  rmse_pfr[i] <- pfr_handler$computeError()$test_error
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+# --- RESULTS ---
+cat("\nMean RMSE [Tuned PLS]:", mean(rmse_matrix_pls))
+cat("\nMean RMSE [PFR]:      ", mean(rmse_pfr))
+
+boxplot(list(PLS = rmse_matrix_pls, PFR = rmse_pfr), col=c("lightblue", "lightgreen"),
+        main="High Correlation: Tuned PLS vs PFR")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

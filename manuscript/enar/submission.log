@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  1 OCT 2025 20:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.27)  1 DEC 2025 17:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -432,13 +432,13 @@ Package hyperref Info: Link coloring OFF on input line 16.
 \@outlinefile=\write5
 \openout5 = `submission.out'.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 18.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 21.
 
 
 (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 18.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 21.
 
 
 (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
@@ -466,7 +466,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.67 
+l.72 
       [1
 
 ]
@@ -480,12 +480,12 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
  []
 
 [2]
-LaTeX Font Info:    Trying to load font information for U+euf on input line 88.
+LaTeX Font Info:    Trying to load font information for U+euf on input line 93.
 
  (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/ueuf.fd
 File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
 )
-Overfull \hbox (6.51537pt too wide) in paragraph at lines 112--122
+Overfull \hbox (6.51537pt too wide) in paragraph at lines 117--127
 \U/msb/m/n/12 E\OT1/cmr/m/n/12 [\OML/cmm/m/it/12 W \OMS/cmsy/m/n/12 
  \OML/cmm/m/it/12 W\OT1/cmr/m/n/12 ]$, so that for $\OML/cmm/m/it/12 u; v \OMS/
 cmsy/m/n/12 2 \U/msb/m/n/12 H$\OT1/cmr/m/n/12 , we have $^^F[]\OML/cmm/m/it/12 
@@ -506,7 +506,7 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
 
 [3]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 164.
+put line 169.
 
 
 
@@ -522,7 +522,7 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
  []
 
 [5]
-Overfull \hbox (3.33807pt too wide) in paragraph at lines 323--332
+Overfull \hbox (3.33807pt too wide) in paragraph at lines 328--337
 \OT1/cmr/m/n/12 The $\OML/cmm/m/it/12 i$\OT1/cmr/m/n/12 th hy-brid pre-dic-tor,
  pro-jected on $[]$, is rep-re-sented by the tu-ple $[] := ([]\OML/cmm/m/it/12 
 ; [] ; []; [][]\OT1/cmr/m/n/12 )\OML/cmm/m/it/12 :$
@@ -546,7 +546,7 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
  []
 
 [7]
-Overfull \hbox (3.43066pt too wide) in paragraph at lines 404--413
+Overfull \hbox (3.43066pt too wide) in paragraph at lines 409--418
 [][]\OT1/cmr/m/it/12 Let $\OT1/cmr/m/n/12 (\U/msb/m/n/12 B\OML/cmm/m/it/12 ; \U
 /msb/m/n/12 B[]\OML/cmm/m/it/12 ; \OT1/cmr/m/n/12 ^^B\OML/cmm/m/it/12 ; \OT1/cm
 r/bx/n/12 y\OT1/cmr/m/n/12 )$ \OT1/cmr/m/it/12 de-
@@ -560,7 +560,7 @@ Overfull \hbox (4.62497pt too wide) has occurred while \output is active
  []
 
 [8]
-Overfull \hbox (1.43468pt too wide) in paragraph at lines 453--454
+Overfull \hbox (1.43468pt too wide) in paragraph at lines 458--459
 [][]\OT1/cmr/m/it/12 Consider the op-ti-miza-tion prob-lem de-scribed in the-
  []
 
@@ -593,7 +593,7 @@ Overfull \hbox (9.24994pt too wide) has occurred while \output is active
  []
 
 [12]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 655
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 660
 .
  (c:/texlive/2025/texmf-dist/tex/latex/bbm-macros/ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
@@ -649,7 +649,7 @@ Package rerunfilecheck Info: File `submission.out' has not changed.
 Here is how much of TeX's memory you used:
  10999 strings out of 469626
  166443 string characters out of 5475183
- 565449 words of memory out of 5000000
+ 565387 words of memory out of 5000000
  37567 multiletter control sequences out of 15000+600000
  644491 words of font info for 106 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -677,7 +677,7 @@ f-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb><c:/texlive/2025/texmf-dist/fon
 ts/type1/public/amsfonts/euler/eufm10.pfb><c:/texlive/2025/texmf-dist/fonts/typ
 e1/public/amsfonts/symbols/msbm10.pfb><c:/texlive/2025/texmf-dist/fonts/type1/p
 ublic/amsfonts/symbols/msbm7.pfb>
-Output written on submission.pdf (18 pages, 328980 bytes).
+Output written on submission.pdf (18 pages, 328911 bytes).
 PDF statistics:
  430 PDF objects out of 1000 (max. 8388607)
  357 compressed objects within 4 object streams

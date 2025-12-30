@@ -10,19 +10,39 @@
 #' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
 #'
 #' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
-#'
-#'
 #' @export
-predictor_hybrid_from_coef <- function(format, coef){
-  M <- dim(format$gram_list[[1]])[2] # number of basis functions
-  K <- length(format$functional_list) # number of functional predictors
-  for (ii in 1:K){
+predictor_hybrid_from_coef <- function(format, coef) {
+  # Extract metadata from the template
+  basis_counts <- format$n_basis_list
+  
+  # Check if all functional predictors have the same number of basis functions
+  if (length(unique(basis_counts)) != 1) {
+    stop("All functional predictors must have the same number of basis functions (M).")
+  }
+  
+  M <- basis_counts[1]  # Number of basis functions (identical across predictors)
+  K <- format$n_functional # Number of functional predictors
+  
+  # Reconstruct each functional predictor
+  for (ii in 1:K) {
+    # Calculate indices for the current functional predictor in the flat vector
+    start_idx <- (ii - 1) * M + 1
+    end_idx   <- ii * M
+    
+    # Create a new fd object using the sliced coefficients and original basis
     format$functional_list[[ii]] <- fd(
-      coef = as.matrix(coef[((ii-1)*M + 1):(ii*M)]),
+      coef = as.matrix(coef[start_idx:end_idx]),
       basisobj = format$functional_list[[ii]]$basis
     )
   }
-  format$Z <- t(as.matrix(coef[(K * M + 1):length(coef)]))
+  
+  # Reconstruct the scalar predictor part (Z)
+  # The remaining coefficients after K*M belong to the scalar predictors
+  scalar_start_idx <- K * M + 1
+  format$Z <- t(as.matrix(coef[scalar_start_idx:length(coef)]))
+  
+  # Update sample count to 1 as this constructor creates a single observation
   format$n_sample <- 1
+  
   return(format)
 }

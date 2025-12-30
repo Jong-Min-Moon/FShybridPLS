@@ -13,8 +13,8 @@
 #' @export
 inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
   # Handle self-inner product
-  if (is.null(xi_2)) xi_2 <- xi_1 
-  
+  if (is.null(xi_2)) xi_2 <- xi_1
+
   # Type checks
   if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
     stop("Both inputs must be of class 'predictor_hybrid'.")
@@ -28,7 +28,7 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
     stop("Mismatch in number of scalar predictors.")
   }
 
-  # Swap so that broadcasting always applies to xi_2
+  # Swap so that broadcasting always applies to xi_2 (the smaller one)
   if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
     tmp <- xi_1
     xi_1 <- xi_2
@@ -48,24 +48,26 @@ inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
   Z1 <- xi_1$Z
   Z2 <- xi_2$Z
 
-  # Replicate fd and Z if needed
-  if (n2 == 1) {
+  # Replicate fd and Z if needed for broadcasting
+  if (n2 == 1 && n1 > 1) {
     f2 <- rep_fd(f2, n1)
     Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
   }
 
   # Compute functional inner products
+  # Iterates over samples (i) and sums the inner products of all functional predictors (j)
   inprod_functional <- vapply(seq_len(n1), function(i) {
     sum(vapply(seq_along(f1), function(j) {
       fda::inprod(f1[[j]][i], f2[[j]][i])
     }, numeric(1)))
   }, numeric(1))
- 
 
-  # Compute scalar inner products
-  inprod_scalar <- rowSums(Z1 * Z2) 
- 
-  # Combine results
+  # Compute scalar inner products using row-wise summation
+  inprod_scalar <- rowSums(Z1 * Z2)
+
+  # Combine functional and scalar results
   result <- inprod_functional + inprod_scalar
+  
+  # Return scalar if both inputs were single samples
   if (n1 == 1 && n2 == 1) as.numeric(result) else result
 }
