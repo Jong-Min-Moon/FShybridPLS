@@ -1207,54 +1207,44 @@ where:
 - A numeric vector of length  containing the PLS scores.
 
 ```{r}
-#' Compute PLS Scores
-#'
-#' Projects the hybrid predictor data W onto the weight direction defined by d_vec
-#' to calculate the PLS scores.
-#'
-#' @param d_vec A numeric vector of concatenated coefficients (functional basis coeffs + scalar weights).
-#' @param W A `predictor_hybrid` object containing the data.
-#'
-#' @return A numeric vector of PLS scores (length n).
-#' @export
-get_rho <- function(d_vec, W) {
-  K <- W$n_functional
-  M <- W$n_basis_list[[1]] # Assumes same number of basis functions for all K
-  n_scalar <- W$n_scalar
-  n <- W$n_sample
+#' Exact Hybrid Inner Product
+#' Computes <W, xi> using basis inner product matrices.
+#' @param W The hybrid predictor object (contains coefs for N samples)
+#' @param xi The hybrid weight object (contains coefs for 1 direction)
+#' @return A vector of scores (length N)
+get_rho <- function(W, xi) {
   
-  # Initialize rho vector
-  rho <- rep(0, n)
-
-  # --- Functional Part ---
-  # Iterate over functional predictors to compute inner products <X^(k), gamma^(k)>
-  for (j in 1:K) {
-    # Extract coefficients for the j-th functional weight
-    start_index <- (j - 1) * M + 1
-    end_index <- j * M
-    gamma_j <- d_vec[start_index:end_index]
+  # 1. Scalar Part (Standard dot product)
+  # (N x p_scalar) %*% (p_scalar x 1)
+  scores <- as.matrix(W$Z) %*% as.matrix(xi$Z)
+  
+  # 2. Functional Part (Basis Matrix Algebra)
+  # Loop through each functional variable
+  for(k in seq_along(W$functional_list)) {
     
-    # Get data coefficients (samples x basis)
-    Theta_j <- t(W$functional_list[[j]]$coefs)
+    # Extract basis and coefficients
+    # Coefs_W is (Basis_Dim x N)
+    # Coefs_xi is (Basis_Dim x 1)
+    fd_W  <- W$functional_list[[k]]
+    fd_xi <- xi$functional_list[[k]]
     
-    # Gram matrix
-    B <- W$gram_list[[j]]
+    # A. Compute J Matrix (Basis Inner Product)
+    # J[i,j] = Integral(phi_i(t) * phi_j(t) dt)
+    # Note: computed once per variable, very fast for B-splines
+    J <- fda::inprod(fd_W$basis, fd_W$basis)
     
-    # Update scores: rho += Theta * B * gamma
-    # (samples x basis) * (basis x basis) * (basis x 1) -> (samples x 1)
-    rho <- rho + Theta_j %*% (B %*% gamma_j)
+    # B. Compute Integral via Matrix Multiplication
+    # Formula: Score = Coefs_W^T * J * Coefs_xi
+    # Dimensions: (N x B) * (B x B) * (B x 1) -> (N x 1)
     
+    # Optimization: Pre-multiply J * xi to get a "weighted weight"
+    weighted_xi <- J %*% fd_xi$coefs 
+    
+    # Project data onto this weighted weight
+    scores <- scores + t(fd_W$coefs) %*% weighted_xi
   }
-
-  # --- Scalar Part ---
-  # Extract scalar weights (the remaining coefficients in d_vec)
-  scalar_indices <- (K * M + 1):length(d_vec)
-  scalar_weights <- d_vec[scalar_indices]
   
-  # Update scores: rho += Z * weights
-  rho <- rho + W$Z %*% scalar_weights
-  
-  return(as.vector(rho))
+  return(as.vector(scores))
 }
 ```
 
@@ -1522,6 +1512,9 @@ fit.hybridPLS <- function(W, y, n_iter, lambda, validation_data = NULL) {
     rho = rho,
     xi = xi,
     beta = beta,
+    W = W_now,
+    delta = delta,
+    nu = nu,
     validation_rmse = if (!is.null(validation_data)) validation_rmse else NULL
   ))
 }
