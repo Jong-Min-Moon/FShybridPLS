@@ -2,19 +2,20 @@
 % Please edit documentation in create-FSHybridPLS.Rmd.
 \name{get_rho}
 \alias{get_rho}
-\title{Compute PLS Scores}
+\title{Exact Hybrid Inner Product
+Computes <W, xi> using basis inner product matrices.}
 \usage{
-get_rho(d_vec, W)
+get_rho(W, xi)
 }
 \arguments{
-\item{d_vec}{A numeric vector of concatenated coefficients (functional basis coeffs + scalar weights).}
+\item{W}{The hybrid predictor object (contains coefs for N samples)}
 
-\item{W}{A \code{predictor_hybrid} object containing the data.}
+\item{xi}{The hybrid weight object (contains coefs for 1 direction)}
 }
 \value{
-A numeric vector of PLS scores (length n).
+A vector of scores (length N)
 }
 \description{
-Projects the hybrid predictor data W onto the weight direction defined by d_vec
-to calculate the PLS scores.
+Exact Hybrid Inner Product
+Computes <W, xi> using basis inner product matrices.
 }

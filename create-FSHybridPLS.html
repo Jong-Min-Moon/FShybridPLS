@@ -422,7 +422,7 @@ compute_gram_matrix &lt;- function(basis) {
   
   # Compute the inner product of the basis with itself
   # This calculates the integral of b_i(t) * b_j(t) using the metric defined on the basis
-  inprod(basis, basis) 
+  fda::inprod(basis, basis) 
 }</code></pre>
 </div>
 <div id="is_same_basis" class="section level3">
@@ -641,64 +641,55 @@ package).</li>
 includes the original data, pre-computed Gram matrices, and roughness
 penalty matrices.</li>
 </ul>
-<pre class="r"><code>#&#39; Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
+<pre class="r"><code>#&#39; Create a predictor_hybrid object
 #&#39;
-#&#39; Constructs a hybrid predictor object that stores both scalar and functional predictors,
-#&#39; and automatically computes Gram matrices (inner products of basis functions).
+#&#39; @param Z Numeric matrix (n_sample x n_scalar).
+#&#39; @param functional_list List of &#39;fd&#39; objects.
+#&#39; @param eval_point Evaluation points.
+#&#39; @param penalty_order Integer. Derivative order for roughness penalty (default 2).
 #&#39;
-#&#39; @param Z A numeric matrix of dimension \code{n_sample x n_scalar} representing scalar predictors.
-#&#39; @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
-#&#39; @param eval_point Points at which the functions are evaluated (stored as metadata).
-#&#39;
-#&#39; @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #&#39; @export
-predictor_hybrid &lt;- function(Z, functional_list, eval_point) {
-  # Validate scalar input
-  stopifnot(is.matrix(Z), is.numeric(Z))
-  
-  # Validate functional input
-  stopifnot(is.list(functional_list))
+predictor_hybrid &lt;- function(Z, functional_list, eval_point, penalty_order = 2) {
+  stopifnot(is.matrix(Z), is.numeric(Z), is.list(functional_list))
   
   n_sample &lt;- nrow(Z)
-  n_scalar &lt;- ncol(Z)
   n_functional &lt;- length(functional_list)
   
-  # Initialize lists for storing matrices and metadata
-  gram_list &lt;- gram_deriv2_list &lt;- vector(&quot;list&quot;, n_functional)
+  gram_list &lt;- vector(&quot;list&quot;, n_functional)
+  gram_deriv_list &lt;- vector(&quot;list&quot;, n_functional)
   n_basis_list &lt;- numeric(n_functional)
   
-  # Iterate through each functional predictor to compute necessary matrices
   for (i in seq_len(n_functional)) {
     fd_i &lt;- functional_list[[i]]
-    stopifnot(inherits(fd_i, &quot;fd&quot;))
+    basis_i &lt;- fd_i$basis
     
-    # Ensure the number of functional samples matches the scalar samples
-    n_fd_sample &lt;- ncol(coef(fd_i))
-    if (n_fd_sample != n_sample) {
-      stop(sprintf(&quot;Functional predictor %d has %d replicates, but Z has %d rows.&quot;,
-                   i, n_fd_sample, n_sample))
+    # 1. Validation
+    if (ncol(fd_i$coefs) != n_sample) {
+      stop(sprintf(&quot;Functional predictor %d sample count mismatch.&quot;, i))
     }
     
-    # Extract basis and compute inner product matrices
-    basis_i &lt;- fd_i$basis
-    gram_list[[i]] &lt;- compute_gram_matrix(basis_i)
-    gram_deriv2_list[[i]] &lt;- fda::getbasispenalty(basis_i) # Compute roughness penalty matrix
+    # 2. Pre-compute Gram Matrix (Inner product of basis functions)
+    # This is the &quot;J&quot; matrix: J_ij = &lt;phi_i, phi_j&gt;
+    gram_list[[i]] &lt;- fda::eval.penalty(basis_i, Lfdobj = 0)
+    
+    # 3. Pre-compute Penalty Matrix
+    # This is the &quot;R&quot; matrix: R_ij = &lt;D^2 phi_i, D^2 phi_j&gt;
+    gram_deriv_list[[i]] &lt;- fda::eval.penalty(basis_i, Lfdobj = penalty_order)
     
     n_basis_list[i] &lt;- basis_i$nbasis
   }
   
-  # Construct the S3 object
   structure(
     list(
       Z = Z,
       functional_list = functional_list,
+      gram_list = gram_list,            # J matrices
+      gram_deriv_list = gram_deriv_list, # R matrices
       eval_point = eval_point,
-      gram_list = gram_list,
-      gram_deriv2_list = gram_deriv2_list, # Store the penalty matrices
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
-      n_scalar = n_scalar
+      n_scalar = ncol(Z)
     ),
     class = &quot;predictor_hybrid&quot;
   )
@@ -940,6 +931,7 @@ arithmetic.</li>
 #&#39; @return A new `predictor_hybrid` object representing the result of subtraction.
 #&#39; @export
 subtr.predictor_hybrid &lt;- function(input, other, alpha = 1) {
+  
   add.predictor_hybrid(input, other, alpha = -alpha)
 }</code></pre>
 </div>
@@ -1033,76 +1025,69 @@ observation is broadcast across the others.</li>
 <li>Uses <code>fda::inprod</code> for functional integration and matrix
 multiplication for scalar parts.</li>
 </ul>
-<pre class="r"><code>#&#39; Inner product between two predictor_hybrid objects (with broadcasting)
+<pre class="r"><code>#&#39; Algebraic Inner Product for Hybrid Objects
+#&#39; 
+#&#39; Uses pre-computed Gram matrices to calculate inner products 
+#&#39; without numerical integration.
 #&#39;
-#&#39; Computes the inner product between two `predictor_hybrid` objects,
-#&#39; including both functional and scalar components. Supports broadcasting
-#&#39; when one of the inputs has a single observation.
-#&#39;
-#&#39; @param xi_1 A `predictor_hybrid` object.
-#&#39; @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
-#&#39;
-#&#39; @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
 #&#39; @export
 inprod.predictor_hybrid &lt;- function(xi_1, xi_2 = NULL) {
-  # Handle self-inner product
   if (is.null(xi_2)) xi_2 &lt;- xi_1
-
-  # Type checks
-  if (!inherits(xi_1, &quot;predictor_hybrid&quot;) || !inherits(xi_2, &quot;predictor_hybrid&quot;)) {
-    stop(&quot;Both inputs must be of class &#39;predictor_hybrid&#39;.&quot;)
-  }
-
-  # Structural checks
-  if (xi_1$n_functional != xi_2$n_functional) {
-    stop(&quot;Mismatch in number of functional predictors.&quot;)
-  }
-  if (xi_1$n_scalar != xi_2$n_scalar) {
-    stop(&quot;Mismatch in number of scalar predictors.&quot;)
-  }
-
-  # Swap so that broadcasting always applies to xi_2 (the smaller one)
-  if (xi_1$n_sample == 1 &amp;&amp; xi_2$n_sample &gt; 1) {
-    tmp &lt;- xi_1
-    xi_1 &lt;- xi_2
-    xi_2 &lt;- tmp
-  }
-
+  
+  # --- 1. Identify Broadcasting Case ---
   n1 &lt;- xi_1$n_sample
   n2 &lt;- xi_2$n_sample
-
-  if (!(n1 == n2 || n2 == 1)) {
-    stop(&quot;Sample sizes are incompatible for broadcasting.&quot;)
-  }
-
-  # Prepare components
-  f1 &lt;- xi_1$functional_list
-  f2 &lt;- xi_2$functional_list
-  Z1 &lt;- xi_1$Z
-  Z2 &lt;- xi_2$Z
-
-  # Replicate fd and Z if needed for broadcasting
-  if (n2 == 1 &amp;&amp; n1 &gt; 1) {
-    f2 &lt;- rep_fd(f2, n1)
-    Z2 &lt;- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
-  }
-
-  # Compute functional inner products
-  # Iterates over samples (i) and sums the inner products of all functional predictors (j)
-  inprod_functional &lt;- vapply(seq_len(n1), function(i) {
-    sum(vapply(seq_along(f1), function(j) {
-      fda::inprod(f1[[j]][i], f2[[j]][i])
-    }, numeric(1)))
-  }, numeric(1))
-
-  # Compute scalar inner products using row-wise summation
-  inprod_scalar &lt;- rowSums(Z1 * Z2)
-
-  # Combine functional and scalar results
-  result &lt;- inprod_functional + inprod_scalar
   
-  # Return scalar if both inputs were single samples
-  if (n1 == 1 &amp;&amp; n2 == 1) as.numeric(result) else result
+  # Case A: 1-to-1 (Self-norm or pair-wise)
+  # Case B: N-to-1 (Broadcasting / Projection)
+  is_broadcasting &lt;- (n2 == 1 &amp;&amp; n1 &gt; 1)
+  
+  if (n1 != n2 &amp;&amp; !is_broadcasting) {
+    # Attempt to swap if the user passed (1, N) instead of (N, 1)
+    if (n1 == 1 &amp;&amp; n2 &gt; 1) {
+       tmp &lt;- xi_1; xi_1 &lt;- xi_2; xi_2 &lt;- tmp
+       n1 &lt;- xi_1$n_sample; n2 &lt;- xi_2$n_sample
+       is_broadcasting &lt;- TRUE
+    } else {
+       stop(&quot;Incompatible sample sizes.&quot;)
+    }
+  }
+
+  # --- 2. Scalar Component ---
+  # Z1: (N x P), Z2: (N x P) or (1 x P)
+  if (is_broadcasting) {
+    # Project rows of Z1 onto single vector Z2
+    # Result: (N x 1) -&gt; vector
+    term_scalar &lt;- as.vector(xi_1$Z %*% t(xi_2$Z)) 
+  } else {
+    # Element-wise row sums
+    term_scalar &lt;- rowSums(xi_1$Z * xi_2$Z)
+  }
+  
+  # --- 3. Functional Component (Algebraic) ---
+  term_functional &lt;- numeric(n1)
+  
+  for (k in seq_len(xi_1$n_functional)) {
+    J &lt;- xi_1$gram_list[[k]]       # (M x M)
+    C1 &lt;- xi_1$functional_list[[k]]$coefs # (M x N)
+    C2 &lt;- xi_2$functional_list[[k]]$coefs # (M x N) or (M x 1)
+    
+    # Calculate weighted coefficients: J * C2
+    J_C2 &lt;- J %*% C2 # (M x N) or (M x 1)
+    
+    if (is_broadcasting) {
+      # Proj = C1^T * J * c2
+      # Dimension: (N x M) * (M x 1) = (N x 1)
+      term_functional &lt;- term_functional + as.vector(t(C1) %*% J_C2)
+    } else {
+      # Pairwise = diag(C1^T * J * C2)
+      # Efficiently: colSums(C1 * (J * C2))
+      # This calculates dot product of each column pair
+      term_functional &lt;- term_functional + colSums(C1 * J_C2)
+    }
+  }
+  
+  return(term_scalar + term_functional)
 }</code></pre>
 </div>
 <div id="inprod_pen.predictor_hybrid" class="section level3">
@@ -1125,40 +1110,48 @@ function.</li>
 <li>A numeric vector (or scalar) representing the penalized inner
 product.</li>
 </ul>
-<pre class="r"><code>#&#39; Penalized Inner product between two predictor_hybrid objects
+<pre class="r"><code>#&#39; Penalized Inner Product (Algebraic)
 #&#39;
-#&#39; Computes the inner product between two `predictor_hybrid` objects,
-#&#39; adding a roughness penalty term based on the second derivative.
-#&#39;
-#&#39; @param xi_1 A `predictor_hybrid` object.
-#&#39; @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
-#&#39; @param lambda A numeric vector of smoothing parameters (one for each functional predictor).
-#&#39;
-#&#39; @return A numeric vector of inner products.
 #&#39; @export
 inprod_pen.predictor_hybrid &lt;- function(xi_1, xi_2 = NULL, lambda) {
+  # 1. Base Inner Product (Unpenalized)
+  base_val &lt;- inprod.predictor_hybrid(xi_1, xi_2)
   
-  # Compute the standard inner product first
-  base_inprod &lt;- inprod.predictor_hybrid(xi_1, xi_2)
-  
-  # Handle self-reference for xi_2
   if (is.null(xi_2)) xi_2 &lt;- xi_1
   
-  f1 &lt;- xi_1$functional_list
-  f2 &lt;- xi_2$functional_list
-  
-  # Add penalty terms for each functional predictor
-  # The penalty is lambda * &lt;D^2 f1, D^2 f2&gt;
-  for (j in seq_len(xi_1$n_functional)) {
-    base_inprod &lt;- base_inprod + lambda[j] * fda::inprod(
-      fdobj1 = f1[[j]],
-      fdobj2 = f2[[j]],
-      Lfdobj1 = 2, # Second derivative
-      Lfdobj2 = 2  # Second derivative
-    )
+  # Determine dimensions for manual penalty calculation
+  n1 &lt;- xi_1$n_sample
+  n2 &lt;- xi_2$n_sample
+  is_broadcasting &lt;- (n2 == 1 &amp;&amp; n1 &gt; 1)
+  # Handle the swap if inprod swapped them, or just rely on logic
+  if (n1 == 1 &amp;&amp; n2 &gt; 1) {
+     tmp &lt;- xi_1; xi_1 &lt;- xi_2; xi_2 &lt;- tmp
+     n1 &lt;- xi_1$n_sample; n2 &lt;- xi_2$n_sample
+     is_broadcasting &lt;- TRUE
+  }
+
+  penalty_val &lt;- numeric(n1)
+
+  # 2. Add Roughness Penalty
+  for (k in seq_len(xi_1$n_functional)) {
+    if (lambda[k] == 0) next # Skip if no penalty
+    
+    R  &lt;- xi_1$gram_deriv_list[[k]] # (M x M) - The penalty matrix
+    C1 &lt;- xi_1$functional_list[[k]]$coefs
+    C2 &lt;- xi_2$functional_list[[k]]$coefs
+    
+    R_C2 &lt;- R %*% C2
+    
+    if (is_broadcasting) {
+      term &lt;- as.vector(t(C1) %*% R_C2)
+    } else {
+      term &lt;- colSums(C1 * R_C2)
+    }
+    
+    penalty_val &lt;- penalty_val + (lambda[k] * term)
   }
   
-  return(as.numeric(base_inprod))
+  return(base_val + penalty_val)
 }</code></pre>
 </div>
 <div id="subset_predictor_hybrid" class="section level3">
@@ -1498,7 +1491,7 @@ each functional component :</p>
 <p>where:</p>
 <ul>
 <li>is the Gram matrix (<code>gram_list</code>).</li>
-<li>is the penalty matrix (<code>gram_deriv2_list</code>).</li>
+<li>is the penalty matrix (<code>gram_deriv_list</code>).</li>
 <li>are the basis coefficients of the functional data.</li>
 <li>are the coefficients for the -th functional weight.</li>
 </ul>
@@ -1556,7 +1549,7 @@ get_xi_hat_linear_pen &lt;- function(W, y, lambda) {
     u[[j]] &lt;- B %*% Theta_t %*% y
 
     # Linear System Matrix: R = Gram + lambda * Penalty
-    R &lt;- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
+    R &lt;- W$gram_list[[j]] + lambda[j] * W$gram_deriv_list[[j]]
     
     # Solve for gamma_j: (Gram + Penalty) * gamma = Gram * Theta * y
     gamma[[j]] &lt;- solve(R, u[[j]])
@@ -1603,53 +1596,44 @@ data and Gram matrices.</li>
 <ul>
 <li>A numeric vector of length containing the PLS scores.</li>
 </ul>
-<pre class="r"><code>#&#39; Compute PLS Scores
-#&#39;
-#&#39; Projects the hybrid predictor data W onto the weight direction defined by d_vec
-#&#39; to calculate the PLS scores.
-#&#39;
-#&#39; @param d_vec A numeric vector of concatenated coefficients (functional basis coeffs + scalar weights).
-#&#39; @param W A `predictor_hybrid` object containing the data.
-#&#39;
-#&#39; @return A numeric vector of PLS scores (length n).
-#&#39; @export
-get_rho &lt;- function(d_vec, W) {
-  K &lt;- W$n_functional
-  M &lt;- W$n_basis_list[[1]] # Assumes same number of basis functions for all K
-  n_scalar &lt;- W$n_scalar
-  n &lt;- W$n_sample
+<pre class="r"><code>#&#39; Exact Hybrid Inner Product
+#&#39; Computes &lt;W, xi&gt; using basis inner product matrices.
+#&#39; @param W The hybrid predictor object (contains coefs for N samples)
+#&#39; @param xi The hybrid weight object (contains coefs for 1 direction)
+#&#39; @return A vector of scores (length N)
+get_rho &lt;- function(W, xi) {
   
-  # Initialize rho vector
-  rho &lt;- rep(0, n)
-
-  # --- Functional Part ---
-  # Iterate over functional predictors to compute inner products &lt;X^(k), gamma^(k)&gt;
-  for (j in 1:K) {
-    # Extract coefficients for the j-th functional weight
-    start_index &lt;- (j - 1) * M + 1
-    end_index &lt;- j * M
-    gamma_j &lt;- d_vec[start_index:end_index]
+  # 1. Scalar Part (Standard dot product)
+  # (N x p_scalar) %*% (p_scalar x 1)
+  scores &lt;- as.matrix(W$Z) %*% as.matrix(xi$Z)
+  
+  # 2. Functional Part (Basis Matrix Algebra)
+  # Loop through each functional variable
+  for(k in seq_along(W$functional_list)) {
     
-    # Get data coefficients (samples x basis)
-    Theta_j &lt;- t(W$functional_list[[j]]$coefs)
+    # Extract basis and coefficients
+    # Coefs_W is (Basis_Dim x N)
+    # Coefs_xi is (Basis_Dim x 1)
+    fd_W  &lt;- W$functional_list[[k]]
+    fd_xi &lt;- xi$functional_list[[k]]
     
-    # Gram matrix
-    B &lt;- W$gram_list[[j]]
+    # A. Compute J Matrix (Basis Inner Product)
+    # J[i,j] = Integral(phi_i(t) * phi_j(t) dt)
+    # Note: computed once per variable, very fast for B-splines
+    J &lt;- fda::inprod(fd_W$basis, fd_W$basis)
     
-    # Update scores: rho += Theta * B * gamma
-    # (samples x basis) * (basis x basis) * (basis x 1) -&gt; (samples x 1)
-    rho &lt;- rho + Theta_j %*% B %*% gamma_j
+    # B. Compute Integral via Matrix Multiplication
+    # Formula: Score = Coefs_W^T * J * Coefs_xi
+    # Dimensions: (N x B) * (B x B) * (B x 1) -&gt; (N x 1)
+    
+    # Optimization: Pre-multiply J * xi to get a &quot;weighted weight&quot;
+    weighted_xi &lt;- J %*% fd_xi$coefs 
+    
+    # Project data onto this weighted weight
+    scores &lt;- scores + t(fd_W$coefs) %*% weighted_xi
   }
-
-  # --- Scalar Part ---
-  # Extract scalar weights (the remaining coefficients in d_vec)
-  scalar_indices &lt;- (K * M + 1):length(d_vec)
-  scalar_weights &lt;- d_vec[scalar_indices]
   
-  # Update scores: rho += Z * weights
-  rho &lt;- rho + W$Z %*% scalar_weights
-  
-  return(as.vector(rho))
+  return(as.vector(scores))
 }</code></pre>
 </div>
 </div>
@@ -1917,292 +1901,11 @@ fit.hybridPLS &lt;- function(W, y, n_iter, lambda, validation_data = NULL) {
     rho = rho,
     xi = xi,
     beta = beta,
+    W = W_now,
+    delta = delta,
+    nu = nu,
     validation_rmse = if (!is.null(validation_data)) validation_rmse else NULL
   ))
-}</code></pre>
-<pre class="r"><code># ==============================================================================
-# TEST SCRIPT FOR HYBRID PLS
-# ==============================================================================
-
-# Prerequisites
-library(fda)</code></pre>
-<pre><code>## Loading required package: splines</code></pre>
-<pre><code>## Loading required package: fds</code></pre>
-<pre><code>## Loading required package: rainbow</code></pre>
-<pre><code>## Loading required package: MASS</code></pre>
-<pre><code>## Loading required package: pcaPP</code></pre>
-<pre><code>## Loading required package: RCurl</code></pre>
-<pre><code>## Loading required package: deSolve</code></pre>
-<pre><code>## 
-## Attaching package: &#39;fda&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:graphics&#39;:
-## 
-##     matplot</code></pre>
-<pre><code>## The following object is masked from &#39;package:datasets&#39;:
-## 
-##     gait</code></pre>
-<pre class="r"><code>library(Matrix)
-
-# 1. DATA SIMULATION
-# ------------------------------------------------------------------------------
-set.seed(2025)
-n_sample &lt;- 50
-n_scalar &lt;- 3
-
-# --- Create Functional Predictor 1 (B-Spline Basis) ---
-nbasis1 &lt;- nbasis2 &lt;-  10
-basis1 &lt;- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis1)
-# Generate random coefficients (nbasis x n_sample)
-coefs1 &lt;- matrix(rnorm(nbasis1 * n_sample), nrow = nbasis1, ncol = n_sample)
-fd1 &lt;- fd(coef = coefs1, basisobj = basis1)
-
-# --- Create Functional Predictor 2 (Fourier Basis) ---
-
- # Generate random coefficients
-coefs2 &lt;- matrix(rnorm(nbasis2 * n_sample), nrow = nbasis2, ncol = n_sample)
-fd2 &lt;- fd(coef = coefs2, basisobj = basis1)
-
-# --- Create Scalar Predictors ---
-Z &lt;- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
-
-# --- Construct the True Hybrid Predictor Object ---
-# (We need this to generate a &#39;true&#39; y for testing)
-W_train &lt;- predictor_hybrid(
-  Z = Z, 
-  functional_list = list(fd1, fd2), 
-  eval_point = seq(0, 1, length.out = 100)
-)
-
-# --- Generate Synthetic Response y ---
-# Let&#39;s create a random &#39;true&#39; beta to generate y
-# True beta is just a random instance of a hybrid object
-true_beta_coefs &lt;- rnorm(nbasis1 + nbasis2 + n_scalar)
-true_beta &lt;- predictor_hybrid_from_coef(W_train, true_beta_coefs) # Create a single-sample hybrid beta
-
-# Calculate y = &lt;W, beta&gt; + noise
-y_clean &lt;- inprod.predictor_hybrid(W_train, true_beta)
-y &lt;- y_clean + rnorm(n_sample, sd = 0.5)
-
-message(&quot;Data generation complete.&quot;)</code></pre>
-<pre><code>## Data generation complete.</code></pre>
-<pre class="r"><code>message(paste(&quot;Samples:&quot;, n_sample))</code></pre>
-<pre><code>## Samples: 50</code></pre>
-<pre class="r"><code>message(paste(&quot;Functional Predictors: 2 (Basis sizes:&quot;, nbasis1, &quot;,&quot;, nbasis2, &quot;)&quot;))</code></pre>
-<pre><code>## Functional Predictors: 2 (Basis sizes: 10 , 10 )</code></pre>
-<pre class="r"><code>message(paste(&quot;Scalar Predictors:&quot;, n_scalar))</code></pre>
-<pre><code>## Scalar Predictors: 3</code></pre>
-<pre class="r"><code># 2. RUNNING FIT.HYBRIDPLS
-# ------------------------------------------------------------------------------
-n_components &lt;- 3
-# Lambda: Small smoothing penalty for demonstration (one per functional predictor)
-lambda_vec &lt;- c(0.01, 0.01) 
-
-message(&quot;\nRunning fit.hybridPLS...&quot;)</code></pre>
-<pre><code>## 
-## Running fit.hybridPLS...</code></pre>
-<pre class="r"><code>start_time &lt;- Sys.time()
-
-fit_result &lt;- fit.hybridPLS(
-  W = W_train, 
-  y = y, 
-  n_iter = n_components, 
-  lambda = lambda_vec
-)
-
-end_time &lt;- Sys.time()
-message(paste(&quot;Fitting complete in:&quot;, round(end_time - start_time, 4), &quot;seconds.&quot;))</code></pre>
-<pre><code>## Fitting complete in: 5.3584 seconds.</code></pre>
-<pre class="r"><code># 3. VERIFICATION &amp; INSPECTION
-# ------------------------------------------------------------------------------
-
-# --- A. Check Structure ---
-message(&quot;\n--- Structure Verification ---&quot;)</code></pre>
-<pre><code>## 
-## --- Structure Verification ---</code></pre>
-<pre class="r"><code>if (length(fit_result$rho) == n_components &amp;&amp; length(fit_result$beta) == n_components) {
-  message(&quot;PASS: Output list lengths match n_iter.&quot;)
-} else {
-  stop(&quot;FAIL: Output list lengths do not match n_iter.&quot;)
-}</code></pre>
-<pre><code>## PASS: Output list lengths match n_iter.</code></pre>
-<pre class="r"><code># --- B. Check Beta Dimensions ---
-final_beta &lt;- fit_result$beta[[n_components]]
-if (inherits(final_beta, &quot;predictor_hybrid&quot;)) {
-  message(&quot;PASS: Final beta is a &#39;predictor_hybrid&#39; object.&quot;)
-}</code></pre>
-<pre><code>## PASS: Final beta is a &#39;predictor_hybrid&#39; object.</code></pre>
-<pre class="r"><code># --- C. Prediction &amp; Accuracy ---
-# Calculate fitted values using the beta from the last component
-# y_hat = &lt;W_train, beta_final&gt;
-y_hat &lt;- inprod.predictor_hybrid(W_train, final_beta)
-
-# Calculate MSE and Correlation
-mse &lt;- mean((y - y_hat)^2)
-cor_y &lt;- cor(y, y_hat)
-
-message(&quot;\n--- Model Performance ---&quot;)</code></pre>
-<pre><code>## 
-## --- Model Performance ---</code></pre>
-<pre class="r"><code>message(paste(&quot;Mean Squared Error (MSE):&quot;, round(mse, 4)))</code></pre>
-<pre><code>## Mean Squared Error (MSE): 0.2219</code></pre>
-<pre class="r"><code>message(paste(&quot;Correlation (y vs y_hat):&quot;, round(cor_y, 4)))</code></pre>
-<pre><code>## Correlation (y vs y_hat): 0.9321</code></pre>
-<pre class="r"><code># --- D. Visual Check (Optional Plotting) ---
-if(interactive()) {
-  plot(y, y_hat, main = &quot;Observed vs Fitted&quot;, xlab = &quot;Observed y&quot;, ylab = &quot;Fitted y&quot;)
-  abline(0, 1, col = &quot;red&quot;, lty = 2)
-  text(min(y), max(y_hat), paste(&quot;Cor =&quot;, round(cor_y, 3)), adj = c(0, 1))
-}
-
-# 4. COMPONENT ANALYSIS (SCORES)
-# ------------------------------------------------------------------------------
-message(&quot;\n--- Component Analysis ---&quot;)</code></pre>
-<pre><code>## 
-## --- Component Analysis ---</code></pre>
-<pre class="r"><code># Check orthogonality of scores (approximate, due to deflation method)
-rho_matrix &lt;- do.call(cbind, fit_result$rho)
-cor_scores &lt;- cor(rho_matrix)
-print(round(cor_scores, 2))</code></pre>
-<pre><code>##      [,1]  [,2]  [,3]
-## [1,] 1.00  0.01  0.02
-## [2,] 0.01  1.00 -0.02
-## [3,] 0.02 -0.02  1.00</code></pre>
-<pre class="r"><code>message(&quot;(Note: Scores might not be perfectly orthogonal depending on the specific PLS deflation scheme used, but off-diagonals should be relatively low or structured.)&quot;)</code></pre>
-<pre><code>## (Note: Scores might not be perfectly orthogonal depending on the specific PLS deflation scheme used, but off-diagonals should be relatively low or structured.)</code></pre>
-<pre class="r"><code>message(&quot;\nTest script completed successfully.&quot;)</code></pre>
-<pre><code>## 
-## Test script completed successfully.</code></pre>
-<pre class="r"><code># ==============================================================================
-# TEST: ORTHOGONALITY PROPERTIES OF HYBRID PLS (Shared Basis)
-# ==============================================================================
-
-# Prerequisites
-library(fda)
-library(Matrix)
-
-# 1. SETUP &amp; DATA SIMULATION
-# ------------------------------------------------------------------------------
-set.seed(2025) # Fixed seed for reproducibility
-
-# Dimensions
-n_sample &lt;- 50
-n_scalar &lt;- 5
-nbasis   &lt;- 5 
-
-# --- Create Shared Basis (B-spline) ---
-# Using the same basis for both functional predictors as requested
-basis_shared &lt;- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis)
-
-# --- Generate Functional Predictors ---
-# Functional Predictor 1
-coefs1 &lt;- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
-fd1 &lt;- fd(coef = coefs1, basisobj = basis_shared)
-
-# Functional Predictor 2 (Using same basis, different coefficients)
-coefs2 &lt;- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
-fd2 &lt;- fd(coef = coefs2, basisobj = basis_shared)
-
-# --- Generate Scalar Predictors ---
-Z &lt;- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
-
-# --- Construct Hybrid Object ---
-W &lt;- predictor_hybrid(
-  Z = Z, 
-  functional_list = list(fd1, fd2), 
-  eval_point = seq(0, 1, length.out = 100)
-)
-
-# --- Generate Response ---
-# Random response is sufficient to test orthogonality mechanics
-y &lt;- rnorm(n_sample) 
-
-# --- Parameters ---
-n_comp &lt;- 6
-lambda &lt;- c(0.5, 2) # Smoothing penalties for the two functional predictors
-
-# 2. RUN PLS ALGORITHM
-# ------------------------------------------------------------------------------
-message(paste(&quot;Running fit.hybridPLS with&quot;, n_comp, &quot;components...&quot;))</code></pre>
-<pre><code>## Running fit.hybridPLS with 6 components...</code></pre>
-<pre class="r"><code>fit &lt;- fit.hybridPLS(W, y, n_iter = n_comp, lambda = lambda)
-
-# 3. VERIFY PROPOSITION 1: Orthonormality of Directions (xi)
-#    Note: For NIPALS (Predictor Deflation), we expect this to FAIL.
-# ------------------------------------------------------------------------------
-message(&quot;\n--- Testing Proposition 1: Orthonormality of Directions (xi) ---&quot;)</code></pre>
-<pre><code>## 
-## --- Testing Proposition 1: Orthonormality of Directions (xi) ---</code></pre>
-<pre class="r"><code>xi_orth_matrix &lt;- matrix(0, n_comp, n_comp)
-
-for (i in 1:n_comp) {
-  for (j in 1:n_comp) {
-    xi_orth_matrix[i, j] &lt;- inprod_pen.predictor_hybrid(
-      fit$xi[[i]], 
-      fit$xi[[j]], 
-      lambda
-    )
-  }
-}
-
-print(round(xi_orth_matrix, 4))</code></pre>
-<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
-## [1,]    1    0    0    0    0    0
-## [2,]    0    1    0    0    0    0
-## [3,]    0    0    1    0    0    0
-## [4,]    0    0    0    1    0    0
-## [5,]    0    0    0    0    1    0
-## [6,]    0    0    0    0    0    1</code></pre>
-<pre class="r"><code># Check against Identity matrix
-is_orthonormal_xi &lt;- all.equal(xi_orth_matrix, diag(n_comp), tolerance = 5e-2)
-
-if (isTRUE(is_orthonormal_xi)) {
-  message(&quot;✅ PASS: Directions are Orthonormal.&quot;)
-} else {
-  message(&quot;❌ FAIL: Directions are NOT orthonormal (Expected for NIPALS algorithm).&quot;)
-  message(&quot;   (The off-diagonal values indicate correlation between weight vectors.)&quot;)
-}</code></pre>
-<pre><code>## ✅ PASS: Directions are Orthonormal.</code></pre>
-<pre class="r"><code># 4. VERIFY PROPOSITION 2: Orthogonality of Scores (rho)
-#    Note: For NIPALS, we expect this to PASS.
-# ------------------------------------------------------------------------------
-message(&quot;\n--- Testing Proposition 2: Orthogonality of Scores (rho) ---&quot;)</code></pre>
-<pre><code>## 
-## --- Testing Proposition 2: Orthogonality of Scores (rho) ---</code></pre>
-<pre class="r"><code># Combine list of score vectors into a matrix (n_sample x n_comp)
-rho_matrix &lt;- do.call(cbind, fit$rho)
-
-# Compute Correlation Matrix
-rho_cor_matrix &lt;- cor(rho_matrix)
-
-# Print rounded correlation matrix
-print(round(rho_cor_matrix, 4))</code></pre>
-<pre><code>##         [,1]    [,2]    [,3]    [,4]    [,5]    [,6]
-## [1,]  1.0000 -0.0063  0.0072 -0.0018  0.0042  0.0090
-## [2,] -0.0063  1.0000  0.0160 -0.0039  0.0094  0.0202
-## [3,]  0.0072  0.0160  1.0000  0.0045 -0.0107 -0.0230
-## [4,] -0.0018 -0.0039  0.0045  1.0000  0.0026  0.0057
-## [5,]  0.0042  0.0094 -0.0107  0.0026  1.0000 -0.0135
-## [6,]  0.0090  0.0202 -0.0230  0.0057 -0.0135  1.0000</code></pre>
-<pre class="r"><code># Check off-diagonals (exclude diagonal 1s)
-off_diag_vals &lt;- rho_cor_matrix[upper.tri(rho_cor_matrix)]
-off_diag_max &lt;- max(abs(off_diag_vals))
-
-# Tolerance check
-if (off_diag_max &lt; 5e-2) {
-  message(&quot;✅ PASS: Scores are Orthogonal (Max correlation ~ 0).&quot;)
-  message(&quot;   This confirms the algorithm correctly implements Predictor Deflation.&quot;)
-} else {
-  message(paste(&quot;⚠️  NOTE: Max off-diagonal correlation is&quot;, round(off_diag_max, 6)))
-  message(&quot;          This is higher than expected. Check deflation logic.&quot;)
-}</code></pre>
-<pre><code>## ✅ PASS: Scores are Orthogonal (Max correlation ~ 0).</code></pre>
-<pre><code>##    This confirms the algorithm correctly implements Predictor Deflation.</code></pre>
-<pre class="r"><code># Optional: Visual check of score orthogonality
-if (interactive()) {
-  image(1:n_comp, 1:n_comp, abs(rho_cor_matrix), 
-        main = &quot;Abs(Correlation) of PLS Scores&quot;,
-        xlab = &quot;Component&quot;, ylab = &quot;Component&quot;,
-        col = hcl.colors(12, &quot;Blues&quot;, rev = TRUE))
 }</code></pre>
 </div>
 </div>

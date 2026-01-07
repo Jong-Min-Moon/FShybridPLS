@@ -14,5 +14,5 @@ compute_gram_matrix <- function(basis) {
   
   # Compute the inner product of the basis with itself
   # This calculates the integral of b_i(t) * b_j(t) using the metric defined on the basis
-  inprod(basis, basis) 
+  fda::inprod(basis, basis) 
 }

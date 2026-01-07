@@ -38,7 +38,7 @@ get_xi_hat_linear_pen <- function(W, y, lambda) {
     u[[j]] <- B %*% Theta_t %*% y
 
     # Linear System Matrix: R = Gram + lambda * Penalty
-    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
+    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv_list[[j]]
     
     # Solve for gamma_j: (Gram + Penalty) * gamma = Gram * Theta * y
     gamma[[j]] <- solve(R, u[[j]])

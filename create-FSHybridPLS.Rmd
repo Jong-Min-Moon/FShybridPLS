@@ -262,65 +262,56 @@ The `predictor_hybrid` class represents a hybrid random object $\mathbf{W} = (X,
 
 - Returns an object of class `predictor_hybrid`, which includes the original data, pre-computed Gram matrices, and roughness penalty matrices.
 
-```{r}
-#' Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)
+```{r Create a predictor_hybrid object}
+#' Create a predictor_hybrid object
 #'
-#' Constructs a hybrid predictor object that stores both scalar and functional predictors,
-#' and automatically computes Gram matrices (inner products of basis functions).
+#' @param Z Numeric matrix (n_sample x n_scalar).
+#' @param functional_list List of 'fd' objects.
+#' @param eval_point Evaluation points.
+#' @param penalty_order Integer. Derivative order for roughness penalty (default 2).
 #'
-#' @param Z A numeric matrix of dimension \code{n_sample x n_scalar} representing scalar predictors.
-#' @param functional_list A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).
-#' @param eval_point Points at which the functions are evaluated (stored as metadata).
-#'
-#' @return An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
 #' @export
-predictor_hybrid <- function(Z, functional_list, eval_point) {
-  # Validate scalar input
-  stopifnot(is.matrix(Z), is.numeric(Z))
-  
-  # Validate functional input
-  stopifnot(is.list(functional_list))
+predictor_hybrid <- function(Z, functional_list, eval_point, penalty_order = 2) {
+  stopifnot(is.matrix(Z), is.numeric(Z), is.list(functional_list))
   
   n_sample <- nrow(Z)
-  n_scalar <- ncol(Z)
   n_functional <- length(functional_list)
   
-  # Initialize lists for storing matrices and metadata
-  gram_list <- gram_deriv2_list <- vector("list", n_functional)
+  gram_list <- vector("list", n_functional)
+  gram_deriv_list <- vector("list", n_functional)
   n_basis_list <- numeric(n_functional)
   
-  # Iterate through each functional predictor to compute necessary matrices
   for (i in seq_len(n_functional)) {
     fd_i <- functional_list[[i]]
-    stopifnot(inherits(fd_i, "fd"))
+    basis_i <- fd_i$basis
     
-    # Ensure the number of functional samples matches the scalar samples
-    n_fd_sample <- ncol(coef(fd_i))
-    if (n_fd_sample != n_sample) {
-      stop(sprintf("Functional predictor %d has %d replicates, but Z has %d rows.",
-                   i, n_fd_sample, n_sample))
+    # 1. Validation
+    if (ncol(fd_i$coefs) != n_sample) {
+      stop(sprintf("Functional predictor %d sample count mismatch.", i))
     }
     
-    # Extract basis and compute inner product matrices
-    basis_i <- fd_i$basis
-    gram_list[[i]] <- compute_gram_matrix(basis_i)
-    gram_deriv2_list[[i]] <- fda::getbasispenalty(basis_i) # Compute roughness penalty matrix
+    # 2. Pre-compute Gram Matrix (Inner product of basis functions)
+    # This is the "J" matrix: J_ij = <phi_i, phi_j>
+    gram_list[[i]] <- fda::eval.penalty(basis_i, Lfdobj = 0)
+    
+    # 3. Pre-compute Penalty Matrix
+    # This is the "R" matrix: R_ij = <D^2 phi_i, D^2 phi_j>
+    gram_deriv_list[[i]] <- fda::eval.penalty(basis_i, Lfdobj = penalty_order)
     
     n_basis_list[i] <- basis_i$nbasis
   }
   
-  # Construct the S3 object
   structure(
     list(
       Z = Z,
       functional_list = functional_list,
+      gram_list = gram_list,            # J matrices
+      gram_deriv_list = gram_deriv_list, # R matrices
       eval_point = eval_point,
-      gram_list = gram_list,
-      gram_deriv2_list = gram_deriv2_list, # Store the penalty matrices
       n_basis_list = n_basis_list,
       n_sample = n_sample,
       n_functional = n_functional,
-      n_scalar = n_scalar
+      n_scalar = ncol(Z)
     ),
     class = "predictor_hybrid"
   )
@@ -553,6 +544,7 @@ subtr.predictor_hybrid(input, other, alpha = 1)
 #' @return A new `predictor_hybrid` object representing the result of subtraction.
 #' @export
 subtr.predictor_hybrid <- function(input, other, alpha = 1) {
+  
   add.predictor_hybrid(input, other, alpha = -alpha)
 }
 ```
@@ -642,76 +634,69 @@ Computes the inner product between two `predictor_hybrid` objects. The inner pro
 - Supports broadcasting: if one input has a single observation (`n_sample = 1`) and the other has multiple, the single observation is broadcast across the others.
 - Uses `fda::inprod` for functional integration and matrix multiplication for scalar parts.
 ```{r}
-#' Inner product between two predictor_hybrid objects (with broadcasting)
+#' Algebraic Inner Product for Hybrid Objects
+#' 
+#' Uses pre-computed Gram matrices to calculate inner products 
+#' without numerical integration.
 #'
-#' Computes the inner product between two `predictor_hybrid` objects,
-#' including both functional and scalar components. Supports broadcasting
-#' when one of the inputs has a single observation.
-#'
-#' @param xi_1 A `predictor_hybrid` object.
-#' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
-#'
-#' @return A numeric vector of inner products, or a scalar if both inputs contain a single observation.
 #' @export
 inprod.predictor_hybrid <- function(xi_1, xi_2 = NULL) {
-  # Handle self-inner product
   if (is.null(xi_2)) xi_2 <- xi_1
-
-  # Type checks
-  if (!inherits(xi_1, "predictor_hybrid") || !inherits(xi_2, "predictor_hybrid")) {
-    stop("Both inputs must be of class 'predictor_hybrid'.")
-  }
-
-  # Structural checks
-  if (xi_1$n_functional != xi_2$n_functional) {
-    stop("Mismatch in number of functional predictors.")
-  }
-  if (xi_1$n_scalar != xi_2$n_scalar) {
-    stop("Mismatch in number of scalar predictors.")
-  }
-
-  # Swap so that broadcasting always applies to xi_2 (the smaller one)
-  if (xi_1$n_sample == 1 && xi_2$n_sample > 1) {
-    tmp <- xi_1
-    xi_1 <- xi_2
-    xi_2 <- tmp
-  }
-
+  
+  # --- 1. Identify Broadcasting Case ---
   n1 <- xi_1$n_sample
   n2 <- xi_2$n_sample
-
-  if (!(n1 == n2 || n2 == 1)) {
-    stop("Sample sizes are incompatible for broadcasting.")
-  }
-
-  # Prepare components
-  f1 <- xi_1$functional_list
-  f2 <- xi_2$functional_list
-  Z1 <- xi_1$Z
-  Z2 <- xi_2$Z
-
-  # Replicate fd and Z if needed for broadcasting
-  if (n2 == 1 && n1 > 1) {
-    f2 <- rep_fd(f2, n1)
-    Z2 <- matrix(rep(c(Z2), n1), nrow = n1, byrow = TRUE)
-  }
-
-  # Compute functional inner products
-  # Iterates over samples (i) and sums the inner products of all functional predictors (j)
-  inprod_functional <- vapply(seq_len(n1), function(i) {
-    sum(vapply(seq_along(f1), function(j) {
-      fda::inprod(f1[[j]][i], f2[[j]][i])
-    }, numeric(1)))
-  }, numeric(1))
-
-  # Compute scalar inner products using row-wise summation
-  inprod_scalar <- rowSums(Z1 * Z2)
-
-  # Combine functional and scalar results
-  result <- inprod_functional + inprod_scalar
   
-  # Return scalar if both inputs were single samples
-  if (n1 == 1 && n2 == 1) as.numeric(result) else result
+  # Case A: 1-to-1 (Self-norm or pair-wise)
+  # Case B: N-to-1 (Broadcasting / Projection)
+  is_broadcasting <- (n2 == 1 && n1 > 1)
+  
+  if (n1 != n2 && !is_broadcasting) {
+    # Attempt to swap if the user passed (1, N) instead of (N, 1)
+    if (n1 == 1 && n2 > 1) {
+       tmp <- xi_1; xi_1 <- xi_2; xi_2 <- tmp
+       n1 <- xi_1$n_sample; n2 <- xi_2$n_sample
+       is_broadcasting <- TRUE
+    } else {
+       stop("Incompatible sample sizes.")
+    }
+  }
+
+  # --- 2. Scalar Component ---
+  # Z1: (N x P), Z2: (N x P) or (1 x P)
+  if (is_broadcasting) {
+    # Project rows of Z1 onto single vector Z2
+    # Result: (N x 1) -> vector
+    term_scalar <- as.vector(xi_1$Z %*% t(xi_2$Z)) 
+  } else {
+    # Element-wise row sums
+    term_scalar <- rowSums(xi_1$Z * xi_2$Z)
+  }
+  
+  # --- 3. Functional Component (Algebraic) ---
+  term_functional <- numeric(n1)
+  
+  for (k in seq_len(xi_1$n_functional)) {
+    J <- xi_1$gram_list[[k]]       # (M x M)
+    C1 <- xi_1$functional_list[[k]]$coefs # (M x N)
+    C2 <- xi_2$functional_list[[k]]$coefs # (M x N) or (M x 1)
+    
+    # Calculate weighted coefficients: J * C2
+    J_C2 <- J %*% C2 # (M x N) or (M x 1)
+    
+    if (is_broadcasting) {
+      # Proj = C1^T * J * c2
+      # Dimension: (N x M) * (M x 1) = (N x 1)
+      term_functional <- term_functional + as.vector(t(C1) %*% J_C2)
+    } else {
+      # Pairwise = diag(C1^T * J * C2)
+      # Efficiently: colSums(C1 * (J * C2))
+      # This calculates dot product of each column pair
+      term_functional <- term_functional + colSums(C1 * J_C2)
+    }
+  }
+  
+  return(term_scalar + term_functional)
 }
 ```
 
@@ -731,41 +716,49 @@ Computes the penalized inner product between two `predictor_hybrid` objects. Thi
 **Output:**
 
 - A numeric vector (or scalar) representing the penalized inner product.
-```{r}
-#' Penalized Inner product between two predictor_hybrid objects
+```{r Penalized Inner Product}
+#' Penalized Inner Product (Algebraic)
 #'
-#' Computes the inner product between two `predictor_hybrid` objects,
-#' adding a roughness penalty term based on the second derivative.
-#'
-#' @param xi_1 A `predictor_hybrid` object.
-#' @param xi_2 Another `predictor_hybrid` object. If missing, defaults to `xi_1`.
-#' @param lambda A numeric vector of smoothing parameters (one for each functional predictor).
-#'
-#' @return A numeric vector of inner products.
 #' @export
 inprod_pen.predictor_hybrid <- function(xi_1, xi_2 = NULL, lambda) {
+  # 1. Base Inner Product (Unpenalized)
+  base_val <- inprod.predictor_hybrid(xi_1, xi_2)
   
-  # Compute the standard inner product first
-  base_inprod <- inprod.predictor_hybrid(xi_1, xi_2)
-  
-  # Handle self-reference for xi_2
   if (is.null(xi_2)) xi_2 <- xi_1
   
-  f1 <- xi_1$functional_list
-  f2 <- xi_2$functional_list
-  
-  # Add penalty terms for each functional predictor
-  # The penalty is lambda * <D^2 f1, D^2 f2>
-  for (j in seq_len(xi_1$n_functional)) {
-    base_inprod <- base_inprod + lambda[j] * fda::inprod(
-      fdobj1 = f1[[j]],
-      fdobj2 = f2[[j]],
-      Lfdobj1 = 2, # Second derivative
-      Lfdobj2 = 2  # Second derivative
-    )
+  # Determine dimensions for manual penalty calculation
+  n1 <- xi_1$n_sample
+  n2 <- xi_2$n_sample
+  is_broadcasting <- (n2 == 1 && n1 > 1)
+  # Handle the swap if inprod swapped them, or just rely on logic
+  if (n1 == 1 && n2 > 1) {
+     tmp <- xi_1; xi_1 <- xi_2; xi_2 <- tmp
+     n1 <- xi_1$n_sample; n2 <- xi_2$n_sample
+     is_broadcasting <- TRUE
+  }
+
+  penalty_val <- numeric(n1)
+
+  # 2. Add Roughness Penalty
+  for (k in seq_len(xi_1$n_functional)) {
+    if (lambda[k] == 0) next # Skip if no penalty
+    
+    R  <- xi_1$gram_deriv_list[[k]] # (M x M) - The penalty matrix
+    C1 <- xi_1$functional_list[[k]]$coefs
+    C2 <- xi_2$functional_list[[k]]$coefs
+    
+    R_C2 <- R %*% C2
+    
+    if (is_broadcasting) {
+      term <- as.vector(t(C1) %*% R_C2)
+    } else {
+      term <- colSums(C1 * R_C2)
+    }
+    
+    penalty_val <- penalty_val + (lambda[k] * term)
   }
   
-  return(as.numeric(base_inprod))
+  return(base_val + penalty_val)
 }
 ```
 
@@ -1101,7 +1094,7 @@ The optimization problem leads to a system of linear equations for each function
 where:
 
 -  is the Gram matrix (`gram_list`).
--  is the penalty matrix (`gram_deriv2_list`).
+-  is the penalty matrix (`gram_deriv_list`).
 -  are the basis coefficients of the functional data.
 -  are the coefficients for the -th functional weight.
 
@@ -1156,7 +1149,7 @@ get_xi_hat_linear_pen <- function(W, y, lambda) {
     u[[j]] <- B %*% Theta_t %*% y
 
     # Linear System Matrix: R = Gram + lambda * Penalty
-    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv2_list[[j]]
+    R <- W$gram_list[[j]] + lambda[j] * W$gram_deriv_list[[j]]
     
     # Solve for gamma_j: (Gram + Penalty) * gamma = Gram * Theta * y
     gamma[[j]] <- solve(R, u[[j]])
@@ -1520,248 +1513,7 @@ fit.hybridPLS <- function(W, y, n_iter, lambda, validation_data = NULL) {
 }
 ```
 
-
-```{r}
-# ==============================================================================
-# TEST SCRIPT FOR HYBRID PLS
-# ==============================================================================
-
-# Prerequisites
-library(fda)
-library(Matrix)
-
-# 1. DATA SIMULATION
-# ------------------------------------------------------------------------------
-set.seed(2025)
-n_sample <- 50
-n_scalar <- 3
-
-# --- Create Functional Predictor 1 (B-Spline Basis) ---
-nbasis1 <- nbasis2 <-  10
-basis1 <- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis1)
-# Generate random coefficients (nbasis x n_sample)
-coefs1 <- matrix(rnorm(nbasis1 * n_sample), nrow = nbasis1, ncol = n_sample)
-fd1 <- fd(coef = coefs1, basisobj = basis1)
-
-# --- Create Functional Predictor 2 (Fourier Basis) ---
-
- # Generate random coefficients
-coefs2 <- matrix(rnorm(nbasis2 * n_sample), nrow = nbasis2, ncol = n_sample)
-fd2 <- fd(coef = coefs2, basisobj = basis1)
-
-# --- Create Scalar Predictors ---
-Z <- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
-
-# --- Construct the True Hybrid Predictor Object ---
-# (We need this to generate a 'true' y for testing)
-W_train <- predictor_hybrid(
-  Z = Z, 
-  functional_list = list(fd1, fd2), 
-  eval_point = seq(0, 1, length.out = 100)
-)
-
-# --- Generate Synthetic Response y ---
-# Let's create a random 'true' beta to generate y
-# True beta is just a random instance of a hybrid object
-true_beta_coefs <- rnorm(nbasis1 + nbasis2 + n_scalar)
-true_beta <- predictor_hybrid_from_coef(W_train, true_beta_coefs) # Create a single-sample hybrid beta
-
-# Calculate y = <W, beta> + noise
-y_clean <- inprod.predictor_hybrid(W_train, true_beta)
-y <- y_clean + rnorm(n_sample, sd = 0.5)
-
-message("Data generation complete.")
-message(paste("Samples:", n_sample))
-message(paste("Functional Predictors: 2 (Basis sizes:", nbasis1, ",", nbasis2, ")"))
-message(paste("Scalar Predictors:", n_scalar))
-
-# 2. RUNNING FIT.HYBRIDPLS
-# ------------------------------------------------------------------------------
-n_components <- 3
-# Lambda: Small smoothing penalty for demonstration (one per functional predictor)
-lambda_vec <- c(0.01, 0.01) 
-
-message("\nRunning fit.hybridPLS...")
-start_time <- Sys.time()
-
-fit_result <- fit.hybridPLS(
-  W = W_train, 
-  y = y, 
-  n_iter = n_components, 
-  lambda = lambda_vec
-)
-
-end_time <- Sys.time()
-message(paste("Fitting complete in:", round(end_time - start_time, 4), "seconds."))
-
-# 3. VERIFICATION & INSPECTION
-# ------------------------------------------------------------------------------
-
-# --- A. Check Structure ---
-message("\n--- Structure Verification ---")
-if (length(fit_result$rho) == n_components && length(fit_result$beta) == n_components) {
-  message("PASS: Output list lengths match n_iter.")
-} else {
-  stop("FAIL: Output list lengths do not match n_iter.")
-}
-
-# --- B. Check Beta Dimensions ---
-final_beta <- fit_result$beta[[n_components]]
-if (inherits(final_beta, "predictor_hybrid")) {
-  message("PASS: Final beta is a 'predictor_hybrid' object.")
-}
-
-# --- C. Prediction & Accuracy ---
-# Calculate fitted values using the beta from the last component
-# y_hat = <W_train, beta_final>
-y_hat <- inprod.predictor_hybrid(W_train, final_beta)
-
-# Calculate MSE and Correlation
-mse <- mean((y - y_hat)^2)
-cor_y <- cor(y, y_hat)
-
-message("\n--- Model Performance ---")
-message(paste("Mean Squared Error (MSE):", round(mse, 4)))
-message(paste("Correlation (y vs y_hat):", round(cor_y, 4)))
-
-# --- D. Visual Check (Optional Plotting) ---
-if(interactive()) {
-  plot(y, y_hat, main = "Observed vs Fitted", xlab = "Observed y", ylab = "Fitted y")
-  abline(0, 1, col = "red", lty = 2)
-  text(min(y), max(y_hat), paste("Cor =", round(cor_y, 3)), adj = c(0, 1))
-}
-
-# 4. COMPONENT ANALYSIS (SCORES)
-# ------------------------------------------------------------------------------
-message("\n--- Component Analysis ---")
-# Check orthogonality of scores (approximate, due to deflation method)
-rho_matrix <- do.call(cbind, fit_result$rho)
-cor_scores <- cor(rho_matrix)
-print(round(cor_scores, 2))
-message("(Note: Scores might not be perfectly orthogonal depending on the specific PLS deflation scheme used, but off-diagonals should be relatively low or structured.)")
-
-message("\nTest script completed successfully.")
-```
-
-```{r}
-# ==============================================================================
-# TEST: ORTHOGONALITY PROPERTIES OF HYBRID PLS (Shared Basis)
-# ==============================================================================
-
-# Prerequisites
-library(fda)
-library(Matrix)
-
-# 1. SETUP & DATA SIMULATION
-# ------------------------------------------------------------------------------
-set.seed(2025) # Fixed seed for reproducibility
-
-# Dimensions
-n_sample <- 50
-n_scalar <- 5
-nbasis   <- 5 
-
-# --- Create Shared Basis (B-spline) ---
-# Using the same basis for both functional predictors as requested
-basis_shared <- create.bspline.basis(rangeval = c(0, 1), nbasis = nbasis)
-
-# --- Generate Functional Predictors ---
-# Functional Predictor 1
-coefs1 <- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
-fd1 <- fd(coef = coefs1, basisobj = basis_shared)
-
-# Functional Predictor 2 (Using same basis, different coefficients)
-coefs2 <- matrix(rnorm(nbasis * n_sample), nrow = nbasis, ncol = n_sample)
-fd2 <- fd(coef = coefs2, basisobj = basis_shared)
-
-# --- Generate Scalar Predictors ---
-Z <- matrix(rnorm(n_sample * n_scalar), nrow = n_sample, ncol = n_scalar)
-
-# --- Construct Hybrid Object ---
-W <- predictor_hybrid(
-  Z = Z, 
-  functional_list = list(fd1, fd2), 
-  eval_point = seq(0, 1, length.out = 100)
-)
-
-# --- Generate Response ---
-# Random response is sufficient to test orthogonality mechanics
-y <- rnorm(n_sample) 
-
-# --- Parameters ---
-n_comp <- 6
-lambda <- c(0.5, 2) # Smoothing penalties for the two functional predictors
-
-# 2. RUN PLS ALGORITHM
-# ------------------------------------------------------------------------------
-message(paste("Running fit.hybridPLS with", n_comp, "components..."))
-fit <- fit.hybridPLS(W, y, n_iter = n_comp, lambda = lambda)
-
-# 3. VERIFY PROPOSITION 1: Orthonormality of Directions (xi)
-#    Note: For NIPALS (Predictor Deflation), we expect this to FAIL.
-# ------------------------------------------------------------------------------
-message("\n--- Testing Proposition 1: Orthonormality of Directions (xi) ---")
-
-xi_orth_matrix <- matrix(0, n_comp, n_comp)
-
-for (i in 1:n_comp) {
-  for (j in 1:n_comp) {
-    xi_orth_matrix[i, j] <- inprod_pen.predictor_hybrid(
-      fit$xi[[i]], 
-      fit$xi[[j]], 
-      lambda
-    )
-  }
-}
-
-print(round(xi_orth_matrix, 4))
-
-# Check against Identity matrix
-is_orthonormal_xi <- all.equal(xi_orth_matrix, diag(n_comp), tolerance = 5e-2)
-
-if (isTRUE(is_orthonormal_xi)) {
-  message("✅ PASS: Directions are Orthonormal.")
-} else {
-  message("❌ FAIL: Directions are NOT orthonormal (Expected for NIPALS algorithm).")
-  message("   (The off-diagonal values indicate correlation between weight vectors.)")
-}
-
-
-# 4. VERIFY PROPOSITION 2: Orthogonality of Scores (rho)
-#    Note: For NIPALS, we expect this to PASS.
-# ------------------------------------------------------------------------------
-message("\n--- Testing Proposition 2: Orthogonality of Scores (rho) ---")
-
-# Combine list of score vectors into a matrix (n_sample x n_comp)
-rho_matrix <- do.call(cbind, fit$rho)
-
-# Compute Correlation Matrix
-rho_cor_matrix <- cor(rho_matrix)
-
-# Print rounded correlation matrix
-print(round(rho_cor_matrix, 4))
-
-# Check off-diagonals (exclude diagonal 1s)
-off_diag_vals <- rho_cor_matrix[upper.tri(rho_cor_matrix)]
-off_diag_max <- max(abs(off_diag_vals))
-
-# Tolerance check
-if (off_diag_max < 5e-2) {
-  message("✅ PASS: Scores are Orthogonal (Max correlation ~ 0).")
-  message("   This confirms the algorithm correctly implements Predictor Deflation.")
-} else {
-  message(paste("⚠️  NOTE: Max off-diagonal correlation is", round(off_diag_max, 6)))
-  message("          This is higher than expected. Check deflation logic.")
-}
-
-# Optional: Visual check of score orthogonality
-if (interactive()) {
-  image(1:n_comp, 1:n_comp, abs(rho_cor_matrix), 
-        main = "Abs(Correlation) of PLS Scores",
-        xlab = "Component", ylab = "Component",
-        col = hcl.colors(12, "Blues", rev = TRUE))
-}
-```
+  
 
 # Simulation tools
 

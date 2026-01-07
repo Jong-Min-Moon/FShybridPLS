@@ -2,21 +2,10 @@
 % Please edit documentation in create-FSHybridPLS.Rmd.
 \name{inprod_pen.predictor_hybrid}
 \alias{inprod_pen.predictor_hybrid}
-\title{Penalized Inner product between two predictor_hybrid objects}
+\title{Penalized Inner Product (Algebraic)}
 \usage{
 inprod_pen.predictor_hybrid(xi_1, xi_2 = NULL, lambda)
 }
-\arguments{
-\item{xi_1}{A \code{predictor_hybrid} object.}
-
-\item{xi_2}{Another \code{predictor_hybrid} object. If missing, defaults to \code{xi_1}.}
-
-\item{lambda}{A numeric vector of smoothing parameters (one for each functional predictor).}
-}
-\value{
-A numeric vector of inner products.
-}
 \description{
-Computes the inner product between two \code{predictor_hybrid} objects,
-adding a roughness penalty term based on the second derivative.
+Penalized Inner Product (Algebraic)
 }

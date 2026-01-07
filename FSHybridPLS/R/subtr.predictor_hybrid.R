@@ -12,5 +12,6 @@
 #' @return A new `predictor_hybrid` object representing the result of subtraction.
 #' @export
 subtr.predictor_hybrid <- function(input, other, alpha = 1) {
+  
   add.predictor_hybrid(input, other, alpha = -alpha)
 }

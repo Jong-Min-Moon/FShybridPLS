@@ -2,21 +2,19 @@
 % Please edit documentation in create-FSHybridPLS.Rmd.
 \name{predictor_hybrid}
 \alias{predictor_hybrid}
-\title{Create a predictor_hybrid object (S3 version, automatic basis size and Gram matrix)}
+\title{Create a predictor_hybrid object}
 \usage{
-predictor_hybrid(Z, functional_list, eval_point)
+predictor_hybrid(Z, functional_list, eval_point, penalty_order = 2)
 }
 \arguments{
-\item{Z}{A numeric matrix of dimension \code{n_sample x n_scalar} representing scalar predictors.}
+\item{Z}{Numeric matrix (n_sample x n_scalar).}
 
-\item{functional_list}{A list of functional predictors (e.g., \code{fd} objects from the \code{fda} package).}
+\item{functional_list}{List of 'fd' objects.}
 
-\item{eval_point}{Points at which the functions are evaluated (stored as metadata).}
-}
-\value{
-An object of class \code{predictor_hybrid}, containing scalar and functional data with Gram matrices.
+\item{eval_point}{Evaluation points.}
+
+\item{penalty_order}{Integer. Derivative order for roughness penalty (default 2).}
 }
 \description{
-Constructs a hybrid predictor object that stores both scalar and functional predictors,
-and automatically computes Gram matrices (inner products of basis functions).
+Create a predictor_hybrid object
 }

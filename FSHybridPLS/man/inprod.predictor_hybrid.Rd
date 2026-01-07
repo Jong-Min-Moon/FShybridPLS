@@ -2,20 +2,11 @@
 % Please edit documentation in create-FSHybridPLS.Rmd.
 \name{inprod.predictor_hybrid}
 \alias{inprod.predictor_hybrid}
-\title{Inner product between two predictor_hybrid objects (with broadcasting)}
+\title{Algebraic Inner Product for Hybrid Objects}
 \usage{
 inprod.predictor_hybrid(xi_1, xi_2 = NULL)
 }
-\arguments{
-\item{xi_1}{A \code{predictor_hybrid} object.}
-
-\item{xi_2}{Another \code{predictor_hybrid} object. If missing, defaults to \code{xi_1}.}
-}
-\value{
-A numeric vector of inner products, or a scalar if both inputs contain a single observation.
-}
 \description{
-Computes the inner product between two \code{predictor_hybrid} objects,
-including both functional and scalar components. Supports broadcasting
-when one of the inputs has a single observation.
+Uses pre-computed Gram matrices to calculate inner products
+without numerical integration.
 }

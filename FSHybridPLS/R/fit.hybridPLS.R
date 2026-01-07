@@ -65,6 +65,9 @@ fit.hybridPLS <- function(W, y, n_iter, lambda, validation_data = NULL) {
     rho = rho,
     xi = xi,
     beta = beta,
+    W = W_now,
+    delta = delta,
+    nu = nu,
     validation_rmse = if (!is.null(validation_data)) validation_rmse else NULL
   ))
 }

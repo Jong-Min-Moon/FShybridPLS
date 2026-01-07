@@ -8,290 +8,706 @@ date: "2025-12-29"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r}
 # ==============================================================================
-# SIMULATION: The Annihilation Property "Torture Test"
-# Verifies: < W_resid[l+1], xi[l] >_H == 0 under extreme conditions
+# STUDY: GEOMETRIC PROPERTIES & PREDICTIVE RELEVANCE VALIDATION
+# Verifies:
+#   1. Penalized Orthonormality of Weights (Xi)
+#   2. Orthogonality of Scores (Rho)
+#   3. Decreasing Correlation between Response (Y) and Scores
 # ==============================================================================
 
 library(fda)
-library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(ggplot2)
+library(FSHybridPLS)
 
 # ------------------------------------------------------------------------------
-# 1. HELPER: EXACT INNER PRODUCT (Crucial for Verification)
-# ------------------------------------------------------------------------------
-exact_inprod <- function(W, xi) {
-  # 1. Scalar Part
-  scores <- as.matrix(W$Z) %*% t(as.matrix(xi$Z))
-  
-  # 2. Functional Part (Exact Integral via J matrix)
-  for(k in seq_along(W$functional_list)) {
-    fd_W  <- W$functional_list[[k]]
-    fd_xi <- xi$functional_list[[k]]
-    J <- fda::inprod(fd_W$basis, fd_W$basis)
-    weighted_xi <- J %*% fd_xi$coefs
-    scores <- scores + t(fd_W$coefs) %*% weighted_xi
-  }
-  return(as.vector(scores))
-}
-
-# ------------------------------------------------------------------------------
-# 2. DATA GENERATION: "The Torture Chamber"
+# 2. DATA GENERATION (Latent Factor Model)
 # ------------------------------------------------------------------------------
 generate_torture_data <- function(n_sample = 100) {
-  # A. Shared Latent Factors (Creates collinearity)
-  t1 <- rnorm(n_sample, sd=10)
-  t2 <- rnorm(n_sample, sd=0.1) # Tiny variance component
+  # 1. Latent Factors (Scale Mismatch 100:1)
+  t1 <- rnorm(n_sample, sd = 10)   # High variance
+  t2 <- rnorm(n_sample, sd = 0.1)  # Low variance
   
-  eval_points <- seq(0, 1, length.out=100)
-  basis <- create.bspline.basis(c(0,1), 15) # Higher basis dim
+  # 2. Functional Predictors (Basis M=15)
+  eval_points <- seq(0, 1, length.out = 100)
+  basis <- create.bspline.basis(c(0, 1), 15)
   
-  # B. Functional Predictor 1: High Magnitude, Low Freq
-  X1 <- outer(t1, sin(2*pi*eval_points)) 
-  fd1 <- Data2fd(eval_points, t(X1), basis)
+  # X1: Pure signal from t1 (Low frequency sine)
+  X1_mat <- outer(t1, sin(2 * pi * eval_points))
+  fd1 <- Data2fd(eval_points, t(X1_mat), basis)
   
-  # C. Functional Predictor 2: Low Magnitude, High Freq (Noise trap)
-  X2 <- outer(t2, sin(10*pi*eval_points)) + matrix(rnorm(n_sample*100, sd=0.01), 100, n_sample)
-  fd2 <- Data2fd(eval_points, t(X2), basis)
+  # X2: Signal from t2 (High frequency sine) + Noise
+  # Noise added to the curves as per specification
+  noise_func <- matrix(rnorm(n_sample * 100, sd = 0.01), 100, n_sample)
+  X2_mat <- outer(t2, sin(10 * pi * eval_points)) + noise_func
+  fd2 <- Data2fd(eval_points, t(X2_mat), basis)
   
-  # D. Scalars: 50 Variables, Rank Deficient (Rank ~ 2)
-  Z_base <- matrix(rnorm(n_sample * 2), n_sample, 2)
-  Z_noise <- matrix(rnorm(n_sample * 50, sd=0.001), n_sample, 50)
-  # Mix: All 50 scalars depend on just 2 random vectors
-  Z <- Z_base %*% matrix(rnorm(2*50), 2, 50) + Z_noise
+  # 3. Rank-Deficient Scalar Predictors (Z)
+  # Z = A * [t1, t2]^T + Noise
+  # P = 50 predictors derived from 2 latent factors
+  P <- 50
+  A <- matrix(runif(P * 2, min = -1, max = 1), nrow = P, ncol = 2) # Fixed loading matrix
   
-  # E. Response
-  y <- t1 * 0.5 + t2 * 10 + rnorm(n_sample)
+  # Combine latent factors into (n_sample x 2) matrix
+  T_factors <- cbind(t1, t2)
   
+  # Generate Z (n_sample x 50)
+  Z_clean <- T_factors %*% t(A) 
+  Z_noise <- matrix(rnorm(n_sample * P, sd = 1), n_sample, P) # Standard normal noise
+  Z <- Z_clean + Z_noise
+  
+  # 4. Response Y
+  # Implicit regression coefficients: 0.5 for t1, 10 for t2
+  y_clean <- 0.5 * t1 + 10 * t2
+  y <- y_clean + rnorm(n_sample, sd = 1) # Standard normal noise
+  
+  # 5. Pack into Hybrid Object
   W_init <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
+  
   return(list(W = W_init, y = y))
 }
 
 # ------------------------------------------------------------------------------
-# 3. RUN SIMULATION
+# 3. SIMULATION CONFIGURATION
 # ------------------------------------------------------------------------------
-set.seed(999)
-data <- generate_torture_data(100)
-processed <- split_and_normalize.all(data$W, data$y, train_ratio=0.99)
-
-W_current <- processed$predictor_train
-y_current <- processed$response_train
-
-# TEST PARAMETERS
-# We use different lambdas for different functions to stress the metric
-lambda_vec <- c(10, 0.01) 
-n_iter <- 5
-results_df <- data.frame()
-
-message("Running Torture Test (Exact Matrix Mode)...")
-
-for(l in 1:n_iter) {
-  
-  # 1. Get Direction (Xi) - Penalized
-  xi_current <- get_xi_hat_linear_pen(W_current, y_current, lambda_vec)
-  
-  # 2. Get Scores (Rho) -- EXACT
-  rho_current <- exact_inprod(W_current, xi_current)
-  
-  # 3. Get Loadings (Delta)
-  delta_current <- get_delta(W_current, rho_current) 
-  nu_current    <- get_nu(y_current, rho_current)
-  
-  # 4. MEASURE SIGNAL BEFORE DEFLATION
-  signal_mag <- sqrt(sum(exact_inprod(W_current, xi_current)^2))
-  
-  # 5. Deflate
-  W_next <- residualize_predictor(W_current, rho_current, delta_current)
-  y_next <- residualize_y(y_current, rho_current, nu_current)
-  
-  # 6. MEASURE LEAKAGE AFTER DEFLATION (The Proof Condition)
-  leakage_vec <- exact_inprod(W_next, xi_current)
-  leakage_mag <- sqrt(sum(leakage_vec^2))
-  
-  # 7. Log
-  status <- ifelse(leakage_mag < 1e-9, "PASS", "FAIL")
-  
-  results_df <- rbind(results_df, data.frame(
-    Iteration = l,
-    Signal_Strength = signal_mag,
-    Residual_Leakage = leakage_mag,
-    Status = status
-  ))
-  
-  cat(sprintf("Iter %d: Signal=%.2e | Leakage=%.2e | %s\n", 
-              l, signal_mag, leakage_mag, status))
-  
-  W_current <- W_next
-  y_current <- y_next
-}
-
-# ------------------------------------------------------------------------------
-# 4. VISUALIZATION
-# ------------------------------------------------------------------------------
-cat("\n=======================================================\n")
-cat("      TORTURE TEST RESULTS \n")
-cat("=======================================================\n")
-print(results_df)
-
-df_long <- tidyr::pivot_longer(results_df, cols = c("Signal_Strength", "Residual_Leakage"))
-
-ggplot(df_long, aes(x=factor(Iteration), y=value, fill=name)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  scale_y_continuous(trans="log10") +
-  labs(title="Annihilation Torture Test",
-       subtitle="Even with high collinearity and penalties, leakage must be ~0",
-       y="Magnitude (Log10)",
-       x="Iteration") +
-  theme_minimal() +
-  scale_fill_manual(values=c("firebrick", "steelblue")) +
-  geom_hline(yintercept=1e-10, linetype="dashed")
-```
-```{r}
-# ==============================================================================
-# SIMULATION: Annihilation Audit (Using Modified fit.hybridPLS)
-# ==============================================================================
-
-library(fda)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-
-# ------------------------------------------------------------------------------
-# 1. HELPER: EXACT INNER PRODUCT
-# ------------------------------------------------------------------------------
-# We use this to audit the result. It effectively replicates get_rho logic
-# but ensures we control the inputs for verification.
-audit_score_magnitude <- function(W, xi, J_list) {
-  
-  # 1. Scalar Part
-  # (N x P) %*% (P x 1)
-  scores <- as.matrix(W$Z) %*% t(as.matrix(xi$Z))
-  
-  # 2. Functional Part (Matrix Algebra)
-  for(k in seq_along(W$functional_list)) {
-    Theta_j <- t(W$functional_list[[k]]$coefs)
-    gamma_j <- xi$functional_list[[k]]$coefs
-    B_j     <- J_list[[k]]
-    
-    # Exact Integral: Theta * B * gamma
-    scores <- scores + Theta_j %*% (B_j %*% gamma_j)
-  }
-  
-  # Return L2 Norm (Magnitude)
-  return(sqrt(sum(scores^2)))
-}
-
-# ------------------------------------------------------------------------------
-# 2. DATA GENERATION
-# ------------------------------------------------------------------------------
-generate_torture_data <- function(n_sample = 100) {
-  t1 <- rnorm(n_sample, sd=10)
-  t2 <- rnorm(n_sample, sd=0.1) 
-  
-  eval_points <- seq(0, 1, length.out=100)
-  basis <- create.bspline.basis(c(0,1), 15)
-  
-  X1 <- outer(t1, sin(2*pi*eval_points)) 
-  fd1 <- Data2fd(eval_points, t(X1), basis)
-  
-  X2 <- outer(t2, sin(10*pi*eval_points)) + matrix(rnorm(n_sample*100, sd=0.01), 100, n_sample)
-  fd2 <- Data2fd(eval_points, t(X2), basis)
-  
-  Z <- matrix(rnorm(n_sample * 50), n_sample, 50)
-  y <- t1 * 0.5 + t2 * 10 + rnorm(n_sample)
-  
-  W_init <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
-  return(list(W = W_init, y = y))
-}
-
-# ------------------------------------------------------------------------------
-# 3. RUN SIMULATION
-# ------------------------------------------------------------------------------
-set.seed(999)
-data <- generate_torture_data(100)
-processed <- split_and_normalize.all(data$W, data$y, train_ratio=0.99)
-W_train <- processed$predictor_train
-y_train <- processed$response_train
-
-# PRE-CALCULATE GRAM MATRICES (Required for audit helper)
-basis_obj <- W_train$functional_list[[1]]$basis
-J_matrix  <- fda::inprod(basis_obj, basis_obj)
-gram_list_audit <- list(J_matrix, J_matrix)
-
-# A. RUN THE FIT (One Shot)
-# ------------------------------------------------------------------------------
-n_comp <- 5
-message("Fitting model...")
-
-# NOTE: We attach gram_list to input W in case your internal functions use it
-W_train$gram_list <- gram_list_audit 
-
-fit <- fit.hybridPLS(
-  W = W_train, 
-  y = y_train, 
-  n_iter = n_comp, 
-  lambda = c(10, 0.01)
+n_rep  <- 100  # Increased for robust stats
+n_comp <- 6
+scenarios <- list(
+  "Weak"   = c(0.1, 0.1),
+  "Mixed"  = c(0.1, 3.0),
+  "Strong" = c(3.0, 3.0)
 )
 
-# B. AUDIT THE STORED OBJECTS
+results_ortho <- data.frame() # Stores max deviations per rep
+results_corr  <- data.frame() # Stores Y-Score correlations per component
+
 # ------------------------------------------------------------------------------
-message("Auditing stored W and Xi objects...")
+# 4. MAIN LOOP WITH SMOOTH PROGRESS BAR
+# ------------------------------------------------------------------------------
+set.seed(2025)
+message("Starting Geometric Validation Simulation...")
 
-results_df <- data.frame()
+# Total iterations = Scenarios * Repetitions
+total_iters <- length(scenarios) * n_rep
+counter <- 0
 
-for(l in 1:n_comp) {
+# Initialize Progress Bar
+pb <- txtProgressBar(min = 0, max = total_iters, style = 3)
+
+start_time <- Sys.time()
+
+for(scen_name in names(scenarios)) {
+  lam_vec <- scenarios[[scen_name]]
   
-  # Retrieve Stored Objects directly from output
-  W_before <- fit$W[[l]]      # Data used to find Component l
-  W_after  <- fit$W[[l + 1]]  # Data AFTER Component l was removed (Stored in l+1)
-  xi_current <- fit$xi[[l]]   # The direction found
+  for(i in 1:n_rep) {
+    # A. Generate Data
+    data <- generate_torture_data(100)
+    processed <- split_and_normalize.all(data$W, data$y, train_ratio=0.99)
+    W_train <- processed$predictor_train
+    y_train <- processed$response_train
+    
+    # B. Prep Matrices
+    basis_obj <- W_train$functional_list[[1]]$basis
+    J_mat     <- fda::inprod(basis_obj, basis_obj)
+    Omega_mat <- fda::getbasispenalty(basis_obj, Lfdobj=2)
+    
+    # Manually inject pre-computed matrices if your constructor doesn't do it
+    # (Assuming predictor_hybrid constructor handles this, but explicit here for safety)
+    W_train$gram_list <- list(J_mat, J_mat)
+    W_train$gram_deriv2_list <- list(Omega_mat, Omega_mat) 
+    
+    # C. Fit Model
+    fit <- fit.hybridPLS(W_train, y_train, n_iter=n_comp, lambda=lam_vec)
+    
+    # --- CHECK 1: WEIGHT ORTHONORMALITY ---
+    max_dev_xi <- 0
+    # We only check off-diagonals and diagonals. 
+    # Diagonal should be 1, Off-diagonal should be 0.
+    for(r in 1:n_comp) {
+      for(c in 1:n_comp) {
+        val <- inprod_pen.predictor_hybrid(fit$xi[[r]], fit$xi[[c]],  lam_vec)
+        
+        expected <- ifelse(r == c, 1.0, 0.0)
+        diff <- abs(val - expected)
+        if(diff > max_dev_xi) max_dev_xi <- diff
+      }
+    }
+    
+    # --- CHECK 2: SCORE ORTHOGONALITY ---
+    Rho_mat <- do.call(cbind, fit$rho)
+    # Compute correlation matrix of scores
+    # Handle edge case where a score vector is constant (sd=0) -> returns NA
+    rho_cor_mat <- cor(Rho_mat)
+    rho_cor_mat[is.na(rho_cor_mat)] <- 0 
+    
+    # Get max off-diagonal absolute value
+    diag(rho_cor_mat) <- 0
+    max_dev_rho <- max(abs(rho_cor_mat))
+    
+    # Store Ortho Results
+    results_ortho <- rbind(results_ortho, data.frame(
+      Scenario = scen_name,
+      Rep = i,
+      Max_Error_Weight = max_dev_xi,
+      Max_Error_Score = max_dev_rho
+    ))
+    
+    # --- CHECK 3: Y-SCORE CORRELATION ---
+    y_corrs <- abs(cor(y_train, Rho_mat))
+    for(k in 1:n_comp) {
+      results_corr <- rbind(results_corr, data.frame(
+        Scenario = scen_name,
+        Rep = i,
+        Component = k,
+        Abs_Correlation = y_corrs[1, k]
+      ))
+    }
+    
+    # Update Progress Bar
+    counter <- counter + 1
+    setTxtProgressBar(pb, counter)
+  }
+}
+
+close(pb)
+duration <- round(as.numeric(difftime(Sys.time(), start_time, units="secs")), 2)
+message(paste("\nSimulation Complete in", duration, "seconds."))
+
+# ------------------------------------------------------------------------------
+# 5. SUMMARY TABLES & LATEX
+# ------------------------------------------------------------------------------
+
+# Summary for Orthogonality
+summary_ortho <- results_ortho %>%
+  group_by(Scenario) %>%
+  summarise(
+    Mean_Weight_Error = mean(Max_Error_Weight),
+    SE_Weight_Error = sd(Max_Error_Weight)/sqrt(n()),
+    Mean_Score_Error = mean(Max_Error_Score),
+    SE_Score_Error = sd(Max_Error_Score)/sqrt(n())
+  )
+
+cat("\n% --- LaTeX Table: Geometric Validation ---\n")
+cat("\\begin{table}[ht]\n\\centering\n")
+cat("\\caption{Validation of Geometric Properties. Values indicate the mean maximum deviation from theoretical orthogonality. 'Weight Error' measures deviation from orthonormality in $\\langle \\cdot, \\cdot \\rangle_{\\mathbb{H}, \\Lambda}$. 'Score Error' measures deviation from orthogonality in Euclidean space.}\n")
+cat("\\label{tab:geom_validation}\n")
+cat("\\begin{tabular}{l c c c c}\n")
+cat("\\hline\n")
+cat(" & \\multicolumn{2}{c}{\\textbf{Weight Orthonormality}} & \\multicolumn{2}{c}{\\textbf{Score Orthogonality}} \\\\\n")
+cat("Scenario & Mean Max Error & SE & Mean Max Error & SE \\\\\n")
+cat("\\hline\n")
+
+for(r in 1:nrow(summary_ortho)) {
+  s <- summary_ortho$Scenario[r]
+  w_mu <- formatC(summary_ortho$Mean_Weight_Error[r], format="e", digits=2)
+  w_se <- formatC(summary_ortho$SE_Weight_Error[r], format="e", digits=2)
+  s_mu <- formatC(summary_ortho$Mean_Score_Error[r], format="e", digits=2)
+  s_se <- formatC(summary_ortho$SE_Score_Error[r], format="e", digits=2)
+  cat(sprintf("%-10s & %s & %s & %s & %s \\\\\n", s, w_mu, w_se, s_mu, s_se))
+}
+cat("\\hline\n\\end{tabular}\n\\end{table}\n")
+
+# ------------------------------------------------------------------------------
+# 6. VISUALIZATION (Y-Score Trend)
+# ------------------------------------------------------------------------------
+summary_corr <- results_corr %>%
+  group_by(Scenario, Component) %>%
+  summarise(
+    Mean_Corr = mean(Abs_Correlation, na.rm=TRUE),
+    SE_Corr = sd(Abs_Correlation, na.rm=TRUE)/sqrt(n())
+  )
+
+ggplot(summary_corr, aes(x=Component, y=Mean_Corr, color=Scenario, group=Scenario)) +
+  geom_line(linewidth=1) +
+  geom_point(size=2) +
+  geom_errorbar(aes(ymin=Mean_Corr-SE_Corr, ymax=Mean_Corr+SE_Corr), width=0.2) +
+  scale_x_continuous(breaks=1:n_comp) +
+  labs(title="Predictive Relevance",
+       subtitle="Correlation between Response Y and PLS Scores",
+       y="Absolute Correlation |Cor(y, rho)|",
+       x="PLS Component Index") +
+  theme_bw() +
+  theme(legend.position="bottom")
+```
+```{r}
+# ==============================================================================
+# MANUSCRIPT TABLE: PREDICTIVE RELEVANCE (Y-SCORE CORRELATION)
+# ==============================================================================
+
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+
+# 1. SUMMARIZE DATA
+# ------------------------------------------------------------------------------
+# We calculate the Mean and Standard Error for each Component/Scenario pair
+summary_corr <- results_corr %>%
+  group_by(Scenario, Component) %>%
+  summarise(
+    Mean_Corr = mean(Abs_Correlation),
+    SE_Corr   = sd(Abs_Correlation) / sqrt(n()),
+    .groups   = 'drop'
+  ) %>%
+  # Create a combined string "Mean (SE)"
+  mutate(
+    Value = sprintf("%.3f (%.3f)", Mean_Corr, SE_Corr)
+  )
+
+# 2. RESHAPE FOR TABLE
+# ------------------------------------------------------------------------------
+# Rows: Component Index
+# Columns: Scenarios
+table_wide <- summary_corr %>%
+  select(Component, Scenario, Value) %>%
+  pivot_wider(names_from = Scenario, values_from = Value) %>%
+  # Reorder columns logically
+  select(Component, Weak, Mixed, Strong)
+```
+
+
+
+# regression coefficient
+
+ 
+ 
+```{r coeffcient_3}
+# ==============================================================================
+# STUDY: COEFFICIENT RECOVERY (Full-Rank, Aggregate Viz)
+# ==============================================================================
+# ==============================================================================
+# STUDY: ROBUST COEFFICIENT RECOVERY (Complex Shapes + CV Grid Search)
+# ==============================================================================
+```{r}
+
+library(fda)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# ------------------------------------------------------------------------------
+# 1. SETUP: COMPLEX GROUND TRUTH & DATA GENERATION
+# ------------------------------------------------------------------------------
+generate_complex_data <- function(n_sample = 200) {
+  # Basis Setup
+  eval_points <- seq(0, 1, length.out=100)
+  # Use enough basis functions to capture the complexity
+  basis <- create.bspline.basis(c(0,1), 20) 
+  nbasis <- basis$nbasis
   
-  # Check 1: Signal Strength (Should be Large)
-  # < W[l], xi[l] >
-  signal_mag <- get_rho(W_before, xi_current)
+  # A. TRUE COEFFICIENTS (More Complicated)
+  # Beta 1: Growing Sine Wave (Modulated Amplitude)
+  # f(t) = 2 * t * sin(3 * pi * t)
+  beta1_vec <- 2 * eval_points * sin(3 * pi * eval_points)
+  beta1_fd  <- Data2fd(eval_points, beta1_vec, basis)
   
-  # Check 2: Annihilation / Leakage (Should be ZERO)
-  # < W[l+1], xi[l] >
-  leakage_mag <- get_rho(W_after, xi_current)
+  # Beta 2: Double Gaussian Bump (Multimodal)
+  # f(t) = exp(-50(t-0.3)^2) + 0.5 * exp(-50(t-0.7)^2)
+  beta2_vec <- exp(-50 * (eval_points - 0.3)^2) + 0.5 * exp(-50 * (eval_points - 0.7)^2)
+  beta2_fd  <- Data2fd(eval_points, beta2_vec, basis)
   
-  # Log
-  status <- ifelse(leakage_mag < 1e-2, "PASS", "FAIL")
+  beta_z_true <- c(1.5, -1.0)
   
-  results_df <- rbind(results_df, data.frame(
-    Iteration = l,
-    Signal_Strength = signal_mag,
-    Residual_Leakage = leakage_mag,
-    Status = status
+  # B. PREDICTORS (Rich but Correlated)
+  # Generate random coefficients to ensure full rank (identifiability)
+  coefs1 <- matrix(rnorm(n_sample * nbasis), nbasis, n_sample)
+  coefs2 <- matrix(rnorm(n_sample * nbasis), nbasis, n_sample)
+  
+  # Introduce Correlation: X2 depends partially on X1
+  coefs2 <- 0.6 * coefs2 + 0.4 * coefs1
+  
+  fd1 <- fd(coefs1, basis)
+  fd2 <- fd(coefs2, basis)
+  
+  # Z correlated with X
+  z_latent <- t(coefs1[1:2, ]) # Z depends on first few modes of X1
+  Z <- z_latent + matrix(rnorm(n_sample*2, sd=0.5), n_sample, 2)
+  
+  # C. RESPONSE Y
+  y_func1 <- inprod(fd1, beta1_fd)
+  y_func2 <- inprod(fd2, beta2_fd)
+  y_scalar <- Z %*% beta_z_true
+  
+  # SNR: Signal to Noise Ratio
+  y_clean <- as.vector(y_func1 + y_func2 + y_scalar)
+  sigma   <- sd(y_clean) * 0.1 # 10% Noise
+  y <- y_clean + rnorm(n_sample, sd=sigma)
+  
+  # Pack Object
+  W <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
+  W$gram_list <- list(inprod(basis, basis), inprod(basis, basis))
+  
+  return(list(
+    W = W, y = y,
+    truth = list(beta_fd = list(beta1_fd, beta2_fd), beta_z = beta_z_true,
+                 vec1 = beta1_vec, vec2 = beta2_vec)
   ))
-  
-  cat(sprintf("Comp %d: Signal=%.2e | Leakage=%.2e | %s\n", 
-              l, signal_mag, leakage_mag, status))
 }
 
 # ------------------------------------------------------------------------------
-# 4. VISUALIZATION
+# 2. HELPER: CV GRID SEARCH
 # ------------------------------------------------------------------------------
-cat("\n=======================================================\n")
-cat("      FIT OBJECT INTEGRITY AUDIT \n")
-cat("=======================================================\n")
-print(results_df)
+select_best_lambda <- function(data, grid, n_comp) {
+  n <- length(data$y)
+  # 70/30 Train/Validation Split
+  train_idx <- sample(1:n, size=floor(0.7*n))
+  
+  # Helper to subset the hybrid object
+  subset_W <- function(W, idx) {
+    new_Z <- W$Z[idx, , drop=FALSE]
+    new_F <- lapply(W$functional_list, function(f) fd(f$coefs[, idx, drop=FALSE], f$basis))
+    res <- predictor_hybrid(new_Z, new_F, W$eval_points)
+    res$gram_list <- W$gram_list
+    return(res)
+  }
+  
+  W_train <- subset_W(data$W, train_idx)
+  y_train <- data$y[train_idx]
+  W_val   <- subset_W(data$W, -train_idx)
+  y_val   <- data$y[-train_idx]
+  val_data <- list(W_test = W_val, y_test = y_val)
+  
+  best_rmse <- Inf
+  best_lam  <- grid[1]
+  
+  for(lam in grid) {
+    # Fit
+    fit <- fit.hybridPLS(W_train, y_train, n_iter = n_comp, 
+                         lambda = c(lam, lam), validation_data = val_data)
+    
+    # Check RMSE at the target component
+    curr_rmse <- fit$validation_rmse[n_comp]
+    
+    if(curr_rmse < best_rmse) {
+      best_rmse <- curr_rmse
+      best_lam  <- lam
+    }
+  }
+  return(best_lam)
+}
 
-df_long <- tidyr::pivot_longer(results_df, cols = c("Signal_Strength", "Residual_Leakage"))
+# ------------------------------------------------------------------------------
+# 3. MAIN SIMULATION LOOP
+# ------------------------------------------------------------------------------
+n_rep <- 100
+n_comp_fixed <- 12 # Sufficient to capture shape
+lambda_grid  <- c(5, 3, 1, 1e-1, 1e-2, 1e-3)
 
-ggplot(df_long, aes(x=factor(Iteration), y=value, fill=name)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  scale_y_continuous(trans="log10") +
-  labs(title="Annihilation Audit (Using fit.hybridPLS Output)",
-       subtitle="Verifying orthogonality of stored W objects against stored Xi directions",
-       y="Projection Magnitude (Log10)",
-       x="Component") +
-  theme_minimal() +
-  scale_fill_manual(values=c("firebrick", "steelblue")) +
-  geom_hline(yintercept=1e-10, linetype="dashed")
+# Storage for Aggregation
+eval_points <- seq(0, 1, length.out=100)
+store_beta1 <- matrix(0, 100, n_rep)
+store_beta2 <- matrix(0, 100, n_rep)
+errors_log  <- data.frame()
+
+set.seed(2025)
+message("Starting Simulation with Grid Search...")
+
+for(i in 1:n_rep) {
+  # Generate
+  sim <- generate_complex_data(1000)
+  
+  # Tune
+  opt_lam <- select_best_lambda(sim, lambda_grid, n_comp_fixed)
+  
+  # Refit on Full Data
+  fit <- fit.hybridPLS(sim$W, sim$y, n_iter = n_comp_fixed, lambda = c(opt_lam, opt_lam))
+  beta_est <- fit$beta[[n_comp_fixed]]
+  
+  # Store Curves
+  curve1 <- eval.fd(eval_points, beta_est$functional_list[[1]])
+  curve2 <- eval.fd(eval_points, beta_est$functional_list[[2]])
+  store_beta1[, i] <- as.vector(curve1)
+  store_beta2[, i] <- as.vector(curve2)
+  
+  # Compute Relative Errors
+  norm_t1 <- sqrt(inprod(sim$truth$beta_fd[[1]], sim$truth$beta_fd[[1]]))
+  norm_t2 <- sqrt(inprod(sim$truth$beta_fd[[2]], sim$truth$beta_fd[[2]]))
+  norm_ts <- sqrt(sum(sim$truth$beta_z^2))
+  
+  d1 <- minus.fd(sim$truth$beta_fd[[1]], beta_est$functional_list[[1]])
+  d2 <- minus.fd(sim$truth$beta_fd[[2]], beta_est$functional_list[[2]])
+  ds <- sim$truth$beta_z - as.vector(beta_est$Z)
+  
+  errors_log <- rbind(errors_log, data.frame(
+    Rep = i,
+    Best_Lambda = opt_lam,
+    Rel_Err_F1 = sqrt(inprod(d1, d1)) / norm_t1,
+    Rel_Err_F2 = sqrt(inprod(d2, d2)) / norm_t2,
+    Rel_Err_Sc = sqrt(sum(ds^2)) / norm_ts
+  ))
+}
+
 ```
 
+
+```{r}
+
+# ------------------------------------------------------------------------------
+# 4. RESULTS: TABLE
+# ------------------------------------------------------------------------------
+# Summary Table
+final_table <- errors_log %>%
+  summarise(
+    `Mean Lambda` = mean(Best_Lambda),
+    `Func 1 Error (Mean)` = mean(Rel_Err_F1),
+    `Func 1 Error (SE)`   = sd(Rel_Err_F1)/sqrt(n()),
+    `Func 2 Error (Mean)` = mean(Rel_Err_F2),
+    `Func 2 Error (SE)`   = sd(Rel_Err_F2)/sqrt(n()),
+    `Scalar Error (Mean)` = mean(Rel_Err_Sc),
+    `Scalar Error (SE)`   = sd(Rel_Err_Sc)/sqrt(n())
+  )
+
+print(t(final_table)) # Transpose for readability
+
+# ------------------------------------------------------------------------------
+# 5. RESULTS: PLOT
+# ------------------------------------------------------------------------------
+process_curves <- function(mat, truth, label) {
+  df <- data.frame(
+    Time = eval_points,
+    Mean = rowMeans(mat),
+    SD   = apply(mat, 1, sd),
+    Truth = truth,
+    Type = label
+  )
+  df$Lower <- df$Mean - 2 * df$SD
+  df$Upper <- df$Mean + 2 * df$SD
+  return(df)
+}
+
+df1 <- process_curves(store_beta1, sim$truth$vec1, "Beta 1: t * Sin(3pi*t)")
+df2 <- process_curves(store_beta2, sim$truth$vec2, "Beta 2: Double Bump")
+plot_data <- rbind(df1, df2)
+
+p <- ggplot(plot_data, aes(x=Time)) +
+  # Confidence Band
+  geom_ribbon(aes(ymin=Lower, ymax=Upper), fill="steelblue", alpha=0.3) +
+  # Truth
+  geom_line(aes(y=Truth, color="True Coefficient"), linewidth=1.2) +
+  # Mean Estimate
+  geom_line(aes(y=Mean, color="Mean Estimate"), linetype="dashed", linewidth=1.2) +
+  
+  facet_wrap(~Type, scales="free_y") +
+  scale_color_manual(values=c("True Coefficient"="black", "Mean Estimate"="firebrick")) +
+  labs(title = "Recovery of Complex Functional Coefficients",
+       subtitle = sprintf("Mean Estimate +/- 2 SD over %d Replications (Lambda chosen via CV)", n_rep),
+       y = "Coefficient Value", x = "t") +
+  theme_bw() +
+  theme(legend.position="bottom", 
+        strip.text = element_text(face="bold", size=11))
+
+print(p)
+```
+
+
+```{r}
+ 
+# Define paper-ready colors
+color_truth <- "black"
+color_est   <- "#D55E00" # Vermilion (Colorblind-friendly)
+fill_band   <- "#56B4E9" # Sky Blue (Colorblind-friendly)
+
+p <- ggplot(plot_data, aes(x=Time)) +
+  # 1. Confidence Band (Empirical 95% Interval)
+  geom_ribbon(aes(ymin=Lower, ymax=Upper, fill="Empirical 95% CI"), alpha=0.25) +
+  
+  # 2. Truth Line
+  geom_line(aes(y=Truth, color="True Coefficient"), linewidth=1) +
+  
+  # 3. Mean Estimate Line
+  geom_line(aes(y=Mean, color="Mean Estimate"), linetype="longdash", linewidth=1) +
+  
+  # 4. Faceting with clean labels
+  facet_wrap(~Type, scales="free_y", 
+             labeller = labeller(Type = c(
+               "Beta1" = expression(bold(beta[1](t)) ~ "(Sine Wave)"),
+               "Beta2" = expression(bold(beta[2](t)) ~ "(Gaussian Bumps)")
+             ))) +
+  
+  # 5. Manual Scales for Legend Control
+  scale_color_manual(name = NULL, 
+                     values = c("True Coefficient"=color_truth, "Mean Estimate"=color_est)) +
+  scale_fill_manual(name = NULL, 
+                    values = c("Empirical 95% CI"=fill_band)) +
+  
+  # 6. Labels using expressions
+  labs(
+    x = "Domain (t)",
+    y = expression(beta(t))
+  ) +
+  
+  # 7. Professional Theme
+  theme_classic(base_size = 14) +
+  theme(
+    # Fonts and Text
+    text = element_text(family = "serif"), # Matches LaTeX/Word documents
+    strip.background = element_blank(),
+    strip.text = element_text(size = 14, face = "bold", hjust = 0),
+    
+    # Legend Placement
+    legend.position = "bottom",
+    legend.box = "horizontal",
+    legend.margin = margin(t = -5),
+    legend.key.width = unit(1.5, "cm"), # Longer lines in legend
+    
+    # Axis cleanliness
+    axis.line = element_line(linewidth = 0.5, color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.major.y = element_line(color = "grey90", linewidth = 0.2), # Subtle grid
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank()
+  ) + 
+  
+  # Ensure Y-axis zero line is clear if relevant, or just let scales handle it
+  geom_hline(yintercept = 0, linetype = "solid", color = "grey80", size = 0.3)
+
+# Print
+print(p)
+
+# Suggestion for saving (Standard 2-column width for journals is approx 7 inches)
+ ggsave("coeff_recovery_plot.pdf", p, width = 8, height = 4, device = cairo_pdf)
+```
+
+
+
+```{r}
+# ==============================================================================
+# SEQUENTIAL SIMULATION: 9 REGULARIZATION COMBINATIONS
+# ==============================================================================
+
+library(fda)
+library(dplyr)
+library(tidyr)
+# library(FSHybridPLS) # Ensure your package/functions are loaded
+
+# ------------------------------------------------------------------------------
+# 1. DATA GENERATION
+# ------------------------------------------------------------------------------
+generate_complex_data <- function(n_sample = 200) {
+  eval_points <- seq(0, 1, length.out=100)
+  basis <- create.bspline.basis(c(0,1), 20) 
+  nbasis <- basis$nbasis
+  
+  # Truth
+  beta1_vec <- 2 * eval_points * sin(3 * pi * eval_points)
+  beta1_fd  <- Data2fd(eval_points, beta1_vec, basis)
+  
+  # "Easier" Single Bump
+  beta2_vec <- 2 * exp(-10 * (eval_points - 0.5)^2) 
+  beta2_fd  <- Data2fd(eval_points, beta2_vec, basis)
+  
+  beta_z_true <- c(1.5, -1.0)
+  
+  # Predictors
+  coefs1 <- matrix(rnorm(n_sample * nbasis), nbasis, n_sample)
+  coefs2 <- matrix(rnorm(n_sample * nbasis), nbasis, n_sample)
+  coefs2 <- 0.6 * coefs2 + 0.4 * coefs1
+  
+  fd1 <- fd(coefs1, basis)
+  fd2 <- fd(coefs2, basis)
+  
+  z_latent <- t(coefs1[1:2, ]) 
+  Z <- z_latent + matrix(rnorm(n_sample*2, sd=0.5), n_sample, 2)
+  
+  # Response
+  y_func1 <- inprod(fd1, beta1_fd)
+  y_func2 <- inprod(fd2, beta2_fd)
+  y_scalar <- Z %*% beta_z_true
+  y_clean <- as.vector(y_func1 + y_func2 + y_scalar)
+  y <- y_clean + rnorm(n_sample, sd=sd(y_clean)*0.05)
+  
+  W <- predictor_hybrid(Z, list(fd1, fd2), eval_points)
+  
+  return(list(
+    W = W, y = y,
+    truth = list(beta_fd = list(beta1_fd, beta2_fd), beta_z = beta_z_true)
+  ))
+}
+
+# ------------------------------------------------------------------------------
+# 2. MAIN SIMULATION LOOP
+# ------------------------------------------------------------------------------
+n_rep <- 30
+n_comp_fixed <- 10
+
+# Define the 3 Levels of Regularization
+# Low (0.001), Medium (0.1), High (5.0)
+lam_levels <- c(0, 0.001, 0.1, 1) 
+grid_combos <- expand.grid(L1 = lam_levels, L2 = lam_levels)
+
+# Setup Progress Bar
+total_iterations <- n_rep * nrow(grid_combos)
+pb <- txtProgressBar(min = 0, max = total_iterations, style = 3)
+
+results_log <- data.frame()
+counter <- 0
+
+message(paste("Starting Sequential Simulation:", total_iterations, "total fits..."))
+start_time <- Sys.time()
+
+for(i in 1:n_rep) {
+  
+  # 1. Generate Data (Once per Repetition)
+  sim <- generate_complex_data(200)
+  
+  # Pre-calculate Norms
+  norm_t1 <- sqrt(inprod(sim$truth$beta_fd[[1]], sim$truth$beta_fd[[1]]))
+  norm_t2 <- sqrt(inprod(sim$truth$beta_fd[[2]], sim$truth$beta_fd[[2]]))
+  norm_ts <- sqrt(sum(sim$truth$beta_z^2))
+  
+  # 2. Loop through the 9 Combinations
+  for(k in 1:nrow(grid_combos)) {
+    l1 <- grid_combos$L1[k]
+    l2 <- grid_combos$L2[k]
+    
+    # Fit Model
+    fit <- fit.hybridPLS(sim$W, sim$y, n_iter = n_comp_fixed, lambda = c(l1, l2))
+    beta_est <- fit$beta[[n_comp_fixed]]
+    
+    # Calculate Errors
+    d1 <- minus.fd(sim$truth$beta_fd[[1]], beta_est$functional_list[[1]])
+    d2 <- minus.fd(sim$truth$beta_fd[[2]], beta_est$functional_list[[2]])
+    ds <- sim$truth$beta_z - as.vector(beta_est$Z)
+    
+    # Store
+    results_log <- rbind(results_log, data.frame(
+      Rep = i,
+      Lam1 = l1,
+      Lam2 = l2,
+      Err_Beta1 = sqrt(inprod(d1, d1)) / norm_t1,
+      Err_Beta2 = sqrt(inprod(d2, d2)) / norm_t2,
+      Err_Scalar = sqrt(sum(ds^2)) / norm_ts
+    ))
+    
+    # Update Progress
+    counter <- counter + 1
+    setTxtProgressBar(pb, counter)
+  }
+}
+
+close(pb)
+duration <- round(as.numeric(difftime(Sys.time(), start_time, units="secs")), 2)
+message(paste("\nSimulation Complete in", duration, "seconds."))
+
+# ------------------------------------------------------------------------------
+# 3. SUMMARY
+# ------------------------------------------------------------------------------
+final_summary <- results_log %>%
+  group_by(Lam1, Lam2) %>%
+  summarise(
+    Mean_Err_Beta1 = mean(Err_Beta1),
+    Mean_Err_Beta2 = mean(Err_Beta2),
+    Mean_Err_Scalar = mean(Err_Scalar),
+    .groups = 'drop'
+  ) %>%
+  arrange(Lam1, Lam2)
+
+print(final_summary)
+```
 
 You can also embed plots, for example:
 
