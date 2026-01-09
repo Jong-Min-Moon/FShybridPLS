@@ -3,7 +3,7 @@
 **FSHybridPLS** is an R package designed to perform Partial Least Squares (PLS) regression on "hybrid" predictors. A hybrid predictor is a single mathematical object containing both **functional data** (curves, time-series represented as `fd` objects) and **scalar covariates** (standard numeric matrices).
 
 This package defines a joint Hilbert space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$ and implements the arithmetic and algorithms necessary to perform penalized PLS directly on this space.
-This package provides an R implementation of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” which will be released on arXiv soon. The work was co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
+This package provides an R implementation of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” , co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
 
 ## Installation
 
