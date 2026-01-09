@@ -74,7 +74,7 @@ devtools::install("your_downloaded_directory/FSHybridPLS")
 - [Kidney Data Preprocessing Pipeline](#kidney-data-preprocessing-pipeline)
  
 
-# Helper Functions {#helper}
+# Helper Functions
 
 ### compute_gram_matrix
 
