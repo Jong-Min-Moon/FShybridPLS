@@ -9,10 +9,10 @@
 #' @param test A `predictor_hybrid` object representing the testing set.
 #'
 #' @return A list containing:
-#'   \item{predictor_train}{The normalized training object.}
-#'   \item{predictor_test}{The normalized testing object.}
-#'   \item{mean_train}{List of mean functions used for centering.}
-#'   \item{deno_train}{Vector of scaling factors used.}
+#'   /item{predictor_train}{The normalized training object.}
+#'   /item{predictor_test}{The normalized testing object.}
+#'   /item{mean_train}{List of mean functions used for centering.}
+#'   /item{deno_train}{Vector of scaling factors used.}
 #' @export
 curve_normalize_train_test <- function(train, test) {
   stopifnot(

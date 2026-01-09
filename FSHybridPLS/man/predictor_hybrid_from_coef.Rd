@@ -7,15 +7,15 @@
 predictor_hybrid_from_coef(format, coef)
 }
 \arguments{
-\item{format}{A \code{predictor_hybrid} object that provides the structure and basis information.}
+\item{format}{A /code{predictor_hybrid} object that provides the structure and basis information.}
 
 \item{coef}{A numeric vector containing coefficients for both functional and scalar predictors.}
 }
 \value{
-A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
+A /code{predictor_hybrid} object with updated /code{functional_list}, /code{Z}, and /code{n_sample = 1}.
 }
 \description{
-Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
+Reconstructs a /code{predictor_hybrid} object representing one observation, using a numeric
 coefficient vector. This alternative constructor maps the coefficients back into their functional
-and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
+and scalar predictor representations based on the structure of a template /code{predictor_hybrid} object.
 }

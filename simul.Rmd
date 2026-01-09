@@ -100,9 +100,7 @@ pb <- txtProgressBar(min = 0, max = total_iters, style = 3)
 
 start_time <- Sys.time()
 
-for(scen_name in names(scenarios)) {
-  lam_vec <- scenarios[[scen_name]]
-  
+    
   for(i in 1:n_rep) {
     # A. Generate Data
     data <- generate_torture_data(100)
@@ -171,7 +169,7 @@ for(scen_name in names(scenarios)) {
     counter <- counter + 1
     setTxtProgressBar(pb, counter)
   }
-}
+ 
 
 close(pb)
 duration <- round(as.numeric(difftime(Sys.time(), start_time, units="secs")), 2)
@@ -707,6 +705,674 @@ final_summary <- results_log %>%
   arrange(Lam1, Lam2)
 
 print(final_summary)
+```
+
+
+```{r}
+# ==============================================================================
+# kidney_analysis_comparison.R
+# Compare HybridPLS vs HybridPCR on Real Kidney Data
+# 100 Replications | 70/30 Split | Full Normalization
+# ==============================================================================
+
+library(fda)
+library(dplyr)
+library(tidyr)
+library(FSHybridPLS) # Assumes your package functions are loaded
+# If package not installed, ensure 'split_and_normalize.all', 'fit_hybrid_pcr_iterative', etc. are in env
+
+# ------------------------------------------------------------------------------
+# 1. LOAD DATA
+# ------------------------------------------------------------------------------
+# Read CSV
+raw_df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/data/renogram_data.csv")
+
+# Preprocess (Medical Norm + Smoothing) using your specific function
+# This returns list(W = predictor_hybrid, y = transformed_response)
+kidney_data <- load_and_preprocess_kidney_data(raw_df, n_basis = 20)
+
+W_full <- kidney_data$W
+y_full <- kidney_data$y
+
+# ------------------------------------------------------------------------------
+# 2. SETUP SIMULATION
+# ------------------------------------------------------------------------------
+n_replications <- 5
+n_comp_max     <- 3
+lambda_val     <- 0
+# Lambda vector for 2 functional predictors
+lambda_vec     <- c(lambda_val, lambda_val) 
+
+# Storage for results
+results_list <- list()
+
+message(sprintf("=== Starting Analysis: %d Replications ===", n_replications))
+pb <- txtProgressBar(min = 0, max = n_replications, style = 3)
+
+# ------------------------------------------------------------------------------
+# 3. MAIN LOOP
+# ------------------------------------------------------------------------------
+for (rep_id in 1:n_replications) {
+  set.seed(rep_id * 123) # Reproducibility
+  
+  # A. Split and Normalize
+  # This function (from your package code) handles:
+  # 1. Splitting indices 70/30
+  # 2. Normalizing Train (Scalar/Func/Between/Response)
+  # 3. Normalizing Test using Train statistics (No Leakage)
+  processed <- split_and_normalize.all(W_full, y_full, train_ratio = 0.6)
+  
+  W_train <- processed$predictor_train
+  W_test  <- processed$predictor_test
+  y_train <- processed$response_train
+  y_test  <- processed$response_test
+  
+  # Note: y_test is standardized (mean~0, sd~1) by split_and_normalize.all
+  # We calculate RMSE on this standardized scale, then normalize by range if requested.
+  # However, split_and_normalize.all usually returns y standardized.
+  # The user asked for "test RMSE normalized by the response range".
+  # We will calculate RMSE on the normalized scale, then divide by the range of y_test.
+  
+  y_range <- max(y_test) - min(y_test)
+  if(y_range == 0) y_range <- 1
+  
+  # B. Hybrid PLS
+  # fit.hybridPLS returns the full trajectory (rho, xi, etc) but we need to extract predictions manually
+  # or rely on the object structure.
+  # Alternatively, use a simpler loop if fit.hybridPLS doesn't return RMSE vector directly
+  # Your 'fit.hybridPLS' provided earlier returns 'validation_rmse' IF validation_data is passed.
+  
+  pls_fit <- fit.hybridPLS(
+    W_train, y_train, 
+    n_iter = n_comp_max, 
+    lambda = lambda_vec,
+    validation_data = list(W_test = W_test, y_test = y_test)
+  )
+  rmse_pls <- pls_fit$validation_rmse
+  
+  # C. Hybrid PCR
+  # Use the iterative function defined previously
+  rmse_pcr <- fit_hybrid_pcr_iterative(W_train, y_train, W_test, y_test, n_comp_max)$validation_rmse
+  
+  # D. Store Results (Normalized by Range)
+  # NRMSE = RMSE / Range(y_test)
+  
+  df_pls <- data.frame(
+    Rep = rep_id,
+    Method = "HybridPLS",
+    Component = 1:n_comp_max,
+    NRMSE = rmse_pls / y_range
+  )
+  
+  df_pcr <- data.frame(
+    Rep = rep_id,
+    Method = "HybridPCR",
+    Component = 1:n_comp_max,
+    NRMSE = rmse_pcr / y_range
+  )
+  
+  results_list[[rep_id]] <- rbind(df_pls, df_pcr)
+  setTxtProgressBar(pb, rep_id)
+}
+close(pb)
+
+# ------------------------------------------------------------------------------
+# 4. AGGREGATE AND REPORT
+# ------------------------------------------------------------------------------
+final_results <- do.call(rbind, results_list)
+
+summary_stats <- final_results %>%
+  group_by(Method, Component) %>%
+  summarise(
+    Mean_NRMSE = mean(NRMSE),
+    SE_NRMSE   = sd(NRMSE) / sqrt(n()), # Standard Error
+    .groups    = "drop"
+  ) %>%
+  arrange(Method, Component)
+
+print(as.data.frame(summary_stats))
+
+# Optional: Plot
+library(ggplot2)
+ggplot(summary_stats, aes(x = Component, y = Mean_NRMSE, color = Method)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = Mean_NRMSE - SE_NRMSE, ymax = Mean_NRMSE + SE_NRMSE), width = 0.2) +
+  theme_minimal() +
+  labs(
+    title = "Kidney Data Analysis: HybridPLS vs HybridPCR",
+    y = "Normalized RMSE (Mean +/- SE)",
+    x = "Number of Components"
+  )
+```
+
+```{r}
+# ==============================================================================
+# kidney_analysis_subsample.R
+# Compare HybridPLS vs HybridPCR on Real Kidney Data
+# Setting: Subsample 40% of data per rep (Low Sample Size Evaluation)
+# ==============================================================================
+
+library(fda)
+library(dplyr)
+library(tidyr)
+library(FSHybridPLS) 
+
+# ------------------------------------------------------------------------------
+# 1. HELPER FUNCTION: SUBSET HYBRID OBJECT
+# ------------------------------------------------------------------------------
+# We need this to robustly slice the S3 object 'W'
+subset_hybrid <- function(W, idx) {
+  # 1. Subset Scalar Z
+  Z_sub <- W$Z[idx, , drop=FALSE]
+  
+  # 2. Subset Functional Objects (fd objects support [idx] subsetting)
+  fd_list_sub <- lapply(W$functional_list, function(fd_obj) fd_obj[idx])
+  
+  # 3. Reconstruct Object
+  predictor_hybrid(Z_sub, fd_list_sub, W$eval_point)
+}
+
+# ------------------------------------------------------------------------------
+# 2. LOAD DATA
+# ------------------------------------------------------------------------------
+raw_df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/data/renogram_data.csv")
+kidney_data <- load_and_preprocess_kidney_data(raw_df, n_basis = 20)
+
+W_full <- kidney_data$W
+y_full <- kidney_data$y
+
+# ------------------------------------------------------------------------------
+# 3. SETUP SIMULATION
+# ------------------------------------------------------------------------------
+n_replications <- 10
+n_comp_max     <- 20  # Reduced max components for smaller sample size
+lambda_vec     <- c(0.2, 0.2) # Unregularized for fair comparison, or tweak as needed
+
+# Define Subsampling Ratio
+subsample_ratio <- 0.40  # Use only 40% of available patients per rep
+
+results_list <- list()
+message(sprintf("=== Starting Analysis: %d Replications (Using %.0f%% of Data) ===", 
+                n_replications, subsample_ratio * 100))
+pb <- txtProgressBar(min = 0, max = n_replications, style = 3)
+
+# ------------------------------------------------------------------------------
+# 4. MAIN LOOP
+# ------------------------------------------------------------------------------
+n_total <- length(y_full)
+n_sub   <- floor(n_total * subsample_ratio)
+
+for (rep_id in 1:n_replications) {
+  set.seed(rep_id * 123) 
+  
+  # A. Random Subsampling (The "40% Data" Step)
+  # Select random indices from the full dataset
+  idx_sub <- sample(1:n_total, n_sub, replace = FALSE)
+  
+  # Create the "Working Dataset" for this replication
+  W_working <- subset_hybrid(W_full, idx_sub)
+  y_working <- y_full[idx_sub]
+  
+  # B. Split and Normalize (Within the subsample)
+  # We split the 40% chunk into 70% Train / 30% Test
+  processed <- split_and_normalize.all(W_working, y_working, train_ratio = 0.7)
+  
+  W_train <- processed$predictor_train
+  W_test  <- processed$predictor_test
+  y_train <- processed$response_train
+  y_test  <- processed$response_test
+  
+  # Calculate Range for NRMSE normalization
+  y_range <- max(y_test) - min(y_test)
+  if(y_range == 0) y_range <- 1
+  
+  # C. Hybrid PLS
+  pls_fit <- fit.hybridPLS(
+    W_train, y_train, 
+    n_iter = n_comp_max, 
+    lambda = lambda_vec,
+    validation_data = list(W_test = W_test, y_test = y_test)
+  )
+  rmse_pls <- pls_fit$validation_rmse
+  
+  # D. Hybrid PCR
+  rmse_pcr <- fit_hybrid_pcr_iterative(W_train, y_train, W_test, y_test, n_comp_max)$validation_rmse
+  
+  # E. Store Results
+  df_pls <- data.frame(
+    Rep = rep_id, Method = "HybridPLS", Component = 1:n_comp_max, 
+    NRMSE = rmse_pls / y_range
+  )
+  
+  df_pcr <- data.frame(
+    Rep = rep_id, Method = "HybridPCR", Component = 1:n_comp_max, 
+    NRMSE = rmse_pcr / y_range
+  )
+  
+  results_list[[rep_id]] <- rbind(df_pls, df_pcr)
+  setTxtProgressBar(pb, rep_id)
+}
+close(pb)
+
+# ------------------------------------------------------------------------------
+# 5. AGGREGATE AND REPORT
+# ------------------------------------------------------------------------------
+final_results <- do.call(rbind, results_list)
+
+summary_stats <- final_results %>%
+  group_by(Method, Component) %>%
+  summarise(
+    Mean_NRMSE = mean(NRMSE),
+    SE_NRMSE   = sd(NRMSE) / sqrt(n()),
+    .groups    = "drop"
+  ) %>%
+  arrange(Method, Component)
+
+print(as.data.frame(summary_stats))
+```
+```{r}
+# ==============================================================================
+# kidney_pfr.R
+# Compare HybridPLS vs HybridPCR vs PFR (Penalized Functional Regression)
+# ==============================================================================
+
+library(fda)
+library(dplyr)
+library(tidyr)
+library(DBI)
+library(RSQLite)
+library(FSHybridPLS)
+library(refund) # Required for pfr()
+
+ 
+
+# ------------------------------------------------------------------------------
+# 1. HELPER FUNCTIONS
+# ------------------------------------------------------------------------------
+subset_hybrid <- function(W, idx) {
+  Z_sub <- W$Z[idx, , drop=FALSE]
+  fd_list_sub <- lapply(W$functional_list, function(fd_obj) fd_obj[idx])
+  predictor_hybrid(Z_sub, fd_list_sub, W$eval_point)
+}
+
+ 
+# --- PFR Wrapper (FIXED) ---
+fit_pfr_legacy <- function(W_train, y_train, W_test, y_test) {
+  eval_pts <- W_train$eval_point
+  
+  # 1. Prepare Scalar Data Frame (Unrolled)
+  # Instead of putting matrix Z into df$Z, we make columns Z1, Z2...
+  # This prevents the "length != nobs" error in pfr/gam.
+  Z_train_df <- as.data.frame(W_train$Z)
+  colnames(Z_train_df) <- paste0("Z", 1:ncol(Z_train_df))
+  
+  Z_test_df  <- as.data.frame(W_test$Z)
+  colnames(Z_test_df) <- paste0("Z", 1:ncol(Z_test_df))
+  
+  # 2. Combine with Response and Functional Matrices
+  # Note: PFR handles matrix columns for functional terms fine, just not scalar linear terms usually.
+  df_train <- cbind(response = y_train, Z_train_df)
+  df_train$F1 <- t(eval.fd(eval_pts, W_train$functional_list[[1]])) 
+  df_train$F2 <- t(eval.fd(eval_pts, W_train$functional_list[[2]]))
+  
+  df_test <- cbind(response = y_test, Z_test_df) # placeholder response
+  df_test$F1 <- t(eval.fd(eval_pts, W_test$functional_list[[1]]))
+  df_test$F2 <- t(eval.fd(eval_pts, W_test$functional_list[[2]]))
+  
+  # 3. Construct Formula String
+  # Create string "Z1 + Z2 + ..."
+  scalar_formula_part <- paste(colnames(Z_train_df), collapse = " + ")
+  
+  f_str <- paste0(
+    "response ~ ", scalar_formula_part, " + ",
+    "lf(F1, argvals = eval_pts, presmooth = 'fpca.sc') + ",
+    "lf(F2, argvals = eval_pts, presmooth = 'fpca.sc' )"
+  )
+  
+  # 4. Fit and Predict
+  tryCatch({
+    # We must pass eval_pts explicitly or ensure it's in the environment. 
+    # Passing it in the data list is safer if wrapped in a list, but data.frame prevents that.
+    # pfr() looks in environment for argvals.
+    fit <- pfr(as.formula(f_str), data = df_train, method="GCV.Cp", gamma=1.2)
+    
+    pred <- predict(fit, newdata = df_test)
+    rmse <- sqrt(mean((y_test - pred)^2))
+    return(rmse)
+  }, error = function(e) {
+    message("PFR Error: ", e$message)
+    return(NA)
+  })
+}
+ 
+#, presmooth = 'fpca.ssvd', presmooth.opts = list(nbasis = 20)
+# ------------------------------------------------------------------------------
+# 2. LOAD DATA
+# ------------------------------------------------------------------------------
+ 
+
+raw_df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/data/renogram_data.csv")
+kidney_data <- load_and_preprocess_kidney_data(raw_df, n_basis = 20)
+W_full <- kidney_data$W
+y_full <- kidney_data$y
+
+# ------------------------------------------------------------------------------
+# 3. RUN SIMULATION
+# ------------------------------------------------------------------------------
+n_replications  <- 100
+ subsample_ratio <- 0.40
+
+results_list <- list()
+n_total <- length(y_full)
+n_sub   <- floor(n_total * subsample_ratio)
+
+for (rep_id in 1:n_replications) {
+  set.seed(rep_id * 123) 
+  
+  idx_sub <- sample(1:n_total, n_sub, replace = FALSE)
+  W_working <- subset_hybrid(W_full, idx_sub)
+  y_working <- y_full[idx_sub]
+  
+  processed <- split_and_normalize.all(W_working, y_working, train_ratio = 0.7)
+  W_train <- processed$predictor_train; W_test <- processed$predictor_test
+  y_train <- processed$response_train;  y_test <- processed$response_test
+  
+  y_range <- max(y_test) - min(y_test); if(y_range == 0) y_range <- 1
+  
+ 
+  
+  # --- 3. PFR (Refund) ---
+  rmse_pfr_single <- fit_pfr_legacy(W_train, y_train, W_test, y_test)
+  
+ 
+  
+  # PFR (Replicated for plotting convenience)
+  # PFR doesn't have "Components" in the same way, but we fill the DF so it appears as a baseline
+  df_pfr <- data.frame(Rep = rep_id, Method = "PFR",  
+                         NRMSE = rmse_pfr_single / y_range)
+  
+  results_list[[rep_id]] <- df_pfr
+}
+
+final_df <- do.call(rbind, results_list)
+print(final_df)
+
+summary_stats <- final_df %>%
+  summarise(
+    Mean_NRMSE = mean(NRMSE, na.rm = TRUE),
+    SE_NRMSE   = sd(NRMSE, na.rm = TRUE) / sqrt(n()),
+    .groups    = "drop"
+  )
+
+print(as.data.frame(summary_stats))
+```
+
+
+```{r}
+# Calculate Mean and Standard Error for each Method/Component
+summary_stats <- final_df %>%
+  summarise(
+    Mean_NRMSE = mean(NRMSE, na.rm = TRUE),
+    SE_NRMSE   = sd(NRMSE, na.rm = TRUE) / sqrt(n()),
+    .groups    = "drop"
+  )
+
+print(as.data.frame(summary_stats))
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Load Data
+df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/simul_new/simul_pred/cv_results_smallscalar.csv")
+
+# --- DATA PREP ---
+# 1. Handle potential column name variations (Scaled_RM vs Scaled_RMSE)
+if("Scaled_RM" %in% names(df)) {
+  names(df)[names(df) == "Scaled_RM"] <- "NRMSE"
+} else if ("Scaled_RMSE" %in% names(df)) {
+  names(df)[names(df) == "Scaled_RMSE"] <- "NRMSE"
+}
+
+# 2. Ensure Numeric NRMSE
+df$NRMSE <- as.numeric(as.character(df$NRMSE)) 
+
+# 3. Rename Methods to Publication Style
+df$Method[df$Method == "HybridPLS"] <- "Hybrid PLS"
+df$Method[df$Method == "HybridPCR"] <- "PCR"
+
+# 4. Reorder Factor (Hybrid PLS first)
+df$Method <- factor(df$Method, levels = c("Hybrid PLS", "PCR"))
+
+# 2. Draw Plot
+ggplot(df, aes(x = factor(Component), y = NRMSE)) +
+  
+  # --- Boxplots ---
+  geom_boxplot(aes(fill = Method), outlier.shape = NA, width = 0.5, size = 0.3, fatten = 1) +
+  
+  # --- Scales ---
+  scale_fill_manual(
+    name = NULL,
+    values = c("Hybrid PLS" = "white", "PCR" = "gray70"),
+    breaks = c("Hybrid PLS", "PCR")
+  ) +
+  
+  # --- Cartesian Zoom ---
+  # Adjust ylim if your data range is different, 0.75 fits the previous snippets well
+  coord_cartesian(ylim = c(0, 0.97)) +
+  
+  # --- Labels ---
+  labs(x = "Number of Components", y = "Scaled RMSE") +
+  
+  theme_bw() + 
+  theme(
+    text = element_text(family = "serif", size = 12),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray70", size = 0.25, linetype = "dashed"),
+    axis.ticks = element_line(color = "black", size = 0.3),
+    axis.text = element_text(color = "black", size = 11),
+    axis.title = element_text(color = "black", size = 12),
+    
+    # Legend Settings (Top Left)
+    legend.position = c(0.75, 0.95), 
+    legend.justification = c("left", "top"),
+    legend.background = element_rect(fill = "white", color = "black", size = 0.2),
+    legend.key = element_blank(),
+    legend.key.width = unit(0.5, "cm"), 
+    legend.key.height = unit(0.5, "cm"), 
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 4, r = 4, b = 4, l = 4),
+    
+    plot.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  )
+
+# Save
+ggsave("cv_results_smallscalar.pdf", 
+       width = 7, # Slightly wider to accommodate side legend
+       height = 4, 
+       units = "in", 
+       device = cairo_pdf)
+```
+
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Load Data
+# Make sure the path matches your new file location
+df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/simul_new/simul_pred/results_orthogonal_robust.csv")
+
+# --- DATA PREP: Handle column names from your screenshot ---
+# If the CSV has "Scaled_RMSE" or "Scaled_RM", rename it to "NRMSE" for consistency
+if("Scaled_RMSE" %in% names(df)) {
+  names(df)[names(df) == "Scaled_RMSE"] <- "NRMSE"
+} else if ("Scaled_RM" %in% names(df)) {
+  names(df)[names(df) == "Scaled_RM"] <- "NRMSE"
+}
+
+# Ensure NRMSE is numeric
+df$NRMSE <- as.numeric(as.character(df$NRMSE)) 
+
+# --- RENAME METHODS & REORDER ---
+# 1. Rename to match publication style
+df$Method[df$Method == "HybridPLS"] <- "Hybrid PLS"
+df$Method[df$Method == "HybridPCR"] <- "PCR"
+
+# 2. Reorder Factor (Hybrid PLS first = Left)
+df$Method <- factor(df$Method, levels = c("Hybrid PLS", "PCR"))
+
+# 3. Draw Plot (No PFR)
+ggplot(df, aes(x = factor(Component), y = NRMSE)) +
+  
+  # --- Boxplots ---
+  geom_boxplot(aes(fill = Method), outlier.shape = NA, width = 0.5, size = 0.3, fatten = 1) +
+  
+  # --- Scales ---
+  scale_fill_manual(
+    name = NULL,
+    values = c("Hybrid PLS" = "white", "PCR" = "gray70"),
+    breaks = c("Hybrid PLS", "PCR")
+  ) +
+  
+  # --- Cartesian Zoom ---
+  coord_cartesian(ylim = c(0, 1)) +
+  
+  # --- Labels ---
+  labs(x = "Number of Components", y = "Scaled RMSE") +
+  
+  # --- Theme (Identical to previous) ---
+  theme_bw() + 
+  theme(
+    text = element_text(family = "serif", size = 12),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray70", size = 0.25, linetype = "dashed"),
+    axis.ticks = element_line(color = "black", size = 0.3),
+    axis.text = element_text(color = "black", size = 11),
+    axis.title = element_text(color = "black", size = 12),
+    
+    # Legend Settings (Top Left)
+    legend.position = c(0.75, 0.95), 
+    legend.justification = c("left", "top"),
+    legend.background = element_rect(fill = "white", color = "black", size = 0.2),
+    legend.key = element_blank(),
+    legend.key.width = unit(0.5, "cm"), 
+    legend.key.height = unit(0.5, "cm"), 
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 4, r = 4, b = 4, l = 4),
+    
+    plot.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  )
+
+# Save
+ggsave("results_orthogonal_robust.pdf", 
+       width = 6, height = 4, units = "in", device = cairo_pdf)
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+library(grid) 
+
+# 1. Load Data
+df <- read.csv("C:/Users/jongmin/Documents/GitHub/fsPLS/simul_new/simul_pred/results_fixed.csv")
+df$NRMSE <- as.numeric(as.character(df$NRMSE)) 
+
+# --- CHANGE 1: Rename Method strings ---
+df$Method[df$Method == "HybridPLS"] <- "Hybrid PLS"
+df$Method[df$Method == "HybridPCR"] <- "PCR"
+
+# --- CHANGE 2: Reorder Factor (Hybrid PLS first = Left) ---
+df$Method <- factor(df$Method, levels = c("Hybrid PLS", "PCR"))
+
+# 2. Define PFR Stats (Assuming summary_stats exists)
+pfr_mean <- summary_stats$Mean_NRMSE 
+pfr_sd   <- summary_stats$SE_NRMSE 
+
+# 3. DEFINE CUSTOM LEGEND KEY
+draw_key_pfr <- function(data, params, size) {
+  if (data$fill == "gray50") {
+    grobTree(
+      rectGrob(width = 0.74, height = 0.75,
+               gp = gpar(fill = data$fill, col = NA, alpha = 0.2)),
+      segmentsGrob(x0 = 0.135, x1 = 0.92, y0 = 0.5, y1 = 0.5,
+                   gp = gpar(col = "black", lty = "dashed", lwd = 1))
+    )
+  } else {
+    draw_key_boxplot(data, params, size)
+  }
+}
+
+# 4. Create Dummy Data
+dummy_pfr <- data.frame(Component = 1, NRMSE = 0, Method = "PFR")
+
+# 5. Draw Plot
+ggplot(df, aes(x = factor(Component), y = NRMSE)) +
+  
+  # --- PFR Background ---
+  annotate("rect", xmin = -Inf, xmax = Inf, 
+           ymin = pfr_mean - pfr_sd, ymax = pfr_mean + pfr_sd,
+           fill = "gray50", alpha = 0.2) +
+  geom_hline(yintercept = pfr_mean, linetype = "dashed", color = "black", size = 0.4) +
+  
+  # --- Boxplots ---
+  geom_boxplot(aes(fill = Method), outlier.shape = NA, width = 0.5, size = 0.3, fatten = 1) +
+  
+  # --- Dummy Layer ---
+  geom_boxplot(data = dummy_pfr, aes(fill = Method), alpha = 0, color = NA, 
+               key_glyph = draw_key_pfr) + 
+  
+  # --- CHANGE 3: Update Names in Scale ---
+  scale_fill_manual(
+    name = NULL,
+    values = c("Hybrid PLS" = "white", "PCR" = "gray70", "PFR" = "gray50"),
+    breaks = c("Hybrid PLS", "PCR", "PFR"),
+    drop = FALSE
+  ) +
+  
+  coord_cartesian(ylim = c(0, 0.75)) +
+  
+  labs(x = "Number of Components", y = "Scaled RMSE") +
+  
+  theme_bw() + 
+  theme(
+    text = element_text(family = "serif", size = 12),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray70", size = 0.25, linetype = "dashed"),
+    axis.ticks = element_line(color = "black", size = 0.3),
+    axis.text = element_text(color = "black", size = 11),
+    axis.title = element_text(color = "black", size = 12),
+    
+    legend.position = c(0.05, 0.95), 
+    legend.justification = c("left", "top"),
+    legend.background = element_rect(fill = "white", color = "black", size = 0.2),
+    legend.key = element_blank(),
+    legend.key.width = unit(0.8, "cm"), 
+    legend.key.height = unit(0.5, "cm"), 
+    legend.text = element_text(size = 10),
+    legend.margin = margin(t = 4, r = 4, b = 4, l = 4),
+    
+    plot.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5)
+  ) +
+  
+  guides(fill = guide_legend(
+    override.aes = list(
+      fill = c("white", "gray70", "gray50"),
+      alpha = c(1, 1, 1),
+      color = c("black", "black", NA) 
+    )
+  ))
+
+# Save
+ggsave("kidney_simulation_results.pdf", 
+       width = 6, height = 4, units = "in", device = cairo_pdf)
 ```
 
 You can also embed plots, for example:

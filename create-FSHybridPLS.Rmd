@@ -37,17 +37,67 @@ Title = "Hybrid Penalized Partial Least Squares for Functional and Scalar Data",
 usethis::use_mit_license(copyright_holder = "F. Last")
 ```
 
-#### Table of Contents
-- [Helper Functions](#helper)
+- [Helper Functions](#helper-functions)
+    - [compute_gram_matrix](#compute_gram_matrix)
+    - [is_same_basis](#is_same_basis)
+    - [are_all_gram_matrices_identical](#are_all_gram_matrices_identical)
+    - [rep_fd](#rep_fd)
+- [Hybrid predictor class](#hybrid-predictor-class)
+    - [Class definition and constructor](#class-definition-and-constructor)
+        - [predictor_hybrid](#predictor_hybrid)
+        - [predictor_hybrid_from_coef](#predictor_hybrid_from_coef)
+    - [Basic arithmetic](#basic-arithmetic)
+        - [add.predictor_hybrid](#addpredictor_hybrid)
+        - [subtr.predictor_hybrid](#subtrpredictor_hybrid)
+        - [scalar_mul.predictor_hybrid](#scalar_mulpredictor_hybrid)
+        - [inprod.predictor_hybrid](#inprodpredictor_hybrid)
+        - [inprod_pen.predictor_hybrid](#inprod_penpredictor_hybrid)
+        - [subset_predictor_hybrid](#subset_predictor_hybrid)
+        - [replace_obs_hybrid](#replace_obs_hybrid)
+        - [add_broadcast (Matrix)](#add_broadcast-matrix)
+        - [subtr_broadcast (Matrix)](#subtr_broadcast-matrix)
+- [One iteration](#one-iteration)
+    - [small functions](#small-functions)
+        - [get_gram_matrix_block](#get_gram_matrix_block)
+        - [get_smoothing_param_hybrid](#get_smoothing_param_hybrid)
+    - [PLS component computation](#pls-component-computation)
+        - [get_xi_hat_linear_pen](#get_xi_hat_linear_pen)
+        - [get_rho](#get_rho)
+    - [Response Residualization](#response-residualization)
+        - [get_nu](#get_nu)
+        - [residualize_y](#residualize_y)
+    - [Predictor Residualization](#predictor-residualization)
+        - [get_delta](#get_delta)
+        - [residualize_predictor](#residualize_predictor)
+- [Main algorithm](#main-algorithm)
+    - [fit.hybridPLS](#fithybridpls)
+- [Simulation tools](#simulation-tools)
+    - [sample splitting](#sample-splitting)
+        - [create_idx_train_test](#create_idx_train_test)
+        - [get_idx_train](#get_idx_train)
+        - [create_idx_kfold](#create_idx_kfold)
+        - [n_sample.fd](#n_samplefd)
+        - [split.all](#splitall)
+    - [normalization](#normalization)
+        - [curve_normalize](#curve_normalize)
+        - [curve_normalize_train_test](#curve_normalize_train_test)
+        - [scalar_normalize](#scalar_normalize)
+        - [scalar_normalize_train_test](#scalar_normalize_train_test)
+        - [btwn_normalize_train_test](#btwn_normalize_train_test)
+        - [split_and_normalize.all](#split_and_normalizeall)
+    - [Baseline methods](#baseline-methods)
+        - [fit_hybrid_pcr_iterative](#fit_hybrid_pcr_iterative)
+        - [penalized functional regression](#penalized-functional-regression)
+- [Kidney Data Preprocessing Pipeline](#kidney-data-preprocessing-pipeline)
  
 
-# Helper Functions {#helper}
+# Helper Functions
 
 ### compute_gram_matrix
 
 **Description:**
 Calculates the Gram matrix for a given functional basis. The Gram matrix $G$ is a symmetric positive semi-definite matrix containing the inner products of the basis functions. Specifically, the entry $(i, j)$ corresponds to the integral of the product of the $i$-th and $j$-th basis functions over the domain:
-$$G_{ij} = \langle b_i, b_j \rangle = \int b_i(t) b_j(t) \, dt$$
+$$G_{ij} = /langle b_i, b_j /rangle = /int b_i(t) b_j(t) /, dt$$
 
 **Inputs:**
 
@@ -245,16 +295,16 @@ rep_fd <- function(fd_list, n) {
 ### predictor_hybrid
 
 **Description:**
-The `predictor_hybrid` class represents a hybrid random object $\mathbf{W} = (X, \mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
+The `predictor_hybrid` class represents a hybrid random object $/mathbf{W} = (X, /mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
 
-- **Functional Part:** Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit interval $\mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $\mathcal{F} = L^2([0,1]) \times \cdots \times L^2([0,1])$.
-- **Hybrid Object:** We define the hybrid object $\mathbf{W} = (X, \mathbf{Z})$, where $\mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.
-- **Vector Notation:** The object can be evaluated at a multi-dimensional argument $\mathbf{t}$ as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$.
+- **Functional Part:** Let $/{X^{(k)}/}_{k=1, /ldots, K}$ be a collection of random functions defined on unit interval $/mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $/mathcal{F} = L^2([0,1]) /times /cdots /times L^2([0,1])$.
+- **Hybrid Object:** We define the hybrid object $/mathbf{W} = (X, /mathbf{Z})$, where $/mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $/mathcal{H} = /mathcal{F} /times /mathbb{R}^p$.
+- **Vector Notation:** The object can be evaluated at a multi-dimensional argument $/mathbf{t}$ as a $(K+p)$-dimensional vector: $/mathbf{W}[/mathbf{t}] = (X(/mathbf{t}), /mathbf{Z})^/top$.
 - **Implementation:** The class is implemented as an S3 object containing a matrix for scalar parts, a list of `fd` objects for functional parts, and pre-computed Gram matrices to facilitate Hilbert space operations.
 
 **Inputs:**
 
-- `Z`: A numeric matrix of dimension $n\_sample \times n\_scalar$ representing the scalar predictors.
+- `Z`: A numeric matrix of dimension $n/_sample /times n/_scalar$ representing the scalar predictors.
 - `functional_list`: A list of functional predictors (typically `fd` objects from the `fda` package).
 - `eval_point`: A specification for evaluation points (stored as metadata).
 
@@ -346,14 +396,14 @@ An alternative constructor that creates a single-sample `predictor_hybrid` objec
 ```{r}
 #' Construct a Single-Sample Predictor Hybrid Object from Coefficients
 #'
-#' Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
+#' Reconstructs a /code{predictor_hybrid} object representing one observation, using a numeric
 #' coefficient vector. This alternative constructor maps the coefficients back into their functional
-#' and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
+#' and scalar predictor representations based on the structure of a template /code{predictor_hybrid} object.
 #'
-#' @param format A \code{predictor_hybrid} object that provides the structure and basis information.
+#' @param format A /code{predictor_hybrid} object that provides the structure and basis information.
 #' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
 #'
-#' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
+#' @return A /code{predictor_hybrid} object with updated /code{functional_list}, /code{Z}, and /code{n_sample = 1}.
 #' @export
 predictor_hybrid_from_coef <- function(format, coef) {
   # Extract metadata from the template
@@ -427,14 +477,14 @@ add.predictor_hybrid(input, other, alpha = 1)
 ```{r}
 #' Add two predictor_hybrid objects
 #'
-#' Performs element-wise addition of two \code{predictor_hybrid} objects. 
+#' Performs element-wise addition of two /code{predictor_hybrid} objects. 
 #' Supports broadcasting if one object is a single sample.
 #'
-#' @param xi_1 A \code{predictor_hybrid} object.
-#' @param xi_2 Another \code{predictor_hybrid} object to be added.
-#' @param alpha A scalar multiplier applied to \code{xi_2} before addition (default is 1).
+#' @param xi_1 A /code{predictor_hybrid} object.
+#' @param xi_2 Another /code{predictor_hybrid} object to be added.
+#' @param alpha A scalar multiplier applied to /code{xi_2} before addition (default is 1).
 #'
-#' @return A new \code{predictor_hybrid} object representing the result of the addition.
+#' @return A new /code{predictor_hybrid} object representing the result of the addition.
 #' @export
 add.predictor_hybrid <- function(xi_1, xi_2, alpha = 1) {
   # Safe access to is.eqbasis() from the fda namespace
@@ -1879,10 +1929,10 @@ curve_normalize_train_test(train, test)
 #' @param test A `predictor_hybrid` object representing the testing set.
 #'
 #' @return A list containing:
-#'   \item{predictor_train}{The normalized training object.}
-#'   \item{predictor_test}{The normalized testing object.}
-#'   \item{mean_train}{List of mean functions used for centering.}
-#'   \item{deno_train}{Vector of scaling factors used.}
+#'   /item{predictor_train}{The normalized training object.}
+#'   /item{predictor_test}{The normalized testing object.}
+#'   /item{mean_train}{List of mean functions used for centering.}
+#'   /item{deno_train}{Vector of scaling factors used.}
 #' @export
 curve_normalize_train_test <- function(train, test) {
   stopifnot(
@@ -2245,1288 +2295,393 @@ split_and_normalize.all <- function(W_hybrid, response, train_ratio) {
 }
 ```
 
+Here is the updated Markdown explanation. I have modified the **Response Variable** and **Implementation Logic** sections to reflect the new Min-Max scaling and Logit transformation steps.
 
+## Baseline methods
 
- 
+### fit_hybrid_pcr_iterative
+This function implements a **Hybrid Principal Component Regression (PCR)** algorithm designed to handle high-dimensional data containing both scalar vectors and functional curves. The core strategy is **dimensionality reduction via PCA** applied separately to each data modality, followed by a linear regression on the resulting scores.
 
+#### 1. Dimensionality Reduction
+The function decouples the dimensionality reduction step for scalar and functional predictors:
 
-# Baseline method: FPCA regression
+* **Scalar Predictors ($/mathbf{Z}$):** Standard PCA is applied to the training matrix $/mathbf{Z}_{train}$. The data is centered and scaled. Test data $/mathbf{Z}_{test}$ is projected onto the rotation matrix derived from the training set.
+* **Functional Predictors ($/mathbf{X}(t)$):** Functional PCA (FPCA) is applied to each functional variable.
+    * **Training:** We decompose the training functions into a mean function $/mu(t)$ and a set of orthogonal eigenfunctions (harmonics) $/phi_k(t)$:
+        $$X_{i}(t) /approx /mu(t) + /sum_{k=1}^{K} /xi_{ik} /phi_k(t)$$
+    * **Testing (Robust Centering):** A critical step in this function is the robust projection of test data. We explicitly subtract the **training mean** $/mu_{train}(t)$ from the raw test curves before computing inner products with the training eigenfunctions. This ensures the test scores are strictly comparable to the training scores:
+        $$/xi_{test, k} = /int /left( X_{test}(t) - /mu_{train}(t) /right) /phi_{k, train}(t) /, dt$$
 
+#### 2. Iterative Model Fitting
+Instead of selecting a single fixed number of components, the function iterates through a range of model complexities ($l = 1, /dots, /text{n/_comp/_max}$).
 
-## Modified MFPCA Function for Simultaneous Training and Prediction
+At iteration $l$, the regression model is formulated as:
+$$Y = /beta_0 + /sum_{j=1}^{/min(l, /text{rank}(Z))} /alpha_j /text{Score}_{Z,j} + /sum_{p=1}^{P} /sum_{k=1}^{l} /gamma_{p,k} /text{Score}_{X^{(p)}, k} + /epsilon$$
 
-The MFPCA (Multivariate Functional Principal Component Analysis) function computes multivariate functional PCA for functions defined across different (dimensional) domains.
-We have modified the original implementation to admit a new input, **`mFData_predict`**, allowing the function to calculate PCA scores for **both the training data and new test (or validation) data simultaneously** in a single run. This change was necessary because the standard `predict.MFPCAfit` function does not permit computing scores for new, out-of-sample functions.
-The multivariate functional principal component analysis inherently relies on a **univariate basis expansion** for each functional element ($X^{(j)}$). To simplify the code modification, we use only the univariate functional PCA option and have removed other options provided by the original MFPCA function. We modifies the main function and two internal functions.
+This allows us to observe the full trajectory of the Root Mean Squared Error (RMSE) as the model complexity increases, facilitating the selection of the optimal number of components.
 
-
-### MFPCA
-
-The main driver function. I have updated the description to explicitly detail the "Simultaneous Training and Prediction" modification.
-
-```{r}
-#' Multivariate Functional Principal Component Analysis (Modified)
+```{r fit_hybrid_pcr_iterative}
+#' Iterative Hybrid Principal Component Regression
 #'
 #' @description
-#' Computes Multivariate Functional Principal Component Analysis (MFPCA) for functions
-#' defined on different domains.
+#' Fits a Principal Component Regression (PCR) model that integrates both scalar and 
+#' functional predictors. The function performs dimensionality reduction separately 
+#' for each modality and iteratively fits linear models with an increasing number 
+#' of principal components.
 #'
-#' \strong{Modification:} This version has been modified to accept an additional input,
-#' \code{mFData_predict}. This allows the function to calculate PCA scores for both
-#' the training data and a test/validation set simultaneously. This bypasses the
-#' limitation of the standard \code{predict.MFPCAfit} function, which often does not
-#' support out-of-sample prediction for this specific implementation.
+#' @details
+#' The workflow consists of three main stages:
+#' /enumerate{
+#'   /item /strong{Scalar PCA:} Performs standard PCA on the scalar matrix /code{Z}. 
+#'         Test data is projected onto the training rotation matrix.
+#'   /item /strong{Functional PCA:} Performs FPCA on each functional predictor using 
+#'         the /code{fda} package. Crucially, test curves are centered using the 
+#'         /emph{training mean function} before projection onto training harmonics 
+#'         to prevent data leakage.
+#'   /item /strong{Iterative Regression:} Fits a series of linear models (/code{lm}). 
+#'         Model /code{l} includes the first /code{l} principal components from 
+#'         both the scalar and functional sets.
+#' }
 #'
-#' The function utilizes univariate basis expansions for each functional element
-#' and combines them via PCA on the weighted concatenated scores.
+#' @param W_train A /code{predictor_hybrid} object containing training data.
+#' @param y_train A numeric vector of training response values.
+#' @param W_test A /code{predictor_hybrid} object containing test data.
+#' @param y_test A numeric vector of test response values.
+#' @param n_comp_max Integer. The maximum number of principal components to include 
+#'        in the regression models. Defaults to 10.
 #'
-#' @param mFData A \code{multiFunData} object containing the training functional data.
-#' @param mFData_predict A \code{multiFunData} object containing the test/validation functional data.
-#' @param M Integer. The number of multivariate functional principal components to calculate.
-#' @param uniExpansions A list of the same length as \code{mFData}, specifying the univariate basis expansion method for each element (e.g., "uFPCA").
-#' @param weights Numeric vector. Weights for each functional element (defaults to 1).
-#' @param fit Logical. If \code{TRUE}, returns the truncated Karhunen-Loève representation.
-#' @param approx.eigen Logical. If \code{TRUE}, uses \code{irlba} for approximate singular value decomposition (faster for large M).
-#' @param bootstrap Logical. If \code{TRUE}, computes bootstrap confidence bands.
-#' @param nBootstrap Integer. Number of bootstrap iterations (required if \code{bootstrap = TRUE}).
-#' @param bootstrapAlpha Numeric. Significance level for bootstrap confidence bands.
-#' @param bootstrapStrat Factor. Stratification factor for bootstrapping.
-#' @param verbose Logical. If \code{TRUE}, prints progress messages.
+#' @return A list containing:
+#' /item{validation_rmse}{A numeric vector of length /code{n_comp_max} containing 
+#' the RMSE on the test set for each model complexity level.}
 #'
-#' @return An object of class \code{MFPCAfit} containing:
-#' \item{values}{Eigenvalues of the principal components.}
-#' \item{functions}{The estimated multivariate functional principal component functions.}
-#' \item{scores}{A matrix of scores for the \code{mFData} (training) objects.}
-#' \item{scores.pred}{A matrix of scores for the \code{mFData_predict} (test) objects.}
-#' \item{vectors}{The eigenvectors associated with the combined scores.}
-#' \item{normFactors}{Normalization factors used during calculation.}
-#' \item{meanFunction}{The estimated mean function.}
-#'
-#' @export 
-MFPCA <- function(mFData, mFData_predict, M, uniExpansions, weights = rep(1, length(mFData)), fit = FALSE, approx.eigen = FALSE,
-                  bootstrap = FALSE, nBootstrap = NULL, bootstrapAlpha = 0.05, bootstrapStrat = NULL,
-                  verbose = options()$verbose)
-{
-  if(! inherits(mFData, "multiFunData"))
-    stop("Parameter 'mFData' must be passed as a multiFunData object.")
-
-  # number of components
-  p <- length(mFData)
-  # number of observations
-  N <- nObs(mFData)
-
-  if(!all(is.numeric(M), length(M) == 1, M > 0))
-    stop("Parameter 'M' must be passed as a number > 0.")
-
-  if(!(is.list(uniExpansions) & length(uniExpansions) == p))
-    stop("Parameter 'uniExpansions' must be passed as a list with the same length as 'mFData'.")
-
-  if(!(is.numeric(weights) & length(weights) == p))
-    stop("Parameter 'weights' must be passed as a vector with the same length as 'mFData'.")
-
-  if(!is.logical(fit))
-    stop("Parameter 'fit' must be passed as a logical.")
-
-  if(!is.logical(approx.eigen))
-    stop("Parameter 'approx.eigen' must be passed as a logical.")
-
-  if(!is.logical(bootstrap))
-    stop("Parameter 'bootstrap' must be passed as a logical.")
-
-  if(bootstrap)
-  {
-    if(is.null(nBootstrap))
-      stop("Specify number of bootstrap iterations.")
-
-    if(any(!(0 < bootstrapAlpha & bootstrapAlpha < 1)))
-      stop("Significance level for bootstrap confidence bands must be in (0,1).")
-
-    if(!is.null(bootstrapStrat))
-    {
-      if(!is.factor(bootstrapStrat))
-        stop("bootstrapStrat must be either NULL or a factor.")
-
-      if(length(bootstrapStrat) != nObs(mFData))
-        stop("bootstrapStrat must have the same length as the number of observations in the mFData object.")
+#' @importFrom stats prcomp predict lm
+#' @importFrom fda pca.fd fd inprod
+#' @export
+fit_hybrid_pcr_iterative <- function(W_train, y_train, W_test, y_test, n_comp_max = 10) {
+  
+  validation_rmse <- numeric(n_comp_max)
+  
+  # 1. Scalar PCA (Train)
+  # Computes rotation matrix on training data only
+  k_z_max <- min(n_comp_max, ncol(W_train$Z))
+  pca_z <- prcomp(W_train$Z, center = TRUE, scale. = TRUE)
+  
+  # Extract training scores and project test data onto training rotation
+  all_z_scores_train <- pca_z$x[, 1:k_z_max, drop = FALSE]
+  all_z_scores_test  <- predict(pca_z, newdata = W_test$Z)[, 1:k_z_max, drop = FALSE]
+  
+  # 2. Functional PCA (Train)
+  n_funcs <- length(W_train$functional_list)
+  all_f_scores_train_list <- list()
+  all_f_scores_test_list  <- list()
+  
+  for(i in 1:n_funcs) {
+    # Fit FPCA on Training Data to get harmonics and mean
+    pca_fd <- fda::pca.fd(W_train$functional_list[[i]], nharm = n_comp_max)
+    all_f_scores_train_list[[i]] <- pca_fd$scores
+    
+    # Project Test Data (Robust Manual Centering)
+    mean_fd <- pca_fd$meanfd
+    harmonics <- pca_fd$harmonics
+    
+    # Extract test coefficients and training mean coefficients
+    coefs_test <- W_test$functional_list[[i]]$coefs
+    coefs_mean <- as.vector(mean_fd$coefs)
+    
+    # Sweep subtract: Test_Centered = Test_Raw - Mean_Train
+    coefs_centered <- sweep(coefs_test, 1, coefs_mean, "-")
+    centered_test  <- fd(coefs_centered, W_test$functional_list[[i]]$basis)
+    
+    # Project centered test data onto training harmonics
+    all_f_scores_test_list[[i]] <- fda::inprod(centered_test, harmonics)
+  }
+  
+  # 3. Iterative Regression Loop
+  for (l in 1:n_comp_max) {
+    # Scalar Scores Subset
+    k_curr <- min(l, k_z_max)
+    z_train_curr <- all_z_scores_train[, 1:k_curr, drop=FALSE]
+    z_test_curr  <- all_z_scores_test[, 1:k_curr, drop=FALSE]
+    
+    # Functional Scores Subset
+    f_train_curr_list <- list()
+    f_test_curr_list  <- list()
+    for(i in 1:n_funcs) {
+      f_train_curr_list[[i]] <- all_f_scores_train_list[[i]][, 1:l, drop=FALSE]
+      f_test_curr_list[[i]]  <- all_f_scores_test_list[[i]][, 1:l, drop=FALSE]
     }
+    
+    # Construct Design Matrices
+    df_train <- data.frame(z_train_curr, do.call(cbind, f_train_curr_list))
+    df_test  <- data.frame(z_test_curr,  do.call(cbind, f_test_curr_list))
+    
+    # Fit Linear Model
+    df_train$Y <- y_train
+    model <- lm(Y ~ ., data = df_train)
+    
+    # Predict and Compute RMSE
+    y_pred <- predict(model, newdata = df_test)
+    validation_rmse[l] <- sqrt(mean((y_test - y_pred)^2))
   }
+  
+  return(list(validation_rmse = validation_rmse))
+}
+```
 
-  if(!is.logical(verbose))
-    stop("Parameter 'verbose' must be passed as a logical.")
+### penalized functional regression
+Here is a formal explanation and the commented code for the fit_pfr function.
 
-  # dimension for each component
-  dimSupp <- dimSupp(mFData)
+Function Explanation
+The fit_pfr function serves as a wrapper for fitting a Penalized Functional Regression (PFR) model ( using the refund in R) within a simulation or cross-validation pipeline. It is designed to handle a specific data structure where predictors are split into scalar matrices and functional data objects.
 
-  # get type of univariate expansions
-  type <- vapply(uniExpansions, function(l){l$type}, FUN.VALUE = "")
+Key Implementation Details
+Scalar Predictor Unrolling: A common issue when using pfr() or gam() is that passing a matrix column (e.g., df$Z) can sometimes trigger "length mismatch" errors during prediction. This function addresses this by converting the scalar matrix Z into individual columns (Z1, Z2, etc.) within the data frame.
 
-  # de-mean functions -> coefficients are also de-meaned!
-  # do not de-mean in uFPCA, as PACE gives a smooth estimate of the mean (see below)
-  m <- meanFunction(mFData, na.rm = TRUE) # ignore NAs in data
-  for(j in seq_len(p))
-  {
-    if(type[j] != "uFPCA")
-      mFData[[j]] <- mFData[[j]] - m[[j]]
-  }
+Functional Data Evaluation: The function assumes inputs are fd objects (from the fda package). It evaluates these functions at specified time points (eval_pts) to create a dense matrix representation required by the lf() (linear functional) term in pfr.
 
-  if(verbose)
-    cat("Calculating univariate basis expansions (", format(Sys.time(), "%T"), ")\n", sep = "")
+Dynamic Formula Construction: Since the number of scalar predictors may vary, the regression formula is constructed dynamically as a string before being passed to pfr.
 
+FPCA Smoothing: The term lf(..., presmooth = 'fpca.sc') indicates that the functional predictors are pre-smoothed using Functional Principal Component Analysis (FPCA). This allows the model to handle noisy or irregular functional data effectively by regressing on the principal component scores.
+ 
 
-
-  ########### Below is modified by Jongmin Mun #############################
-  # calculate univariate basis expansion for all components
-  # Modification: Passes both training (data) and test (data_predict) to univDecomp
-  uniBasis <- mapply(
-    function(expansion, data, data_predict){
-      do.call(univDecomp, c(
-        list(funDataObject = data, funDataObject_predict = data_predict),
-        expansion)
-      )
-    },
-    expansion = uniExpansions,
-    data = mFData,
-    data_predict = mFData_predict,
-    SIMPLIFY = FALSE
+```{r}
+#' Fit Penalized Functional Regression (PFR)
+#'
+#' This function formats training and testing data, fits a PFR model using the `refund` package,
+#' and evaluates predictive performance via RMSE. It explicitly handles the "unrolling" of
+#' scalar matrix predictors to avoid common dimension errors in `gam`/`pfr`.
+#'
+#' @param W_train A list containing training predictors:
+#'   \itemize{
+#'     \item \code{Z}: Matrix of scalar predictors.
+#'     \item \code{functional_list}: List of `fd` objects (functional predictors).
+#'     \item \code{eval_point}: Vector of evaluation time points.
+#'   }
+#' @param y_train Vector of scalar response values for training.
+#' @param W_test A list containing testing predictors (same structure as \code{W_train}).
+#' @param y_test Vector of scalar response values for testing (used for RMSE calculation).
+#'
+#' @return A numeric value representing the Root Mean Squared Error (RMSE) on the test set.
+#'         Returns \code{NA} if the model fit fails.
+#' @export
+fit_pfr <- function(W_train, y_train, W_test, y_test) {
+  
+  # Extract common evaluation points for the functional curves
+  eval_pts <- W_train$eval_point
+  
+  # ------------------------------------------------------------------
+  # 1. Prepare Scalar Predictors (Unrolling)
+  # ------------------------------------------------------------------
+  # Convert the scalar matrix Z into a data frame with explicit column names 
+  # (Z1, Z2, ...). This "unrolling" is critical because `pfr`/`gam` can 
+  # throw "variable length differs" errors if predictors are stored as a 
+  # single matrix column inside the data frame during prediction.
+  Z_train_df <- as.data.frame(W_train$Z)
+  colnames(Z_train_df) <- paste0("Z", 1:ncol(Z_train_df))
+  
+  Z_test_df  <- as.data.frame(W_test$Z)
+  colnames(Z_test_df) <- paste0("Z", 1:ncol(Z_test_df))
+  
+  # ------------------------------------------------------------------
+  # 2. Construct Data Frames for Model Fitting
+  # ------------------------------------------------------------------
+  # Combine response, unrolled scalars, and evaluated functional matrices.
+  
+  # Training Data
+  df_train <- cbind(response = y_train, Z_train_df)
+  
+  # Evaluate functional objects (fd) at discrete points to create predictor matrices.
+  # t() is used because eval.fd returns (time x subjects), but pfr expects (subjects x time).
+  df_train$F1 <- t(eval.fd(eval_pts, W_train$functional_list[[1]])) 
+  df_train$F2 <- t(eval.fd(eval_pts, W_train$functional_list[[2]]))
+  
+  # Testing Data
+  df_test <- cbind(response = y_test, Z_test_df)
+  df_test$F1 <- t(eval.fd(eval_pts, W_test$functional_list[[1]]))
+  df_test$F2 <- t(eval.fd(eval_pts, W_test$functional_list[[2]]))
+  
+  # ------------------------------------------------------------------
+  # 3. Dynamically Build the Formula
+  # ------------------------------------------------------------------
+  # Create the scalar part of the formula: "Z1 + Z2 + ... + Zp"
+  scalar_formula_part <- paste(colnames(Z_train_df), collapse = " + ")
+  
+  # Construct the full formula string.
+  # lf(): Defines a linear functional term.
+  # presmooth = 'fpca.sc': Applies FPCA to smooth functions and reduce dimensionality 
+  # prior to regression, which is robust for noisy data.
+  f_str <- paste0(
+    "response ~ ", scalar_formula_part, " + ",
+    "lf(F1, argvals = eval_pts, presmooth = 'fpca.sc') + ",
+    "lf(F2, argvals = eval_pts, presmooth = 'fpca.sc')"
   )
-  ########### Above is modified by Jongmin Mun #############################
+  
+  # ------------------------------------------------------------------
+  # 4. Fit Model and Predict
+  # ------------------------------------------------------------------
+  tryCatch({
+    # Fit the PFR model.
+    # method = "GCV.Cp": Uses Generalized Cross-Validation for smoothing parameter selection.
+    # gamma = 1.2: Inflation factor for GCV to prevent overfitting (smoother results).
+    fit <- pfr(as.formula(f_str), data = df_train, method = "GCV.Cp", gamma = 1.2)
+    
+    # Predict on test data
+    pred <- predict(fit, newdata = df_test)
+    
+    # Calculate RMSE
+    rmse <- sqrt(mean((y_test - pred)^2))
+    return(rmse)
+    
+  }, error = function(e) {
+    # Graceful error handling prevents the entire simulation loop from crashing
+    message("PFR Error: ", e$message)
+    return(NA)
+  })
+}
+```
 
+# Kidney Data Preprocessing Pipeline
 
+This section details the transformation of raw renogram data into a structured **Hybrid Predictor** object suitable for the `FSHybridPLS` package. The process involves extracting patient metadata, averaging and transforming response variables, and applying a domain-specific normalization to the functional curves.
 
+* **Mathematical Formulation:** Let $N$ be the number of unique subjects. For the $i$-th subject ($i = 1, /dots, N$), the data consists of:
 
+    * **Scalar Predictors ($/mathbf{z}$):** We extract 15 scalar covariates (Age + 14 physiological metrics). Let $/mathbf{z}_i /in /mathbb{R}^{15}$ denote the scalar predictor vector for subject $i$.
 
-  # for uFPCA: replace estimated mean in m
-  for(j in seq_len(p))
-  {
-    if(type[j] == "uFPCA")
-      m[[j]] <- uniBasis[[j]]$meanFunction
-  }
+    * **Response Variable ($y$):** The raw data contains three diagnostic metrics for the response. We first calculate the arithmetic mean of these three indicators:
+        $$y_i^{/text{raw}} = /frac{1}{3} /sum_{k=1}^{3} y_{i,k}$$
+      and do the min-max scaling.
 
-  # Multivariate FPCA
-  npc <- vapply(uniBasis, function(x){dim(x$scores)[2]}, FUN.VALUE = 0) # get number of univariate basis functions
+    * **Functional Predictors ($X$):** Each subject has two distinct time-series curves (Renograms):
+        * **Baseline Renogram:** $X_{i}^{(1)}(t)$ observed at $T_1 = 59$ time points.
+        * **Post-Furosemide Renogram:** $X_{i}^{(2)}(t)$ observed at $T_2 = 40$ time points.
 
-  if(M > sum(npc))
-  {
-    M <- sum(npc)
-    warning("Function MFPCA: total number of univariate basis functions is smaller than given M. M was set to ", sum(npc), ".")
-  }
+* **Medical Normalization:** To ensure comparability across patients with varying absolute kidney uptake levels, we normalize both curves relative to the peak of the **baseline** curve. Let $m_i$ be the maximum value of the baseline curve for subject $i$:
+    $$m_i = /max_{t} X_{i}^{(1)}(t)$$
+    The normalized functions, $/tilde{X}$, are computed as:
+    $$/tilde{X}_{i}^{(1)}(t) = /frac{X_{i}^{(1)}(t)}{m_i} /quad /text{and} /quad /tilde{X}_{i}^{(2)}(t) = /frac{X_{i}^{(2)}(t)}{m_i}$$
 
-  # check if non-orthonormal basis functions used
-  if(all(foreach::foreach(j = seq_len(p), .combine = "c")%do%{uniBasis[[j]]$ortho}))
-    Bchol = NULL
-  else
-  {
-    # Cholesky decomposition of B = block diagonal of Cholesky decompositions
-    Bchol <- Matrix::bdiag(lapply(uniBasis, function(l){
-      if(l$ortho)
-        res <- Matrix::Diagonal(n = ncol(l$scores))
-      else
-        res <- Matrix::chol(l$B)
+    > **Note:** The divisor $m_i$ is derived strictly from the *baseline* curve but is applied to *both* curves. This preserves the relative magnitude of the post-furosemide response compared to the baseline peak.
 
-      return(res)}))
-  }
-
-  if(verbose)
-    cat("Calculating MFPCA (", format(Sys.time(), "%T"), ")\n", sep = "")
-
-  mArgvals <- if (utils::packageVersion("funData") <= "1.2") {
-    getArgvals(mFData)
+* **Implementation Logic:** The function `load_and_preprocess_kidney_data` performs these mathematical operations using vectorized algebra for efficiency:
+    * **Extraction & Alignment:** Filters the dataframe to separate "Baseline" and "Post-Furosemide" entries and reshapes time-series data into wide matrices ($N /times T$).
+    * **Response Transformation:** Computes the mean response, scales it to $[0,1]$, applies a safety squeeze (to map $[0,1] /to [/epsilon, 1-/epsilon]$), and finally applies the `qlogis` (logit) function.
+    * **Vectorized Normalization:** Computes the scaling factor vector $/mathbf{m} = (m_1, /dots, m_N)^/top$ and applies it row-wise to the functional data matrices.
+    * **Basis Smoothing:** Smooths the discrete points into continuous B-spline functions over the standardized domain $t /in [0,1]$.
+    * **Hybrid Object Construction:** Encapsulates components into the `predictor_hybrid` S3 class: $/mathbf{W} = /left/{ /mathbf{Z}, /left( /tilde{X}^{(1)}, /tilde{X}^{(2)} /right) /right/}$.
+    
+```{r}
+#' Load and Preprocess Kidney Data for FSHybridPLS
+#'
+#' This function processes the raw 'kidney' dataframe into a `predictor_hybrid` object.
+#' It performs:
+#' 1. Extraction of scalar and functional covariates.
+#' 2. Specific medical normalization (scaling by baseline max).
+#' 3. Smoothing of functional curves into B-spline basis objects.
+#' 4. Transformation of Response: Min-Max scaling followed by Logit transformation.
+#' 5. Construction of the hybrid predictor object.
+#'
+#' @param kidney_df The raw dataframe containing kidney data (columns: ID, Study, renogram_value, etc.)
+#' @param n_basis Integer. Number of B-spline basis functions to use for smoothing (default 20).
+#'
+#' @return A list containing:
+#'   /item{W}{A `predictor_hybrid` object containing the predictors.}
+#'   /item{y}{A numeric vector representing the transformed response (logit of min-max scaled mean diagnosis metrics).}
+#' @export
+load_and_preprocess_kidney_data <- function(kidney_df, n_basis = 20) {
+  
+  # --- 1. Data Extraction ---
+  # Split data by ID to ensure order consistency
+  ids <- unique(kidney_df$ID)
+  n_sample <- length(ids)
+  
+  # Helper to extract scalar/response from the first row of each patient's baseline
+  base_data_idx <- which(kidney_df$Study == "Baseline")
+  patient_meta <- kidney_df[base_data_idx, ]
+  patient_meta <- patient_meta[!duplicated(patient_meta$ID), ]
+  
+  # --- Response Extraction & Transformation ---
+  # 1. Raw Mean (Columns 13, 14, 15)
+  y_mat <- as.matrix(patient_meta[, c(13, 14, 15)])
+  y_raw <- rowMeans(y_mat, na.rm = TRUE)
+  
+  # 2. Min-Max Scaling to [0, 1]
+  y_min <- min(y_raw, na.rm = TRUE)
+  y_max <- max(y_raw, na.rm = TRUE)
+  # Prevent division by zero if all y are identical
+  if (y_max == y_min) {
+    warning("Response variable has zero variance. Skipping scaling/logit.")
+    y <- y_raw
   } else {
-    funData::argvals(mFData)
-  }
-
-  res <- calcMFPCA(N = N, p = p, Bchol = Bchol, M = M, type = type, weights = weights,
-                   npc = npc, argvals = mArgvals, uniBasis = uniBasis, fit = fit, approx.eigen = approx.eigen)
-
-  res$meanFunction <- m # return mean function, too
-
-  names(res$functions) <- names(mFData)
-
-  #############modified by jongmin mun
-
-
-  #####################################
-  if(fit)
-  {
-    res$fit <- m + res$fit # add mean function to fits
-    names(res$fit) <- names(mFData)
-  }
-
-  # give correct names
-  namesList <- lapply(mFData, names)
-  if(!all(vapply(namesList, FUN = is.null, FUN.VALUE = TRUE)))
-  {
-    if(length(unique(namesList)) != 1)
-      warning("Elements have different curve names. Use names of the first element for the results.")
-
-    row.names(res$scores) <- namesList[[1]]
-
-    if(fit)
-      for(i in seq_len(p))
-      names(res$fit[[i]]) <- namesList[[1]]
-  }
-
-
-  if(type[1] == "uFPCA"){
-    scores.pred<-calcMFPCA_predict(N = nObs(mFData_predict),
-                                   p = p,
-                                   M = M,
-                                   weights = weights,
-                                   npc = npc,
-                                   uniBasis = uniBasis,
-                                   normFactors = res$normFactors,
-                                   vectors_train=res$vectors,
-                                   values_train=res$values
-    )
-  }
-  res$scores.pred <- scores.pred
-
-  class(res) <- "MFPCAfit"
-  return(res)
-}
-
-```
-
-### fpcaBasis
-
-```{r}
-#' Calculate Functional PCA Basis for Training and Prediction Data
-#'
-#' @description
-#' A wrapper around the PACE (Principal Analysis by Conditional Expectation) algorithm.
-#' It computes FPCA scores and eigenfunctions for the training data and simultaneously
-#' computes projected scores for a prediction dataset.
-#'
-#' @param funDataObject The training functional data object.
-#' @param funDataObject_predict The prediction functional data object.
-#' @param nbasis Number of basis functions to use for smoothing.
-#' @param pve Proportion of Variance Explained.
-#' @param npc Number of Principal Components.
-#' @param makePD Logical. Enforce positive definiteness of covariance.
-#' @param cov.weight.type Weighting scheme for covariance estimation.
-#'
-#' @return A list containing training scores, prediction scores, orthogonality status, functions, and the mean.
-#' @export  
-################# modified by Jongmin Mun #####################
-fpcaBasis <- function(funDataObject, funDataObject_predict, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
-{
-  # Calculate FPCA for training data
-  FPCA <- PACE(funDataObject, predData = NULL, nbasis, pve, npc, makePD, cov.weight.type)
-  # Calculate FPCA scores for prediction data using the training parameters (implicit in PACE call structure)
-  FPCA_pred <- PACE(funDataObject = funDataObject, predData = funDataObject_predict, nbasis, pve, npc, makePD, cov.weight.type)
-
-  return(list(scores = FPCA$scores,
-              scores.pred = FPCA_pred$scores,
-              ortho = TRUE,
-              functions = FPCA$functions,
-              meanFunction = FPCA$mu
-  ))
-}
-
-```
-
-### univDecomp
-
-```{r}
-#' Univariate Decomposition
-#'
-#' @description
-#' Calculates the univariate basis decomposition for each element of a multivariate
-#' functional object.
-#'
-#' \strong{Modification:} Accepts \code{funDataObject_predict} to facilitate
-#' the pass-through of test data to the specific decomposition method (e.g., uFPCA).
-#'
-#' @param type Character string specifying the decomposition method (e.g., "uFPCA").
-#' @param funDataObject The training functional data.
-#' @param funDataObject_predict The prediction functional data.
-#' @param ... Additional arguments passed to the specific decomposition function.
-#'
-#' @return A list containing the basis decomposition results.
-#' @export 
-univDecomp <- function(type, funDataObject, funDataObject_predict, ...)
-{
-  # Parameter checking
-  if(is.null(type))
-    stop("Parameter 'type' is missing.")
-  else
-  {
-    if(!is.character(type))
-      stop("Parameter 'type' must be a character string. See ?univDecomp for details.")
-  }
-
-  if(class(funDataObject) != "funData")
-    stop("Parameter 'funDataObject' must be a funData object.")
-
-
-  # get all arguments (except for function call and type)
-  params <- list(...)
-
-  # check if type and data are of correct type
-  if(is.null(type))
-    stop("univDecomp: must specify 'type'.")
-
-  if(!inherits(type, "character"))
-    stop("univDecomp: 'type' must be of class character.")
-
-  if(is.null(funDataObject))
-    stop("univDecomp: must specify 'funDataObject'.")
-
-  if(class(funDataObject) != "funData")
-    stop("univDecomp: 'funDataObject' must be of class funData.")
-
-  params$funDataObject <- funDataObject # add funDataObject (-> make sure is evaluated in correct env.)
-
-  ############### modified by Jongmin Mun ######################
-  # Add prediction object to parameters if uFPCA is selected
-  if (type == "uFPCA"){params$funDataObject_predict <- funDataObject_predict}
-  ############### modified by Jongmin Mun ######################
-
-  res <- switch(type,
-                "given" = do.call(givenBasis, params),
-                "uFPCA" = do.call(fpcaBasis, params),
-                "UMPCA" = do.call(umpcaBasis, params),
-                "FCP_TPA" = do.call(fcptpaBasis, params),
-                "splines1D" = do.call(splineBasis1D, params),
-                "splines1Dpen" = do.call(splineBasis1Dpen, params),
-                "splines2D" = do.call(splineBasis2D, params),
-                "splines2Dpen" = do.call(splineBasis2Dpen, params),
-                "fda" = do.call(fdaBasis, params),
-                "DCT2D" = do.call(dctBasis2D, params),
-                "DCT3D" = do.call(dctBasis3D, params),
-                stop("Univariate Decomposition for 'type' = ", type, " not defined!")
-  )
-
-  if(res$ortho == FALSE & is.null(res$B))
-    stop("UnivDecomp: must provide integral matrix B for non-orthonormal basis functions.")
-
-  return(res)
-}
-
-```
-
-## Unmodified functions
-
-### calcBasisIntegrals
-
-```{r}
-# define global variable j, used by the foreach package and confusing R CMD CHECK
-#globalVariables('j')
-
-#' Calculate Matrix of Basis Inner Products
-#'
-#' @description
-#' Calculates the Gram matrix (matrix of scalar products) for a given set of basis functions.
-#' If the element \eqn{X^{(j)}} is expanded in basis functions \eqn{b_i^{(j)}(t)},
-#' this function returns the matrix \eqn{B^{(j)}} with entries:
-#' \deqn{B^{(j)}_{mn} = \int_{\mathcal{T}_j} b_m^{(j)}(t) b_n^{(j)}(t) \mathrm{d} t}
-#'
-#' @section Warning:
-#' This function is implemented only for functions on one- or two-dimensional domains.
-#'
-#' @param basisFunctions Array of basis functions of dimensions \code{npc x M1} or \code{npc x M1 x M2}.
-#' @param dimSupp Dimension of the support of the basis functions (1 or 2).
-#' @param argvals List of corresponding x-values (domain points).
-#'
-#' @return A matrix containing the inner products of all combinations of basis functions.
-#' @export 
-calcBasisIntegrals <- function(basisFunctions, dimSupp, argvals)
-{
-  npc <- dim(basisFunctions)[1]
-
-  #  integral basis matrix
-  B <- array(0, dim = c(npc, npc))
-
-
-  if(dimSupp == 1) # one-dimensional domain
-  {
-    w <- funData::.intWeights(argvals[[1]])
-
-    for(m in seq_len(npc))
-    {
-      for(n in seq_len(m))
-        B[m, n] <- B[n, m] <- (basisFunctions[m, ]* basisFunctions[n, ])%*%w
-    }
-  }
-  else # two-dimesional domain (otherwise function stops before!)
-  {
-    w1 <- t(funData::.intWeights(argvals[[1]]))
-    w2 <- funData::.intWeights(argvals[[2]])
-
-    for(m in seq_len(npc))
-    {
-      for(n in seq_len(m))
-        B[m, n] <- B[n, m] <-  w1 %*%(basisFunctions[m, , ]* basisFunctions[n, ,])%*%w2
-    }
-  }
-
-  return(B)
-}
-
-```
-
-### calcMFPCA
-
-```{r}
-#' Internal Calculation of MFPCA
-#'
-#' @description
-#' Implements the core MFPCA algorithm. It combines the univariate scores from
-#' each functional element, applies weights, and performs PCA on the weighted
-#' concatenated scores to extract the multivariate functional principal components.
-#'
-#' @param N Number of observations.
-#' @param p Number of functional elements.
-#' @param Bchol Cholesky decomposition of the basis integral matrix (or NULL if orthogonal).
-#' @param M Number of multivariate components to calculate.
-#' @param type Vector of character strings specifying the univariate expansion types.
-#' @param weights Vector of weights for each functional element.
-#' @param npc Vector containing the number of univariate basis functions for each element.
-#' @param argvals List of argument values.
-#' @param uniBasis List containing the univariate basis decompositions.
-#' @param fit Logical. If TRUE, computes the fitted values (reconstruction).
-#' @param approx.eigen Logical. If TRUE, uses approximate eigen decomposition.
-#'
-#' @return A list containing eigenvalues, eigenfunctions, scores, vectors, and normalization factors.
-#' @export
-calcMFPCA <- function(N, p, Bchol, M, type, weights, npc, argvals, uniBasis, fit = FALSE, approx.eigen = FALSE)
-{
-  # combine all scores
-  allScores <- foreach::foreach(j = seq_len(p), .combine = "cbind")%do%{uniBasis[[j]]$scores}
-
-  # block vector of weights
-  allWeights <- foreach::foreach(j = seq_len(p), .combine = "c")%do%{rep(sqrt(weights[j]), npc[j])}
-
-  Z <- allScores %*% Matrix::Diagonal(x = allWeights) / sqrt(N-1)
-
-  # check if approximation is appropriate (cf. irlba)
-  if(approx.eigen & (M > min(N, sum(npc))/2))
-  {
-    warning("Calculating a large percentage of principal components, approximation may not be appropriate.
-            'approx.eigen' set to FALSE.")
-    approx.eigen = FALSE
-  }
-
-  # check if non-orthonormal basis functions used and calculate PCA on scores
-  if(is.null(Bchol))
-  {
-    if(approx.eigen)
-    {
-      tmpSVD <- irlba::irlba(as.matrix(Z), nv = M)
-
-      vectors <- tmpSVD$v
-      values <- tmpSVD$d[seq_len(M)]^2
-    }
-    else
-    {
-      if(sum(npc) > 1000)
-        warning("MFPCA with > 1000 univariate eigenfunctions and approx.eigen = FALSE. This may take some time...")
-
-      e <- eigen(stats::cov(allScores) * outer(allWeights, allWeights, "*"))
-
-      values <- e$values[seq_len(M)]
-      vectors <- e$vectors[,seq_len(M)]
-    }
-  }
-  else
-  {
-    if(approx.eigen)
-    {
-      tmpSVD <- irlba::irlba(as.matrix(Matrix::tcrossprod(Z, Bchol)), nv = M)
-
-      vectors <- Matrix::crossprod(Bchol, tmpSVD$v)
-      values <- tmpSVD$d[seq_len(M)]^2
-    }
-    else
-    {
-      if(sum(npc) > 1000)
-        warning("MFPCA with > 1000 univariate eigenfunctions and approx.eigen = FALSE. This may take some time...")
-
-      e <- eigen(Matrix::crossprod(Bchol) %*% (stats::cov(allScores) * outer(allWeights, allWeights, "*")))
-
-      values <- Re(e$values[seq_len(M)])
-      vectors <- Re(e$vectors[,seq_len(M)])
-    }
-  }
-
-  # normalization factors
-  normFactors <- 1/sqrt(diag(as.matrix(Matrix::crossprod(Z %*% vectors))))
-
-  ### Calculate scores
-  scores <- Z %*% vectors * sqrt(N-1) # see defintion of Z above!
-  scores <- as.matrix(scores %*% diag(sqrt(values) * normFactors, nrow = M, ncol = M)) # normalization
-
-  ### Calculate eigenfunctions (incl. normalization)
-  npcCum <- cumsum(c(0, npc)) # indices for blocks (-1)
-
-  tmpWeights <- as.matrix(Matrix::crossprod(Z, Z %*%vectors))
-  eFunctions <- foreach::foreach(j = seq_len(p)) %do% {
-    univExpansion(type = type[j],
-                  scores = 1/sqrt(weights[j] * values) * normFactors * t(tmpWeights[npcCum[j]+seq_len(npc[j]), , drop = FALSE]),
-                  argvals = argvals[[j]],
-                  functions = uniBasis[[j]]$functions,
-                  params = uniBasis[[j]]$settings)
-  }
-
-  res <- list(values = values,
-              functions = multiFunData(eFunctions),
-              scores = scores,
-              vectors = vectors,
-              values = values,
-              normFactors = normFactors,
-              uniBasis = uniBasis,
-              uniExpansions = uniExpansions
-  )
-
-  # calculate truncated Karhunen-Loeve representation (no mean here)
-  if(fit)
-    res$fit <- multivExpansion(multiFuns = res$functions, scores = scores)
-
-  return(res)
-}
-
-```
-
-### calcMFPCA_predict
-
-```{r}
-#' Prediction of MFPCA Scores
-#'
-#' @description
-#' Calculates Multivariate Functional PCA scores for new (prediction) data based on
-#' the eigenvectors and normalization factors derived from the training data.
-#'
-#' @param N Number of observations in the prediction set.
-#' @param p Number of functional elements.
-#' @param M Number of multivariate components.
-#' @param weights Weights for each functional element.
-#' @param npc Vector containing the number of univariate basis functions.
-#' @param uniBasis List containing univariate basis decompositions for the prediction data.
-#' @param normFactors Normalization factors derived from training.
-#' @param vectors_train Eigenvectors derived from training.
-#' @param values_train Eigenvalues derived from training.
-#'
-#' @return A matrix of MFPCA scores for the prediction data.
-#' @export
-calcMFPCA_predict <- function(N, p, M, weights, npc, uniBasis,
-                              normFactors_train, vectors_train, values_train)
-{
-  # combine all scores
-  allScores <- foreach::foreach(j = seq_len(p), .combine = "cbind")%do%{uniBasis[[j]]$scores.pred}
-
-  # block vector of weights
-  allWeights <- foreach::foreach(j = seq_len(p), .combine = "c")%do%{rep(sqrt(weights[j]), npc[j])}
-
-  Z <- allScores %*% Matrix::Diagonal(x = allWeights) / sqrt(N-1)
-
-
-  ### Calculate scores
-  # Project the prediction Z matrix onto the training eigenvectors
-  scores <- Z %*% vectors_train * sqrt(N-1) # see defintion of Z above!
-  scores <- as.matrix(scores %*% diag(sqrt(values_train) * normFactors_train, nrow = M, ncol = M)) # normalization
-
-  return(scores)
-}
-
-```
-
-### .PACE
-
-```{r}
-#' Principal Analysis by Conditional Expectation (Internal)
-#'
-#' @description
-#' Implements the PACE method (Yao et al., 2005) for univariate Functional Principal
-#' Component Analysis. This handles sparse or irregular functional data by smoothing
-#' covariance surfaces.
-#'
-#' @param X Argument values (domain).
-#' @param Y Matrix of functional data (observations).
-#' @param Y.pred Matrix of functional data for prediction (optional).
-#' @param nbasis Number of basis functions for smoothing.
-#' @param pve Proportion of variance explained.
-#' @param npc Number of principal components.
-#' @param makePD Logical. Enforce positive definiteness.
-#' @param cov.weight.type Weighting type for covariance smoothing.
-#'
-#' @return A list containing fitted components (mu, values, efunctions, scores, etc.).
-#' @export 
-.PACE <- function(X, Y, Y.pred = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
-{
-  if (is.null(Y.pred))
-    Y.pred = Y
-  D = NCOL(Y)
-  if(D != length(X)) # check if number of observation points in X & Y are identical
-    stop("different number of (potential) observation points differs in X and Y!")
-  I = NROW(Y)
-  I.pred = NROW(Y.pred)
-  d.vec = rep(X, each = I) # use given X-values for estimation of mu
-  gam0 = mgcv::gam(as.vector(Y) ~ s(d.vec, k = nbasis))
-  mu = mgcv::predict.gam(gam0, newdata = data.frame(d.vec = X))
-  Y.tilde = Y - matrix(mu, I, D, byrow = TRUE)
-  cov.sum = cov.count = cov.mean = matrix(0, D, D)
-  for (i in seq_len(I)) {
-    obs.points = which(!is.na(Y[i, ]))
-    cov.count[obs.points, obs.points] = cov.count[obs.points, obs.points] + 1
-    cov.sum[obs.points, obs.points] = cov.sum[obs.points, obs.points] + tcrossprod(Y.tilde[i, obs.points])
-  }
-  G.0 = ifelse(cov.count == 0, NA, cov.sum/cov.count)
-  diag.G0 = diag(G.0)
-  diag(G.0) = NA
-  row.vec = rep(X, each = D) # use given X-values
-  col.vec = rep(X, D) # use given X-values
-  cov.weights <- switch(cov.weight.type,
-                        none = rep(1, D^2),
-                        counts = as.vector(cov.count),
-                        stop("cov.weight.type ", cov.weight.type, " unknown in smooth covariance estimation"))
-
-  npc.0 = matrix(mgcv::predict.gam(mgcv::gam(as.vector(G.0)~te(row.vec, col.vec, k = nbasis), weights = cov.weights),
-                                   newdata = data.frame(row.vec = row.vec, col.vec = col.vec)), D, D)
-  npc.0 = (npc.0 + t(npc.0))/2
-  # no extra-option (useSymm) as in fpca.sc-method
-  if (makePD) { # see fpca.sc
-    npc.0 <- {
-      tmp <- Matrix::nearPD(npc.0, corr = FALSE, keepDiag = FALSE,
-                            do2eigen = TRUE, trace = options()$verbose)
-      as.matrix(tmp$mat)
-    }
-  }
-
-  ### numerical integration for calculation of eigenvalues (see Ramsay & Silverman, Chapter 8)
-  w <- funData::.intWeights(X, method = "trapezoidal")
-  Wsqrt <- diag(sqrt(w))
-  Winvsqrt <- diag(1/(sqrt(w)))
-  V <- Wsqrt %*% npc.0 %*% Wsqrt
-  evalues = eigen(V, symmetric = TRUE, only.values = TRUE)$values
-  ###
-  evalues = replace(evalues, which(evalues <= 0), 0)
-  npc = ifelse(is.null(npc), min(which(cumsum(evalues)/sum(evalues) > pve)), npc)
-  efunctions = matrix(Winvsqrt%*%eigen(V, symmetric = TRUE)$vectors[, seq(len = npc)], nrow = D, ncol = npc)
-  evalues = eigen(V, symmetric = TRUE, only.values = TRUE)$values[seq_len(npc)]  # use correct matrix for eigenvalue problem
-  cov.hat = efunctions %*% tcrossprod(diag(evalues, nrow = npc, ncol = npc), efunctions)
-  ### numerical integration for estimation of sigma2
-  T.len <- X[D] - X[1] # total interval length
-  T1.min <- min(which(X >= X[1] + 0.25*T.len)) # left bound of narrower interval T1
-  T1.max <- max(which(X <= X[D] - 0.25*T.len)) # right bound of narrower interval T1
-  DIAG = (diag.G0 - diag(cov.hat))[T1.min :T1.max] # function values
-  # weights
-  w <- funData::.intWeights(X[T1.min:T1.max], method = "trapezoidal")
-  sigma2 <- max(1/(X[T1.max]-X[T1.min]) * sum(DIAG*w, na.rm = TRUE), 0) #max(1/T.len * sum(DIAG*w), 0)
-  ####
-  D.inv = diag(1/evalues, nrow = npc, ncol = npc)
-  Z = efunctions
-  Y.tilde = Y.pred - matrix(mu, I.pred, D, byrow = TRUE)
-  fit = matrix(0, nrow = I.pred, ncol = D)
-  scores = matrix(NA, nrow = I.pred, ncol = npc)
-  # no calculation of confidence bands, no variance matrix
-  for (i.subj in seq_len(I.pred)) {
-    obs.points = which(!is.na(Y.pred[i.subj, ]))
-    if (sigma2 == 0 & length(obs.points) < npc) {
-      stop("Measurement error estimated to be zero and there are fewer observed points than PCs; scores cannot be estimated.")
-    }
-    Zcur = matrix(Z[obs.points, ], nrow = length(obs.points),
-                  ncol = dim(Z)[2])
-    ZtZ_sD.inv = solve(crossprod(Zcur) + sigma2 * D.inv)
-    scores[i.subj, ] = ZtZ_sD.inv %*% crossprod(Zcur, Y.tilde[i.subj, obs.points])
-    fit[i.subj, ] = t(as.matrix(mu)) + tcrossprod(scores[i.subj, ], efunctions)
-  }
-  ret.objects = c("fit", "scores", "mu", "efunctions", "evalues",
-                  "npc", "sigma2") # add sigma2 to output
-  ret = lapply(seq_len(length(ret.objects)), function(u) get(ret.objects[u]))
-  names(ret) = ret.objects
-  ret$estVar <- diag(cov.hat)
-  return(ret)
-}
-
-```
-
-### PACE (Wrapper)
-
-```{r}
-#' PACE Wrapper for funData Objects
-#'
-#' @description
-#' A wrapper function that applies the PACE algorithm (via \code{.PACE}) to
-#' \code{funData} or \code{irregFunData} objects.
-#'
-#' @param funDataObject Training functional data object.
-#' @param predData Prediction functional data object (optional).
-#' @param nbasis Number of basis functions.
-#' @param pve Proportion of variance explained.
-#' @param npc Number of principal components.
-#' @param makePD Logical. Enforce positive definiteness.
-#' @param cov.weight.type Weighting type.
-#'
-#' @return A list containing the FPCA results formatted as \code{funData} objects.
-#' @export 
-PACE <- function(funDataObject, predData = NULL, nbasis = 10, pve = 0.99, npc = NULL, makePD = FALSE, cov.weight.type = "none")
-{
-  # check inputs
-  if(! class(funDataObject) %in% c("funData", "irregFunData"))
-    stop("Parameter 'funDataObject' must be a funData or irregFunData object.")
-  if(dimSupp(funDataObject) != 1)
-    stop("PACE: Implemented only for funData objects with one-dimensional support.")
-  if(methods::is(funDataObject, "irregFunData")) # for irregular functional data, use funData representation
-    funDataObject <- as.funData(funDataObject)
-
-  if(is.null(predData))
-    Y.pred = NULL # use only funDataObject
-  else
-  {
-    if(!isTRUE(all.equal(funDataObject@argvals, predData@argvals)))
-      stop("PACE: funDataObject and predData must be defined on the same domains!")
-
-    Y.pred = predData@X
-  }
-
-
-  if(!all(is.numeric(nbasis), length(nbasis) == 1, nbasis > 0))
-    stop("Parameter 'nbasis' must be passed as a number > 0.")
-
-  if(!all(is.numeric(pve), length(pve) == 1, 0 <= pve, pve <= 1))
-    stop("Parameter 'pve' must be passed as a number between 0 and 1.")
-
-  if(!is.null(npc) & !all(is.numeric(npc), length(npc) == 1, npc > 0))
-    stop("Parameter 'npc' must be either NULL or passed as a number > 0.")
-
-  if(!is.logical(makePD))
-    stop("Parameter 'makePD' must be passed as a logical.")
-
-  if(!is.character(cov.weight.type))
-    stop("Parameter 'cov.weight.type' must be passed as a character.")
-
-
-  res <- .PACE(X = funDataObject@argvals[[1]],
-               Y = funDataObject@X,
-               Y.pred = Y.pred,
-               nbasis = nbasis, pve = pve, npc = npc, makePD = makePD,
-               cov.weight.type = cov.weight.type)
-
-  return(list(mu = funData(funDataObject@argvals, matrix(res$mu, nrow = 1)),
-              values = res$evalues,
-              functions = funData(funDataObject@argvals, t(res$efunctions)),
-              scores = res$scores,
-              scores.pred = res$scores.pred,
-              fit = funData(funDataObject@argvals, res$fit),
-              npc = res$npc,
-              sigma2 = res$sigma2,
-              estVar = funData(funDataObject@argvals, matrix(res$estVar, nrow = 1))
-  ))
-}
-
-```
-
-### expandBasisFunction
-
-```{r}
-#' Reconstruct Functions from Scores and Basis
-#'
-#' @description
-#' Calculates the linear combination of basis functions based on provided scores.
-#' Used to reconstruct the approximated functions.
-#'
-#' @param scores Matrix of scores (coefficients).
-#' @param argvals Argument values (domain).
-#' @param functions Basis functions.
-#'
-#' @return A \code{funData} object containing the reconstructed functions.
-#' @export 
-expandBasisFunction <- function(scores, argvals = functions@argvals, functions)
-{
-  if(dim(scores)[2] != nObs(functions))
-    stop("expandBasisFunction: number of scores for each observation and number of eigenfunctions does not match.")
-
-  # collapse higher-dimensional functions, multiply with scores and resize the result
-  d <- dim(functions@X)
-  nd <- length(d)
-
-  if(nd == 2)
-    resX <- scores %*% functions@X
-
-  if(nd == 3)
-  {
-    resX <- array(NA, dim = c(dim(scores)[1], d[-1]))
-
-    for(i in seq_len(d[2]))
-      resX[,i,] <- scores %*% functions@X[,i,]
-  }
-
-  if(nd == 4)
-  {
-    resX <- array(NA, dim = c(dim(scores)[1], d[-1]))
-
-    for(i in seq_len(d[2]))
-      for(j in seq_len(d[3]))
-        resX[,i,j,] <- scores %*% functions@X[,i,j,]
-  }
-
-  if(nd > 4) # slow solution due to aperm
-  {
-    resX <- aperm(plyr::aaply(.data = functions@X, .margins = 3:nd,
-                              .fun = function(x,y){y %*% x}, y = scores),
-                  c(nd-1,nd, seq_len((nd-2))))
-    dimnames(resX) <- NULL
-  }
-
-  return( funData(argvals, resX) )
-}
-
-```
-
-### univExpansion
-
-```{r}
-#' Calculate Univariate Basis Expansion
-#'
-#' @description
-#' Wrapper function that calls specific basis reconstruction methods (e.g., splines,
-#' FPCA) to reconstruct functions from scores.
-#'
-#' @param type Decomposition type (e.g., "uFPCA", "splines1D").
-#' @param scores Matrix of scores.
-#' @param argvals Argument values.
-#' @param functions Basis functions.
-#' @param params Additional parameters.
-#'
-#' @return A \code{funData} object.
-#' @export 
-univExpansion <- function(type, scores, argvals = ifelse(!is.null(functions), functions@argvals, NULL), functions, params = NULL)
-{
-  # Parameter checking
-  if(is.null(type))
-    stop("Parameter 'type' is missing.")
-  else
-  {
-    if(!is.character(type))
-      stop("Parameter 'type' must be a character string. See ?univExpansion for details.")
-  }
-
-  if(is.null(scores))
-    stop("Parameter 'scores' is missing.")
-  else
-  {
-    if(!is.matrix(scores))
-      stop("Parameter 'scores' must be passed as a matrix.")
-  }
-
-  if(is.numeric(argvals))
-  {
-    argvals <- list(argvals)
-    warning("Parameter 'argvals' was passed as a vector and transformed to a list.")
-  }
-
-  if(is.null(functions))
-  {
-    if(is.null(argvals))
-      stop("Must pass 'argvals' if 'functions' is NULL.")
-    else
-    {
-      if(!is.list(argvals))
-        stop("Parameter 'argvals' must be passed as a list.")
-    }
-  }
-  else
-  {
-    if(class(functions) != "funData")
-      stop("Parameter 'functions' must be a funData object.")
-
-    # check interaction with other parameters
-    if(nObs(functions) != NCOL(scores))
-      stop("Number of scores per curve does not match the number of basis functions.")
-
-    if(!is.null(argvals) & !isTRUE(all.equal(argvals, functions@argvals)))
-      stop("The parameter 'argvals' does not match the argument values of 'functions'.")
-  }
-
-  if(!is.null(params) & !is.list(params))
-    stop("The parameter 'params' must be passed as a list.")
-
-  # start calculations
-  params$scores <- scores
-  params$functions <- functions
-
-  if(is.numeric(argvals))
-    argvals <- list(argvals)
-
-  params$argvals <- argvals
-
-  res <- switch(type,
-                "given" = do.call(expandBasisFunction, params),
-                "uFPCA" = do.call(expandBasisFunction, params),
-                "UMPCA" = do.call(expandBasisFunction, params),
-                "FCP_TPA" = do.call(expandBasisFunction, params),
-                "splines1D" = do.call(splineFunction1D, params),
-                "splines1Dpen" = do.call(splineFunction1D, params),
-                "splines2D" = do.call(splineFunction2D, params),
-                "splines2Dpen" = do.call(splineFunction2Dpen, params),
-                "fda" = do.call(expandBasisFunction, params),
-                "DCT2D" = do.call(dctFunction2D, params),
-                "DCT3D" = do.call(dctFunction3D, params),
-                "default" = do.call(expandBasisFunction, params),
-                stop("Univariate Expansion for 'type' = ", type, " not defined!")
-  )
-
-  return(res)
-}
-
-```
-
-## FPCA+PCA regression
-
-### fit.mfpca_regression
-
-**Description:**
-This function implements an end-to-end regression pipeline using Multivariate Functional Principal Component Analysis (MFPCA) for functional predictors and standard Principal Component Analysis (PCA) for scalar predictors.
-
-The workflow proceeds as follows:
-
-1. **Preprocessing:** Splits the data into training and testing sets and applies two-step normalization (within-modality and between-modality balancing).
-2. **Dimension Reduction:**
-* **Functional:** Applies MFPCA to the functional components to extract functional principal component (FPC) scores. It uses the modified `MFPCA` function to simultaneously compute scores for the test set.
-* **Scalar:** Applies standard PCA to the scalar components () to extract scalar principal component (SPC) scores.
-
-
-3. **Model Selection:** Iteratively fits linear regression models using an increasing number of components ().
-4. **Validation:** Selects the optimal model complexity () that minimizes the Root Mean Squared Error (RMSE) on the test set.
-
-**Usage:**
-
-```r
-fit.mfpca_regression(W, y, train_ratio = 0.7, n_pc_max = 10)
-
-```
-
-**Arguments:**
-
-- `W`: A `predictor_hybrid` object containing all functional and scalar predictors.
-- `y`: A numeric vector representing the response variable.
-- `train_ratio`: Numeric (0-1). The proportion of data used for training (default 0.7).
-- `n_pc_max`: Integer. The maximum number of principal components to evaluate.
-
-**Value:**
-
-- A list containing the optimal number of components, the best test RMSE, the final linear model, and the sequence of RMSE values.
-
-```{r fit.mfpca_regression}
-#' End-to-End MFPCA Regression Pipeline
-#'
-#' Performs sample splitting, normalization, and dimension reduction via MFPCA (functional)
-#' and PCA (scalar). Selects the optimal number of components by minimizing test set RMSE.
-#'
-#' @param W A `predictor_hybrid` object containing all predictors.
-#' @param y Vector. Response variable.
-#' @param train_ratio Numeric scalar between 0 and 1 for splitting data (default 0.7).
-#' @param n_pc_max Integer. Max number of FPCs/PCs to consider (must be <= min(nbasis, n_scalar)).
-#'
-#' @return List containing the best model fit, optimal component count, and a list of all test RMSEs.
-#' @export
-fit.mfpca_regression <- function(W, y, train_ratio = 0.7, n_pc_max = 10) {
-
-  # --- 1. Input Validation and Setup ---
-  if (!inherits(W, "predictor_hybrid")) {
-    stop("'W' must be a predictor_hybrid object.")
-  }
-
-  eval_point <- W$eval_point
-  # Check basis size from the first functional predictor (assuming same basis for all)
-  n_basis <- W$n_basis_list[[1]]
-  n_scalar <- W$n_scalar
-
-  # Safety check: Ensure n_pc_max does not exceed available dimensions
-  # We need at least n_pc_max basis functions and n_pc_max scalar variables
-  max_comp_safe <- min(n_pc_max, n_basis, n_scalar)
-  if (n_pc_max > max_comp_safe) {
-    warning(paste("n_pc_max adjusted from", n_pc_max, "to", max_comp_safe,
-                  "due to dimensionality constraints (nbasis or n_scalar)."))
-    n_pc_max <- max_comp_safe
-  }
-  if (n_pc_max < 1) stop("n_pc_max must be at least 1.")
-
-  # Define univariate expansion parameters for MFPCA
-  # We construct a list of settings for each functional predictor
-  uniExpansions <- lapply(seq_len(W$n_functional), function(x) {
-    list(type = "uFPCA", nbasis = n_basis, npc = n_pc_max)
-  })
-
-  # --- 2. Split and Normalize Data ---
-  # Uses the split_and_normalize.all function defined previously
-  processed_data <- split_and_normalize.all(W, y, train_ratio)
-
-  # Extract processed components
-  W_train <- processed_data$predictor_train
-  W_test  <- processed_data$predictor_test
-  y_train <- processed_data$response_train
-  y_test  <- processed_data$response_test
-
-  # --- 3. Format Functional Data for MFPCA ---
-  # Convert 'fd' objects to 'funData' objects required by the MFPCA package
-  # We use lapply to handle any number of functional predictors
-  funData_train_list <- lapply(W_train$functional_list, function(fd_obj) {
-    funData::fd2funData(fd_obj, eval_point)
-  })
-  funData_test_list <- lapply(W_test$functional_list, function(fd_obj) {
-    funData::fd2funData(fd_obj, eval_point)
-  })
-
-  # Create multiFunData objects
-  mFData_train <- funData::multiFunData(funData_train_list)
-  mFData_test  <- funData::multiFunData(funData_test_list)
-
-  # --- 4. Dimension Reduction ---
-
-  # A. Functional Part: MFPCA
-  # Compute max components (n_pc_max) once, then subset later
-  MFPCA_fit <- MFPCA(mFData = mFData_train,
-                     mFData_predict = mFData_test,
-                     M = n_pc_max,
-                     uniExpansions = uniExpansions)
-
-  # Extract scores
-  scores_fun_train <- MFPCA_fit$scores
-  scores_fun_test  <- MFPCA_fit$scores.pred
-
-  # B. Scalar Part: Standard PCA
-  # Using prcomp on the normalized scalar matrix Z
-  PCA_fit <- prcomp(W_train$Z, center = FALSE, scale. = FALSE)
-
-  # Extract scores (first n_pc_max components)
-  # Note: predicting on test set projects Z_test onto training rotation
-  scores_scalar_train <- PCA_fit$x[, 1:n_pc_max, drop = FALSE]
-  scores_scalar_test  <- predict(PCA_fit, newdata = W_test$Z)[, 1:n_pc_max, drop = FALSE]
-
-  # --- 5. Model Selection (CV Loop) ---
-  linear_fit_list <- list()
-  test_rmse_list  <- numeric(n_pc_max)
-
-  for (k in 1:n_pc_max) {
-    # a. Subset scores for current complexity k
-    X_train <- data.frame(
-      scores_fun_train[, 1:k, drop = FALSE],
-      scores_scalar_train[, 1:k, drop = FALSE]
-    )
-    X_test <- data.frame(
-      scores_fun_test[, 1:k, drop = FALSE],
-      scores_scalar_test[, 1:k, drop = FALSE]
-    )
-
-    # Set consistent column names to ensure predict() works correctly
-    col_names <- c(paste0("FPC", 1:k), paste0("SPC", 1:k))
-    colnames(X_train) <- col_names
-    colnames(X_test)  <- col_names
-
-    # Add response for training
-    train_df <- cbind(response = y_train, X_train)
-
-    # b. Fit Linear Model
-    linear_fit_list[[k]] <- lm(response ~ ., data = train_df)
-
-    # c. Prediction & Evaluation
-    y_pred <- predict(linear_fit_list[[k]], newdata = X_test)
-    test_rmse_list[k] <- sqrt(mean((y_test - y_pred)^2))
-  }
-
-  # --- 6. Final Results ---
-  best_idx <- which.min(test_rmse_list)
-
-  return(list(
-    n_pc_best = best_idx,
-    best_test_rmse = test_rmse_list[best_idx],
-    test_rmse_by_n_pc = test_rmse_list,
-    final_model = linear_fit_list[[best_idx]],
-    all_models = linear_fit_list,
-    # Return normalization stats to allow back-transformation of predictions if needed
-    normalization_details = processed_data$details
-  ))
-}
-```
- 
-
-# PFR
-
-Here is the `PFRModel` class code, preserving your specific structure (`eval(parse(...))`, string concatenation for formulas, and `presmooth = "fpca.sc"`) while cleaning up the descriptions and ensuring correct integration with the previously defined `split_and_normalize.all` function.
-
-### PFRModel
-
-**Description:**
-An R6 class wrapper for `refund::pfr`. It handles data preparation, model fitting via dynamic formula construction, and error evaluation. It specifically uses the `fpca.sc` presmoothing option within the linear functional terms (`lf`).
-
-**Usage:**
-
-```r
-pfr_handler <- PFRModel$new(W, y, n_eval, train_ratio)
-pfr_handler$fit(option = "all")
-errors <- pfr_handler$computeError()
-
-```
-
-```{r}
-#' @title PFR Model Handler
-#' @description R6 class to prepare data, fit, and evaluate a Penalized Functional Regression (PFR) model.
-#'
-#' @importFrom R6 R6Class
-#' @importFrom refund pfr
-#' @export
-PFRModel <- R6::R6Class(
-  "PFRModel",
-
-  public = list(
-    # --- Public Fields ---
-    trainData = NULL,
-    testData = NULL,
-    model = NULL,
-    n_scalar_predictor = NULL,
-    n_basis = NULL,
-    eval_point = NULL,
+    y_scaled <- (y_raw - y_min) / (y_max - y_min)
     
-    # Prediction storage
-    y_train_pred = NULL,
-    y_test_pred = NULL,
+    # 3. Safety Squeeze (avoid Inf/-Inf at boundaries)
+    # Maps [0, 1] -> [epsilon, 1-epsilon]
+    epsilon <- 1e-5
+    y_safe <- y_scaled * (1 - 2 * epsilon) + epsilon
     
-    # Normalization factors for error reporting (optional usage)
-    response_range_train = 1, # Default to 1 (standardized data usually implies scale ~1)
-    response_range_test = 1,
-
-    #' @title Initialize PFR Model
-    #' @description Constructs the instance, splits/normalizes data, and formats it for `refund::pfr`.
-    #'
-    #' @param W A `predictor_hybrid` object containing all predictors.
-    #' @param y Vector. Response variable.
-    #' @param n_eval Integer. Number of evaluation points for functional predictors.
-    #' @param train_ratio Numeric. Split ratio for training data.
-    initialize = function(W, y, n_eval, train_ratio) {
-      
-      # 1. Run Preprocessing Pipeline (Split & Normalize)
-      # Assumes `split_and_normalize.all` is available in the environment
-      processed <- split_and_normalize.all(W, y, train_ratio)
-      
-      # 2. Set Metadata
-      self$n_scalar_predictor <- W$n_scalar
-      # Assume all functional predictors share the same basis size
-      self$n_basis <- W$n_basis_list[1]
-      self$eval_point <- W$eval_point # Use the points from the object directly
-      
-      # If n_eval is different from W$eval_point length, you might need interpolation.
-      # Here we assume W$eval_point is sufficient, but if you strictly need a new grid:
-      # eval_min <- min(W$eval_point)
-      # eval_max <- max(W$eval_point)
-      # self$eval_point <- seq(eval_min, eval_max, length.out = n_eval)
-
-      # 3. Prepare Training Data
-      # PFR works best with lists or data frames. We use a list to allow matrix columns easily.
-      self$trainData <- list()
-      
-      # Add Scalar Predictors (X1, X2, ...)
-      # We extract columns from Z and name them explicitly
-      for(i in 1:self$n_scalar_predictor) {
-        self$trainData[[paste0("X", i)]] <- processed$predictor_train$Z[, i]
-      }
-      
-      self$trainData$response <- processed$response_train
-      
-      # Add Functional Predictors (F1, F2) converted to dense matrices (Sample x Time)
-      # Transpose is needed because eval.fd returns (Time x Sample)
-      self$trainData$F1 <- t(fda::eval.fd(self$eval_point, processed$predictor_train$functional_list[[1]]))
-      self$trainData$F2 <- t(fda::eval.fd(self$eval_point, processed$predictor_train$functional_list[[2]]))
-      
-      # 4. Prepare Test Data
-      self$testData <- list()
-      for(i in 1:self$n_scalar_predictor) {
-        self$testData[[paste0("X", i)]] <- processed$predictor_test$Z[, i]
-      }
-      self$testData$response <- processed$response_test
-      self$testData$F1 <- t(fda::eval.fd(self$eval_point, processed$predictor_test$functional_list[[1]]))
-      self$testData$F2 <- t(fda::eval.fd(self$eval_point, processed$predictor_test$functional_list[[2]]))
-      
-      # Store response ranges if needed for normalized error calculation
-      # Since data is already standardized, ranges might be small.
-      self$response_range_train <- diff(range(self$trainData$response))
-      self$response_range_test  <- diff(range(self$testData$response))
-    },
-
-    #' @title Generate PFR Model Formula
-    #' @description Constructs the formula string dynamically based on the selected option.
-    #' Uses `presmooth = 'fpca.sc'` for functional terms.
-    #'
-    #' @param option Character. "all", "functional_only", or "scalar_only".
-    #' @return A character string representing the PFR call.
-    get_model_string = function(option = "all") {
-      
-      # Validate option
-      if (!option %in% c("all", "functional_only", "scalar_only")) {
-        stop("Error: 'option' must be one of 'all', 'functional_only', or 'scalar_only'.")
-      }
-
-      # 1. Build Scalar Predictor String
-      scalar_part <- ""
-      if (option != "functional_only") {
-        # "X1 + X2 + ... + Xp"
-        scalar_part <- paste0(paste0("X", 1:self$n_scalar_predictor), collapse = " + ")
-        # Add leading " + " if needed later
-        if (option == "all") scalar_part <- paste0(" + ", scalar_part)
-      }
-
-      # 2. Build Functional Predictor String
-      functional_part <- ""
-      if (option != "scalar_only") {
-        # Note: self$eval_point is injected directly via string interpolation requires it to be available in scope
-        # Or we rely on the data object. 'lf' usually needs 'argvals' passed explicitly if not in data.
-        # Since we use eval(parse()), we reference 'self$eval_point'.
-        
-        term_f1 <- paste0(
-          "lf(F1, argvals = self$eval_point, presmooth = 'fpca.sc', presmooth.opts = list(nbasis = ", 
-          self$n_basis, "))"
-        )
-        term_f2 <- paste0(
-          "lf(F2, argvals = self$eval_point, presmooth = 'fpca.sc', presmooth.opts = list(nbasis = ", 
-          self$n_basis, "))"
-        )
-        functional_part <- paste(term_f1, term_f2, sep = " + ")
-      }
-
-      # 3. Combine into Full Formula
-      # Result: "pfr(response ~ lf(...) + lf(...) + X1 + ..., data = self$trainData)"
-      full_formula <- paste0("refund::pfr(response ~ ", functional_part, scalar_part, ", data = self$trainData)")
-      
-      return(full_formula)
-    },
-
-    #' @title Fit PFR Model
-    #' @description Evaluates the formula string to fit the model.
-    #' @param option Character. Model configuration option.
-    fit = function(option = "all") {
-      # Get the command string
-      cmd <- self$get_model_string(option)
-      
-      # Execute the command in the current environment
-      self$model <- eval(parse(text = cmd))
-    },
-
-    #' @title Compute Prediction Error
-    #' @description Predicts on training and testing sets and computes normalized RMSE.
-    #' @return A list with `train_error` and `test_error`.
-    computeError = function() {
-      if (is.null(self$model)) stop("Model not fitted. Run fit() first.")
-
-      # Predict
-      self$y_train_pred <- predict(self$model, newdata = self$trainData)
-      self$y_test_pred  <- predict(self$model, newdata = self$testData)
-
-      # Compute RMSE (Normalized by range, as per original code)
-      # Note: Ensure ranges are non-zero to avoid division by zero
-      r_train <- if(self$response_range_train > 0) self$response_range_train else 1
-      r_test  <- if(self$response_range_test > 0)  self$response_range_test  else 1
-
-      train_rmse <- sqrt(mean((self$trainData$response - self$y_train_pred)^2)) / r_train
-      test_rmse  <- sqrt(mean((self$testData$response - self$y_test_pred)^2))  / r_test
-
-      return(list(train_error = train_rmse, test_error = test_rmse))
-    }
+    # 4. Logit Transformation: log(p / (1-p))
+    #y <- qlogis(y_safe)
+    y <- y_scaled
+    # <- y_raw
+  }
+  
+  # --- Scalar Predictors (Z) ---
+  # Columns: 12 (Age) + 16:29
+  Z <- as.matrix(patient_meta[, c(12, 16:29)])
+  colnames(Z) <- c("Age", colnames(patient_meta)[16:29])
+  
+  # --- Functional Data Extraction ---
+  # Filter and sort
+  df_base <- kidney_df[kidney_df$Study == "Baseline", ]
+  df_post <- kidney_df[kidney_df$Study != "Baseline", ]
+  
+  # Reshape to (ID x Time) matrices
+  reno_base_mat <- matrix(df_base$renogram_value, nrow = n_sample, byrow = TRUE)
+  reno_post_mat <- matrix(df_post$renogram_value, nrow = n_sample, byrow = TRUE)
+  
+  # --- 2. Medical Preprocessing (Normalization) ---
+  # Calculate max of baseline for each patient
+  max_base <- apply(reno_base_mat, 1, max)
+  max_base[max_base == 0] <- 1 
+  
+  # Scale matrices
+  reno_base_norm <- reno_base_mat / max_base
+  reno_post_norm <- reno_post_mat / max_base
+  
+  # --- 3. Smoothing (Convert to fd objects) ---
+  # Define time grids normalized to [0,1]
+  t_base <- seq(0, 1, length.out = ncol(reno_base_norm))
+  t_post <- seq(0, 1, length.out = ncol(reno_post_norm))
+  
+  # Create Basis (B-spline)
+  basis_base <- create.bspline.basis(rangeval = c(0, 1), nbasis = n_basis)
+  basis_post <- create.bspline.basis(rangeval = c(0, 1), nbasis = n_basis)
+  
+  # Smooth (Transpose: Time x Samples)
+  fd_base <- Data2fd(t_base, t(reno_base_norm), basis_base)
+  fd_post <- Data2fd(t_post, t(reno_post_norm), basis_post)
+  
+  # Assign Names
+  fd_base$fdnames <- list("Time", "Patient", "Baseline Renogram")
+  fd_post$fdnames <- list("Time", "Patient", "Post-Furosemide Renogram")
+  
+  # --- 4. Construct Hybrid Predictor ---
+  common_eval <- seq(0, 1, length.out = 100)
+  
+  W <- predictor_hybrid(
+    Z = Z,
+    functional_list = list(fd_base, fd_post),
+    eval_point = common_eval
   )
-)
+  
+  return(list(W = W, y = y))
+}
 ```
 
  
 
+ 
 
 ## Documenting the package and building
 

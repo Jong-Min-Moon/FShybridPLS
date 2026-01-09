@@ -2,14 +2,14 @@
 
 #' Add two predictor_hybrid objects
 #'
-#' Performs element-wise addition of two \code{predictor_hybrid} objects. 
+#' Performs element-wise addition of two /code{predictor_hybrid} objects. 
 #' Supports broadcasting if one object is a single sample.
 #'
-#' @param xi_1 A \code{predictor_hybrid} object.
-#' @param xi_2 Another \code{predictor_hybrid} object to be added.
-#' @param alpha A scalar multiplier applied to \code{xi_2} before addition (default is 1).
+#' @param xi_1 A /code{predictor_hybrid} object.
+#' @param xi_2 Another /code{predictor_hybrid} object to be added.
+#' @param alpha A scalar multiplier applied to /code{xi_2} before addition (default is 1).
 #'
-#' @return A new \code{predictor_hybrid} object representing the result of the addition.
+#' @return A new /code{predictor_hybrid} object representing the result of the addition.
 #' @export
 add.predictor_hybrid <- function(xi_1, xi_2, alpha = 1) {
   # Safe access to is.eqbasis() from the fda namespace

@@ -7,16 +7,16 @@
 add.predictor_hybrid(xi_1, xi_2, alpha = 1)
 }
 \arguments{
-\item{xi_1}{A \code{predictor_hybrid} object.}
+\item{xi_1}{A /code{predictor_hybrid} object.}
 
-\item{xi_2}{Another \code{predictor_hybrid} object to be added.}
+\item{xi_2}{Another /code{predictor_hybrid} object to be added.}
 
-\item{alpha}{A scalar multiplier applied to \code{xi_2} before addition (default is 1).}
+\item{alpha}{A scalar multiplier applied to /code{xi_2} before addition (default is 1).}
 }
 \value{
-A new \code{predictor_hybrid} object representing the result of the addition.
+A new /code{predictor_hybrid} object representing the result of the addition.
 }
 \description{
-Performs element-wise addition of two \code{predictor_hybrid} objects.
+Performs element-wise addition of two /code{predictor_hybrid} objects.
 Supports broadcasting if one object is a single sample.
 }
