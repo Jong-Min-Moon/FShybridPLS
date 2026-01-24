@@ -3,7 +3,7 @@
 **FSHybridPLS** is an R package designed to perform Partial Least Squares (PLS) regression on "hybrid" predictors. A hybrid predictor is a single mathematical object containing both **functional data** (curves, time-series represented as `fd` objects) and **scalar covariates** (standard numeric matrices).
 
 This package defines a joint Hilbert space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$ and implements the arithmetic and algorithms necessary to perform penalized PLS directly on this space.
-This package provides an R implementation and simulation replications of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
+This package provides an R implementation and simulation replications of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” , co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
 
 ## Installation
 
@@ -289,7 +289,7 @@ rep_fd <- function(fd_list, n) {
 ### predictor_hybrid
 
 **Description:**
-The `predictor_hybrid` class represents a hybrid random object $\mathbf{W} = (X, \mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
+The `predictor_hybrid` class represents a hybrid random object $/mathbf{W} = (X, /mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
 
 - **Functional Part:** Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit interval $\mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $\mathcal{F} = L^2([0,1]) \times \cdots \times L^2([0,1])$.
 - **Hybrid Object:** We define the hybrid object $\mathbf{W} = (X, \mathbf{Z})$, where $\mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.
@@ -390,14 +390,14 @@ An alternative constructor that creates a single-sample `predictor_hybrid` objec
 ```{r}
 #' Construct a Single-Sample Predictor Hybrid Object from Coefficients
 #'
-#' Reconstructs a \code{predictor_hybrid} object representing one observation, using a numeric
+#' Reconstructs a /code{predictor_hybrid} object representing one observation, using a numeric
 #' coefficient vector. This alternative constructor maps the coefficients back into their functional
-#' and scalar predictor representations based on the structure of a template \code{predictor_hybrid} object.
+#' and scalar predictor representations based on the structure of a template /code{predictor_hybrid} object.
 #'
-#' @param format A \code{predictor_hybrid} object that provides the structure and basis information.
+#' @param format A /code{predictor_hybrid} object that provides the structure and basis information.
 #' @param coef A numeric vector containing coefficients for both functional and scalar predictors.
 #'
-#' @return A \code{predictor_hybrid} object with updated \code{functional_list}, \code{Z}, and \code{n_sample = 1}.
+#' @return A /code{predictor_hybrid} object with updated /code{functional_list}, /code{Z}, and /code{n_sample = 1}.
 #' @export
 predictor_hybrid_from_coef <- function(format, coef) {
   # Extract metadata from the template
@@ -471,14 +471,14 @@ add.predictor_hybrid(input, other, alpha = 1)
 ```{r}
 #' Add two predictor_hybrid objects
 #'
-#' Performs element-wise addition of two \code{predictor_hybrid} objects. 
+#' Performs element-wise addition of two /code{predictor_hybrid} objects. 
 #' Supports broadcasting if one object is a single sample.
 #'
-#' @param xi_1 A \code{predictor_hybrid} object.
-#' @param xi_2 Another \code{predictor_hybrid} object to be added.
-#' @param alpha A scalar multiplier applied to \code{xi_2} before addition (default is 1).
+#' @param xi_1 A /code{predictor_hybrid} object.
+#' @param xi_2 Another /code{predictor_hybrid} object to be added.
+#' @param alpha A scalar multiplier applied to /code{xi_2} before addition (default is 1).
 #'
-#' @return A new \code{predictor_hybrid} object representing the result of the addition.
+#' @return A new /code{predictor_hybrid} object representing the result of the addition.
 #' @export
 add.predictor_hybrid <- function(xi_1, xi_2, alpha = 1) {
   # Safe access to is.eqbasis() from the fda namespace
@@ -1923,10 +1923,10 @@ curve_normalize_train_test(train, test)
 #' @param test A `predictor_hybrid` object representing the testing set.
 #'
 #' @return A list containing:
-#'   \item{predictor_train}{The normalized training object.}
-#'   \item{predictor_test}{The normalized testing object.}
-#'   \item{mean_train}{List of mean functions used for centering.}
-#'   \item{deno_train}{Vector of scaling factors used.}
+#'   /item{predictor_train}{The normalized training object.}
+#'   /item{predictor_test}{The normalized testing object.}
+#'   /item{mean_train}{List of mean functions used for centering.}
+#'   /item{deno_train}{Vector of scaling factors used.}
 #' @export
 curve_normalize_train_test <- function(train, test) {
   stopifnot(
@@ -2289,7 +2289,7 @@ split_and_normalize.all <- function(W_hybrid, response, train_ratio) {
 }
 ```
 
-
+Here is the updated Markdown explanation. I have modified the **Response Variable** and **Implementation Logic** sections to reflect the new Min-Max scaling and Logit transformation steps.
 
 ## Baseline methods
 
@@ -2309,7 +2309,7 @@ The function decouples the dimensionality reduction step for scalar and function
         $$\xi_{test, k} = \int \left( X_{test}(t) - \mu_{train}(t) \right) \phi_{k, train}(t) \, dt$$
 
 #### 2. Iterative Model Fitting
-Instead of selecting a single fixed number of components, the function iterates through a range of model complexities ($l = 1, \dots, \text{n\_comp\_max}$).
+Instead of selecting a single fixed number of components, the function iterates through a range of model complexities ($l = 1, /dots, /text{n/_comp/_max}$).
 
 At iteration $l$, the regression model is formulated as:
 $$Y = \beta_0 + \sum_{j=1}^{\min(l, \text{rank}(Z))} \alpha_j \text{Score}_{Z,j} + \sum_{p=1}^{P} \sum_{k=1}^{l} \gamma_{p,k} \text{Score}_{X^{(p)}, k} + \epsilon$$
@@ -2327,27 +2327,27 @@ This allows us to observe the full trajectory of the Root Mean Squared Error (RM
 #'
 #' @details
 #' The workflow consists of three main stages:
-#' \enumerate{
-#'   \item \strong{Scalar PCA:} Performs standard PCA on the scalar matrix \code{Z}. 
+#' /enumerate{
+#'   /item /strong{Scalar PCA:} Performs standard PCA on the scalar matrix /code{Z}. 
 #'         Test data is projected onto the training rotation matrix.
-#'   \item \strong{Functional PCA:} Performs FPCA on each functional predictor using 
-#'         the \code{fda} package. Crucially, test curves are centered using the 
-#'         \emph{training mean function} before projection onto training harmonics 
+#'   /item /strong{Functional PCA:} Performs FPCA on each functional predictor using 
+#'         the /code{fda} package. Crucially, test curves are centered using the 
+#'         /emph{training mean function} before projection onto training harmonics 
 #'         to prevent data leakage.
-#'   \item \strong{Iterative Regression:} Fits a series of linear models (\code{lm}). 
-#'         Model \code{l} includes the first \code{l} principal components from 
+#'   /item /strong{Iterative Regression:} Fits a series of linear models (/code{lm}). 
+#'         Model /code{l} includes the first /code{l} principal components from 
 #'         both the scalar and functional sets.
 #' }
 #'
-#' @param W_train A \code{predictor_hybrid} object containing training data.
+#' @param W_train A /code{predictor_hybrid} object containing training data.
 #' @param y_train A numeric vector of training response values.
-#' @param W_test A \code{predictor_hybrid} object containing test data.
+#' @param W_test A /code{predictor_hybrid} object containing test data.
 #' @param y_test A numeric vector of test response values.
 #' @param n_comp_max Integer. The maximum number of principal components to include 
 #'        in the regression models. Defaults to 10.
 #'
 #' @return A list containing:
-#' \item{validation_rmse}{A numeric vector of length \code{n_comp_max} containing 
+#' /item{validation_rmse}{A numeric vector of length /code{n_comp_max} containing 
 #' the RMSE on the test set for each model complexity level.}
 #'
 #' @importFrom stats prcomp predict lm
@@ -2583,8 +2583,8 @@ This section details the transformation of raw renogram data into a structured *
 #' @param n_basis Integer. Number of B-spline basis functions to use for smoothing (default 20).
 #'
 #' @return A list containing:
-#'   \item{W}{A `predictor_hybrid` object containing the predictors.}
-#'   \item{y}{A numeric vector representing the transformed response (logit of min-max scaled mean diagnosis metrics).}
+#'   /item{W}{A `predictor_hybrid` object containing the predictors.}
+#'   /item{y}{A numeric vector representing the transformed response (logit of min-max scaled mean diagnosis metrics).}
 #' @export
 load_and_preprocess_kidney_data <- function(kidney_df, n_basis = 20) {
   
