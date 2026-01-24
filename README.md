@@ -3,7 +3,7 @@
 **FSHybridPLS** is an R package designed to perform Partial Least Squares (PLS) regression on "hybrid" predictors. A hybrid predictor is a single mathematical object containing both **functional data** (curves, time-series represented as `fd` objects) and **scalar covariates** (standard numeric matrices).
 
 This package defines a joint Hilbert space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$ and implements the arithmetic and algorithms necessary to perform penalized PLS directly on this space.
-This package provides an R implementation of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” , co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
+This package provides an R implementation and simulation replications of my paper, “Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors,” , co-authored with Professor Jeong Hoon Jang of the University of Texas Medical Branch.
 
 ## Installation
 
@@ -20,58 +20,69 @@ devtools::install("your_downloaded_directory/FSHybridPLS")
  
 
 #### Table of Contents
+- [FSHybridPLS: Functional and Scalar Hybrid Partial Least Squares](#fshybridpls-functional-and-scalar-hybrid-partial-least-squares)
+  - [Installation](#installation)
+      - [Table of Contents](#table-of-contents)
 - [Helper Functions](#helper-functions)
-    - [compute_gram_matrix](#compute_gram_matrix)
-    - [is_same_basis](#is_same_basis)
-    - [are_all_gram_matrices_identical](#are_all_gram_matrices_identical)
-    - [rep_fd](#rep_fd)
+    - [compute\_gram\_matrix](#compute_gram_matrix)
+    - [is\_same\_basis](#is_same_basis)
+    - [are\_all\_gram\_matrices\_identical](#are_all_gram_matrices_identical)
+    - [rep\_fd](#rep_fd)
 - [Hybrid predictor class](#hybrid-predictor-class)
-    - [Class definition and constructor](#class-definition-and-constructor)
-        - [predictor_hybrid](#predictor_hybrid)
-        - [predictor_hybrid_from_coef](#predictor_hybrid_from_coef)
-    - [Basic arithmetic](#basic-arithmetic)
-        - [add.predictor_hybrid](#addpredictor_hybrid)
-        - [subtr.predictor_hybrid](#subtrpredictor_hybrid)
-        - [scalar_mul.predictor_hybrid](#scalar_mulpredictor_hybrid)
-        - [inprod.predictor_hybrid](#inprodpredictor_hybrid)
-        - [inprod_pen.predictor_hybrid](#inprod_penpredictor_hybrid)
-        - [subset_predictor_hybrid](#subset_predictor_hybrid)
-        - [replace_obs_hybrid](#replace_obs_hybrid)
-        - [add_broadcast (Matrix)](#add_broadcast-matrix)
-        - [subtr_broadcast (Matrix)](#subtr_broadcast-matrix)
+  - [Class definition and constructor](#class-definition-and-constructor)
+    - [predictor\_hybrid](#predictor_hybrid)
+    - [predictor\_hybrid\_from\_coef](#predictor_hybrid_from_coef)
+  - [Basic arithmetic](#basic-arithmetic)
+    - [add.predictor\_hybrid](#addpredictor_hybrid)
+    - [subtr.predictor\_hybrid](#subtrpredictor_hybrid)
+    - [scalar\_mul.predictor\_hybrid](#scalar_mulpredictor_hybrid)
+    - [inprod.predictor\_hybrid](#inprodpredictor_hybrid)
+    - [inprod\_pen.predictor\_hybrid](#inprod_penpredictor_hybrid)
+    - [subset\_predictor\_hybrid](#subset_predictor_hybrid)
+    - [replace\_obs\_hybrid](#replace_obs_hybrid)
+    - [add\_broadcast (Matrix)](#add_broadcast-matrix)
+    - [subtr\_broadcast (Matrix)](#subtr_broadcast-matrix)
 - [One iteration](#one-iteration)
-    - [small functions](#small-functions)
-        - [get_gram_matrix_block](#get_gram_matrix_block)
-        - [get_smoothing_param_hybrid](#get_smoothing_param_hybrid)
-    - [PLS component computation](#pls-component-computation)
-        - [get_xi_hat_linear_pen](#get_xi_hat_linear_pen)
-        - [get_rho](#get_rho)
-    - [Response Residualization](#response-residualization)
-        - [get_nu](#get_nu)
-        - [residualize_y](#residualize_y)
-    - [Predictor Residualization](#predictor-residualization)
-        - [get_delta](#get_delta)
-        - [residualize_predictor](#residualize_predictor)
+  - [small functions](#small-functions)
+    - [get\_gram\_matrix\_block](#get_gram_matrix_block)
+    - [get\_smoothing\_param\_hybrid](#get_smoothing_param_hybrid)
+  - [PLS component computation](#pls-component-computation)
+    - [get\_xi\_hat\_linear\_pen](#get_xi_hat_linear_pen)
+    - [get\_rho](#get_rho)
+  - [Response Residualization](#response-residualization)
+    - [get\_nu](#get_nu)
+    - [residualize\_y](#residualize_y)
+  - [Predictor Residualization](#predictor-residualization)
+    - [get\_delta](#get_delta)
+    - [residualize\_predictor](#residualize_predictor)
 - [Main algorithm](#main-algorithm)
     - [fit.hybridPLS](#fithybridpls)
 - [Simulation tools](#simulation-tools)
-    - [sample splitting](#sample-splitting)
-        - [create_idx_train_test](#create_idx_train_test)
-        - [get_idx_train](#get_idx_train)
-        - [create_idx_kfold](#create_idx_kfold)
-        - [n_sample.fd](#n_samplefd)
-        - [split.all](#splitall)
-    - [normalization](#normalization)
-        - [curve_normalize](#curve_normalize)
-        - [curve_normalize_train_test](#curve_normalize_train_test)
-        - [scalar_normalize](#scalar_normalize)
-        - [scalar_normalize_train_test](#scalar_normalize_train_test)
-        - [btwn_normalize_train_test](#btwn_normalize_train_test)
-        - [split_and_normalize.all](#split_and_normalizeall)
-    - [Baseline methods](#baseline-methods)
-        - [fit_hybrid_pcr_iterative](#fit_hybrid_pcr_iterative)
-        - [penalized functional regression](#penalized-functional-regression)
+  - [sample splitting](#sample-splitting)
+    - [create\_idx\_train\_test](#create_idx_train_test)
+    - [get\_idx\_train](#get_idx_train)
+    - [create\_idx\_kfold](#create_idx_kfold)
+    - [n\_sample.fd](#n_samplefd)
+    - [split.all](#splitall)
+  - [normalization](#normalization)
+    - [curve\_normalize](#curve_normalize)
+    - [curve\_normalize\_train\_test](#curve_normalize_train_test)
+    - [scalar\_normalize](#scalar_normalize)
+    - [scalar\_normalize\_train\_test](#scalar_normalize_train_test)
+    - [btwn\_normalize\_train\_test](#btwn_normalize_train_test)
+    - [split\_and\_normalize.all](#split_and_normalizeall)
+  - [Baseline methods](#baseline-methods)
+    - [fit\_hybrid\_pcr\_iterative](#fit_hybrid_pcr_iterative)
+      - [1. Dimensionality Reduction](#1-dimensionality-reduction)
+      - [2. Iterative Model Fitting](#2-iterative-model-fitting)
+    - [fit\_pfr](#fit_pfr)
 - [Kidney Data Preprocessing Pipeline](#kidney-data-preprocessing-pipeline)
+- [Numerical Studies](#numerical-studies)
+    - [1. `6_1_geometric_validation.R`](#1-6_1_geometric_validationr)
+    - [2. `6_2_beta_estimation.R`](#2-6_2_beta_estimationr)
+    - [3. `6_3_1_scenario_1.R`](#3-6_3_1_scenario_1r)
+    - [4. `6_3_2_scenario_2.R`](#4-6_3_2_scenario_2r)
+    - [5. `6_4_kidney_single_rep.R`](#5-6_4_kidney_single_repr)
  
 
 # Helper Functions
@@ -80,7 +91,7 @@ devtools::install("your_downloaded_directory/FSHybridPLS")
 
 **Description:**
 Calculates the Gram matrix for a given functional basis. The Gram matrix $G$ is a symmetric positive semi-definite matrix containing the inner products of the basis functions. Specifically, the entry $(i, j)$ corresponds to the integral of the product of the $i$-th and $j$-th basis functions over the domain:
-$$G_{ij} = /langle b_i, b_j /rangle = /int b_i(t) b_j(t) /, dt$$
+$$G_{ij} = \langle b_i, b_j \rangle = \int b_i(t) b_j(t) \, dt$$
 
 **Inputs:**
 
@@ -280,9 +291,9 @@ rep_fd <- function(fd_list, n) {
 **Description:**
 The `predictor_hybrid` class represents a hybrid random object $/mathbf{W} = (X, /mathbf{Z})$ that combines functional and scalar covariates into a unified Hilbert space structure.
 
-- **Functional Part:** Let $/{X^{(k)}/}_{k=1, /ldots, K}$ be a collection of random functions defined on unit interval $/mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $/mathcal{F} = L^2([0,1]) /times /cdots /times L^2([0,1])$.
-- **Hybrid Object:** We define the hybrid object $/mathbf{W} = (X, /mathbf{Z})$, where $/mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $/mathcal{H} = /mathcal{F} /times /mathbb{R}^p$.
-- **Vector Notation:** The object can be evaluated at a multi-dimensional argument $/mathbf{t}$ as a $(K+p)$-dimensional vector: $/mathbf{W}[/mathbf{t}] = (X(/mathbf{t}), /mathbf{Z})^/top$.
+- **Functional Part:** Let $\{X^{(k)}\}_{k=1, \ldots, K}$ be a collection of random functions defined on unit interval $\mathcal{T}_k := [0,1]$. Each $X^{(k)}$ belongs to $L^2([0,1])$, a Hilbert space of square-integrable functions. The multivariate functional object $X$ resides in the cartesian product space $\mathcal{F} = L^2([0,1]) \times \cdots \times L^2([0,1])$.
+- **Hybrid Object:** We define the hybrid object $\mathbf{W} = (X, \mathbf{Z})$, where $\mathbf{Z}$ is a $p$-dimensional scalar covariate vector. This object belongs to the product space $\mathcal{H} = \mathcal{F} \times \mathbb{R}^p$.
+- **Vector Notation:** The object can be evaluated at a multi-dimensional argument $\mathbf{t}$ as a $(K+p)$-dimensional vector: $\mathbf{W}[\mathbf{t}] = (X(\mathbf{t}), \mathbf{Z})^\top$.
 - **Implementation:** The class is implemented as an S3 object containing a matrix for scalar parts, a list of `fd` objects for functional parts, and pre-computed Gram matrices to facilitate Hilbert space operations.
 
 **Inputs:**
@@ -2283,23 +2294,25 @@ Here is the updated Markdown explanation. I have modified the **Response Variabl
 ## Baseline methods
 
 ### fit_hybrid_pcr_iterative
+
+**Description:**
 This function implements a **Hybrid Principal Component Regression (PCR)** algorithm designed to handle high-dimensional data containing both scalar vectors and functional curves. The core strategy is **dimensionality reduction via PCA** applied separately to each data modality, followed by a linear regression on the resulting scores.
 
 #### 1. Dimensionality Reduction
 The function decouples the dimensionality reduction step for scalar and functional predictors:
 
-* **Scalar Predictors ($/mathbf{Z}$):** Standard PCA is applied to the training matrix $/mathbf{Z}_{train}$. The data is centered and scaled. Test data $/mathbf{Z}_{test}$ is projected onto the rotation matrix derived from the training set.
-* **Functional Predictors ($/mathbf{X}(t)$):** Functional PCA (FPCA) is applied to each functional variable.
-    * **Training:** We decompose the training functions into a mean function $/mu(t)$ and a set of orthogonal eigenfunctions (harmonics) $/phi_k(t)$:
-        $$X_{i}(t) /approx /mu(t) + /sum_{k=1}^{K} /xi_{ik} /phi_k(t)$$
-    * **Testing (Robust Centering):** A critical step in this function is the robust projection of test data. We explicitly subtract the **training mean** $/mu_{train}(t)$ from the raw test curves before computing inner products with the training eigenfunctions. This ensures the test scores are strictly comparable to the training scores:
-        $$/xi_{test, k} = /int /left( X_{test}(t) - /mu_{train}(t) /right) /phi_{k, train}(t) /, dt$$
+* **Scalar Predictors ($\mathbf{Z}$):** Standard PCA is applied to the training matrix $\mathbf{Z}_{train}$. The data is centered and scaled. Test data $\mathbf{Z}_{test}$ is projected onto the rotation matrix derived from the training set.
+* **Functional Predictors ($\mathbf{X}(t)$):** Functional PCA (FPCA) is applied to each functional variable.
+    * **Training:** We decompose the training functions into a mean function $\mu(t)$ and a set of orthogonal eigenfunctions (harmonics) $\phi_k(t)$:
+        $$X_{i}(t) \approx \mu(t) + \sum_{k=1}^{K} \xi_{ik} \phi_k(t)$$
+    * **Testing (Robust Centering):** A critical step in this function is the robust projection of test data. We explicitly subtract the **training mean** $\mu_{train}(t)$ from the raw test curves before computing inner products with the training eigenfunctions. This ensures the test scores are strictly comparable to the training scores:
+        $$\xi_{test, k} = \int \left( X_{test}(t) - \mu_{train}(t) \right) \phi_{k, train}(t) \, dt$$
 
 #### 2. Iterative Model Fitting
 Instead of selecting a single fixed number of components, the function iterates through a range of model complexities ($l = 1, /dots, /text{n/_comp/_max}$).
 
 At iteration $l$, the regression model is formulated as:
-$$Y = /beta_0 + /sum_{j=1}^{/min(l, /text{rank}(Z))} /alpha_j /text{Score}_{Z,j} + /sum_{p=1}^{P} /sum_{k=1}^{l} /gamma_{p,k} /text{Score}_{X^{(p)}, k} + /epsilon$$
+$$Y = \beta_0 + \sum_{j=1}^{\min(l, \text{rank}(Z))} \alpha_j \text{Score}_{Z,j} + \sum_{p=1}^{P} \sum_{k=1}^{l} \gamma_{p,k} \text{Score}_{X^{(p)}, k} + \epsilon$$
 
 This allows us to observe the full trajectory of the Root Mean Squared Error (RMSE) as the model complexity increases, facilitating the selection of the optimal number of components.
 
@@ -2411,20 +2424,20 @@ fit_hybrid_pcr_iterative <- function(W_train, y_train, W_test, y_test, n_comp_ma
 }
 ```
 
-### penalized functional regression
-Here is a formal explanation and the commented code for the fit_pfr function.
+### fit_pfr
 
-Function Explanation
-The fit_pfr function serves as a wrapper for fitting a Penalized Functional Regression (PFR) model ( using the refund in R) within a simulation or cross-validation pipeline. It is designed to handle a specific data structure where predictors are split into scalar matrices and functional data objects.
+**Description:**
+The `fit_pfr` function serves as a wrapper for fitting a Penalized Functional Regression (PFR) model (using the `refund` package in R) within a simulation or cross-validation pipeline. It is designed to handle a specific data structure where predictors are split into scalar matrices and functional data objects.
 
-Key Implementation Details
-Scalar Predictor Unrolling: A common issue when using pfr() or gam() is that passing a matrix column (e.g., df$Z) can sometimes trigger "length mismatch" errors during prediction. This function addresses this by converting the scalar matrix Z into individual columns (Z1, Z2, etc.) within the data frame.
+**Key Implementation Details:**
 
-Functional Data Evaluation: The function assumes inputs are fd objects (from the fda package). It evaluates these functions at specified time points (eval_pts) to create a dense matrix representation required by the lf() (linear functional) term in pfr.
+* **Scalar Predictor Unrolling:** A common issue when using `pfr()` or `gam()` is that passing a matrix column (e.g., `df$Z`) can sometimes trigger "length mismatch" errors during prediction. This function addresses this by converting the scalar matrix `Z` into individual columns (`Z1`, `Z2`, etc.) within the data frame.
 
-Dynamic Formula Construction: Since the number of scalar predictors may vary, the regression formula is constructed dynamically as a string before being passed to pfr.
+* **Functional Data Evaluation:** The function assumes inputs are `fd` objects (from the `fda` package). It evaluates these functions at specified time points (`eval_pts`) to create a dense matrix representation required by the `lf()` (linear functional) term in `pfr`.
 
-FPCA Smoothing: The term lf(..., presmooth = 'fpca.sc') indicates that the functional predictors are pre-smoothed using Functional Principal Component Analysis (FPCA). This allows the model to handle noisy or irregular functional data effectively by regressing on the principal component scores.
+* **Dynamic Formula Construction:** Since the number of scalar predictors may vary, the regression formula is constructed dynamically as a string before being passed to `pfr`.
+
+* **FPCA Smoothing:** The term `lf(..., presmooth = 'fpca.sc')` indicates that the functional predictors are pre-smoothed using Functional Principal Component Analysis (FPCA). This allows the model to handle noisy or irregular functional data effectively by regressing on the principal component scores.
  
 
 ```{r}
@@ -2527,12 +2540,14 @@ fit_pfr <- function(W_train, y_train, W_test, y_test) {
 
 This section details the transformation of raw renogram data into a structured **Hybrid Predictor** object suitable for the `FSHybridPLS` package. The process involves extracting patient metadata, averaging and transforming response variables, and applying a domain-specific normalization to the functional curves.
 
-* **Mathematical Formulation:** Let $N$ be the number of unique subjects. For the $i$-th subject ($i = 1, /dots, N$), the data consists of:
+* **Mathematical Formulation:** Let $N$ be the number of unique subjects. For the $i$-th subject ($i = 1, \ldots, N$), the data consists of:
 
-    * **Scalar Predictors ($/mathbf{z}$):** We extract 15 scalar covariates (Age + 14 physiological metrics). Let $/mathbf{z}_i /in /mathbb{R}^{15}$ denote the scalar predictor vector for subject $i$.
+    * **Scalar Predictors ($\mathbf{z}$):** We extract 15 scalar covariates (Age + 14 physiological metrics). Let $\mathbf{z}_i \in \mathbb{R}^{15}$ denote the scalar predictor vector for subject $i$.
 
     * **Response Variable ($y$):** The raw data contains three diagnostic metrics for the response. We first calculate the arithmetic mean of these three indicators:
-        $$y_i^{/text{raw}} = /frac{1}{3} /sum_{k=1}^{3} y_{i,k}$$
+        $$y_i^{\text{raw}} = \frac{1}{3} \sum_{k=1}^{3} y_{i,k}$$
+        and then apply min-max transformation to the range $[0,1]$:
+        $$y_i = \frac{y_i^{\text{raw}} - \min(y_i^{\text{raw}})}{\max(y_i^{\text{raw}}) - \min(y_i^{\text{raw}})}$$
       
 
     * **Functional Predictors ($X$):** Each subject has two distinct time-series curves (Renograms):
@@ -2540,18 +2555,18 @@ This section details the transformation of raw renogram data into a structured *
         * **Post-Furosemide Renogram:** $X_{i}^{(2)}(t)$ observed at $T_2 = 40$ time points.
 
 * **Medical Normalization:** To ensure comparability across patients with varying absolute kidney uptake levels, we normalize both curves relative to the peak of the **baseline** curve. Let $m_i$ be the maximum value of the baseline curve for subject $i$:
-    $$m_i = /max_{t} X_{i}^{(1)}(t)$$
-    The normalized functions, $/tilde{X}$, are computed as:
-    $$/tilde{X}_{i}^{(1)}(t) = /frac{X_{i}^{(1)}(t)}{m_i} /quad /text{and} /quad /tilde{X}_{i}^{(2)}(t) = /frac{X_{i}^{(2)}(t)}{m_i}$$
+    $$m_i = \max_{t} X_{i}^{(1)}(t)$$
+    The normalized functions, $\tilde{X}$, are computed as:
+    $$\tilde{X}_{i}^{(1)}(t) = \frac{X_{i}^{(1)}(t)}{m_i} \quad \text{and} \quad \tilde{X}_{i}^{(2)}(t) = \frac{X_{i}^{(2)}(t)}{m_i}$$
 
     > **Note:** The divisor $m_i$ is derived strictly from the *baseline* curve but is applied to *both* curves. This preserves the relative magnitude of the post-furosemide response compared to the baseline peak.
 
 * **Implementation Logic:** The function `load_and_preprocess_kidney_data` performs these mathematical operations using vectorized algebra for efficiency:
-    * **Extraction & Alignment:** Filters the dataframe to separate "Baseline" and "Post-Furosemide" entries and reshapes time-series data into wide matrices ($N /times T$).
-    * **Response Transformation:** Computes the mean response, scales it to $[0,1]$, applies a safety squeeze (to map $[0,1] /to [/epsilon, 1-/epsilon]$), and finally applies the `qlogis` (logit) function.
-    * **Vectorized Normalization:** Computes the scaling factor vector $/mathbf{m} = (m_1, /dots, m_N)^/top$ and applies it row-wise to the functional data matrices.
-    * **Basis Smoothing:** Smooths the discrete points into continuous B-spline functions over the standardized domain $t /in [0,1]$.
-    * **Hybrid Object Construction:** Encapsulates components into the `predictor_hybrid` S3 class: $/mathbf{W} = /left/{ /mathbf{Z}, /left( /tilde{X}^{(1)}, /tilde{X}^{(2)} /right) /right/}$.
+    * **Extraction & Alignment:** Filters the dataframe to separate "Baseline" and "Post-Furosemide" entries and reshapes time-series data into wide matrices ($N \times T$).
+    * **Response Transformation:** Computes the mean response, scales it to $[0,1]$, applies a safety squeeze (to map $[0,1] \to [\epsilon, 1-\epsilon]$), and finally applies the `qlogis` (logit) function.
+    * **Vectorized Normalization:** Computes the scaling factor vector $\mathbf{m} = (m_1, \ldots, m_N)^\top$ and applies it row-wise to the functional data matrices.
+    * **Basis Smoothing:** Smooths the discrete points into continuous B-spline functions over the standardized domain $t \in [0,1]$.
+    * **Hybrid Object Construction:** Encapsulates components into the `predictor_hybrid` S3 class: $\mathbf{W} = \left\{ \mathbf{Z}, \left( \tilde{X}^{(1)}, \tilde{X}^{(2)} \right) \right\}$.
     
 ```{r}
 #' Load and Preprocess Kidney Data for FSHybridPLS
@@ -2660,6 +2675,41 @@ load_and_preprocess_kidney_data <- function(kidney_df, n_basis = 20) {
   
   return(list(W = W, y = y))
 }
+```
+
+# Numerical Studies
+
+This repository contains R scripts to replicate the numerical studies presented in the paper. All scripts are located in the `numerical_studies` directory.
+
+### 1. `6_1_geometric_validation.R`
+Validates the geometric properties of the hybrid space (orthonormality, weighted norms).
+```bash
+Rscript numerical_studies/6_1_geometric_validation.R [RepID]
+```
+
+### 2. `6_2_beta_estimation.R`
+Estimates the $\beta$ coefficient function for a single hyperparameter pair.
+```bash
+Rscript numerical_studies/6_2_beta_estimation.R [RepID] [N] [Lam1] [Lam2]
+```
+
+### 3. `6_3_1_scenario_1.R`
+Runs the simulation for **Scenario 1:** Orthogonal Nuisance Variance.
+```bash
+Rscript numerical_studies/6_3_1_scenario_1.R [RepID]
+```
+
+### 4. `6_3_2_scenario_2.R`
+Runs the simulation for **Scenario 2:** Function-Driven Intermodal Correlation.
+```bash
+Rscript numerical_studies/6_3_2_scenario_2.R [RepID]
+```
+
+### 5. `6_4_kidney_single_rep.R`
+Runs the comparative analysis on the kidney dataset (HybridPLS vs. OLS, PCR, PFR).
+*Note: Requires `renogram_data.csv` in the `../data/` directory.*
+```bash
+Rscript numerical_studies/6_4_kidney_single_rep.R [Lam1] [Lam2] [RepID]
 ```
 
  
