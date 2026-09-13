@@ -1,0 +1,100 @@
+---
+title: "Introduction to FSHybridPLS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to FSHybridPLS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+# Overview
+
+`FSHybridPLS` fits Hybrid Penalized Partial Least Squares models when predictors
+include both functional curves and scalar covariates. Functional and scalar
+parts are treated jointly in a hybrid Hilbert space, with roughness penalties on
+functional coefficient directions.
+
+The method is described in Mun and Jang (2026),
+doi:10.48550/arXiv.2601.16364.
+
+# Construct hybrid predictors
+
+A `predictor_hybrid` object stores scalar covariates, functional `fd` objects,
+and precomputed Gram / penalty matrices used by the algorithm.
+
+```{r simulate}
+library(FSHybridPLS)
+set.seed(1)
+
+sim <- simulate_hybrid_data(
+  n = 50,
+  n_functional = 1,
+  n_scalar = 3,
+  n_basis = 6
+)
+
+sim$W
+length(sim$y)
+```
+
+# Split and normalize
+
+`split_and_normalize_all()` performs a train/test split, within-modality
+standardization, between-modality variance balancing, and response
+standardization using training statistics.
+
+```{r preprocess}
+prep <- split_and_normalize_all(sim$W, sim$y, train_ratio = 0.7)
+prep$predictor_train$n_sample
+prep$predictor_test$n_sample
+```
+
+# Fit and predict
+
+```{r fit}
+fit <- fit_hybridPLS(
+  prep$predictor_train,
+  prep$response_train,
+  n_iter = 3,
+  lambda = 1e-3,
+  validation_data = list(
+    W_test = prep$predictor_test,
+    y_test = prep$response_test
+  )
+)
+
+fit
+preds <- predict(fit, prep$predictor_test)
+rmse <- sqrt(mean((prep$response_test - preds)^2))
+rmse
+```
+
+# Choosing the number of components
+
+```{r cv}
+cv <- cv_fit_hybridPLS(
+  prep$predictor_train,
+  prep$response_train,
+  n_iter = 4,
+  lambda = 1e-3,
+  n_fold = 3,
+  seed = 1
+)
+cv$rmse_by_component
+cv$best_n_iter
+```
+
+# Session info
+
+```{r session}
+sessionInfo()
+```

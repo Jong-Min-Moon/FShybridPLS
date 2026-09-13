@@ -1,0 +1,22 @@
+citHeader("To cite FSHybridPLS in publications use:")
+
+bibentry(
+  bibtype = "Misc",
+  title = "Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors",
+  author = c(
+    person("Jongmin", "Mun"),
+    person("Jeong Hoon", "Jang")
+  ),
+  year = "2026",
+  note = "arXiv:2601.16364",
+  doi = "10.48550/arXiv.2601.16364",
+  url = "https://arxiv.org/abs/2601.16364"
+)
+
+bibentry(
+  bibtype = "Manual",
+  title = "FSHybridPLS: Hybrid Penalized Partial Least Squares for Functional and Scalar Data",
+  author = person("Jongmin", "Mun"),
+  year = "2026",
+  note = "R package version 0.1.0"
+)
