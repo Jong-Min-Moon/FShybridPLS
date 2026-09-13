@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hybrid PLS — one idea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a2330;
+      --muted: #5c6b7a;
+      --paper: #f6f3ee;
+      --card: #fff;
+      --line: #dde3ea;
+      --teal: #0f766e;
+      --blue: #1d4ed8;
+      --orange: #c2410c;
+      --slate: #64748b;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; min-height: 100%;
+      background:
+        radial-gradient(900px 480px at 0% 0%, #e7f3f1 0%, transparent 55%),
+        radial-gradient(700px 400px at 100% 10%, #f5eadc 0%, transparent 50%),
+        var(--paper);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 36px 20px 48px; }
+    .eyebrow {
+      letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 11px; font-weight: 600; color: var(--teal); margin-bottom: 10px;
+    }
+    h1 {
+      margin: 0 0 10px; font-family: Fraunces, Georgia, serif;
+      font-size: clamp(1.75rem, 4vw, 2.4rem); line-height: 1.12; max-width: 16ch;
+    }
+    .message {
+      margin: 0 0 22px; font-size: 1.05rem; color: var(--muted);
+      max-width: 40ch; line-height: 1.45;
+    }
+    .stage {
+      display: inline-block; margin-bottom: 14px; padding: 7px 12px;
+      border-radius: 999px; background: rgba(15,118,110,0.09);
+      color: var(--teal); font-size: 13px; font-weight: 600;
+    }
+    .frame {
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(26, 35, 48, 0.07); padding: 18px 16px 8px;
+    }
+    .caption {
+      margin: 0 0 8px; font-size: 14px; line-height: 1.4;
+      min-height: 2.8em; color: var(--ink);
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .controls {
+      margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    }
+    button {
+      border: 0; border-radius: 999px; padding: 10px 16px;
+      background: var(--ink); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    button.secondary {
+      background: #fff; color: var(--ink); border: 1px solid var(--line);
+    }
+    .progress {
+      flex: 1; min-width: 120px; height: 7px;
+      background: #e6ebf2; border-radius: 999px; overflow: hidden;
+    }
+    .progress > i { display: block; height: 100%; width: 0%; background: var(--teal); }
+    .foot { margin-top: 14px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">FSHybridPLS</div>
+    <h1>One direction. One score.</h1>
+    <p class="message">
+      From tangled renal curves + side info, Hybrid PLS builds one score that keeps the link to Y.
+    </p>
+    <div class="stage" id="stageLabel">…</div>
+    <div class="frame">
+      <p class="caption" id="caption"></p>
+      <svg id="scene" viewBox="0 0 760 420" role="img" aria-label="Hybrid PLS idea"></svg>
+    </div>
+    <div class="controls">
+      <button id="playBtn">Play</button>
+      <button class="secondary" id="restartBtn">Restart</button>
+      <div class="progress"><i id="bar"></i></div>
+    </div>
+    <p class="foot" id="note"></p>
+  </div>
+
+  <script src="animation_data.js"></script>
+  <script>
+    const SLIDES = {
+      motive: {
+        label: "Motivation · Renal imaging study",
+        caption: "Each patient has two renogram curves and many clinical side measures. Goal: predict kidney failure — but the predictors are tangled."
+      },
+      assoc: {
+        label: "1 / 4  ·  Predictors already relate to Y",
+        caption: "Each predictor has some correlation with the response — but the signal is scattered across curves and scalars."
+      },
+      bundle: {
+        label: "2 / 4  ·  Unite X₁, X₂, and scalars",
+        caption: "Enclose the three modalities in one hybrid predictor W = (X₁, X₂, Z)."
+      },
+      direction: {
+        label: "3 / 4  ·  Inner product: predictors × direction → score",
+        caption: "Pair each part of W with the matching part of ξ, then add. That sum is the score ρ = ⟨W, ξ⟩."
+      },
+      score: {
+        label: "4 / 4  ·  One score combines three associations",
+        caption: "Separate links from X₁, X₂, and Z to Y are weaker alone. The score ρ pools them into one stronger correlation with Y."
+      }
+    };
+
+    // Continuous timeline on one clock. Hold frames use the exact prior slide finals.
+    // Morph segments connect them. No slide restart after a morph (except direction/score internal play).
+    const SEGMENTS = [
+      { kind: "play",  id: "motive",    dur: 5600 },
+      { kind: "hold",  id: "motive",    dur: 1100 },
+      { kind: "morph", fro: "motive", to: "assoc", dur: 1600 },
+      { kind: "hold",  id: "assoc",     dur: 2400 },
+      { kind: "morph", fro: "assoc", to: "bundle", dur: 1500 },
+      { kind: "hold",  id: "bundle",    dur: 2200 },
+      { kind: "morph", fro: "bundle", to: "direction", dur: 1500 },
+      { kind: "play",  id: "direction", dur: 5200, u0: 0.18 },
+      { kind: "hold",  id: "direction", dur: 1000 },
+      { kind: "morph", fro: "direction", to: "score", dur: 1500 },
+      { kind: "play",  id: "score",     dur: 4800, u0: 0.22 },
+      { kind: "hold",  id: "score",     dur: 1800 }
+    ];
+
+    const TOTAL_MS = SEGMENTS.reduce((a, s) => a + s.dur, 0);
+
+    const state = { data: null, playing: false, t0: 0, elapsed: 0, raf: null };
+    const $ = (id) => document.getElementById(id);
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    const ease = (t) => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const lerpArr = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
+
+    function clear(svg) { while (svg.firstChild) svg.removeChild(svg.firstChild); }
+    function el(name, attrs, parent) {
+      const n = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+      parent.appendChild(n);
+      return n;
+    }
+    function text(parent, x, y, s, attrs = {}) {
+      const n = el("text", {
+        x, y, fill: "#5c6b7a", "font-size": 12,
+        "font-family": "IBM Plex Sans", ...attrs
+      }, parent);
+      n.textContent = s;
+      return n;
+    }
+    function rangeOf(arr) {
+      let lo = Infinity, hi = -Infinity;
+      (Array.isArray(arr[0]) ? arr.flat() : arr).forEach(v => {
+        if (Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+      });
+      if (!Number.isFinite(lo)) { lo = -1; hi = 1; }
+      if (lo === hi) { lo -= 1; hi += 1; }
+      const pad = (hi - lo) * 0.12;
+      return [lo - pad, hi + pad];
+    }
+    function seriesPath(xs, ys, x0, y0, w, h, ymin, ymax) {
+      let d = "";
+      for (let i = 0; i < ys.length; i++) {
+        const x = x0 + (i / (ys.length - 1)) * w;
+        const y = y0 + h - ((ys[i] - ymin) / (ymax - ymin)) * h;
+        d += (i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1);
+      }
+      return d;
+    }
+    function zeroLine(parent, x0, x1, y0, h, ymin, ymax, op = 1) {
+      const y = y0 + h - ((0 - ymin) / (ymax - ymin)) * h;
+      el("line", {
+        x1: x0, x2: x1, y1: y, y2: y, stroke: "#e8edf3",
+        "stroke-dasharray": "3 3", opacity: op
+      }, parent);
+    }
+    function renogramCurve(kind, n = 60) {
+      const ys = [];
+      for (let i = 0; i < n; i++) {
+        const u = i / (n - 1);
+        ys.push(kind === "base"
+          ? 1.15 * Math.exp(-Math.pow((u - 0.22) / 0.12, 2)) + 0.55 * Math.exp(-u / 0.55)
+          : 1.05 * Math.exp(-Math.pow((u - 0.18) / 0.10, 2)) + 0.35 * Math.exp(-u / 0.28));
+      }
+      return ys;
+    }
+
+    // Shared layout targets used for morphing
+    const L = {
+      motivePanels: [
+        { x: 24, y: 100, w: 210, h: 150 },
+        { x: 250, y: 100, w: 210, h: 150 },
+        { x: 490, y: 100, w: 246, h: 130 }
+      ],
+      assocRows: [
+        { x: 24, y: 18, w: 340, h: 108 },
+        { x: 24, y: 136, w: 340, h: 108 },
+        { x: 24, y: 254, w: 340, h: 130 }
+      ],
+      bundleBox: { x: 18, y: 12, w: 352, h: 380 },
+      dirPanes: [
+        { x: 12, y: 8, w: 220, h: 400 },
+        { x: 250, y: 8, w: 220, h: 400 },
+        { x: 488, y: 8, w: 260, h: 400 }
+      ]
+    };
+
+    function drawCurveInBox(svg, ys, box, col, op, dashed = false) {
+      if (op < 0.02) return;
+      const [ymin, ymax] = rangeOf(ys);
+      const pad = 14;
+      zeroLine(svg, box.x + pad, box.x + box.w - pad, box.y + 28, box.h - 48, ymin, ymax, op * 0.8);
+      el("path", {
+        d: seriesPath(ys.map((_, i) => i), ys, box.x + pad, box.y + 28, box.w - 2 * pad, box.h - 48, ymin, ymax),
+        fill: "none", stroke: col, "stroke-width": dashed ? 2.3 : 2.2,
+        "stroke-dasharray": dashed ? "5 4" : null,
+        "stroke-linecap": "round", opacity: op
+      }, svg);
+    }
+
+    function drawBarsInBox(svg, vals, box, names, op) {
+      if (op < 0.02) return;
+      const maxZ = Math.max(...vals.map(Math.abs), 0.2);
+      const n = vals.length;
+      const gap = 8;
+      const bw = Math.min(42, (box.w - 30 - gap * (n - 1)) / n);
+      vals.forEach((v, i) => {
+        const h = (Math.abs(v) / maxZ) * (box.h - 55);
+        const x = box.x + 20 + i * (bw + gap);
+        el("rect", {
+          x, y: box.y + box.h - 28 - h, width: bw, height: Math.max(h, 1), rx: 4,
+          fill: i === n - 1 ? "var(--orange)" : "var(--slate)", opacity: op
+        }, svg);
+        if (names) text(svg, x + bw / 2, box.y + box.h - 10, names[i], {
+          "text-anchor": "middle", "font-size": 10, opacity: op
+        });
+      });
+    }
+
+    // ---------- stage drawers (hold phase uses local progress u in [0,1]) ----------
+    function drawMotive(svg, d, u) {
+      const e = ease(u);
+      const showPatient = clamp(e / 0.14, 0, 1);
+      const showCurves = clamp((e - 0.08) / 0.25, 0, 1);
+      const showScalars = clamp((e - 0.28) / 0.2, 0, 1);
+      const showY = clamp((e - 0.42) / 0.16, 0, 1);
+      const showCorr = clamp((e - 0.55) / 0.28, 0, 1);
+      const showProblem = clamp((e - 0.78) / 0.22, 0, 1);
+
+      el("rect", {
+        x: 24, y: 20, width: 160, height: 64, rx: 12,
+        fill: "#fff", stroke: "var(--line)", opacity: showPatient
+      }, svg);
+      text(svg, 104, 46, "One patient", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, opacity: showPatient
+      });
+      text(svg, 104, 66, "renal study", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showPatient
+      });
+
+      const base = renogramCurve("base");
+      const post = renogramCurve("post");
+      const panels = [
+        { box: L.motivePanels[0], title: "Baseline renogram", col: "var(--teal)", ys: base },
+        { box: L.motivePanels[1], title: "Post-furosemide", col: "var(--blue)", ys: post }
+      ];
+      panels.forEach((pn, pi) => {
+        const op = clamp(showCurves * 1.3 - pi * 0.12, 0, 1);
+        el("rect", {
+          x: pn.box.x, y: pn.box.y, width: pn.box.w, height: pn.box.h, rx: 12,
+          fill: "#fbfaf8", stroke: "var(--line)", opacity: op
+        }, svg);
+        text(svg, pn.box.x + pn.box.w / 2, pn.box.y + 22, pn.title, {
+          "text-anchor": "middle", fill: pn.col, "font-weight": 600, "font-size": 12, opacity: op
+        });
+        const nShow = Math.max(2, Math.floor(1 + (pn.ys.length - 1) * op));
+        drawCurveInBox(svg, pn.ys.slice(0, nShow), {
+          x: pn.box.x, y: pn.box.y + 8, w: pn.box.w, h: pn.box.h - 16
+        }, pn.col, op);
+      });
+
+      text(svg, 613, 118, "Side information", {
+        "text-anchor": "middle", fill: "var(--slate)", "font-weight": 700, opacity: showScalars
+      });
+      const side = ["age", "sex", "Tmax", "AUC", "uptake", "clearance", "BMI", "…"];
+      side.forEach((lab, i) => {
+        const op = clamp(showScalars * 1.4 - i * 0.08, 0, 1);
+        const x = 490 + (i % 4) * 62;
+        const y = 138 + Math.floor(i / 4) * 42;
+        el("rect", {
+          x, y, width: 56, height: 30, rx: 8,
+          fill: i % 2 ? "#f1f5f9" : "#e2e8f0", stroke: "var(--line)", opacity: op
+        }, svg);
+        text(svg, x + 28, y + 19, lab, {
+          "text-anchor": "middle", fill: "var(--ink)", "font-size": 11, "font-weight": 600, opacity: op
+        });
+      });
+
+      el("rect", {
+        x: 490, y: 250, width: 246, height: 56, rx: 12,
+        fill: "#fff7ed", stroke: "#fdba74", opacity: showY
+      }, svg);
+      text(svg, 613, 274, "Predict Y: kidney failure?", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 14, opacity: showY
+      });
+      text(svg, 613, 294, "obstruction / clinical outcome", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showY
+      });
+
+      if (showCorr > 0) {
+        const a = { x: 129, y: 175 }, b = { x: 355, y: 175 }, c = { x: 580, y: 175 };
+        const links = [[a,b,"var(--teal)"],[b,c,"var(--blue)"],[a,c,"var(--slate)"],
+          [{x:a.x+30,y:a.y+40},{x:c.x-40,y:c.y+20},"#94a3b8"],
+          [{x:b.x-20,y:b.y+35},{x:c.x-20,y:c.y-25},"#94a3b8"]];
+        links.forEach((Lnk, i) => {
+          const op = clamp(showCorr * 1.5 - i * 0.12, 0, 1);
+          const [p0, p1, col] = Lnk;
+          const mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2 + ((i % 2) ? 28 : -28);
+          el("path", {
+            d: `M${p0.x},${p0.y} Q${mx},${my} ${p1.x},${p1.y}`,
+            fill: "none", stroke: col, "stroke-width": 2, "stroke-dasharray": "6 5",
+            opacity: 0.25 + 0.55 * op
+          }, svg);
+          const uu = (e * 1.8 + i * 0.15) % 1;
+          el("circle", {
+            cx: (1-uu)*(1-uu)*p0.x + 2*(1-uu)*uu*mx + uu*uu*p1.x,
+            cy: (1-uu)*(1-uu)*p0.y + 2*(1-uu)*uu*my + uu*uu*p1.y,
+            r: 3.2, fill: col, opacity: 0.4 + 0.5 * op
+          }, svg);
+        });
+        text(svg, 380, 330, "curves ↔ curves ↔ scalars  are correlated", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 600, opacity: showCorr
+        });
+      }
+
+      el("rect", {
+        x: 160, y: 350, width: 440, height: 52, rx: 12,
+        fill: showProblem > 0.2 ? "#fef2f2" : "#fff",
+        stroke: showProblem > 0.2 ? "#f87171" : "var(--line)", opacity: Math.max(showProblem, 0.001)
+      }, svg);
+      text(svg, 380, 372, "Problem: multicollinearity across modalities", {
+        "text-anchor": "middle", fill: "#b91c1c", "font-weight": 700, "font-size": 13, opacity: showProblem
+      });
+      text(svg, 380, 390, "Need a joint, supervised summary — not separate pieces.", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showProblem
+      });
+    }
+
+    function drawAssoc(svg, d, u, opts = {}) {
+      const e = ease(Math.min(u, 1));
+      const oa = d.original_association;
+      const fadeIn = opts.fadeIn ?? 1;
+      const rows = [
+        { lab: "corr(X₁(t), Y)", col: "var(--teal)", ys: oa.cor_X1, box: L.assocRows[0] },
+        { lab: "corr(X₂(t), Y)", col: "var(--blue)", ys: oa.cor_X2, box: L.assocRows[1] }
+      ];
+      rows.forEach((r, i) => {
+        const op = fadeIn * (opts.instant ? 1 : clamp(e * 1.2 - i * 0.1, 0, 1));
+        el("rect", {
+          x: r.box.x, y: r.box.y, width: r.box.w, height: r.box.h, rx: 12,
+          fill: "#fbfaf8", stroke: "var(--line)", opacity: op * 0.9
+        }, svg);
+        text(svg, r.box.x + 14, r.box.y + 20, r.lab, {
+          fill: r.col, "font-weight": 600, opacity: op
+        });
+        drawCurveInBox(svg, r.ys, { x: r.box.x, y: r.box.y + 4, w: r.box.w, h: r.box.h - 8 }, r.col, op);
+      });
+      const b3 = L.assocRows[2];
+      const op3 = fadeIn * (opts.instant ? 1 : clamp(e * 1.2 - 0.2, 0, 1));
+      el("rect", {
+        x: b3.x, y: b3.y, width: b3.w, height: b3.h, rx: 12,
+        fill: "#fbfaf8", stroke: "var(--line)", opacity: op3 * 0.9
+      }, svg);
+      text(svg, b3.x + 14, b3.y + 20, "corr(scalars, Y)", {
+        fill: "var(--slate)", "font-weight": 600, opacity: op3
+      });
+      drawBarsInBox(svg, oa.cor_Z, b3, d.meta.scalar_names, op3);
+
+      const opR = fadeIn * (opts.instant ? 1 : clamp((e - 0.15) / 0.5, 0, 1));
+      el("rect", {
+        x: 400, y: 80, width: 320, height: 220, rx: 16,
+        fill: "#fbfaf8", stroke: "var(--line)", opacity: opR
+      }, svg);
+      text(svg, 560, 130, "Response Y", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 14, opacity: opR
+      });
+      text(svg, 560, 165, "Signal is spread across", { "text-anchor": "middle", opacity: opR });
+      text(svg, 560, 186, "many correlated pieces.", { "text-anchor": "middle", opacity: opR });
+      text(svg, 560, 230, "We want one summary", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 600, "font-size": 14, opacity: opR
+      });
+      text(svg, 560, 252, "that keeps this link.", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 600, "font-size": 14, opacity: opR
+      });
+    }
+
+    function drawBundle(svg, d, u, opts = {}) {
+      const e = ease(Math.min(u, 1));
+      const boxProgress = opts.instant ? 1 : clamp(e / 0.55, 0, 1);
+      const labelProgress = opts.instant ? 1 : clamp((e - 0.45) / 0.4, 0, 1);
+      const separate = 1 - boxProgress;
+      const sub = d.subjects[0].stages[0];
+      const series = [sub.curves[0], sub.curves[1]];
+      const zVals = sub.scalars;
+
+      L.assocRows.forEach((f, i) => {
+        const col = i === 0 ? "var(--teal)" : i === 1 ? "var(--blue)" : "var(--slate)";
+        el("rect", {
+          x: f.x, y: f.y, width: f.w, height: f.h, rx: 10,
+          fill: "none", stroke: col, "stroke-width": 1.5, "stroke-dasharray": "5 4",
+          opacity: 0.55 * separate
+        }, svg);
+      });
+
+      const bx = L.bundleBox;
+      const peri = 2 * (bx.w + bx.h);
+      el("rect", {
+        x: bx.x, y: bx.y, width: bx.w, height: bx.h, rx: 16,
+        fill: boxProgress > 0.7 ? "rgba(15,118,110,0.04)" : "none",
+        stroke: "var(--teal)", "stroke-width": 2.6,
+        "stroke-dasharray": `${peri * boxProgress} ${peri}`,
+        opacity: 0.35 + 0.65 * boxProgress
+      }, svg);
+
+      const labs = ["X₁(t)", "X₂(t)", "scalars Z"];
+      const cols = ["var(--teal)", "var(--blue)", "var(--slate)"];
+      series.forEach((ys, i) => {
+        text(svg, 36, L.assocRows[i].y + 16, labs[i], { fill: cols[i], "font-weight": 600 });
+        drawCurveInBox(svg, ys, {
+          x: L.assocRows[i].x, y: L.assocRows[i].y + 4,
+          w: L.assocRows[i].w, h: L.assocRows[i].h - 8
+        }, cols[i], 0.85);
+      });
+      text(svg, 36, L.assocRows[2].y + 16, labs[2], { fill: cols[2], "font-weight": 600 });
+      drawBarsInBox(svg, zVals, L.assocRows[2], d.meta.scalar_names, 0.85);
+
+      el("rect", {
+        x: 400, y: 150, width: 320, height: 120, rx: 16,
+        fill: "#ecfdf5", stroke: "var(--teal)", opacity: labelProgress
+      }, svg);
+      text(svg, 560, 190, "united as one object", {
+        "text-anchor": "middle", fill: "var(--teal)", "font-weight": 600, opacity: labelProgress
+      });
+      text(svg, 560, 222, "W = ( X₁ , X₂ , Z )", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 18, opacity: labelProgress
+      });
+      text(svg, 560, 248, "W ∈ ℍ", {
+        "text-anchor": "middle", fill: "var(--muted)", opacity: labelProgress
+      });
+    }
+
+    function drawDirection(svg, d, u, opts = {}) {
+      const e = ease(Math.min(u, 1));
+      const xi = d.components[0];
+      const sub = d.subjects[Math.floor(d.subjects.length / 2)];
+      const x1 = sub.stages[0].curves[0];
+      const x2 = sub.stages[0].curves[1];
+      const z = sub.stages[0].scalars;
+      const showPairs = opts.instant ? 1 : clamp(e / 0.28, 0, 1);
+      const showInner = opts.instant ? 1 : clamp((e - 0.22) / 0.28, 0, 1);
+      const merge = opts.instant ? 1 : clamp((e - 0.48) / 0.35, 0, 1);
+      const scoreGlow = opts.instant ? 1 : clamp((e - 0.72) / 0.28, 0, 1);
+      const paneOp = opts.paneOp ?? 1;
+
+      const panes = [
+        { x: 12, w: 220, title: "Predictors", sub: "W" },
+        { x: 250, w: 220, title: "Weights", sub: "ξ" },
+        { x: 488, w: 260, title: "Scores", sub: "ρ = ⟨W, ξ⟩" }
+      ];
+      panes.forEach((pn) => {
+        el("rect", {
+          x: pn.x, y: 8, width: pn.w, height: 400, rx: 14,
+          fill: "#fbfaf8", stroke: "var(--line)", opacity: paneOp
+        }, svg);
+        text(svg, pn.x + pn.w / 2, 30, pn.title, {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: paneOp
+        });
+        text(svg, pn.x + pn.w / 2, 48, pn.sub, {
+          "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: paneOp
+        });
+      });
+
+      const rows = [
+        { y: 68, col: "var(--teal)", leftLab: "X₁(t)", rightLab: "ξ₁(t)", left: x1, right: xi.xi_functional[0], term: "⟨X₁, ξ₁⟩" },
+        { y: 168, col: "var(--blue)", leftLab: "X₂(t)", rightLab: "ξ₂(t)", left: x2, right: xi.xi_functional[1], term: "⟨X₂, ξ₂⟩" }
+      ];
+      rows.forEach((row, ri) => {
+        const op = paneOp * clamp(showPairs * 1.2 - ri * 0.08, 0, 1);
+        const [yminL, ymaxL] = rangeOf(row.left);
+        const [yminR, ymaxR] = rangeOf(row.right);
+        text(svg, 28, row.y - 6, row.leftLab, { fill: row.col, "font-weight": 600, opacity: op, "font-size": 11 });
+        text(svg, 266, row.y - 6, row.rightLab, { fill: row.col, "font-weight": 600, opacity: op, "font-size": 11 });
+        zeroLine(svg, 28, 214, row.y, 62, yminL, ymaxL, op);
+        zeroLine(svg, 266, 452, row.y, 62, yminR, ymaxR, op);
+        el("path", {
+          d: seriesPath(row.left.map((_,i)=>i), row.left, 28, row.y, 186, 62, yminL, ymaxL),
+          fill: "none", stroke: row.col, "stroke-width": 2, opacity: 0.25 + 0.7 * op
+        }, svg);
+        el("path", {
+          d: seriesPath(row.right.map((_,i)=>i), row.right, 266, row.y, 186, 62, yminR, ymaxR),
+          fill: "none", stroke: row.col, "stroke-width": 2.3, "stroke-dasharray": "5 4",
+          opacity: 0.25 + 0.7 * op
+        }, svg);
+        const opI = paneOp * clamp(showInner * 1.2 - ri * 0.1, 0, 1);
+        const cx = 240, cy = row.y + 30;
+        el("circle", { cx, cy, r: 15, fill: "#ecfdf5", stroke: row.col, "stroke-width": 1.6, opacity: opI }, svg);
+        text(svg, cx, cy + 4, "⟨·,·⟩", {
+          "text-anchor": "middle", fill: row.col, "font-weight": 700, "font-size": 10, opacity: opI
+        });
+        const chipX = lerp(cx, 618, merge), chipY = lerp(cy, 200, merge);
+        el("rect", {
+          x: chipX - 34, y: chipY - 13, width: 68, height: 26, rx: 8,
+          fill: "#fff", stroke: row.col, opacity: opI * (1 - 0.4 * merge)
+        }, svg);
+        text(svg, chipX, chipY + 4, row.term, {
+          "text-anchor": "middle", fill: row.col, "font-size": 10, "font-weight": 600,
+          opacity: opI * (1 - 0.55 * merge)
+        });
+      });
+
+      {
+        const op = paneOp * clamp(showPairs * 1.2 - 0.16, 0, 1);
+        const y0 = 285;
+        text(svg, 28, y0 - 6, "Z", { fill: "var(--slate)", "font-weight": 600, opacity: op, "font-size": 11 });
+        text(svg, 266, y0 - 6, "u", { fill: "var(--slate)", "font-weight": 600, opacity: op, "font-size": 11 });
+        const maxZ = Math.max(...z.map(Math.abs), ...xi.xi_scalar.map(Math.abs), 1e-6);
+        z.forEach((v, i) => {
+          const h = (Math.abs(v) / maxZ) * 44 * op;
+          el("rect", {
+            x: 32 + i * 44, y: y0 + 52 - h, width: 32, height: Math.max(h, 1), rx: 3,
+            fill: i === z.length - 1 ? "var(--orange)" : "var(--slate)", opacity: 0.35 + 0.55 * op
+          }, svg);
+        });
+        xi.xi_scalar.forEach((v, i) => {
+          const h = (Math.abs(v) / maxZ) * 44 * op;
+          el("rect", {
+            x: 270 + i * 44, y: y0 + 52 - h, width: 32, height: Math.max(h, 1), rx: 3,
+            fill: i === xi.xi_scalar.length - 1 ? "var(--orange)" : "var(--slate)",
+            opacity: 0.35 + 0.55 * op
+          }, svg);
+        });
+        const opI = paneOp * clamp(showInner * 1.2 - 0.2, 0, 1);
+        const cx = 240, cy = y0 + 28;
+        el("circle", { cx, cy, r: 15, fill: "#f8fafc", stroke: "var(--slate)", opacity: opI }, svg);
+        text(svg, cx, cy + 4, "⟨·,·⟩", {
+          "text-anchor": "middle", fill: "var(--slate)", "font-weight": 700, "font-size": 10, opacity: opI
+        });
+        const chipX = lerp(cx, 618, merge), chipY = lerp(cy, 200, merge);
+        el("rect", {
+          x: chipX - 30, y: chipY - 13, width: 60, height: 26, rx: 8,
+          fill: "#fff", stroke: "var(--slate)", opacity: opI * (1 - 0.4 * merge)
+        }, svg);
+        text(svg, chipX, chipY + 4, "⟨Z, u⟩", {
+          "text-anchor": "middle", fill: "var(--slate)", "font-size": 10, "font-weight": 600,
+          opacity: opI * (1 - 0.55 * merge)
+        });
+      }
+
+      const opM = paneOp * clamp(merge, 0, 1);
+      el("rect", {
+        x: 520, y: 150, width: 200, height: 100, rx: 14,
+        fill: scoreGlow > 0.2 ? "#fff7ed" : "#ecfdf5",
+        stroke: scoreGlow > 0.2 ? "var(--orange)" : "var(--teal)", "stroke-width": 2,
+        opacity: 0.3 + 0.7 * Math.max(opM, 0.15)
+      }, svg);
+      text(svg, 620, 182, "ρ = ⟨X₁, ξ₁⟩", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600,
+        opacity: 0.35 + 0.65 * opM
+      });
+      text(svg, 620, 202, "+ ⟨X₂, ξ₂⟩ + ⟨Z, u⟩", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600,
+        opacity: 0.35 + 0.65 * opM
+      });
+      text(svg, 620, 228, "one score", {
+        "text-anchor": "middle", fill: scoreGlow > 0.2 ? "var(--orange)" : "var(--teal)",
+        "font-size": 14, "font-weight": 700, opacity: 0.35 + 0.65 * opM
+      });
+    }
+
+    function drawScore(svg, d, u, opts = {}) {
+      const e = ease(Math.min(u, 1));
+      const xi = d.components[0];
+      const idx = d.scatter_idx;
+      const xs = idx.map(i => xi.rho[i - 1]);
+      const ys = idx.map(i => xi.y_before[i - 1]);
+      const [xmin, xmax] = rangeOf(xs);
+      const [ymin, ymax] = rangeOf(ys);
+      const showParts = opts.instant ? 1 : clamp(e / 0.28, 0, 1);
+      const mergeParts = opts.instant ? 1 : clamp((e - 0.28) / 0.35, 0, 1);
+      const showScatter = opts.instant ? 1 : clamp((e - 0.45) / 0.35, 0, 1);
+      const showFinal = opts.instant ? 1 : clamp((e - 0.7) / 0.3, 0, 1);
+      const cX1 = d.meta.orig_assoc_summary.mean_abs_cor_X1;
+      const cX2 = d.meta.orig_assoc_summary.mean_abs_cor_X2;
+      const cZ = d.meta.orig_assoc_summary.max_abs_cor_Z;
+      const cRho = xi.cor_vs_orig_y;
+      const maxBar = Math.max(cX1, cX2, cZ, cRho, 0.2);
+
+      text(svg, 380, 24, "Three weaker links → one combined correlation", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: showParts
+      });
+
+      const sources = [
+        { lab: "X₁ → Y", val: cX1, col: "var(--teal)", y: 70 },
+        { lab: "X₂ → Y", val: cX2, col: "var(--blue)", y: 130 },
+        { lab: "Z → Y", val: cZ, col: "var(--slate)", y: 190 }
+      ];
+      sources.forEach((s, i) => {
+        const op = clamp(showParts * 1.3 - i * 0.1, 0, 1);
+        text(svg, 28, s.y + 4, s.lab, { fill: s.col, "font-weight": 600, opacity: op });
+        const w = (s.val / maxBar) * 160;
+        const barX = lerp(110, 200, mergeParts);
+        const barY = lerp(s.y - 10, 118, mergeParts);
+        const barW = lerp(w, 8, mergeParts);
+        const barH = lerp(18, 10, mergeParts);
+        el("rect", {
+          x: barX, y: barY, width: Math.max(barW, 2), height: barH, rx: 4,
+          fill: s.col, opacity: op * (1 - 0.55 * mergeParts)
+        }, svg);
+        text(svg, barX + w + 8, s.y + 4, s.val.toFixed(2), {
+          fill: "var(--ink)", "font-size": 11, "font-weight": 600, opacity: op * (1 - mergeParts)
+        });
+        el("path", {
+          d: `M${barX + Math.max(barW, 2)} ${barY + barH / 2} C${lerp(280, 250, mergeParts)} ${s.y}, 290 145, 310 145`,
+          fill: "none", stroke: s.col, "stroke-width": 1.8, "stroke-dasharray": "5 4",
+          opacity: 0.2 + 0.7 * mergeParts * op
+        }, svg);
+      });
+
+      const nodeOp = clamp(mergeParts, 0, 1);
+      el("circle", {
+        cx: 330, cy: 145, r: lerp(10, 28, nodeOp),
+        fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2.2, opacity: nodeOp
+      }, svg);
+      text(svg, 330, 150, "ρ", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700,
+        "font-size": lerp(11, 16, nodeOp), opacity: nodeOp
+      });
+      const combW = (cRho / maxBar) * 180 * nodeOp;
+      el("rect", {
+        x: 370, y: 132, width: Math.max(combW, 0), height: 26, rx: 6,
+        fill: "var(--orange)", opacity: 0.25 + 0.7 * nodeOp
+      }, svg);
+      text(svg, 370 + Math.max(combW, 0) + 8, 150, `|corr(ρ,Y)| = ${cRho.toFixed(2)}`, {
+        fill: "var(--orange)", "font-weight": 700, "font-size": 13, opacity: nodeOp
+      });
+
+      el("rect", {
+        x: 28, y: 260, width: 700, height: 148, rx: 12,
+        fill: "#fbfaf8", stroke: "var(--line)", opacity: showScatter
+      }, svg);
+      text(svg, 48, 282, "Evidence: subjects in the (ρ, Y) plane", {
+        fill: "var(--ink)", "font-weight": 600, "font-size": 12, opacity: showScatter
+      });
+      el("line", { x1: 60, y1: 390, x2: 360, y2: 390, stroke: "#dde3ea", opacity: showScatter }, svg);
+      el("line", { x1: 60, y1: 300, x2: 60, y2: 390, stroke: "#dde3ea", opacity: showScatter }, svg);
+      xs.forEach((x, i) => {
+        const px = 60 + ((x - xmin) / (xmax - xmin)) * 300;
+        const py = 390 - ((ys[i] - ymin) / (ymax - ymin)) * 90;
+        el("circle", {
+          cx: px, cy: py, r: 2.8, fill: "var(--orange)",
+          opacity: 0.15 + 0.75 * showScatter
+        }, svg);
+      });
+
+      el("rect", {
+        x: 400, y: 290, width: 300, height: 100, rx: 12,
+        fill: "#ecfdf5", stroke: "var(--teal)", opacity: showFinal
+      }, svg);
+      text(svg, 550, 325, "One score, three sources", {
+        "text-anchor": "middle", fill: "var(--teal)", "font-weight": 700, opacity: showFinal
+      });
+      text(svg, 550, 350, `${cX1.toFixed(2)} ⊕ ${cX2.toFixed(2)} ⊕ ${cZ.toFixed(2)}`, {
+        "text-anchor": "middle", fill: "var(--ink)", opacity: showFinal
+      });
+      text(svg, 550, 372, `→  |corr(ρ, Y)| = ${cRho.toFixed(2)}`, {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, opacity: showFinal
+      });
+    }
+
+    // ---------- morphs between stages ----------
+    function morphMotiveToAssoc(svg, d, t) {
+      const oa = d.original_association;
+      const base = renogramCurve("base");
+      const post = renogramCurve("post");
+      const fromCurves = [base, post];
+      const toCurves = [oa.cor_X1, oa.cor_X2];
+      const cols = ["var(--teal)", "var(--blue)"];
+      const titlesFrom = ["Baseline renogram", "Post-furosemide"];
+      const titlesTo = ["corr(X₁(t), Y)", "corr(X₂(t), Y)"];
+
+      // fade patient / tangle / problem
+      text(svg, 380, 36, "Carrying the three predictor types into correlations with Y…", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 12, opacity: 1 - t * 0.3
+      });
+
+      for (let i = 0; i < 2; i++) {
+        const box = {
+          x: lerp(L.motivePanels[i].x, L.assocRows[i].x, t),
+          y: lerp(L.motivePanels[i].y, L.assocRows[i].y, t),
+          w: lerp(L.motivePanels[i].w, L.assocRows[i].w, t),
+          h: lerp(L.motivePanels[i].h, L.assocRows[i].h, t)
+        };
+        el("rect", {
+          x: box.x, y: box.y, width: box.w, height: box.h, rx: 12,
+          fill: "#fbfaf8", stroke: cols[i], "stroke-width": lerp(1, 1.4, t), opacity: 0.95
+        }, svg);
+        text(svg, box.x + 14, box.y + 20, t < 0.5 ? titlesFrom[i] : titlesTo[i], {
+          fill: cols[i], "font-weight": 600, "font-size": 12
+        });
+        // resample morph of curve values (length may differ)
+        const a = fromCurves[i], b = toCurves[i];
+        const n = 60;
+        const ys = [];
+        for (let k = 0; k < n; k++) {
+          const u = k / (n - 1);
+          const va = a[Math.min(a.length - 1, Math.round(u * (a.length - 1)))];
+          const vb = b[Math.min(b.length - 1, Math.round(u * (b.length - 1)))];
+          // normalize each then blend for visual continuity
+          ys.push(lerp(va, vb, t));
+        }
+        drawCurveInBox(svg, ys, { x: box.x, y: box.y + 4, w: box.w, h: box.h - 8 }, cols[i], 0.9);
+      }
+
+      // scalars panel morphs from chip cloud to corr bars
+      const box3 = {
+        x: lerp(L.motivePanels[2].x, L.assocRows[2].x, t),
+        y: lerp(L.motivePanels[2].y, L.assocRows[2].y, t),
+        w: lerp(L.motivePanels[2].w, L.assocRows[2].w, t),
+        h: lerp(L.motivePanels[2].h, L.assocRows[2].h, t)
+      };
+      el("rect", {
+        x: box3.x, y: box3.y, width: box3.w, height: box3.h, rx: 12,
+        fill: "#fbfaf8", stroke: "var(--slate)", opacity: 0.95
+      }, svg);
+      text(svg, box3.x + 14, box3.y + 20, t < 0.5 ? "Side information" : "corr(scalars, Y)", {
+        fill: "var(--slate)", "font-weight": 600
+      });
+      drawBarsInBox(svg, oa.cor_Z, box3, d.meta.scalar_names, 0.35 + 0.65 * t);
+
+      // right card: kidney failure → response Y message
+      el("rect", {
+        x: lerp(490, 400, t), y: lerp(250, 80, t),
+        width: lerp(246, 320, t), height: lerp(56, 220, t), rx: 14,
+        fill: t < 0.45 ? "#fff7ed" : "#fbfaf8",
+        stroke: t < 0.45 ? "#fdba74" : "var(--line)", opacity: 0.85 + 0.15 * t
+      }, svg);
+      if (t < 0.5) {
+        text(svg, lerp(613, 560, t), lerp(274, 150, t), "Predict Y: kidney failure?", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 13,
+          opacity: 1 - t
+        });
+      } else {
+        text(svg, 560, 150, "Response Y", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, opacity: (t - 0.5) * 2
+        });
+        text(svg, 560, 190, "Now measure how each", {
+          "text-anchor": "middle", opacity: (t - 0.5) * 2
+        });
+        text(svg, 560, 210, "predictor relates to Y.", {
+          "text-anchor": "middle", opacity: (t - 0.5) * 2
+        });
+      }
+    }
+
+    function morphAssocToBundle(svg, d, t) {
+      // Start from assoc look, grow enclosing box, retarget labels/series
+      drawAssoc(svg, d, 1, { instant: true, fadeIn: 1 - 0.35 * t });
+      const bx = L.bundleBox;
+      const peri = 2 * (bx.w + bx.h);
+      el("rect", {
+        x: bx.x, y: bx.y, width: bx.w, height: bx.h, rx: 16,
+        fill: t > 0.5 ? `rgba(15,118,110,${0.04 * t})` : "none",
+        stroke: "var(--teal)", "stroke-width": 2.6,
+        "stroke-dasharray": `${peri * t} ${peri}`,
+        opacity: 0.4 + 0.6 * t
+      }, svg);
+      // overlay bundle content fading in
+      if (t > 0.35) {
+        const g = el("g", { opacity: (t - 0.35) / 0.65 }, svg);
+        // lightweight: badge
+        el("rect", {
+          x: 400, y: 150, width: 320, height: 120, rx: 16,
+          fill: "#ecfdf5", stroke: "var(--teal)"
+        }, g);
+        text(g, 560, 200, "W = ( X₁ , X₂ , Z )", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 18
+        });
+        text(g, 560, 230, "three pieces → one hybrid object", {
+          "text-anchor": "middle", fill: "var(--teal)", "font-size": 12
+        });
+      }
+      text(svg, 36, 30, t < 0.5 ? "corr(·, Y)" : "X₁ / X₂ / Z as parts of W", {
+        fill: "var(--muted)", "font-size": 11, opacity: 0.9
+      });
+    }
+
+    function morphBundleToDirection(svg, d, t) {
+      // One box splits into three panes
+      for (let i = 0; i < 3; i++) {
+        const from = L.bundleBox;
+        const to = L.dirPanes[i];
+        // stagger split
+        const ti = clamp((t - i * 0.08) / 0.75, 0, 1);
+        const box = {
+          x: lerp(from.x + (i * from.w) / 3, to.x, ti),
+          y: lerp(from.y, to.y, ti),
+          w: lerp(from.w / 3 - 4, to.w, ti),
+          h: lerp(from.h, to.h, ti)
+        };
+        el("rect", {
+          x: box.x, y: box.y, width: Math.max(box.w, 8), height: box.h, rx: 14,
+          fill: "#fbfaf8", stroke: "var(--teal)", "stroke-width": 1.5, opacity: 0.5 + 0.5 * ti
+        }, svg);
+      }
+      const titles = ["Predictors", "Weights", "Scores"];
+      titles.forEach((title, i) => {
+        const to = L.dirPanes[i];
+        text(svg, to.x + to.w / 2, 36, title, {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700,
+          opacity: clamp((t - 0.35 - i * 0.08) / 0.4, 0, 1)
+        });
+      });
+      text(svg, 380, 400, "Splitting W into the inner-product view…", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 12, opacity: 1 - t * 0.4
+      });
+      if (t > 0.72) {
+        drawDirection(svg, d, 0.15, { paneOp: (t - 0.72) / 0.28 });
+      }
+    }
+
+    function morphDirectionToScore(svg, d, t) {
+      // Scores pane expands; predictors/weights collapse into the three association streams
+      drawDirection(svg, d, 1, { instant: true, paneOp: 1 - 0.85 * t });
+      // Growing score combine overlay
+      const g = el("g", { opacity: clamp((t - 0.15) / 0.5, 0, 1) }, svg);
+      const xi = d.components[0];
+      const cX1 = d.meta.orig_assoc_summary.mean_abs_cor_X1;
+      const cX2 = d.meta.orig_assoc_summary.mean_abs_cor_X2;
+      const cZ = d.meta.orig_assoc_summary.max_abs_cor_Z;
+      const cRho = xi.cor_vs_orig_y;
+      // ρ chip flies from direction score box to combine node
+      const chipX = lerp(620, 330, t);
+      const chipY = lerp(200, 145, t);
+      el("circle", {
+        cx: chipX, cy: chipY, r: lerp(20, 28, t),
+        fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2
+      }, g);
+      text(g, chipX, chipY + 5, "ρ", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 16
+      });
+      if (t > 0.45) {
+        const op = (t - 0.45) / 0.55;
+        const sources = [
+          { lab: "X₁ → Y", val: cX1, col: "var(--teal)", y: 70 },
+          { lab: "X₂ → Y", val: cX2, col: "var(--blue)", y: 130 },
+          { lab: "Z → Y", val: cZ, col: "var(--slate)", y: 190 }
+        ];
+        sources.forEach((s) => {
+          text(g, 28, s.y + 4, s.lab, { fill: s.col, "font-weight": 600, opacity: op });
+          el("path", {
+            d: `M120 ${s.y} C200 ${s.y}, 280 145, 310 145`,
+            fill: "none", stroke: s.col, "stroke-width": 1.8, "stroke-dasharray": "5 4", opacity: op
+          }, g);
+        });
+        text(g, 430, 150, `|corr(ρ,Y)| = ${cRho.toFixed(2)}`, {
+          fill: "var(--orange)", "font-weight": 700, opacity: op
+        });
+      }
+    }
+
+    function drawStage(svg, d, id, u, opts = {}) {
+      if (id === "motive") return drawMotive(svg, d, opts.instant ? 1 : u);
+      if (id === "assoc") return drawAssoc(svg, d, u, opts);
+      if (id === "bundle") return drawBundle(svg, d, u, opts);
+      if (id === "direction") return drawDirection(svg, d, u, opts);
+      if (id === "score") return drawScore(svg, d, u, opts);
+    }
+
+    function drawMorph(svg, d, fromId, toId, t) {
+      if (fromId === "motive" && toId === "assoc") return morphMotiveToAssoc(svg, d, t);
+      if (fromId === "assoc" && toId === "bundle") return morphAssocToBundle(svg, d, t);
+      if (fromId === "bundle" && toId === "direction") return morphBundleToDirection(svg, d, t);
+      if (fromId === "direction" && toId === "score") return morphDirectionToScore(svg, d, t);
+      // fallback crossfade
+      const g1 = el("g", { opacity: 1 - t }, svg);
+      const g2 = el("g", { opacity: t }, svg);
+      drawStage(g1, d, fromId, 1);
+      drawStage(g2, d, toId, 0.05);
+    }
+
+
+    function segmentAt(ms) {
+      let acc = 0;
+      for (let i = 0; i < SEGMENTS.length; i++) {
+        const s = SEGMENTS[i];
+        if (ms < acc + s.dur) {
+          return { seg: s, index: i, local: (ms - acc) / s.dur, acc };
+        }
+        acc += s.dur;
+      }
+      const last = SEGMENTS[SEGMENTS.length - 1];
+      return { seg: last, index: SEGMENTS.length - 1, local: 1, acc: TOTAL_MS - last.dur };
+    }
+
+    function drawFrame(ms) {
+      const svg = $("scene");
+      clear(svg);
+      const d = state.data;
+      const { seg, local } = segmentAt(ms);
+      const p = clamp(local, 0, 1);
+
+      if (seg.kind === "play") {
+        const u0 = seg.u0 || 0;
+        const u = u0 + (1 - u0) * p;
+        drawStage(svg, d, seg.id, u);
+        return { label: SLIDES[seg.id].label, caption: SLIDES[seg.id].caption };
+      }
+      if (seg.kind === "hold") {
+        // Exact final slide output — do not restart intro fades
+        drawStage(svg, d, seg.id, 1, { instant: true, paneOp: 1, fadeIn: 1 });
+        return { label: SLIDES[seg.id].label, caption: SLIDES[seg.id].caption };
+      }
+      // morph between exact slide looks
+      const t = ease(p);
+      drawMorph(svg, d, seg.fro, seg.to, t);
+      return {
+        label: SLIDES[seg.to].label,
+        caption: SLIDES[seg.to].caption
+      };
+    }
+
+    function render(ms) {
+      ms = clamp(ms, 0, TOTAL_MS);
+      const meta = drawFrame(ms);
+      $("stageLabel").textContent = meta.label;
+      $("caption").textContent = meta.caption;
+      $("bar").style.width = ((100 * ms) / TOTAL_MS).toFixed(2) + "%";
+    }
+
+    function tick(now) {
+      if (!state.playing) return;
+      const ms = clamp(now - state.t0, 0, TOTAL_MS);
+      state.elapsed = ms;
+      render(ms);
+      if (ms >= TOTAL_MS) {
+        state.playing = false;
+        $("playBtn").textContent = "Replay";
+        return;
+      }
+      state.raf = requestAnimationFrame(tick);
+    }
+
+    function play() {
+      if (state.playing) {
+        state.playing = false;
+        cancelAnimationFrame(state.raf);
+        $("playBtn").textContent = "Play";
+        return;
+      }
+      state.playing = true;
+      $("playBtn").textContent = "Pause";
+      if (state.elapsed >= TOTAL_MS - 16) state.elapsed = 0;
+      state.t0 = performance.now() - state.elapsed;
+      state.raf = requestAnimationFrame(tick);
+    }
+
+    function restart() {
+      cancelAnimationFrame(state.raf);
+      state.playing = false;
+      state.elapsed = 0;
+      $("playBtn").textContent = "Play";
+      render(0);
+    }
+
+    function boot() {
+      if (!window.ANIM_DATA) {
+        $("caption").textContent = "Run build_animation_data.R first.";
+        return;
+      }
+      state.data = window.ANIM_DATA;
+      $("note").textContent = "Same slide visuals as before · continuous timeline with morphs between holds";
+      $("playBtn").onclick = play;
+      $("restartBtn").onclick = restart;
+      render(0);
+      setTimeout(() => { if (!state.playing) play(); }, 400);
+    }
+    boot();
+
+  </script>
+</body>
+</html>
