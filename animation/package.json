@@ -1,0 +1,11 @@
+{
+  "name": "fshybridpls-animation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "record-gif": "node record_gif.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -55,6 +55,7 @@
       margin: 0 0 8px; font-size: 14px; line-height: 1.4;
       min-height: 2.8em; color: var(--ink);
     }
+    .caption:empty { display: none; min-height: 0; margin: 0; }
     svg { width: 100%; height: auto; display: block; }
     .controls {
       margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -67,11 +68,38 @@
       background: #fff; color: var(--ink); border: 1px solid var(--line);
     }
     .progress {
-      flex: 1; min-width: 120px; height: 7px;
-      background: #e6ebf2; border-radius: 999px; overflow: hidden;
+      flex: 1; min-width: 120px; height: 18px;
+      display: flex; align-items: center;
+      cursor: pointer; position: relative;
+      touch-action: none;
+      background: transparent;
     }
-    .progress > i { display: block; height: 100%; width: 0%; background: var(--teal); }
+    .progress > i {
+      display: block; height: 8px; width: 0%;
+      background: var(--teal); border-radius: 999px;
+      pointer-events: none; position: relative; z-index: 1;
+      box-shadow: inset 0 0 0 999px transparent;
+    }
+    .progress::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 50%;
+      height: 8px; margin-top: -4px; border-radius: 999px; background: #e6ebf2;
+      pointer-events: none;
+    }
+    .progress:hover::before { background: #dbe3ec; }
+    .progress:focus-visible {
+      outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 999px;
+    }
     .foot { margin-top: 14px; font-size: 12px; color: var(--muted); }
+    body.record .eyebrow,
+    body.record h1,
+    body.record .message,
+    body.record .stage,
+    body.record .controls,
+    body.record .foot,
+    body.record .caption { display: none !important; }
+    body.record { background: #f6f4ef; }
+    body.record .wrap { max-width: 820px; padding: 12px; }
+    body.record .frame { box-shadow: none; padding: 8px; }
   </style>
 </head>
 <body>
@@ -89,7 +117,8 @@
     <div class="controls">
       <button id="playBtn">Play</button>
       <button class="secondary" id="restartBtn">Restart</button>
-      <div class="progress"><i id="bar"></i></div>
+      <div class="progress" id="progress" role="slider" aria-label="Animation progress"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="bar"></i></div>
     </div>
     <p class="foot" id="note"></p>
   </div>
@@ -98,8 +127,8 @@
   <script>
     const SLIDES = {
       motive: {
-        label: "Motivation · Renal imaging study",
-        caption: "Each patient has two renogram curves and many clinical side measures. Goal: predict kidney failure — but the predictors are tangled."
+        label: "Motivation · From patient scan to tangled predictors",
+        caption: ""
       },
       assoc: {
         label: "1 / 4  ·  Predictors already relate to Y",
@@ -110,8 +139,8 @@
         caption: "Enclose the three modalities in one hybrid predictor W = (X₁, X₂, Z)."
       },
       direction: {
-        label: "3 / 4  ·  Inner product: predictors × direction → score",
-        caption: "Pair each part of W with the matching part of ξ, then add. That sum is the score ρ = ⟨W, ξ⟩."
+        label: "3 / 4  ·  Maximize covariance → weights → score",
+        caption: "Predictors are already in place. Hybrid PLS finds weights ξ by maximizing cov(⟨W, ξ⟩, Y), then forms ρ = ⟨W, ξ⟩."
       },
       score: {
         label: "4 / 4  ·  One score combines three associations",
@@ -121,20 +150,25 @@
 
     // Continuous timeline on one clock. Hold frames use the exact prior slide finals.
     // Morph segments connect them. No slide restart after a morph (except direction/score internal play).
-    const SEGMENTS = [
-      { kind: "play",  id: "motive",    dur: 5600 },
-      { kind: "hold",  id: "motive",    dur: 1100 },
-      { kind: "morph", fro: "motive", to: "assoc", dur: 1600 },
+    // URL params: ?speed=2 accelerates; ?record=1 hides chrome (for GIF capture).
+    const params = new URLSearchParams(location.search);
+    const SPEED = Math.max(0.25, Math.min(8, Number(params.get("speed")) || 1));
+    const RECORD = params.has("record");
+    const SEGMENTS_BASE = [
+      { kind: "play",  id: "motive",    dur: 13000 },
+      { kind: "hold",  id: "motive",    dur: 3800 },
+      { kind: "morph", fro: "motive", to: "assoc", dur: 1800 },
       { kind: "hold",  id: "assoc",     dur: 2400 },
       { kind: "morph", fro: "assoc", to: "bundle", dur: 1500 },
       { kind: "hold",  id: "bundle",    dur: 2200 },
-      { kind: "morph", fro: "bundle", to: "direction", dur: 1500 },
-      { kind: "play",  id: "direction", dur: 5200, u0: 0.18 },
-      { kind: "hold",  id: "direction", dur: 1000 },
-      { kind: "morph", fro: "direction", to: "score", dur: 1500 },
-      { kind: "play",  id: "score",     dur: 4800, u0: 0.22 },
+      { kind: "morph", fro: "bundle", to: "direction", dur: 2000 },
+      { kind: "play",  id: "direction", dur: 10000, u0: 0 },
+      { kind: "hold",  id: "direction", dur: 1400 },
+      { kind: "morph", fro: "direction", to: "score", dur: 1800 },
+      { kind: "play",  id: "score",     dur: 6500, u0: 0 },
       { kind: "hold",  id: "score",     dur: 1800 }
     ];
+    const SEGMENTS = SEGMENTS_BASE.map((s) => ({ ...s, dur: Math.max(1, Math.round(s.dur / SPEED)) }));
 
     const TOTAL_MS = SEGMENTS.reduce((a, s) => a + s.dur, 0);
 
@@ -190,9 +224,21 @@
       const ys = [];
       for (let i = 0; i < n; i++) {
         const u = i / (n - 1);
-        ys.push(kind === "base"
-          ? 1.15 * Math.exp(-Math.pow((u - 0.22) / 0.12, 2)) + 0.55 * Math.exp(-u / 0.55)
-          : 1.05 * Math.exp(-Math.pow((u - 0.18) / 0.10, 2)) + 0.35 * Math.exp(-u / 0.28));
+        if (kind === "base") {
+          // Early uptake, then gradual washout
+          ys.push(
+            1.15 * Math.exp(-Math.pow((u - 0.20) / 0.11, 2)) +
+            0.50 * Math.exp(-u / 0.50)
+          );
+        } else {
+          // Post-furosemide: delayed peak, sharper drop, then low plateau
+          // Visually distinct from baseline (later peak, thinner spike, flatter tail)
+          ys.push(
+            0.25 * Math.exp(-Math.pow((u - 0.12) / 0.08, 2)) +
+            1.25 * Math.exp(-Math.pow((u - 0.48) / 0.09, 2)) +
+            0.18 * Math.exp(-(u - 0.55) / 0.35) * (u > 0.45 ? 1 : 0.3)
+          );
+        }
       }
       return ys;
     }
@@ -249,113 +295,314 @@
       });
     }
 
-    // ---------- stage drawers (hold phase uses local progress u in [0,1]) ----------
-    function drawMotive(svg, d, u) {
-      const e = ease(u);
-      const showPatient = clamp(e / 0.14, 0, 1);
-      const showCurves = clamp((e - 0.08) / 0.25, 0, 1);
-      const showScalars = clamp((e - 0.28) / 0.2, 0, 1);
-      const showY = clamp((e - 0.42) / 0.16, 0, 1);
-      const showCorr = clamp((e - 0.55) / 0.28, 0, 1);
-      const showProblem = clamp((e - 0.78) / 0.22, 0, 1);
-
-      el("rect", {
-        x: 24, y: 20, width: 160, height: 64, rx: 12,
-        fill: "#fff", stroke: "var(--line)", opacity: showPatient
+    // ---- pictograms for motivation ----
+    function drawPersonIcon(svg, cx, cy, scale, op, fill = "#334155") {
+      if (op < 0.02) return;
+      const s = scale;
+      // head
+      el("circle", { cx, cy: cy - 16 * s, r: 7 * s, fill, opacity: op }, svg);
+      // body
+      el("path", {
+        d: `M${cx},${cy - 8 * s} L${cx},${cy + 6 * s}`,
+        stroke: fill, "stroke-width": 3.2 * s, "stroke-linecap": "round", opacity: op, fill: "none"
       }, svg);
-      text(svg, 104, 46, "One patient", {
-        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, opacity: showPatient
+      // arms
+      el("path", {
+        d: `M${cx - 10 * s},${cy - 2 * s} L${cx + 10 * s},${cy - 2 * s}`,
+        stroke: fill, "stroke-width": 3 * s, "stroke-linecap": "round", opacity: op, fill: "none"
+      }, svg);
+      // legs
+      el("path", {
+        d: `M${cx},${cy + 6 * s} L${cx - 8 * s},${cy + 18 * s} M${cx},${cy + 6 * s} L${cx + 8 * s},${cy + 18 * s}`,
+        stroke: fill, "stroke-width": 3 * s, "stroke-linecap": "round", opacity: op, fill: "none"
+      }, svg);
+    }
+
+    function drawCTIcon(svg, x, y, w, h, op) {
+      if (op < 0.02) return;
+      // gantry outer ring
+      const cx = x + w / 2, cy = y + h * 0.42, R = Math.min(w, h) * 0.34;
+      el("rect", {
+        x, y, width: w, height: h, rx: 14,
+        fill: "#f1f5f9", stroke: "#64748b", "stroke-width": 1.5, opacity: op
+      }, svg);
+      el("circle", {
+        cx, cy, r: R + 10, fill: "none", stroke: "#475569", "stroke-width": 10, opacity: op * 0.9
+      }, svg);
+      el("circle", {
+        cx, cy, r: R, fill: "#e2e8f0", stroke: "#94a3b8", "stroke-width": 2, opacity: op
+      }, svg);
+      // bore (hole)
+      el("circle", {
+        cx, cy, r: R * 0.55, fill: "#0f172a", opacity: op * 0.55
+      }, svg);
+      // table / bed
+      el("rect", {
+        x: x + 18, y: cy + R * 0.15, width: w - 36, height: 10, rx: 4,
+        fill: "#cbd5e1", opacity: op
+      }, svg);
+      text(svg, cx, y + h - 14, "Photon-counting CT", {
+        "text-anchor": "middle", fill: "#475569", "font-size": 11, "font-weight": 600, opacity: op
       });
-      text(svg, 104, 66, "renal study", {
-        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showPatient
-      });
+    }
+
+    function drawNurseIcon(svg, cx, cy, scale, op, label = "Nurse") {
+      if (op < 0.02) return;
+      const s = scale;
+      // soft ground plate
+      el("ellipse", {
+        cx, cy: cy + 22 * s, rx: 22 * s, ry: 6 * s,
+        fill: "#e2e8f0", opacity: op * 0.55
+      }, svg);
+      // nurse cap
+      el("path", {
+        d: `M${cx - 11 * s},${cy - 22 * s} L${cx + 11 * s},${cy - 22 * s} L${cx + 8 * s},${cy - 14 * s} L${cx - 8 * s},${cy - 14 * s} Z`,
+        fill: "#f8fafc", stroke: "#64748b", "stroke-width": 1.2, opacity: op
+      }, svg);
+      el("rect", {
+        x: cx - 2.2 * s, y: cy - 21 * s, width: 4.4 * s, height: 5.5 * s, rx: 0.8,
+        fill: "#ef4444", opacity: op
+      }, svg);
+      // head + body (slightly softer slate than patient)
+      drawPersonIcon(svg, cx, cy, s, op, "#475569");
+      // badge / cross on chest
+      el("circle", {
+        cx: cx + 8 * s, cy: cy - 1 * s, r: 6.5 * s,
+        fill: "#fff", stroke: "#64748b", "stroke-width": 1.1, opacity: op
+      }, svg);
+      el("path", {
+        d: `M${cx + 8 * s},${cy - 4.2 * s} L${cx + 8 * s},${cy + 2.2 * s} M${cx + 4.8 * s},${cy - 1 * s} L${cx + 11.2 * s},${cy - 1 * s}`,
+        stroke: "#ef4444", "stroke-width": 1.8 * s, "stroke-linecap": "round", opacity: op, fill: "none"
+      }, svg);
+      if (label) {
+        text(svg, cx, cy + 36 * s, label, {
+          "text-anchor": "middle", fill: "#475569", "font-size": 11, "font-weight": 700, opacity: op
+        });
+      }
+    }
+
+    function drawMotive(svg, d, u) {
+      // Ordered reveal:
+      // 1 person → 2 CT + walk-through → 3 curve1 → 4 curve2
+      // → 5 patient walks to nurse → 6 scalars from nurse → 7 Y → 8 correlations
+      const e = ease(u);
+      const showPerson = clamp(e / 0.08, 0, 1);
+      const showCT = clamp((e - 0.06) / 0.09, 0, 1);
+      const walk = clamp((e - 0.12) / 0.12, 0, 1);
+      const showC1 = clamp((e - 0.22) / 0.09, 0, 1);
+      // Pause after curve 1 before curve 2
+      const showC2 = clamp((e - 0.36) / 0.09, 0, 1);
+      const showNurse = clamp((e - 0.48) / 0.08, 0, 1);
+      const walkNurse = clamp((e - 0.50) / 0.12, 0, 1);
+      const showScalars = clamp((e - 0.62) / 0.10, 0, 1);
+      // Extra dwell after scalars before Y
+      const showY = clamp((e - 0.80) / 0.08, 0, 1);
+      const showCorr = clamp((e - 0.88) / 0.08, 0, 1);
+      const showProblem = clamp((e - 0.94) / 0.06, 0, 1);
 
       const base = renogramCurve("base");
       const post = renogramCurve("post");
+
+      const nursePos = { x: 620, y: 72 };
+      // --- 1) Person pictogram (starts left) ---
+      const personStart = { x: 70, y: 120 };
+      const personEnter = { x: 260, y: 128 }; // into CT bore
+      const personExit = { x: 420, y: 128 };  // through CT
+      let px, py, personOp;
+      if (walkNurse > 0.001) {
+        // After curve 2: reappear near CT exit and walk over the top to nurse
+        const tw = ease(walkNurse);
+        const mid = { x: 520, y: 48 };
+        if (tw < 0.5) {
+          const t0 = tw / 0.5;
+          px = lerp(personExit.x, mid.x, t0);
+          py = lerp(personExit.y, mid.y, t0);
+        } else {
+          const t1 = (tw - 0.5) / 0.5;
+          px = lerp(mid.x, nursePos.x - 55, t1);
+          py = lerp(mid.y, nursePos.y + 6, t1);
+        }
+        personOp = showPerson * clamp(walkNurse / 0.12, 0, 1);
+        // Soften once patient reaches nurse and scalars begin
+        if (showScalars > 0.2) personOp *= 1 - 0.55 * clamp((showScalars - 0.2) / 0.8, 0, 1);
+      } else if (walk < 0.001) {
+        px = personStart.x; py = personStart.y; personOp = showPerson;
+      } else if (walk < 0.55) {
+        const tw = walk / 0.55;
+        px = lerp(personStart.x, personEnter.x, ease(tw));
+        py = lerp(personStart.y, personEnter.y, ease(tw));
+        personOp = showPerson;
+      } else {
+        const tw = (walk - 0.55) / 0.45;
+        px = lerp(personEnter.x, personExit.x, ease(tw));
+        py = lerp(personEnter.y, personExit.y, ease(tw));
+        // fade while inside bore
+        personOp = showPerson * (tw < 0.35 ? 1 - tw / 0.35 : 0);
+      }
+      if (showPerson > 0.02 && walk < 0.05 && walkNurse < 0.01) {
+        text(svg, 70, 55, "One patient", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, opacity: showPerson
+        });
+      }
+      drawPersonIcon(svg, px, py, 1.15, personOp);
+
+      // --- 2) Photon-counting CT ---
+      const ct = { x: 160, y: 70, w: 220, h: 160 };
+      const ctFade = showCT * (1 - 0.92 * clamp((e - 0.46) / 0.16, 0, 1));
+      drawCTIcon(svg, ct.x, ct.y, ct.w, ct.h, ctFade);
+      // Person drawn again on top of CT table while entering
+      if (walkNurse < 0.01 && walk >= 0.15 && walk < 0.75) {
+        drawPersonIcon(svg, px, py, 0.85, Math.min(personOp, showCT) * 0.9, "#e2e8f0");
+      }
+
+      // --- 3 & 4) Curve panels settle into motive layout (for later morph) ---
       const panels = [
-        { box: L.motivePanels[0], title: "Baseline renogram", col: "var(--teal)", ys: base },
-        { box: L.motivePanels[1], title: "Post-furosemide", col: "var(--blue)", ys: post }
+        { box: L.motivePanels[0], title: "Curve 1 · Baseline renogram", col: "var(--teal)", ys: base, op: showC1 },
+        { box: L.motivePanels[1], title: "Curve 2 · Post-furosemide", col: "var(--blue)", ys: post, op: showC2 }
       ];
+      // While emerging, panels fly from CT exit toward final boxes
       panels.forEach((pn, pi) => {
-        const op = clamp(showCurves * 1.3 - pi * 0.12, 0, 1);
+        const op = pn.op;
+        if (op < 0.02) return;
+        const from = { x: ct.x + ct.w - 30, y: 100 + pi * 40, w: 80, h: 60 };
+        const box = {
+          x: lerp(from.x, pn.box.x, ease(op)),
+          y: lerp(from.y, pn.box.y, ease(op)),
+          w: lerp(from.w, pn.box.w, ease(op)),
+          h: lerp(from.h, pn.box.h, ease(op))
+        };
         el("rect", {
-          x: pn.box.x, y: pn.box.y, width: pn.box.w, height: pn.box.h, rx: 12,
+          x: box.x, y: box.y, width: box.w, height: box.h, rx: 12,
           fill: "#fbfaf8", stroke: "var(--line)", opacity: op
         }, svg);
-        text(svg, pn.box.x + pn.box.w / 2, pn.box.y + 22, pn.title, {
-          "text-anchor": "middle", fill: pn.col, "font-weight": 600, "font-size": 12, opacity: op
+        text(svg, box.x + box.w / 2, box.y + 18, pn.title, {
+          "text-anchor": "middle", fill: pn.col, "font-weight": 600, "font-size": 11, opacity: op
         });
         const nShow = Math.max(2, Math.floor(1 + (pn.ys.length - 1) * op));
         drawCurveInBox(svg, pn.ys.slice(0, nShow), {
-          x: pn.box.x, y: pn.box.y + 8, w: pn.box.w, h: pn.box.h - 16
+          x: box.x, y: box.y + 4, w: box.w, h: box.h - 10
         }, pn.col, op);
       });
 
-      text(svg, 613, 118, "Side information", {
+      // --- 5) Nurse (after curve 2); patient walks here ---
+      drawNurseIcon(svg, nursePos.x, nursePos.y, 0.95, showNurse, "");
+
+      // --- 6) Scalar predictors emerge from nurse ---
+      text(svg, 613, 118, "Scalar predictors", {
         "text-anchor": "middle", fill: "var(--slate)", "font-weight": 700, opacity: showScalars
+      });
+      text(svg, 613, 134, "from clinical assessment", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 10, opacity: showScalars
       });
       const side = ["age", "sex", "Tmax", "AUC", "uptake", "clearance", "BMI", "…"];
       side.forEach((lab, i) => {
-        const op = clamp(showScalars * 1.4 - i * 0.08, 0, 1);
-        const x = 490 + (i % 4) * 62;
-        const y = 138 + Math.floor(i / 4) * 42;
+        const op = clamp(showScalars * 1.55 - i * 0.09, 0, 1);
+        if (op < 0.02) return;
+        const tx = 490 + (i % 4) * 62;
+        const ty = 148 + Math.floor(i / 4) * 40;
+        // Fly out from nurse chest toward chip grid
+        const x = lerp(nursePos.x - 28, tx, ease(op));
+        const y = lerp(nursePos.y + 2, ty, ease(op));
         el("rect", {
-          x, y, width: 56, height: 30, rx: 8,
+          x, y, width: 56, height: 28, rx: 8,
           fill: i % 2 ? "#f1f5f9" : "#e2e8f0", stroke: "var(--line)", opacity: op
         }, svg);
-        text(svg, x + 28, y + 19, lab, {
+        text(svg, x + 28, y + 18, lab, {
           "text-anchor": "middle", fill: "var(--ink)", "font-size": 11, "font-weight": 600, opacity: op
         });
       });
 
+      // --- 6 & problem sit in the lower half ---
+      // Outcome Y (left-bottom)
       el("rect", {
-        x: 490, y: 250, width: 246, height: 56, rx: 12,
-        fill: "#fff7ed", stroke: "#fdba74", opacity: showY
+        x: 24, y: 300, width: 350, height: 100, rx: 14,
+        fill: "#fff7ed", stroke: "#fdba74", "stroke-width": 1.6, opacity: showY
       }, svg);
-      text(svg, 613, 274, "Predict Y: kidney failure?", {
-        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 14, opacity: showY
+      text(svg, 199, 340, "Outcome Y", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 16, opacity: showY
       });
-      text(svg, 613, 294, "obstruction / clinical outcome", {
+      text(svg, 199, 362, "Kidney failure / obstruction?", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 600, "font-size": 13, opacity: showY
+      });
+      text(svg, 199, 382, "clinical endpoint we want to predict", {
         "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showY
       });
 
-      if (showCorr > 0) {
-        const a = { x: 129, y: 175 }, b = { x: 355, y: 175 }, c = { x: 580, y: 175 };
-        const links = [[a,b,"var(--teal)"],[b,c,"var(--blue)"],[a,c,"var(--slate)"],
-          [{x:a.x+30,y:a.y+40},{x:c.x-40,y:c.y+20},"#94a3b8"],
-          [{x:b.x-20,y:b.y+35},{x:c.x-20,y:c.y-25},"#94a3b8"]];
+      // --- 7) Correlations: curve1↔curve2, curve1↔scalars, curve2↔scalars ---
+      if (showCorr > 0.02) {
+        const c1 = L.motivePanels[0];
+        const c2 = L.motivePanels[1];
+        // Attach to panel edges so each arc reads as a pairwise link
+        const pC1 = { x: c1.x + c1.w - 8, y: c1.y + c1.h * 0.42 };
+        const pC1b = { x: c1.x + c1.w * 0.55, y: c1.y + c1.h - 10 };
+        const pC2L = { x: c2.x + 8, y: c2.y + c2.h * 0.42 };
+        const pC2R = { x: c2.x + c2.w - 8, y: c2.y + c2.h * 0.55 };
+        const pZ = { x: 520, y: 168 };   // left side of scalar chip cloud
+        const pZb = { x: 560, y: 188 };
+
+        const links = [
+          {
+            p0: pC1, p1: pC2L, col: "var(--teal)",
+            bend: -36, lab: "curve 1 ↔ curve 2", lx: 238, ly: 88
+          },
+          {
+            p0: pC1b, p1: pZb, col: "var(--slate)",
+            bend: 48, lab: "curve 1 ↔ scalars", lx: 300, ly: 248
+          },
+          {
+            p0: pC2R, p1: pZ, col: "var(--blue)",
+            bend: -28, lab: "curve 2 ↔ scalars", lx: 470, ly: 118
+          }
+        ];
         links.forEach((Lnk, i) => {
-          const op = clamp(showCorr * 1.5 - i * 0.12, 0, 1);
-          const [p0, p1, col] = Lnk;
-          const mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2 + ((i % 2) ? 28 : -28);
+          const op = clamp(showCorr * 1.6 - i * 0.22, 0, 1);
+          if (op < 0.02) return;
+          const { p0, p1, col, bend } = Lnk;
+          const mx = (p0.x + p1.x) / 2;
+          const my = (p0.y + p1.y) / 2 + bend;
           el("path", {
             d: `M${p0.x},${p0.y} Q${mx},${my} ${p1.x},${p1.y}`,
-            fill: "none", stroke: col, "stroke-width": 2, "stroke-dasharray": "6 5",
-            opacity: 0.25 + 0.55 * op
+            fill: "none", stroke: col, "stroke-width": 2.2, "stroke-dasharray": "6 5",
+            opacity: 0.35 + 0.55 * op
           }, svg);
-          const uu = (e * 1.8 + i * 0.15) % 1;
-          el("circle", {
-            cx: (1-uu)*(1-uu)*p0.x + 2*(1-uu)*uu*mx + uu*uu*p1.x,
-            cy: (1-uu)*(1-uu)*p0.y + 2*(1-uu)*uu*my + uu*uu*p1.y,
-            r: 3.2, fill: col, opacity: 0.4 + 0.5 * op
-          }, svg);
+          // Endpoint dots so the pair is obvious
+          el("circle", { cx: p0.x, cy: p0.y, r: 4, fill: col, opacity: 0.55 + 0.4 * op }, svg);
+          el("circle", { cx: p1.x, cy: p1.y, r: 4, fill: col, opacity: 0.55 + 0.4 * op }, svg);
+          // Traveling dots (both directions) along the arc
+          for (let k = 0; k < 2; k++) {
+            const uu = (performance.now() * 0.0022 + i * 0.18 + k * 0.5) % 1;
+            const t = k === 0 ? uu : (1 - uu);
+            el("circle", {
+              cx: (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * mx + t * t * p1.x,
+              cy: (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * my + t * t * p1.y,
+              r: 3.4, fill: col, opacity: 0.5 + 0.5 * op
+            }, svg);
+          }
+          text(svg, Lnk.lx, Lnk.ly, Lnk.lab, {
+            "text-anchor": "middle", fill: col, "font-size": 11, "font-weight": 600, opacity: op
+          });
         });
-        text(svg, 380, 330, "curves ↔ curves ↔ scalars  are correlated", {
+        text(svg, 380, 280, "Three pairwise correlations among predictors", {
           "text-anchor": "middle", fill: "var(--ink)", "font-weight": 600, opacity: showCorr
         });
       }
 
-      el("rect", {
-        x: 160, y: 350, width: 440, height: 52, rx: 12,
-        fill: showProblem > 0.2 ? "#fef2f2" : "#fff",
-        stroke: showProblem > 0.2 ? "#f87171" : "var(--line)", opacity: Math.max(showProblem, 0.001)
-      }, svg);
-      text(svg, 380, 372, "Problem: multicollinearity across modalities", {
-        "text-anchor": "middle", fill: "#b91c1c", "font-weight": 700, "font-size": 13, opacity: showProblem
-      });
-      text(svg, 380, 390, "Need a joint, supervised summary — not separate pieces.", {
-        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showProblem
-      });
+      // Problem object (right-bottom), beside Outcome Y
+      if (showProblem > 0.02) {
+        el("rect", {
+          x: 390, y: 300, width: 346, height: 100, rx: 14,
+          fill: "#fef2f2", stroke: "#f87171", "stroke-width": 1.6, opacity: showProblem
+        }, svg);
+        text(svg, 563, 340, "Problem", {
+          "text-anchor": "middle", fill: "#b91c1c", "font-weight": 700, "font-size": 16, opacity: showProblem
+        });
+        text(svg, 563, 362, "Multicollinearity across modalities", {
+          "text-anchor": "middle", fill: "#991b1b", "font-weight": 600, "font-size": 13, opacity: showProblem
+        });
+        text(svg, 563, 382, "Need a joint supervised summary", {
+          "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: showProblem
+        });
+      }
     }
 
     function drawAssoc(svg, d, u, opts = {}) {
@@ -462,145 +709,300 @@
     }
 
     function drawDirection(svg, d, u, opts = {}) {
-      const e = ease(Math.min(u, 1));
+      // Predictors already arrived from slide 2.
+      // Order: PLS covariance max → Weights → Inner product → Scores
+      const e = opts.instant ? 1 : ease(Math.min(u, 1));
       const xi = d.components[0];
-      const sub = d.subjects[Math.floor(d.subjects.length / 2)];
+      const sub = d.subjects[0];
       const x1 = sub.stages[0].curves[0];
       const x2 = sub.stages[0].curves[1];
       const z = sub.stages[0].scalars;
-      const showPairs = opts.instant ? 1 : clamp(e / 0.28, 0, 1);
-      const showInner = opts.instant ? 1 : clamp((e - 0.22) / 0.28, 0, 1);
-      const merge = opts.instant ? 1 : clamp((e - 0.48) / 0.35, 0, 1);
-      const scoreGlow = opts.instant ? 1 : clamp((e - 0.72) / 0.28, 0, 1);
       const paneOp = opts.paneOp ?? 1;
 
+      const showPred = 1; // no re-intro; morph from slide 2 already placed them
+      // Slow PLS beat, then clear it before weights pane
+      const showPLS = opts.instant ? 0 : (
+        clamp(e / 0.10, 0, 1) * (1 - clamp((e - 0.42) / 0.10, 0, 1))
+      );
+      const plsSpin = opts.instant ? 1 : clamp(e / 0.38, 0, 1); // 0→1 during search → lock
+      const showWeights = opts.instant ? 1 : clamp((e - 0.48) / 0.16, 0, 1);
+      const showInner = opts.instant ? 1 : clamp((e - 0.64) / 0.14, 0, 1);
+      const showScores = opts.instant ? 1 : clamp((e - 0.76) / 0.20, 0, 1);
+      const merge = showScores;
+
+      // Pane frames: Predictors always on; Weights / Scores in order
       const panes = [
-        { x: 12, w: 220, title: "Predictors", sub: "W" },
-        { x: 250, w: 220, title: "Weights", sub: "ξ" },
-        { x: 488, w: 260, title: "Scores", sub: "ρ = ⟨W, ξ⟩" }
+        { x: 12,  w: 220, title: "1 · Predictors", sub: "W", op: showPred },
+        { x: 250, w: 220, title: "2 · Weights",    sub: "ξ", op: showWeights },
+        { x: 488, w: 260, title: "4 · Scores",     sub: "ρ = ⟨W, ξ⟩", op: showScores }
       ];
       panes.forEach((pn) => {
+        const op = paneOp * pn.op;
+        if (op < 0.02) return;
         el("rect", {
           x: pn.x, y: 8, width: pn.w, height: 400, rx: 14,
-          fill: "#fbfaf8", stroke: "var(--line)", opacity: paneOp
+          fill: "#fbfaf8", stroke: "var(--line)", opacity: op
         }, svg);
         text(svg, pn.x + pn.w / 2, 30, pn.title, {
-          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: paneOp
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: op
         });
         text(svg, pn.x + pn.w / 2, 48, pn.sub, {
-          "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: paneOp
+          "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: op
         });
       });
 
+      // --- 1) Predictors content (static) ---
       const rows = [
         { y: 68, col: "var(--teal)", leftLab: "X₁(t)", rightLab: "ξ₁(t)", left: x1, right: xi.xi_functional[0], term: "⟨X₁, ξ₁⟩" },
         { y: 168, col: "var(--blue)", leftLab: "X₂(t)", rightLab: "ξ₂(t)", left: x2, right: xi.xi_functional[1], term: "⟨X₂, ξ₂⟩" }
       ];
       rows.forEach((row, ri) => {
-        const op = paneOp * clamp(showPairs * 1.2 - ri * 0.08, 0, 1);
+        const opP = paneOp * showPred;
         const [yminL, ymaxL] = rangeOf(row.left);
-        const [yminR, ymaxR] = rangeOf(row.right);
-        text(svg, 28, row.y - 6, row.leftLab, { fill: row.col, "font-weight": 600, opacity: op, "font-size": 11 });
-        text(svg, 266, row.y - 6, row.rightLab, { fill: row.col, "font-weight": 600, opacity: op, "font-size": 11 });
-        zeroLine(svg, 28, 214, row.y, 62, yminL, ymaxL, op);
-        zeroLine(svg, 266, 452, row.y, 62, yminR, ymaxR, op);
+        text(svg, 28, row.y - 6, row.leftLab, {
+          fill: row.col, "font-weight": 600, opacity: opP, "font-size": 11
+        });
+        zeroLine(svg, 28, 214, row.y, 62, yminL, ymaxL, opP);
         el("path", {
           d: seriesPath(row.left.map((_,i)=>i), row.left, 28, row.y, 186, 62, yminL, ymaxL),
-          fill: "none", stroke: row.col, "stroke-width": 2, opacity: 0.25 + 0.7 * op
+          fill: "none", stroke: row.col, "stroke-width": 2, opacity: 0.25 + 0.7 * opP
         }, svg);
-        el("path", {
-          d: seriesPath(row.right.map((_,i)=>i), row.right, 266, row.y, 186, 62, yminR, ymaxR),
-          fill: "none", stroke: row.col, "stroke-width": 2.3, "stroke-dasharray": "5 4",
-          opacity: 0.25 + 0.7 * op
-        }, svg);
-        const opI = paneOp * clamp(showInner * 1.2 - ri * 0.1, 0, 1);
-        const cx = 240, cy = row.y + 30;
-        el("circle", { cx, cy, r: 15, fill: "#ecfdf5", stroke: row.col, "stroke-width": 1.6, opacity: opI }, svg);
-        text(svg, cx, cy + 4, "⟨·,·⟩", {
-          "text-anchor": "middle", fill: row.col, "font-weight": 700, "font-size": 10, opacity: opI
-        });
-        const chipX = lerp(cx, 618, merge), chipY = lerp(cy, 200, merge);
-        el("rect", {
-          x: chipX - 34, y: chipY - 13, width: 68, height: 26, rx: 8,
-          fill: "#fff", stroke: row.col, opacity: opI * (1 - 0.4 * merge)
-        }, svg);
-        text(svg, chipX, chipY + 4, row.term, {
-          "text-anchor": "middle", fill: row.col, "font-size": 10, "font-weight": 600,
-          opacity: opI * (1 - 0.55 * merge)
-        });
       });
-
       {
-        const op = paneOp * clamp(showPairs * 1.2 - 0.16, 0, 1);
+        const opP = paneOp * showPred;
         const y0 = 285;
-        text(svg, 28, y0 - 6, "Z", { fill: "var(--slate)", "font-weight": 600, opacity: op, "font-size": 11 });
-        text(svg, 266, y0 - 6, "u", { fill: "var(--slate)", "font-weight": 600, opacity: op, "font-size": 11 });
-        const maxZ = Math.max(...z.map(Math.abs), ...xi.xi_scalar.map(Math.abs), 1e-6);
+        text(svg, 28, y0 - 6, "Z", {
+          fill: "var(--slate)", "font-weight": 600, opacity: opP, "font-size": 11
+        });
+        const maxZ = Math.max(...z.map(Math.abs), 1e-6);
         z.forEach((v, i) => {
-          const h = (Math.abs(v) / maxZ) * 44 * op;
+          const h = (Math.abs(v) / maxZ) * 44 * opP;
           el("rect", {
             x: 32 + i * 44, y: y0 + 52 - h, width: 32, height: Math.max(h, 1), rx: 3,
-            fill: i === z.length - 1 ? "var(--orange)" : "var(--slate)", opacity: 0.35 + 0.55 * op
+            fill: i === z.length - 1 ? "var(--orange)" : "var(--slate)", opacity: 0.35 + 0.55 * opP
           }, svg);
-        });
-        xi.xi_scalar.forEach((v, i) => {
-          const h = (Math.abs(v) / maxZ) * 44 * op;
-          el("rect", {
-            x: 270 + i * 44, y: y0 + 52 - h, width: 32, height: Math.max(h, 1), rx: 3,
-            fill: i === xi.xi_scalar.length - 1 ? "var(--orange)" : "var(--slate)",
-            opacity: 0.35 + 0.55 * op
-          }, svg);
-        });
-        const opI = paneOp * clamp(showInner * 1.2 - 0.2, 0, 1);
-        const cx = 240, cy = y0 + 28;
-        el("circle", { cx, cy, r: 15, fill: "#f8fafc", stroke: "var(--slate)", opacity: opI }, svg);
-        text(svg, cx, cy + 4, "⟨·,·⟩", {
-          "text-anchor": "middle", fill: "var(--slate)", "font-weight": 700, "font-size": 10, opacity: opI
-        });
-        const chipX = lerp(cx, 618, merge), chipY = lerp(cy, 200, merge);
-        el("rect", {
-          x: chipX - 30, y: chipY - 13, width: 60, height: 26, rx: 8,
-          fill: "#fff", stroke: "var(--slate)", opacity: opI * (1 - 0.4 * merge)
-        }, svg);
-        text(svg, chipX, chipY + 4, "⟨Z, u⟩", {
-          "text-anchor": "middle", fill: "var(--slate)", "font-size": 10, "font-weight": 600,
-          opacity: opI * (1 - 0.55 * merge)
         });
       }
 
-      const opM = paneOp * clamp(merge, 0, 1);
+      // --- PLS step: spin ξ to maximize cov(⟨W,ξ⟩, Y), then clear and open weights ---
+      if (showPLS > 0.02) {
+        const op = paneOp * showPLS;
+        const pulse = 0.55 + 0.45 * Math.sin(performance.now() / 380);
+        const lock = ease(clamp((plsSpin - 0.72) / 0.28, 0, 1)); // settles near end of PLS
+        // Spin fast while searching; slow to upright as ξ locks in
+        const spinDeg = (1 - lock) * (performance.now() / 9) + lock * 0;
+
+        // Title over the open middle (where weights pane will appear)
+        text(svg, 370, 40, "Partial least squares", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: op
+        });
+        text(svg, 370, 60, "spin ξ to maximize covariance with Y", {
+          "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, opacity: op
+        });
+
+        // Link from existing Predictors pane (no redraw of W)
+        const predEdge = { x: 232, y: 200 };
+        const xiPos = { x: 360, y: 200 };
+        const yPos = { x: 500, y: 200 };
+
+        el("path", {
+          d: `M${predEdge.x} ${predEdge.y} L${xiPos.x - 48} ${xiPos.y}`,
+          fill: "none", stroke: "var(--teal)", "stroke-width": 1.8,
+          "stroke-dasharray": "5 4", opacity: op * 0.65
+        }, svg);
+        text(svg, 250, 186, "W", {
+          fill: "var(--teal)", "font-weight": 700, "font-size": 11, opacity: op * 0.8
+        });
+
+        // Spinning weight ξ (search → lock)
+        const gXi = el("g", {
+          transform: `translate(${xiPos.x},${xiPos.y}) rotate(${spinDeg.toFixed(1)})`,
+          opacity: String(op)
+        }, svg);
+        el("circle", {
+          cx: 0, cy: 0, r: 36,
+          fill: "#f8fafc", stroke: "var(--slate)", "stroke-width": 2.2,
+          ...(lock > 0.85 ? {} : { "stroke-dasharray": "7 5" }),
+          opacity: 0.95
+        }, gXi);
+        // orbit ticks to sell the spin
+        for (let k = 0; k < 4; k++) {
+          const a = (k / 4) * Math.PI * 2;
+          el("circle", {
+            cx: Math.cos(a) * 44, cy: Math.sin(a) * 44, r: 3.2,
+            fill: "var(--slate)", opacity: 0.35 + 0.35 * (1 - lock)
+          }, gXi);
+        }
+        text(gXi, 0, 6, "ξ", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 28
+        });
+
+        // Objective label
+        text(svg, xiPos.x, 128, "max  cov( ⟨W, ξ⟩ , Y )", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 13,
+          opacity: op * (0.65 + 0.35 * pulse)
+        });
+
+        // Link ξ → Y
+        el("path", {
+          d: `M${xiPos.x + 48} ${xiPos.y} L${yPos.x - 30} ${yPos.y}`,
+          fill: "none", stroke: "var(--orange)", "stroke-width": 1.8,
+          "stroke-dasharray": "5 4",
+          opacity: op * (0.45 + 0.45 * pulse)
+        }, svg);
+
+        // Y response (only new object besides ξ)
+        el("circle", {
+          cx: yPos.x, cy: yPos.y, r: 28,
+          fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 1.8, opacity: op
+        }, svg);
+        text(svg, yPos.x, yPos.y - 2, "Y", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 18, opacity: op
+        });
+        text(svg, yPos.x, yPos.y + 16, "response", {
+          "text-anchor": "middle", fill: "var(--muted)", "font-size": 9, opacity: op
+        });
+
+        // Status under spinner
+        text(svg, xiPos.x, 268, lock < 0.5 ? "searching for max covariance…" : "ξ locked — extracting weights", {
+          "text-anchor": "middle",
+          fill: lock < 0.5 ? "var(--muted)" : "var(--teal)",
+          "font-weight": 600, "font-size": 12, opacity: op
+        });
+      }
+
+      // --- 2) Weights content ---
+      rows.forEach((row, ri) => {
+        const opW = paneOp * showWeights * clamp(1.1 - ri * 0.08, 0, 1);
+        if (opW < 0.02) return;
+        const [yminR, ymaxR] = rangeOf(row.right);
+        text(svg, 266, row.y - 6, row.rightLab, {
+          fill: row.col, "font-weight": 600, opacity: opW, "font-size": 11
+        });
+        zeroLine(svg, 266, 452, row.y, 62, yminR, ymaxR, opW);
+        el("path", {
+          d: seriesPath(row.right.map((_,i)=>i), row.right, 266, row.y, 186, 62, yminR, ymaxR),
+          fill: "none", stroke: row.col, "stroke-width": 2.3, "stroke-dasharray": "5 4",
+          opacity: 0.25 + 0.7 * opW
+        }, svg);
+      });
+      {
+        const opW = paneOp * showWeights;
+        if (opW > 0.02) {
+          const y0 = 285;
+          text(svg, 266, y0 - 6, "u", {
+            fill: "var(--slate)", "font-weight": 600, opacity: opW, "font-size": 11
+          });
+          const maxZ = Math.max(...xi.xi_scalar.map(Math.abs), 1e-6);
+          xi.xi_scalar.forEach((v, i) => {
+            const h = (Math.abs(v) / maxZ) * 44 * opW;
+            el("rect", {
+              x: 270 + i * 44, y: y0 + 52 - h, width: 32, height: Math.max(h, 1), rx: 3,
+              fill: i === xi.xi_scalar.length - 1 ? "var(--orange)" : "var(--slate)",
+              opacity: 0.35 + 0.55 * opW
+            }, svg);
+          });
+        }
+      }
+
+      // --- 3) Inner product (light marks only — no boxes) ---
+      {
+        const opI = paneOp * showInner;
+        if (opI > 0.02) {
+          text(svg, 240, 28, "3 · ⟨·,·⟩", {
+            "text-anchor": "middle", fill: "var(--teal)", "font-weight": 700, "font-size": 12, opacity: opI
+          });
+          const ops = [
+            { cy: 98, col: "var(--teal)", lab: "⟨X₁, ξ₁⟩" },
+            { cy: 198, col: "var(--blue)", lab: "⟨X₂, ξ₂⟩" },
+            { cy: 313, col: "var(--slate)", lab: "⟨Z, u⟩" }
+          ];
+          ops.forEach((o, i) => {
+            const op = opI * clamp(1.15 - i * 0.1, 0, 1);
+            // soft connectors from predictors → weights
+            el("path", {
+              d: `M220 ${o.cy} L260 ${o.cy}`,
+              fill: "none", stroke: o.col, "stroke-width": 1.5,
+              "stroke-dasharray": "3 3", opacity: op * 0.55
+            }, svg);
+            text(svg, 240, o.cy + 4, "⟨·,·⟩", {
+              "text-anchor": "middle", fill: o.col, "font-weight": 700, "font-size": 12, opacity: op
+            });
+            // term label drifts toward scores when they appear
+            const labX = lerp(240, 618, merge);
+            const labY = lerp(o.cy + 18, 200, merge);
+            text(svg, labX, labY, o.lab, {
+              "text-anchor": "middle", fill: o.col, "font-size": 10, "font-weight": 600,
+              opacity: op * (showScores > 0.05 ? (1 - 0.55 * merge) : 1)
+            });
+          });
+        }
+      }
+
+      // --- 4) Scores ---
+      {
+        const opS = paneOp * showScores;
+        if (opS > 0.02) {
+          el("rect", {
+            x: 520, y: 150, width: 200, height: 110, rx: 14,
+            fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2,
+            opacity: 0.35 + 0.65 * opS
+          }, svg);
+          text(svg, 620, 180, "ρ = ⟨X₁, ξ₁⟩", {
+            "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: opS
+          });
+          text(svg, 620, 200, "+ ⟨X₂, ξ₂⟩ + ⟨Z, u⟩", {
+            "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: opS
+          });
+          text(svg, 620, 228, "one score", {
+            "text-anchor": "middle", fill: "var(--orange)", "font-size": 14, "font-weight": 700, opacity: opS
+          });
+          [98, 198, 313].forEach((cy) => {
+            el("path", {
+              d: `M262 ${cy} C360 ${cy}, 450 200, 520 200`,
+              fill: "none", stroke: "var(--teal)", "stroke-width": 1.4,
+              "stroke-dasharray": "4 3", opacity: opS * 0.45
+            }, svg);
+          });
+        }
+      }
+    }
+
+    function drawOrangeScoreBox(svg, op, box = { x: 520, y: 150, w: 200, h: 110 }) {
+      if (op < 0.02) return;
       el("rect", {
-        x: 520, y: 150, width: 200, height: 100, rx: 14,
-        fill: scoreGlow > 0.2 ? "#fff7ed" : "#ecfdf5",
-        stroke: scoreGlow > 0.2 ? "var(--orange)" : "var(--teal)", "stroke-width": 2,
-        opacity: 0.3 + 0.7 * Math.max(opM, 0.15)
+        x: box.x, y: box.y, width: box.w, height: box.h, rx: 14,
+        fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2,
+        opacity: 0.35 + 0.65 * op
       }, svg);
-      text(svg, 620, 182, "ρ = ⟨X₁, ξ₁⟩", {
-        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600,
-        opacity: 0.35 + 0.65 * opM
+      text(svg, box.x + box.w / 2, box.y + 30, "ρ = ⟨X₁, ξ₁⟩", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: op
       });
-      text(svg, 620, 202, "+ ⟨X₂, ξ₂⟩ + ⟨Z, u⟩", {
-        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600,
-        opacity: 0.35 + 0.65 * opM
+      text(svg, box.x + box.w / 2, box.y + 50, "+ ⟨X₂, ξ₂⟩ + ⟨Z, u⟩", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: op
       });
-      text(svg, 620, 228, "one score", {
-        "text-anchor": "middle", fill: scoreGlow > 0.2 ? "var(--orange)" : "var(--teal)",
-        "font-size": 14, "font-weight": 700, opacity: 0.35 + 0.65 * opM
+      text(svg, box.x + box.w / 2, box.y + 78, "one score", {
+        "text-anchor": "middle", fill: "var(--orange)", "font-size": 14, "font-weight": 700, opacity: op
       });
     }
 
     function drawScore(svg, d, u, opts = {}) {
-      const e = ease(Math.min(u, 1));
+      const e = opts.instant ? 1 : ease(Math.min(u, 1));
       const xi = d.components[0];
       const idx = d.scatter_idx;
       const xs = idx.map(i => xi.rho[i - 1]);
       const ys = idx.map(i => xi.y_before[i - 1]);
       const [xmin, xmax] = rangeOf(xs);
       const [ymin, ymax] = rangeOf(ys);
-      const showParts = opts.instant ? 1 : clamp(e / 0.28, 0, 1);
-      const mergeParts = opts.instant ? 1 : clamp((e - 0.28) / 0.35, 0, 1);
-      const showScatter = opts.instant ? 1 : clamp((e - 0.45) / 0.35, 0, 1);
-      const showFinal = opts.instant ? 1 : clamp((e - 0.7) / 0.3, 0, 1);
+
+      // Carry orange box → three correlations → box becomes ρ and joins them → evidence
+      const showBox = opts.instant ? 0 : (1 - clamp((e - 0.34) / 0.08, 0, 1));
+      const showParts = opts.instant ? 1 : clamp((e - 0.08) / 0.22, 0, 1);
+      const boxToRho = opts.instant ? 1 : clamp((e - 0.36) / 0.28, 0, 1);
+      const mergeParts = opts.instant ? 1 : clamp((e - 0.55) / 0.22, 0, 1);
+      const showScatter = opts.instant ? 1 : clamp((e - 0.72) / 0.18, 0, 1);
+      const showFinal = opts.instant ? 1 : clamp((e - 0.86) / 0.14, 0, 1);
+
       const cX1 = d.meta.orig_assoc_summary.mean_abs_cor_X1;
       const cX2 = d.meta.orig_assoc_summary.mean_abs_cor_X2;
       const cZ = d.meta.orig_assoc_summary.max_abs_cor_Z;
@@ -608,16 +1010,51 @@
       const maxBar = Math.max(cX1, cX2, cZ, cRho, 0.2);
 
       text(svg, 380, 24, "Three weaker links → one combined correlation", {
-        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14, opacity: showParts
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14,
+        opacity: showParts
       });
 
+      // 1) Orange score box carried from slide 3 (until it morphs into ρ)
+      if (showBox > 0.02 && boxToRho < 0.98) {
+        const mt = ease(boxToRho);
+        const cx = lerp(620, 330, mt);
+        const cy = lerp(205, 145, mt);
+        const w = lerp(200, 56, mt);
+        const h = lerp(110, 56, mt);
+        const rx = lerp(14, 28, mt);
+        el("rect", {
+          x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx,
+          fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2,
+          opacity: (0.35 + 0.65 * showBox) * (1 - 0.15 * mt)
+        }, svg);
+        // Multi-line copy fades; ρ label fades in as the shape becomes a circle
+        const labOp = showBox * (1 - mt);
+        if (labOp > 0.02) {
+          text(svg, cx, cy - 18, "ρ = ⟨X₁, ξ₁⟩", {
+            "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: labOp
+          });
+          text(svg, cx, cy + 2, "+ ⟨X₂, ξ₂⟩ + ⟨Z, u⟩", {
+            "text-anchor": "middle", fill: "var(--ink)", "font-size": 12, "font-weight": 600, opacity: labOp
+          });
+          text(svg, cx, cy + 28, "one score", {
+            "text-anchor": "middle", fill: "var(--orange)", "font-size": 14, "font-weight": 700, opacity: labOp
+          });
+        }
+        text(svg, cx, cy + 6, "ρ", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700,
+          "font-size": lerp(12, 16, mt), opacity: showBox * mt
+        });
+      }
+
+      // 2) Three correlation objects appear while the box is still visible
       const sources = [
         { lab: "X₁ → Y", val: cX1, col: "var(--teal)", y: 70 },
         { lab: "X₂ → Y", val: cX2, col: "var(--blue)", y: 130 },
         { lab: "Z → Y", val: cZ, col: "var(--slate)", y: 190 }
       ];
       sources.forEach((s, i) => {
-        const op = clamp(showParts * 1.3 - i * 0.1, 0, 1);
+        const op = clamp(showParts * 1.3 - i * 0.12, 0, 1);
+        if (op < 0.02) return;
         text(svg, 28, s.y + 4, s.lab, { fill: s.col, "font-weight": 600, opacity: op });
         const w = (s.val / maxBar) * 160;
         const barX = lerp(110, 200, mergeParts);
@@ -631,29 +1068,33 @@
         text(svg, barX + w + 8, s.y + 4, s.val.toFixed(2), {
           fill: "var(--ink)", "font-size": 11, "font-weight": 600, opacity: op * (1 - mergeParts)
         });
+        // Streams toward ρ only after the box has become the ρ node
         el("path", {
           d: `M${barX + Math.max(barW, 2)} ${barY + barH / 2} C${lerp(280, 250, mergeParts)} ${s.y}, 290 145, 310 145`,
           fill: "none", stroke: s.col, "stroke-width": 1.8, "stroke-dasharray": "5 4",
-          opacity: 0.2 + 0.7 * mergeParts * op
+          opacity: 0.15 + 0.75 * boxToRho * mergeParts * op
         }, svg);
       });
 
-      const nodeOp = clamp(mergeParts, 0, 1);
-      el("circle", {
-        cx: 330, cy: 145, r: lerp(10, 28, nodeOp),
-        fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2.2, opacity: nodeOp
-      }, svg);
-      text(svg, 330, 150, "ρ", {
-        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700,
-        "font-size": lerp(11, 16, nodeOp), opacity: nodeOp
-      });
-      const combW = (cRho / maxBar) * 180 * nodeOp;
+      // Settled ρ node (after box→circle morph completes; always on for instant hold)
+      const nodeOp = opts.instant ? 1 : clamp((boxToRho - 0.55) / 0.45, 0, 1);
+      if (nodeOp > 0.02) {
+        el("circle", {
+          cx: 330, cy: 145, r: 28,
+          fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2.2, opacity: nodeOp
+        }, svg);
+        text(svg, 330, 150, "ρ", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 16, opacity: nodeOp
+        });
+      }
+      const combOp = clamp(mergeParts * nodeOp, 0, 1);
+      const combW = (cRho / maxBar) * 180 * combOp;
       el("rect", {
         x: 370, y: 132, width: Math.max(combW, 0), height: 26, rx: 6,
-        fill: "var(--orange)", opacity: 0.25 + 0.7 * nodeOp
+        fill: "var(--orange)", opacity: 0.25 + 0.7 * combOp
       }, svg);
       text(svg, 370 + Math.max(combW, 0) + 8, 150, `|corr(ρ,Y)| = ${cRho.toFixed(2)}`, {
-        fill: "var(--orange)", "font-weight": 700, "font-size": 13, opacity: nodeOp
+        fill: "var(--orange)", "font-weight": 700, "font-size": 13, opacity: combOp
       });
 
       el("rect", {
@@ -749,16 +1190,16 @@
       });
       drawBarsInBox(svg, oa.cor_Z, box3, d.meta.scalar_names, 0.35 + 0.65 * t);
 
-      // right card: kidney failure → response Y message
+      // bottom Y card rises into slide-1 response panel
       el("rect", {
-        x: lerp(490, 400, t), y: lerp(250, 80, t),
-        width: lerp(246, 320, t), height: lerp(56, 220, t), rx: 14,
+        x: lerp(24, 400, t), y: lerp(300, 80, t),
+        width: lerp(350, 320, t), height: lerp(100, 220, t), rx: 14,
         fill: t < 0.45 ? "#fff7ed" : "#fbfaf8",
         stroke: t < 0.45 ? "#fdba74" : "var(--line)", opacity: 0.85 + 0.15 * t
       }, svg);
       if (t < 0.5) {
-        text(svg, lerp(613, 560, t), lerp(274, 150, t), "Predict Y: kidney failure?", {
-          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 13,
+        text(svg, lerp(199, 560, t), lerp(340, 150, t), "Outcome Y", {
+          "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 14,
           opacity: 1 - t
         });
       } else {
@@ -807,77 +1248,118 @@
     }
 
     function morphBundleToDirection(svg, d, t) {
-      // One box splits into three panes
+      // Slide-2 predictors (X₁, X₂, Z) move left into the Predictors pane,
+      // while Weights / Scores panes open on the right.
+      const te = ease(t);
+      const sub = d.subjects[0].stages[0]; // same subject shown on bundle hold
+      const series = [sub.curves[0], sub.curves[1]];
+      const zVals = sub.scalars;
+      const cols = ["var(--teal)", "var(--blue)", "var(--slate)"];
+      const labsFrom = ["X₁(t)", "X₂(t)", "scalars Z"];
+      const labsTo = ["X₁(t)", "X₂(t)", "Z"];
+
+      // Target slots inside Predictors pane (match drawDirection left column)
+      const predPane = L.dirPanes[0];
+      const targets = [
+        { x: 28, y: 68,  w: 186, h: 72, labelY: 62 },
+        { x: 28, y: 168, w: 186, h: 72, labelY: 162 },
+        { x: 28, y: 278, w: 186, h: 100, labelY: 272 }
+      ];
+
+      // 1) Outer bundle box shrinks / dissolves into left Predictors frame
+      const bb = L.bundleBox;
+      const leftFrame = {
+        x: lerp(bb.x, predPane.x, te),
+        y: lerp(bb.y, predPane.y, te),
+        w: lerp(bb.w, predPane.w, te),
+        h: lerp(bb.h, predPane.h, te)
+      };
+      el("rect", {
+        x: leftFrame.x, y: leftFrame.y, width: leftFrame.w, height: leftFrame.h, rx: 14,
+        fill: te > 0.35 ? "#fbfaf8" : "rgba(15,118,110,0.04)",
+        stroke: "var(--teal)", "stroke-width": lerp(2.6, 1.4, te),
+        opacity: 0.55 + 0.45 * te
+      }, svg);
+
+      // Predictors title fades in on the left frame
+      text(svg, leftFrame.x + leftFrame.w / 2, leftFrame.y + 26, "Predictors", {
+        "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700, "font-size": 14,
+        opacity: clamp((te - 0.35) / 0.4, 0, 1)
+      });
+      text(svg, leftFrame.x + leftFrame.w / 2, leftFrame.y + 44, "W", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 11,
+        opacity: clamp((te - 0.45) / 0.4, 0, 1)
+      });
+
+      // 2) Each predictor row moves from bundle row layout → left pane slots
       for (let i = 0; i < 3; i++) {
-        const from = L.bundleBox;
-        const to = L.dirPanes[i];
-        // stagger split
-        const ti = clamp((t - i * 0.08) / 0.75, 0, 1);
+        const from = L.assocRows[i];
+        const to = targets[i];
+        // slight stagger so they read as a procession leftward
+        const ti = ease(clamp((t - i * 0.06) / 0.78, 0, 1));
         const box = {
-          x: lerp(from.x + (i * from.w) / 3, to.x, ti),
-          y: lerp(from.y, to.y, ti),
-          w: lerp(from.w / 3 - 4, to.w, ti),
-          h: lerp(from.h, to.h, ti)
+          x: lerp(from.x, to.x, ti),
+          y: lerp(from.y + 4, to.y, ti),
+          w: lerp(from.w, to.w, ti),
+          h: lerp(from.h - 8, to.h, ti)
         };
-        el("rect", {
-          x: box.x, y: box.y, width: Math.max(box.w, 8), height: box.h, rx: 14,
-          fill: "#fbfaf8", stroke: "var(--teal)", "stroke-width": 1.5, opacity: 0.5 + 0.5 * ti
-        }, svg);
-      }
-      const titles = ["Predictors", "Weights", "Scores"];
-      titles.forEach((title, i) => {
-        const to = L.dirPanes[i];
-        text(svg, to.x + to.w / 2, 36, title, {
-          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700,
-          opacity: clamp((t - 0.35 - i * 0.08) / 0.4, 0, 1)
+        const lab = ti < 0.5 ? labsFrom[i] : labsTo[i];
+        text(svg, box.x + 4, lerp(from.y + 16, to.labelY, ti), lab, {
+          fill: cols[i], "font-weight": 600, "font-size": lerp(12, 11, ti),
+          opacity: 0.85
         });
-      });
-      text(svg, 380, 400, "Splitting W into the inner-product view…", {
-        "text-anchor": "middle", fill: "var(--muted)", "font-size": 12, opacity: 1 - t * 0.4
-      });
-      if (t > 0.72) {
-        drawDirection(svg, d, 0.15, { paneOp: (t - 0.72) / 0.28 });
+        if (i < 2) {
+          drawCurveInBox(svg, series[i], box, cols[i], 0.9);
+        } else {
+          drawBarsInBox(svg, zVals, {
+            x: box.x - 4, y: box.y - 8, w: box.w + 8, h: box.h + 16
+          }, ti > 0.55 ? null : d.meta.scalar_names, 0.9);
+        }
       }
+
+      // 3) Bundle badge fades; Weights/Scores stay for slide 3 to introduce in order
+      const badgeOp = 1 - te;
+      if (badgeOp > 0.02) {
+        el("rect", {
+          x: lerp(400, 520, te), y: lerp(150, 160, te),
+          width: lerp(320, 200, te), height: lerp(120, 80, te), rx: 16,
+          fill: "#ecfdf5", stroke: "var(--teal)", opacity: badgeOp * 0.9
+        }, svg);
+        text(svg, lerp(560, 620, te), lerp(200, 195, te), "W = ( X₁ , X₂ , Z )", {
+          "text-anchor": "middle", fill: "var(--ink)", "font-weight": 700,
+          "font-size": lerp(18, 12, te), opacity: badgeOp
+        });
+      }
+
+      // Soft placeholder for Scores only — Weights arrive after the PLS beat on slide 3
+      if (te > 0.55) {
+        const ghost = (te - 0.55) / 0.45;
+        el("rect", {
+          x: 488, y: 8, width: 260, height: 400, rx: 14,
+          fill: "#fbfaf8", stroke: "var(--line)", "stroke-dasharray": "5 4",
+          opacity: 0.25 * ghost
+        }, svg);
+        text(svg, 618, 36, "4 · Scores", {
+          "text-anchor": "middle", fill: "#94a3b8", "font-size": 13, opacity: 0.35 * ghost
+        });
+      }
+
+      text(svg, 380, 408, "Predictors stay — next: maximize cov → weights → score", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 12,
+        opacity: 1 - te * 0.85
+      });
     }
 
     function morphDirectionToScore(svg, d, t) {
-      // Scores pane expands; predictors/weights collapse into the three association streams
-      drawDirection(svg, d, 1, { instant: true, paneOp: 1 - 0.85 * t });
-      // Growing score combine overlay
-      const g = el("g", { opacity: clamp((t - 0.15) / 0.5, 0, 1) }, svg);
-      const xi = d.components[0];
-      const cX1 = d.meta.orig_assoc_summary.mean_abs_cor_X1;
-      const cX2 = d.meta.orig_assoc_summary.mean_abs_cor_X2;
-      const cZ = d.meta.orig_assoc_summary.max_abs_cor_Z;
-      const cRho = xi.cor_vs_orig_y;
-      // ρ chip flies from direction score box to combine node
-      const chipX = lerp(620, 330, t);
-      const chipY = lerp(200, 145, t);
-      el("circle", {
-        cx: chipX, cy: chipY, r: lerp(20, 28, t),
-        fill: "#fff7ed", stroke: "var(--orange)", "stroke-width": 2
-      }, g);
-      text(g, chipX, chipY + 5, "ρ", {
-        "text-anchor": "middle", fill: "var(--orange)", "font-weight": 700, "font-size": 16
+      // Clear slide 3 except the orange score box — no flying ρ circle.
+      const te = ease(t);
+      drawDirection(svg, d, 1, { instant: true, paneOp: Math.max(0, 1 - te) });
+      // Keep the orange box fully visible through the morph (redraw on top)
+      drawOrangeScoreBox(svg, 1);
+      text(svg, 380, 408, "Keeping the score — next: three associations with Y", {
+        "text-anchor": "middle", fill: "var(--muted)", "font-size": 12,
+        opacity: 1 - te * 0.7
       });
-      if (t > 0.45) {
-        const op = (t - 0.45) / 0.55;
-        const sources = [
-          { lab: "X₁ → Y", val: cX1, col: "var(--teal)", y: 70 },
-          { lab: "X₂ → Y", val: cX2, col: "var(--blue)", y: 130 },
-          { lab: "Z → Y", val: cZ, col: "var(--slate)", y: 190 }
-        ];
-        sources.forEach((s) => {
-          text(g, 28, s.y + 4, s.lab, { fill: s.col, "font-weight": 600, opacity: op });
-          el("path", {
-            d: `M120 ${s.y} C200 ${s.y}, 280 145, 310 145`,
-            fill: "none", stroke: s.col, "stroke-width": 1.8, "stroke-dasharray": "5 4", opacity: op
-          }, g);
-        });
-        text(g, 430, 150, `|corr(ρ,Y)| = ${cRho.toFixed(2)}`, {
-          fill: "var(--orange)", "font-weight": 700, opacity: op
-        });
-      }
     }
 
     function drawStage(svg, d, id, u, opts = {}) {
@@ -943,16 +1425,95 @@
 
     function render(ms) {
       ms = clamp(ms, 0, TOTAL_MS);
+      state.elapsed = ms;
       const meta = drawFrame(ms);
       $("stageLabel").textContent = meta.label;
       $("caption").textContent = meta.caption;
-      $("bar").style.width = ((100 * ms) / TOTAL_MS).toFixed(2) + "%";
+      const pct = (100 * ms) / TOTAL_MS;
+      $("bar").style.width = pct.toFixed(2) + "%";
+      const prog = $("progress");
+      if (prog) prog.setAttribute("aria-valuenow", pct.toFixed(0));
+    }
+
+    function seekTo(ms, { resume = null } = {}) {
+      ms = clamp(ms, 0, TOTAL_MS);
+      const keepPlaying = resume === null ? state.playing : resume;
+      cancelAnimationFrame(state.raf);
+      state.elapsed = ms;
+      render(ms);
+      if (ms >= TOTAL_MS) {
+        state.playing = false;
+        $("playBtn").textContent = "Replay";
+        return;
+      }
+      if (keepPlaying) {
+        state.playing = true;
+        $("playBtn").textContent = "Pause";
+        state.t0 = performance.now() - ms;
+        state.raf = requestAnimationFrame(tick);
+      } else {
+        state.playing = false;
+        $("playBtn").textContent = ms > 0 ? "Play" : "Play";
+      }
+    }
+
+    function msFromPointer(ev, el) {
+      const rect = el.getBoundingClientRect();
+      const x = (ev.clientX ?? (ev.touches && ev.touches[0]?.clientX) ?? 0) - rect.left;
+      return clamp(x / Math.max(rect.width, 1), 0, 1) * TOTAL_MS;
+    }
+
+    function bindProgressScrub() {
+      const el = $("progress");
+      if (!el) return;
+      let dragging = false;
+
+      const onMove = (ev) => {
+        if (!dragging) return;
+        ev.preventDefault();
+        seekTo(msFromPointer(ev, el), { resume: false });
+      };
+      const onUp = (ev) => {
+        if (!dragging) return;
+        dragging = false;
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        const ms = msFromPointer(ev, el);
+        // Resume playback after scrub if we were playing when drag started
+        seekTo(ms, { resume: el._wasPlaying });
+      };
+
+      el.addEventListener("pointerdown", (ev) => {
+        ev.preventDefault();
+        el._wasPlaying = state.playing;
+        dragging = true;
+        el.setPointerCapture?.(ev.pointerId);
+        seekTo(msFromPointer(ev, el), { resume: false });
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+      });
+
+      el.addEventListener("keydown", (ev) => {
+        const step = TOTAL_MS * 0.04;
+        if (ev.key === "ArrowRight" || ev.key === "ArrowUp") {
+          ev.preventDefault();
+          seekTo(state.elapsed + step);
+        } else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") {
+          ev.preventDefault();
+          seekTo(state.elapsed - step);
+        } else if (ev.key === "Home") {
+          ev.preventDefault();
+          seekTo(0, { resume: false });
+        } else if (ev.key === "End") {
+          ev.preventDefault();
+          seekTo(TOTAL_MS, { resume: false });
+        }
+      });
     }
 
     function tick(now) {
       if (!state.playing) return;
       const ms = clamp(now - state.t0, 0, TOTAL_MS);
-      state.elapsed = ms;
       render(ms);
       if (ms >= TOTAL_MS) {
         state.playing = false;
@@ -990,11 +1551,22 @@
         return;
       }
       state.data = window.ANIM_DATA;
-      $("note").textContent = "Same slide visuals as before · continuous timeline with morphs between holds";
+      if (RECORD) document.body.classList.add("record");
+      $("note").textContent = "Click or drag the progress bar to jump anywhere · continuous timeline with morphs";
       $("playBtn").onclick = play;
       $("restartBtn").onclick = restart;
+      bindProgressScrub();
       render(0);
-      setTimeout(() => { if (!state.playing) play(); }, 400);
+      // Recorder API: drive frames via seek (no wall-clock wait)
+      window.__ANIM__ = {
+        totalMs: TOTAL_MS,
+        speed: SPEED,
+        seek(ms) { seekTo(ms, { resume: false }); },
+        ready: true
+      };
+      if (!RECORD) {
+        setTimeout(() => { if (!state.playing) play(); }, 400);
+      }
     }
     boot();
 

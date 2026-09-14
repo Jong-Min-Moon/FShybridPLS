@@ -7,6 +7,17 @@ The package treats a hybrid predictor as an element of a product Hilbert space \
 It provides an R implementation of Mun and Jang (2026), *Hybrid Partial Least Squares Regression with Multiple Functional and Scalar Predictors* (co-authored with Jeong Hoon Jang, University of Texas Medical Branch):  
 <https://doi.org/10.48550/arXiv.2601.16364>
 
+## Idea in one minute
+
+Hybrid PLS builds **one supervised score** \(\rho\) from tangled renogram curves and scalar side information:
+
+<p align="center">
+  <img src="animation/hybridpls-demo.gif" alt="Hybrid PLS animation: from patient CT and nurse scalars to one score correlated with Y" width="760">
+</p>
+
+- **Interactive version** (play / pause / scrub): open [`animation/index.html`](animation/index.html) locally, or after GitHub Pages is enabled: <https://jong-min-moon.github.io/FShybridPLS/>
+- CDN mirror: <https://cdn.jsdelivr.net/gh/Jong-Min-Moon/FShybridPLS@main/animation/index.html>
+
 ## Installation
 
 ```r
