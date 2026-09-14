@@ -25,15 +25,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Stage site (animation only)
         run: |
           mkdir -p _site
           cp animation/index.html animation/animation_data.js _site/
-          # Optional assets if present
           cp animation/hybridpls-demo.gif _site/ 2>/dev/null || true
+      # Requires a one-time repo setting: Settings → Pages → Source = GitHub Actions
+      # (GITHUB_TOKEN cannot create the Pages site by itself.)
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
       - id: deployment
