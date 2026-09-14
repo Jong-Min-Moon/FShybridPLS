@@ -65,19 +65,29 @@ async function main() {
   await page.waitForFunction(() => window.__ANIM__ && window.__ANIM__.ready);
 
   const totalMs = await page.evaluate(() => window.__ANIM__.totalMs);
-  // ~5 fps over the full timeline → ~15s GIF playback of the whole story
+  // Hold the informative poster a bit longer at the start of the GIF
+  const posterHold = Math.min(totalMs, 2800);
   const stepMs = 200;
   const frames = [];
-  console.log(`Capturing ${Math.floor(totalMs / stepMs) + 1} frames over ${totalMs}ms…`);
+  const posterExtra = Math.ceil(1200 / stepMs); // extra ~1.2s of poster at GIF start
+  console.log(`Capturing frames over ${totalMs}ms (+${posterExtra} poster holds)…`);
 
-  for (let t = 0, i = 0; t <= totalMs; t += stepMs, i++) {
+  for (let j = 0; j < posterExtra; j++) {
+    await page.evaluate((ms) => window.__ANIM__.seek(ms), 0);
+    await page.waitForTimeout(20);
+    const file = path.join(FRAME_DIR, `f${String(j).padStart(4, "0")}.png`);
+    await page.locator(".frame").screenshot({ path: file, type: "png" });
+    frames.push(file);
+  }
+
+  let i = frames.length;
+  for (let t = 0; t <= totalMs; t += stepMs, i++) {
     await page.evaluate((ms) => window.__ANIM__.seek(ms), Math.min(t, totalMs));
-    // Let SVG paint; freeze time-based pulses at a stable phase by seeking again
     await page.waitForTimeout(30);
     const file = path.join(FRAME_DIR, `f${String(i).padStart(4, "0")}.png`);
     await page.locator(".frame").screenshot({ path: file, type: "png" });
     frames.push(file);
-    if (i % 25 === 0) console.log(`  frame ${i} @ ${t}ms`);
+    if ((i - posterExtra) % 25 === 0) console.log(`  frame ${i} @ ${t}ms`);
   }
 
   await browser.close();

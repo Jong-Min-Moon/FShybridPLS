@@ -15,7 +15,9 @@ Hybrid PLS builds **one supervised score** \(\rho\) from tangled renogram curves
   <img src="animation/hybridpls-demo.gif" alt="Hybrid PLS animation: from patient CT and nurse scalars to one score correlated with Y" width="760">
 </p>
 
-- **Interactive version** (play / pause / scrub): open [`animation/index.html`](animation/index.html) locally, or after GitHub Pages is enabled: <https://jong-min-moon.github.io/FShybridPLS/>
+The GIF **autoplays** on GitHub (no click needed). For the interactive version (play / pause / scrub), open [`animation/index.html`](animation/index.html) locally — it also **autoplays** from an informative title card.
+
+- After GitHub Pages is enabled: <https://jong-min-moon.github.io/FShybridPLS/>
 - CDN mirror: <https://cdn.jsdelivr.net/gh/Jong-Min-Moon/FShybridPLS@main/animation/index.html>
 
 ## Installation
