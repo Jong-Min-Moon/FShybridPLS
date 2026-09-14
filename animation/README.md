@@ -7,6 +7,21 @@ Educational walkthrough of Hybrid PLS (motivation → associations → hybrid \(
 - Open [`index.html`](index.html) in a browser (loads sibling `animation_data.js`).
 - README on GitHub shows the looping demo GIF [`hybridpls-demo.gif`](hybridpls-demo.gif) (GitHub cannot run interactive HTML inside README.md).
 
+## Live demo (GitHub Pages)
+
+The Actions-based Pages workflow was removed (it fails until Pages exists, and `GITHUB_TOKEN` cannot create Pages).
+
+Use **branch deploy** instead:
+
+1. Commit/push the `docs/` folder at the repo root (copy of this animation site).
+2. Open https://github.com/Jong-Min-Moon/FShybridPLS/settings/pages
+3. **Build and deployment → Source:** Deploy from a branch
+4. Branch: `main` · folder: `/docs` · Save
+
+Site: https://jong-min-moon.github.io/FShybridPLS/
+
+Until then, use the CDN mirror in the main README.
+
 ## Record / refresh the GIF
 
 ```bash
@@ -16,17 +31,10 @@ npx playwright install chromium
 npm run record-gif
 ```
 
-This writes `hybridpls-demo.gif` (~3 MB). Use `index.html?record=1` to hide page chrome while capturing.
+This writes `hybridpls-demo.gif`. After regenerating, also copy it into `docs/` if you use Pages:
 
-## GitHub Pages
-
-**One-time setup (required before the workflow can succeed):**
-
-1. Open **Settings → Pages** for this repo:  
-   https://github.com/Jong-Min-Moon/FShybridPLS/settings/pages
-2. Under **Build and deployment → Source**, choose **GitHub Actions** (not “Deploy from a branch”).
-3. Re-run the failed **pages-animation** workflow (Actions → pages-animation → Re-run jobs), or push any change under `animation/`.
-
-After that, the interactive demo is at `https://jong-min-moon.github.io/FShybridPLS/`.
-
-Pushing changes under `animation/` runs `.github/workflows/pages-animation.yml`. The first failure with `Get Pages site failed … Not Found` almost always means step 2 above was not done yet — `GITHUB_TOKEN` cannot enable Pages by itself.
+```bash
+copy hybridpls-demo.gif ..\docs\
+copy index.html ..\docs\
+copy animation_data.js ..\docs\
+```
