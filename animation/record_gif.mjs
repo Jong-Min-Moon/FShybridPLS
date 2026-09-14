@@ -65,10 +65,11 @@ async function main() {
   await page.waitForFunction(() => window.__ANIM__ && window.__ANIM__.ready);
 
   const totalMs = await page.evaluate(() => window.__ANIM__.totalMs);
-  // Leaner GIF so GitHub/CDN keep it as a true autoplaying image
-  const stepMs = 400;
+  // Hold the informative poster a bit longer at the start of the GIF
+  const posterHold = Math.min(totalMs, 2800);
+  const stepMs = 200;
   const frames = [];
-  const posterExtra = Math.ceil(1000 / stepMs);
+  const posterExtra = Math.ceil(1200 / stepMs); // extra ~1.2s of poster at GIF start
   console.log(`Capturing frames over ${totalMs}ms (+${posterExtra} poster holds)…`);
 
   for (let j = 0; j < posterExtra; j++) {
@@ -82,11 +83,11 @@ async function main() {
   let i = frames.length;
   for (let t = 0; t <= totalMs; t += stepMs, i++) {
     await page.evaluate((ms) => window.__ANIM__.seek(ms), Math.min(t, totalMs));
-    await page.waitForTimeout(25);
+    await page.waitForTimeout(30);
     const file = path.join(FRAME_DIR, `f${String(i).padStart(4, "0")}.png`);
     await page.locator(".frame").screenshot({ path: file, type: "png" });
     frames.push(file);
-    if ((i - posterExtra) % 20 === 0) console.log(`  frame ${i} @ ${t}ms`);
+    if ((i - posterExtra) % 25 === 0) console.log(`  frame ${i} @ ${t}ms`);
   }
 
   await browser.close();
@@ -98,22 +99,17 @@ from PIL import Image
 import os
 frames = ${JSON.stringify(frames).replace(/\\/g, "/")}
 out = r"""${OUT_GIF.replace(/\\/g, "/")}"""
-# Shared palette from a mid frame for smaller, cleaner looping GIF
-sample = Image.open(frames[min(8, len(frames)-1)]).convert("RGB")
-sample = sample.resize((640, int(640 * sample.size[1] / sample.size[0])), Image.Resampling.LANCZOS)
-palette = sample.quantize(colors=64, method=Image.Quantize.MEDIANCUT)
 imgs = []
 for f in frames:
-    im = Image.open(f).convert("RGB")
-    im = im.resize((560, int(560 * im.size[1] / im.size[0])), Image.Resampling.LANCZOS)
-    imgs.append(im.quantize(palette=palette))
+    im = Image.open(f).convert("P", palette=Image.ADAPTIVE, colors=128)
+    imgs.append(im)
 imgs[0].save(
     out,
     save_all=True,
     append_images=imgs[1:],
-    duration=100,
+    duration=120,
     loop=0,
-    optimize=False,
+    optimize=True,
     disposal=2
 )
 print("wrote", out, "frames", len(imgs), "bytes", os.path.getsize(out))

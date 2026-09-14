@@ -1649,35 +1649,8 @@
         seek(ms) { seekTo(ms, { resume: false }); },
         ready: true
       };
-      if (RECORD) return;
-
-      // Autoplay only when the animation stage is on screen (scroll into view)
-      const stage = document.querySelector(".frame") || $("scene");
-      let hasStarted = false;
-      const startWhenVisible = () => {
-        if (hasStarted || state.playing) return;
-        hasStarted = true;
-        seekTo(0, { resume: true });
-      };
-      if ("IntersectionObserver" in window && stage) {
-        const io = new IntersectionObserver((entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting && en.intersectionRatio >= 0.35) {
-              startWhenVisible();
-            } else if (state.playing && en.intersectionRatio < 0.05) {
-              // Pause when scrolled far away; resume from current position when back
-              state.playing = false;
-              cancelAnimationFrame(state.raf);
-              $("playBtn").textContent = "Play";
-              hasStarted = false; // allow restart-from-0 next time it enters view
-            }
-          });
-        }, { threshold: [0, 0.35, 0.6] });
-        io.observe(stage);
-        // If already visible on load, start immediately
-        const rect = stage.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.85 && rect.bottom > 40) startWhenVisible();
-      } else {
+      if (!RECORD) {
+        // Autoplay immediately after first paint (poster is already informative)
         setTimeout(() => { if (!state.playing) play(); }, 80);
       }
     }

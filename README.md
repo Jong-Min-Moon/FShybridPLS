@@ -12,18 +12,12 @@ It provides an R implementation of Mun and Jang (2026), *Hybrid Partial Least Sq
 Hybrid PLS builds **one supervised score** \(\rho\) from tangled renogram curves and scalar side information:
 
 <p align="center">
-  <img
-    src="animation/hybridpls-demo.gif"
-    alt="Hybrid PLS animation: from patient CT and nurse scalars to one score correlated with Y"
-    width="760"
-    loading="lazy"
-    decoding="async"
-  />
+  <img src="animation/hybridpls-demo.gif" alt="Hybrid PLS animation: from patient CT and nurse scalars to one score correlated with Y" width="760">
 </p>
 
-The demo GIF uses **`loading="lazy"`** so it begins when you scroll it into view (then loops). For play / pause / scrub, open the live site — it also autoplays when the stage becomes visible.
+The GIF **autoplays** on GitHub (no click needed). For the interactive version (play / pause / scrub), open [`animation/index.html`](animation/index.html) locally — it also **autoplays** from an informative title card.
 
-- Live site: <https://jong-min-moon.github.io/FShybridPLS/>
+- After GitHub Pages is enabled: <https://jong-min-moon.github.io/FShybridPLS/>
 - CDN mirror: <https://cdn.jsdelivr.net/gh/Jong-Min-Moon/FShybridPLS@main/animation/index.html>
 
 ## Installation
